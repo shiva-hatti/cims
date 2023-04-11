@@ -1,0 +1,61 @@
+package com.iris.exception;
+
+import java.io.PrintStream;
+import java.io.PrintWriter;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.iris.util.constant.ErrorConstants;
+
+public class PropertiesConfigException extends Exception {
+	private static final long serialVersionUID = 6813711622433466758L;
+	private static final Logger LOGGER = LoggerFactory.getLogger(PropertiesConfigException.class);
+
+	private final Throwable rootCause;
+	private static final boolean JDK_SUPPORTS_NESTED;
+	private static final Object lock1 = new Object();
+
+	public PropertiesConfigException(Throwable rootCause) {
+		this.rootCause = rootCause;
+	}
+
+	@Override
+	public synchronized Throwable getCause() {
+		return this.rootCause;
+	}
+
+	public void printStackTrace() {
+		printStackTrace(System.err);
+	}
+
+	public void printStackTrace(PrintStream out) {
+		synchronized (lock1) {
+			PrintWriter pw = new PrintWriter(out, false);
+			printStackTrace(pw);
+			pw.flush();
+		}
+	}
+
+	public void printStackTrace(PrintWriter out) {
+		synchronized (lock1) {
+			super.printStackTrace(out);
+			if ((!JDK_SUPPORTS_NESTED) && (this.rootCause != null)) {
+				out.print("Caused by: ");
+				this.rootCause.printStackTrace(out);
+			}
+		}
+	}
+
+	static {
+		boolean flag = false;
+		try {
+			Throwable.class.getDeclaredMethod("getCause", new Class[0]);
+			flag = true;
+		} catch (NoSuchMethodException ex) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_CONTROLLER.getConstantVal(), ex);
+			flag = false;
+		}
+		JDK_SUPPORTS_NESTED = flag;
+	}
+}

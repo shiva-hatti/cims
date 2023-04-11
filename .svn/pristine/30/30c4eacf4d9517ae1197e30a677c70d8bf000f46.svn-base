@@ -1,0 +1,107 @@
+/**
+ * 
+ */
+package com.iris.sdmx.ebrvalidation.bean;
+
+import java.io.Serializable;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+/**
+ * @author sajadhav
+ *
+ */
+@JsonInclude(Include.NON_NULL)
+public class CustFusionError implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1643402362375304393L;
+
+	private String errorCode;
+	
+	private String message;
+	
+	private String dataSet;
+	
+	private String componentId;
+	
+	private String reportedValue;
+	
+	private String position;
+	
+	private List<String> keys;
+	
+	private String headerKey;
+
+	public String getErrorCode() {
+		return errorCode;
+	}
+
+	public void setErrorCode(String errorCode) {
+		this.errorCode = errorCode;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
+	public String getDataSet() {
+		return dataSet;
+	}
+
+	public void setDataSet(String dataSet) {
+		this.dataSet = dataSet;
+	}
+
+	public String getComponentId() {
+		return componentId;
+	}
+
+	public void setComponentId(String componentId) {
+		this.componentId = componentId;
+	}
+
+	public String getReportedValue() {
+		return reportedValue;
+	}
+
+	public void setReportedValue(String reportedValue) {
+		this.reportedValue = reportedValue;
+	}
+
+	public String getPosition() {
+		return position;
+	}
+
+	public void setPosition(String position) {
+		this.position = position;
+	}
+
+	public List<String> getKeys() {
+		return keys;
+	}
+
+	public void setKeys(List<String> keys) {
+		this.keys = keys;
+	}
+
+	public String getHeaderKey() {
+		return headerKey;
+	}
+
+	public void setHeaderKey(String headerKey) {
+		this.headerKey = headerKey;
+	}
+	
+	
+	
+	
+}

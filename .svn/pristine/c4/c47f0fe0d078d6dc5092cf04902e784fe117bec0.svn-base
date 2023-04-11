@@ -1,0 +1,143 @@
+/**
+ * 
+ */
+package com.iris.sdmx.fusion.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.dto.ServiceResponse;
+import com.iris.sdmx.fusion.bean.FusionConstraintsBean;
+import com.iris.sdmx.fusion.entity.FusionProperties;
+import com.iris.sdmx.fusion.service.FusionConstraintsApiService;
+import com.iris.service.GenericService;
+
+/**
+ * @author apagaria
+ *
+ */
+@RestController
+@RequestMapping(value = "/service/fusionConstraintsApi")
+public class FusionConstraintsApiController {
+
+	private static final Logger LOGGER = LogManager.getLogger(FusionConstraintsApiController.class);
+
+	@Autowired
+	private GenericService<FusionProperties, Long> fusionPropertiesService;
+
+	@Autowired
+	private FusionConstraintsApiService fusionConstraintsApiService;
+
+	@PostMapping(value = "/submitFusionConstraints")
+	public ServiceResponse submitCodeListData(@RequestBody String testData) {
+		String jobProcessingId = UUID.randomUUID().toString();
+		try {
+			ServiceResponse serviceResponse = getFusionProperties();
+			if (serviceResponse.isStatus()) {
+				// Fetching static properties
+				List<FusionProperties> fusionProperties = (List<FusionProperties>) serviceResponse.getResponse();
+				if (CollectionUtils.isEmpty(fusionProperties)) {
+					return new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+				}
+				// Static properties Map
+				Map<String, String> fusionPropertiesMap = fusionProperties.stream().collect(Collectors.toMap(FusionProperties::getKey, FusionProperties::getValue));
+
+				// Creating Bean
+				FusionConstraintsBean fusionConstraintsBean = new FusionConstraintsBean();
+				fusionConstraintsApiService.createInputBean(fusionConstraintsBean, fusionPropertiesMap);
+				Map<String, Boolean> elementStatusMap = new HashMap<>();
+				fusionConstraintsApiService.fetchElementSpecificJsonFromReturnTemplate(111L, fusionPropertiesMap, fusionConstraintsBean, jobProcessingId, elementStatusMap);
+
+				return new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(fusionConstraintsBean).build();
+			}
+		} catch (Exception e) {
+			LOGGER.error("Exception", e);
+		}
+		return new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+	}
+
+	@PostMapping(value = "/updateFusionConstraints")
+	public ServiceResponse updateCodeListData(@RequestBody String testData) {
+		String jobProcessingId = UUID.randomUUID().toString();
+		try {
+			ServiceResponse serviceResponse = getFusionProperties();
+			if (serviceResponse.isStatus()) {
+				// Fetching static properties
+				List<FusionProperties> fusionProperties = (List<FusionProperties>) serviceResponse.getResponse();
+				if (CollectionUtils.isEmpty(fusionProperties)) {
+					return new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+				}
+				// Static properties Map
+				Map<String, String> fusionPropertiesMap = fusionProperties.stream().collect(Collectors.toMap(FusionProperties::getKey, FusionProperties::getValue));
+
+				// Creating Bean
+				FusionConstraintsBean fusionConstraintsBean = new FusionConstraintsBean();
+				fusionConstraintsApiService.createInputBean(fusionConstraintsBean, fusionPropertiesMap);
+
+				Map<String, Boolean> elementStatusMap = new HashMap<>();
+				fusionConstraintsApiService.fetchAllElement(fusionPropertiesMap, fusionConstraintsBean, jobProcessingId, elementStatusMap);
+				LOGGER.debug("elementStatusMap - " + elementStatusMap);
+
+				return new ServiceResponse.ServiceResponseBuilder().setStatus(!elementStatusMap.values().contains(false)).setResponse(elementStatusMap).build();
+			}
+		} catch (Exception e) {
+			LOGGER.error("Exception", e);
+		}
+		return new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+	}
+
+	@DeleteMapping(value = "/user/{userId}/deleteFusionConstraints/agency/(agencyName)")
+	public ServiceResponse deleteCodeListData(@PathVariable("userId") Long userId, @PathVariable("agencyName") String agencyName) {
+		String jobProcessingId = UUID.randomUUID().toString();
+		try {
+			ServiceResponse serviceResponse = getFusionProperties();
+			if (serviceResponse.isStatus()) {
+				// Fetching static properties
+				List<FusionProperties> fusionProperties = (List<FusionProperties>) serviceResponse.getResponse();
+				if (CollectionUtils.isEmpty(fusionProperties)) {
+					return new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+				}
+				// Static properties Map
+				Map<String, String> fusionPropertiesMap = fusionProperties.stream().collect(Collectors.toMap(FusionProperties::getKey, FusionProperties::getValue));
+
+				// Creating Bean
+				FusionConstraintsBean fusionConstraintsBean = new FusionConstraintsBean();
+				fusionConstraintsApiService.createInputBean(fusionConstraintsBean, fusionPropertiesMap);
+
+				Map<String, Boolean> elementStatusMap = new HashMap<>();
+				Boolean isDeleted = fusionConstraintsApiService.deleteDataForFusionConstraints(userId, jobProcessingId, agencyName);
+				LOGGER.debug("isDeleted - " + isDeleted);
+
+				return new ServiceResponse.ServiceResponseBuilder().setStatus(!elementStatusMap.values().contains(isDeleted)).setResponse(elementStatusMap).build();
+			}
+		} catch (Exception e) {
+			LOGGER.error("Exception", e);
+		}
+		return new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+	}
+
+	public ServiceResponse getFusionProperties() {
+		try {
+			List<FusionProperties> fusionProperties = fusionPropertiesService.getAllDataFor(null, null);
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(fusionProperties).build();
+		} catch (Exception e) {
+			LOGGER.error("Exception", e);
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+		}
+	}
+
+}

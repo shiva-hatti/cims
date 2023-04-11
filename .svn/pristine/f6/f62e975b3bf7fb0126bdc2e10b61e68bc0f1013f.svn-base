@@ -1,0 +1,365 @@
+/**
+ * 
+ */
+package com.iris.sdmx.element.entity;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.iris.model.Regulator;
+import com.iris.model.UserMaster;
+
+/**
+ * @author apagaria
+ *
+ */
+@Entity
+@Table(name = "TBL_SDMX_ELEMENT")
+@JsonInclude(Include.NON_NULL)
+public class SdmxElementEntity implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "ELEMENT_ID")
+	private Long elementId;
+
+	@Column(name = "DSD_CODE")
+	private String dsdCode;
+
+	@Column(name = "ELEMENT_LABLE")
+	private String elementLable;
+
+	@Column(name = "ELEMENT_VER")
+	private String elementVer;
+
+	@Column(name = "CLASSIFICATION_ID_FK")
+	private SdmxElementClassificationEntity classificationIdFk;
+
+	@Column(name = "DEPENDENCY_TYPE_ID_FK")
+	private SdmxElementDependencyTypeEntity dependencyTypeIdFk;
+
+	@Column(name = "FLOW_TYPE_ID_FK")
+	private SdmxElementFlowTypeEntity flowTypeIdFk;
+
+	@Column(name = "NATURE_ID_FK")
+	private SdmxElementNatureEntity natureIdFk;
+
+	@Column(name = "SECTOR_ID_FK")
+	private SdmxElementSectorEntity sectorIdFk;
+
+	@Column(name = "ELEMENT_DESC")
+	private String elementDesc;
+
+	@Column(name = "PARENT_ELEMENT_ID_FK")
+	private SdmxElementEntity parentElementIdFk;
+
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "LAST_UPDATE_ON")
+	private Date lastUpdateOn;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "CREATED_BY")
+	private UserMaster createdBy;
+
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "MODIFY_BY")
+	private UserMaster modifyBy;
+
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "MODIFY_ON")
+	private Date modifyOn;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "REGULATOR_OWNER_ID_FK")
+	private Regulator regulatorOwnerIdFk;
+
+	/**
+	 * @return the elementId
+	 */
+	public Long getElementId() {
+		return elementId;
+	}
+
+	/**
+	 * @param elementId the elementId to set
+	 */
+	public void setElementId(Long elementId) {
+		this.elementId = elementId;
+	}
+
+	/**
+	 * @return the dsdCode
+	 */
+	public String getDsdCode() {
+		return dsdCode;
+	}
+
+	/**
+	 * @param dsdCode the dsdCode to set
+	 */
+	public void setDsdCode(String dsdCode) {
+		this.dsdCode = dsdCode;
+	}
+
+	/**
+	 * @return the elementLable
+	 */
+	public String getElementLable() {
+		return elementLable;
+	}
+
+	/**
+	 * @param elementLable the elementLable to set
+	 */
+	public void setElementLable(String elementLable) {
+		this.elementLable = elementLable;
+	}
+
+	/**
+	 * @return the elementVer
+	 */
+	public String getElementVer() {
+		return elementVer;
+	}
+
+	/**
+	 * @param elementVer the elementVer to set
+	 */
+	public void setElementVer(String elementVer) {
+		this.elementVer = elementVer;
+	}
+
+	/**
+	 * @return the classificationIdFk
+	 */
+	public SdmxElementClassificationEntity getClassificationIdFk() {
+		return classificationIdFk;
+	}
+
+	/**
+	 * @param classificationIdFk the classificationIdFk to set
+	 */
+	public void setClassificationIdFk(SdmxElementClassificationEntity classificationIdFk) {
+		this.classificationIdFk = classificationIdFk;
+	}
+
+	/**
+	 * @return the dependencyTypeIdFk
+	 */
+	public SdmxElementDependencyTypeEntity getDependencyTypeIdFk() {
+		return dependencyTypeIdFk;
+	}
+
+	/**
+	 * @param dependencyTypeIdFk the dependencyTypeIdFk to set
+	 */
+	public void setDependencyTypeIdFk(SdmxElementDependencyTypeEntity dependencyTypeIdFk) {
+		this.dependencyTypeIdFk = dependencyTypeIdFk;
+	}
+
+	/**
+	 * @return the flowTypeIdFk
+	 */
+	public SdmxElementFlowTypeEntity getFlowTypeIdFk() {
+		return flowTypeIdFk;
+	}
+
+	/**
+	 * @param flowTypeIdFk the flowTypeIdFk to set
+	 */
+	public void setFlowTypeIdFk(SdmxElementFlowTypeEntity flowTypeIdFk) {
+		this.flowTypeIdFk = flowTypeIdFk;
+	}
+
+	/**
+	 * @return the natureIdFk
+	 */
+	public SdmxElementNatureEntity getNatureIdFk() {
+		return natureIdFk;
+	}
+
+	/**
+	 * @param natureIdFk the natureIdFk to set
+	 */
+	public void setNatureIdFk(SdmxElementNatureEntity natureIdFk) {
+		this.natureIdFk = natureIdFk;
+	}
+
+	/**
+	 * @return the sectorIdFk
+	 */
+	public SdmxElementSectorEntity getSectorIdFk() {
+		return sectorIdFk;
+	}
+
+	/**
+	 * @param sectorIdFk the sectorIdFk to set
+	 */
+	public void setSectorIdFk(SdmxElementSectorEntity sectorIdFk) {
+		this.sectorIdFk = sectorIdFk;
+	}
+
+	/**
+	 * @return the elementDesc
+	 */
+	public String getElementDesc() {
+		return elementDesc;
+	}
+
+	/**
+	 * @param elementDesc the elementDesc to set
+	 */
+	public void setElementDesc(String elementDesc) {
+		this.elementDesc = elementDesc;
+	}
+
+	/**
+	 * @return the parentElementIdFk
+	 */
+	public SdmxElementEntity getParentElementIdFk() {
+		return parentElementIdFk;
+	}
+
+	/**
+	 * @param parentElementIdFk the parentElementIdFk to set
+	 */
+	public void setParentElementIdFk(SdmxElementEntity parentElementIdFk) {
+		this.parentElementIdFk = parentElementIdFk;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the lastUpdateOn
+	 */
+	public Date getLastUpdateOn() {
+		return lastUpdateOn;
+	}
+
+	/**
+	 * @param lastUpdateOn the lastUpdateOn to set
+	 */
+	public void setLastUpdateOn(Date lastUpdateOn) {
+		this.lastUpdateOn = lastUpdateOn;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the modifyBy
+	 */
+	public UserMaster getModifyBy() {
+		return modifyBy;
+	}
+
+	/**
+	 * @param modifyBy the modifyBy to set
+	 */
+	public void setModifyBy(UserMaster modifyBy) {
+		this.modifyBy = modifyBy;
+	}
+
+	/**
+	 * @return the modifyOn
+	 */
+	public Date getModifyOn() {
+		return modifyOn;
+	}
+
+	/**
+	 * @param modifyOn the modifyOn to set
+	 */
+	public void setModifyOn(Date modifyOn) {
+		this.modifyOn = modifyOn;
+	}
+
+	/**
+	 * @return the regulatorOwnerIdFk
+	 */
+	public Regulator getRegulatorOwnerIdFk() {
+		return regulatorOwnerIdFk;
+	}
+
+	/**
+	 * @param regulatorOwnerIdFk the regulatorOwnerIdFk to set
+	 */
+	public void setRegulatorOwnerIdFk(Regulator regulatorOwnerIdFk) {
+		this.regulatorOwnerIdFk = regulatorOwnerIdFk;
+	}
+
+	@Override
+	public String toString() {
+		return "SdmxElementEntity [elementId=" + elementId + ", dsdCode=" + dsdCode + ", elementLable=" + elementLable
+				+ ", elementVer=" + elementVer + ", classificationIdFk=" + classificationIdFk + ", dependencyTypeIdFk="
+				+ dependencyTypeIdFk + ", flowTypeIdFk=" + flowTypeIdFk + ", natureIdFk=" + natureIdFk + ", sectorIdFk="
+				+ sectorIdFk + ", elementDesc=" + elementDesc + ", parentElementIdFk=" + parentElementIdFk
+				+ ", isActive=" + isActive + ", lastUpdateOn=" + lastUpdateOn + ", createdBy=" + createdBy
+				+ ", createdOn=" + createdOn + ", modifyBy=" + modifyBy + ", modifyOn=" + modifyOn
+				+ ", regulatorOwnerIdFk=" + regulatorOwnerIdFk + "]";
+	}
+
+}

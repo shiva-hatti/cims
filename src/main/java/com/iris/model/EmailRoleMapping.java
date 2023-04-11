@@ -1,0 +1,93 @@
+package com.iris.model;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "TBL_EMAIL_ROLE_MAPPING")
+public class EmailRoleMapping implements Serializable {
+
+	private static final long serialVersionUID = -2336649649912028372L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "EMAIL_ROLE_MAP_ID")
+	private long emailRoleMapId;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "EMAIL_ALERT_ID_FK")
+	private EmailAlert emailAlertIdFk;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "USER_ROLE_ID_FK")
+	private UserRole userRoleIdFk;
+
+	@Column(name = "EMAIL_TYPE")
+	private Integer emailTypeId;
+
+	/**
+	 * @return the emailRoleMapId
+	 */
+	public long getEmailRoleMapId() {
+		return emailRoleMapId;
+	}
+
+	/**
+	 * @param emailRoleMapId the emailRoleMapId to set
+	 */
+	public void setEmailRoleMapId(long emailRoleMapId) {
+		this.emailRoleMapId = emailRoleMapId;
+	}
+
+	/**
+	 * @return the emailAlertIdFk
+	 */
+	public EmailAlert getEmailAlertIdFk() {
+		return emailAlertIdFk;
+	}
+
+	/**
+	 * @param emailAlertIdFk the emailAlertIdFk to set
+	 */
+	public void setEmailAlertIdFk(EmailAlert emailAlertIdFk) {
+		this.emailAlertIdFk = emailAlertIdFk;
+	}
+
+	/**
+	 * @return the userRoleIdFk
+	 */
+	public UserRole getUserRoleIdFk() {
+		return userRoleIdFk;
+	}
+
+	/**
+	 * @param userRoleIdFk the userRoleIdFk to set
+	 */
+	public void setUserRoleIdFk(UserRole userRoleIdFk) {
+		this.userRoleIdFk = userRoleIdFk;
+	}
+
+	/**
+	 * @return the emailTypeId
+	 */
+	public Integer getEmailTypeId() {
+		return emailTypeId;
+	}
+
+	/**
+	 * @param emailTypeId the emailTypeId to set
+	 */
+	public void setEmailTypeId(Integer emailTypeId) {
+		this.emailTypeId = emailTypeId;
+	}
+
+}

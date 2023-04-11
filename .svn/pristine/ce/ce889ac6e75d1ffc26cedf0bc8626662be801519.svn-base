@@ -1,0 +1,131 @@
+package com.iris.model;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import com.iris.util.Validations;
+
+/**
+ * This is the FieldKeyLabel bean class with Hibernate mapping.
+ */
+@Entity
+@Table(name = "TBL_FIELD_KEY_LABEL")
+
+public class FieldKeyLabel implements Serializable {
+
+	private static final long serialVersionUID = -5616260950094778540L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "FIELD_KEY_LABEL_ID")
+	private Long fieldKeyLabelId;
+
+	@ManyToOne
+	@JoinColumn(name = "FIELD_ID_FK")
+	private FieldKey fieldIdFk;
+
+	@ManyToOne
+	@JoinColumn(name = "LANGUAGE_ID_FK")
+	private LanguageMaster languageIdFk;
+
+	@Column(name = "FIELD_KEY_LABEL")
+	private String fieldKeyLable;
+
+	@Transient
+	private String fieldKey;
+
+	@Transient
+	private String languageCode;
+
+	public FieldKeyLabel() {
+
+	}
+	
+	public FieldKeyLabel(String fieldKey, String fieldKeyLable, String languaCode) {
+		this.fieldKey = fieldKey;
+		this.fieldKeyLable = fieldKeyLable;
+		this.languageCode = languaCode;
+	}
+
+	/**
+	 * @return the fieldKey
+	 */
+	public String getFieldKey() {
+		return fieldKey;
+	}
+
+	/**
+	 * @param fieldKey the fieldKey to set
+	 */
+	public void setFieldKey(String fieldKey) {
+		this.fieldKey = fieldKey;
+	}
+
+	/**
+	 * @return the languageCode
+	 */
+	public String getLanguageCode() {
+		return languageCode;
+	}
+
+	/**
+	 * @param languageCode the languageCode to set
+	 */
+	public void setLanguageCode(String languageCode) {
+		this.languageCode = languageCode;
+	}
+
+	public FieldKey getFieldIdFk() {
+		return fieldIdFk;
+	}
+
+	public void setFieldIdFk(FieldKey fieldIdFk) {
+		this.fieldIdFk = fieldIdFk;
+	}
+
+	public LanguageMaster getLanguageIdFk() {
+		return languageIdFk;
+	}
+
+	public void setLanguageIdFk(LanguageMaster languageIdFk) {
+		this.languageIdFk = languageIdFk;
+	}
+
+	/**
+	 * @return the fieldKeyLable
+	 */
+	public String getFieldKeyLable() {
+		return fieldKeyLable;
+	}
+
+	/**
+	 * @param fieldKeyLable the fieldKeyLable to set
+	 */
+	public void setFieldKeyLable(String fieldKeyLable) {
+		this.fieldKeyLable = fieldKeyLable;
+	}
+
+	/**
+	 * @return the fieldKeyLabelId
+	 */
+	public Long getFieldKeyLabelId() {
+		return fieldKeyLabelId;
+	}
+
+	/**
+	 * @param fieldKeyLabelId the fieldKeyLabelId to set
+	 */
+	public void setFieldKeyLabelId(Long fieldKeyLabelId) {
+		this.fieldKeyLabelId = fieldKeyLabelId;
+	}
+
+}

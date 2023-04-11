@@ -1,0 +1,349 @@
+package com.iris.nbfc.controller;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.exception.ServiceException;
+import com.iris.model.UserMaster;
+import com.iris.nbfc.model.NbfcDisplayMessages;
+import com.iris.nbfc.model.NbfcEntityBean;
+import com.iris.nbfc.model.NbfcPanMasterBean;
+import com.iris.nbfc.model.NbfcRegistrationBean;
+import com.iris.nbfc.service.NbfcPanMasterService;
+import com.iris.service.GenericService;
+import com.iris.util.AESV2;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.MethodConstants;
+
+/**
+ * @author pmohite
+ */
+@RestController
+@RequestMapping("/service/nbfcMngtController")
+public class NbfcMngtController {
+
+	private static final Logger Logger = LogManager.getLogger(NbfcMngtController.class);
+
+	@Autowired
+	NbfcPanMasterService nbfcPanMasterService;
+
+	@Autowired
+	GenericService<NbfcEntityBean, Long> nbfcEntityService;
+
+	@Autowired
+	private GenericService<UserMaster, Long> userMasterService;
+
+	@Autowired
+	private GenericService<NbfcDisplayMessages, Long> nbfcMessagesService;
+
+	private NbfcPanMasterBean nbfcPanMasterBean = new NbfcPanMasterBean();
+	private NbfcEntityBean nbfcEntityBean = new NbfcEntityBean();
+
+	@GetMapping(value = "/getNbfcBorrower/{panNumber}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ServiceResponse getBorrowerName(@PathVariable(value = "panNumber") String panNumber, @RequestHeader(name = "JobProcessingId") String jobProcessId) {
+		System.out.println(panNumber);
+		ServiceResponse response;
+		List<NbfcEntityBean> nbfcEntityBeanList = new ArrayList<>();
+		List<NbfcPanMasterBean> nbfcPanMasterBeanList = new ArrayList<>();
+		try {
+			if (panNumber != null) {
+				Map<String, List<String>> columnValueMap = new HashMap<>();
+				List<String> panList = new ArrayList<>();
+				panList.add(panNumber);
+				columnValueMap.put(ColumnConstants.PAN_NUMBER.getConstantVal(), panList);
+
+				nbfcPanMasterBeanList = nbfcPanMasterService.getDataByColumnValue(columnValueMap, MethodConstants.GET_BORROWER_NAME_BY_PAN_NUMBER.getConstantVal());
+				if (!CollectionUtils.isEmpty(nbfcPanMasterBeanList)) {
+					nbfcPanMasterBean = nbfcPanMasterBeanList.get(0);
+					nbfcEntityBeanList = nbfcEntityService.getDataByColumnValue(columnValueMap, MethodConstants.GET_NBFC_ENTITY_BY_PAN_NUMBER.getConstantVal());
+				} else {
+					Logger.error("Exception while fetching PAN Details info for job processingid " + jobProcessId);
+					return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0836.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0836.toString())).build();
+				}
+			}
+		} catch (ServiceException e) {
+			Logger.error("Exception while fetching PAN Details info for job processingid " + jobProcessId, e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0836.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0836.toString())).build();
+		} catch (Exception e) {
+			Logger.error("Exception while fetching PAN Details info for job processingid " + jobProcessId, e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+		}
+		if (!CollectionUtils.isEmpty(nbfcEntityBeanList)) {
+			nbfcEntityBean = nbfcEntityBeanList.get(0);
+			if (nbfcPanMasterBean.getPanNumber().trim().equals(nbfcEntityBean.getCompPan().trim()) && nbfcEntityBean.getIsVerified()) {
+				Logger.error("Exception while fetching PAN Details info for job processingid " + jobProcessId);
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0836.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0836.toString())).build();
+			} else {
+				System.out.println(nbfcPanMasterBean.getBorrowerName());
+				response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+				response.setResponse(nbfcPanMasterBean.getBorrowerName());
+				return response;
+			}
+		} else {
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			response.setResponse(nbfcPanMasterBean.getBorrowerName());
+			return response;
+		}
+	}
+
+	@GetMapping(value = "/getNbfcPanDetails/{panNumber}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ServiceResponse getNbfcPanDetails(@PathVariable(value = "panNumber") String panNumber, @RequestHeader(name = "JobProcessingId") String jobProcessId) {
+		System.out.println(panNumber);
+		ServiceResponse response;
+		List<NbfcPanMasterBean> nbfcPanMasterBeanList = new ArrayList<>();
+		try {
+			if (panNumber != null) {
+				Map<String, List<String>> columnValueMap = new HashMap<>();
+				List<String> panList = new ArrayList<>();
+				panList.add(panNumber);
+				columnValueMap.put(ColumnConstants.PAN_NUMBER.getConstantVal(), panList);
+
+				nbfcPanMasterBeanList = nbfcPanMasterService.getDataByColumnValue(columnValueMap, MethodConstants.GET_BORROWER_NAME_BY_PAN_NUMBER.getConstantVal());
+				if (!CollectionUtils.isEmpty(nbfcPanMasterBeanList)) {
+					nbfcPanMasterBean = nbfcPanMasterBeanList.get(0);
+				} else {
+					Logger.error("Exception while fetching PAN Details info for job processingid " + jobProcessId);
+					return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0836.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0836.toString())).build();
+				}
+			}
+		} catch (ServiceException e) {
+			Logger.error("Exception while fetching PAN Details info for job processingid " + jobProcessId, e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0836.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0836.toString())).build();
+		} catch (Exception e) {
+			Logger.error("Exception while fetching PAN Details info for job processingid " + jobProcessId, e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+		}
+		if (!Objects.isNull(nbfcPanMasterBean)) {
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			response.setResponse(nbfcPanMasterBean);
+			return response;
+		} else {
+			Logger.error("Exception while fetching PAN Details info for job processingid " + jobProcessId);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0836.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0836.toString())).build();
+		}
+	}
+
+	@GetMapping(value = "/getNbfcBorrowerDetails/{panNumber}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ServiceResponse getBorrowerPANDetails(@PathVariable(value = "panNumber") String panNumber, @RequestHeader(name = "JobProcessingId") String jobProcessId) {
+		System.out.println(panNumber);
+		List<NbfcEntityBean> nbfcEntityBeanList = new ArrayList<>();
+		ServiceResponse response = null;
+		try {
+			if (panNumber != null) {
+				Map<String, List<String>> columnValueMap = new HashMap<>();
+				List<String> panList = new ArrayList<>();
+				panList.add(panNumber);
+				columnValueMap.put(ColumnConstants.PAN_NUMBER.getConstantVal(), panList);
+				nbfcEntityBeanList = nbfcEntityService.getDataByColumnValue(columnValueMap, MethodConstants.GET_NBFC_ENTITY_BY_PAN_NUMBER.getConstantVal());
+				if (!CollectionUtils.isEmpty(nbfcEntityBeanList) && nbfcEntityBeanList.get(0) != null) {
+					nbfcEntityBean = nbfcEntityBeanList.get(0);
+					if (nbfcEntityBean != null && nbfcEntityBean.getUser() != null) {
+						UserMaster user = new UserMaster();
+						user.setUserId(nbfcEntityBean.getUser().getUserId());
+						nbfcEntityBean.setUser(user);
+					}
+					response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+					response.setResponse(nbfcEntityBean);
+				} else {
+					response = new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0835.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0835.toString())).build();
+				}
+			} else {
+				response = new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0835.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0835.toString())).build();
+			}
+			Logger.info("return list prepared for job processingid" + jobProcessId);
+		} catch (ServiceException e) {
+			Logger.error("Exception while fetching return list info for job processingid " + jobProcessId, e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0835.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0835.toString())).build();
+		} catch (Exception e) {
+			Logger.error("Exception while fetching return list info for job processingid " + jobProcessId, e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+		}
+		Logger.info("request completed to get return list for job processingid" + jobProcessId);
+		return response;
+	}
+
+	@GetMapping(value = "/getNbfcEntityDetails/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ServiceResponse getBorrowerPANDetails(@PathVariable(value = "userId") Long userId, @RequestHeader(name = "JobProcessingId") String jobProcessId) {
+		System.out.println(userId);
+		List<NbfcEntityBean> nbfcEntityBeanList = new ArrayList<>();
+		ServiceResponse response = null;
+		try {
+			if (userId != null) {
+				Map<String, List<Long>> columnValueMap = new HashMap<>();
+				List<Long> panList = new ArrayList<>();
+				panList.add(userId);
+				columnValueMap.put(ColumnConstants.USER_ID.getConstantVal(), panList);
+				nbfcEntityBeanList = nbfcEntityService.getDataByColumnLongValue(columnValueMap, MethodConstants.GET_NBFC_ENTITY_BY_USER_ID.getConstantVal());
+				if (!CollectionUtils.isEmpty(nbfcEntityBeanList) && nbfcEntityBeanList.get(0) != null) {
+					nbfcEntityBean = nbfcEntityBeanList.get(0);
+					if (nbfcEntityBean != null && nbfcEntityBean.getUser() != null) {
+						UserMaster user = new UserMaster();
+						user.setUserId(nbfcEntityBean.getUser().getUserId());
+						nbfcEntityBean.setUser(user);
+					}
+					response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+					response.setResponse(nbfcEntityBean);
+				} else {
+					response = new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0835.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0835.toString())).build();
+				}
+			} else {
+				response = new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0835.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0835.toString())).build();
+			}
+			Logger.info("return list prepared for job processingid" + jobProcessId);
+		} catch (ServiceException e) {
+			Logger.error("Exception while fetching return list info for job processingid " + jobProcessId, e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0835.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0835.toString())).build();
+		} catch (Exception e) {
+			Logger.error("Exception while fetching return list info for job processingid " + jobProcessId, e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+		}
+		Logger.info("request completed to get return list for job processingid" + jobProcessId);
+		return response;
+	}
+
+	/**
+	 * save the NbfcEntityBean. This method is to save ReturnGroupMapping .
+	 *
+	 * @param jobProcessId
+	 * @param returnGroupMappingDto
+	 * @return
+	 */
+	@PostMapping(value = "/saveNbfcEntityBean")
+	public ServiceResponse saveNbfcEntityBean(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody NbfcRegistrationBean nbfcRegistrationBean) {
+		nbfcEntityBean = new NbfcEntityBean();
+		NbfcEntityBean oldNbfcEntityBean = null;
+		try {
+			Map<String, List<String>> columnValueMap = new HashMap<>();
+			List<String> panList = new ArrayList<>();
+			panList.add(nbfcRegistrationBean.getPanNumber());
+			columnValueMap.put(ColumnConstants.PAN_NUMBER.getConstantVal(), panList);
+			List<NbfcEntityBean> oldNbfcEntityBeanList = nbfcEntityService.getDataByColumnValue(columnValueMap, MethodConstants.GET_NBFC_ENTITY_BY_PAN_NUMBER.getConstantVal());
+			if (!CollectionUtils.isEmpty(oldNbfcEntityBeanList)) {
+				oldNbfcEntityBean = oldNbfcEntityBeanList.get(0);
+			}
+			if (oldNbfcEntityBean != null && !oldNbfcEntityBean.getIsActive() && oldNbfcEntityBean.getIsVerified()) {
+				Logger.error("Exception while saving NbfcEntityBean for job processingid " + jobProcessId);
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0836.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0836.toString())).build();
+			} else {
+				nbfcEntityBean.setCompPan(nbfcRegistrationBean.getPanNumber());
+				nbfcEntityBean.setCompName(nbfcRegistrationBean.getBorrowerName());
+				nbfcEntityBean.setCompEmailId(nbfcRegistrationBean.getBorrowerEmail());
+				nbfcEntityBean.setCompPhone(nbfcRegistrationBean.getBorrowerPhone());
+				nbfcEntityBean.setIsActive(true);
+				nbfcEntityBean.setOtp(nbfcRegistrationBean.getOtp());
+				nbfcEntityBean.setIsVerified(false);
+				nbfcEntityBean.setCreatedOn(new Date());
+				nbfcEntityBean = nbfcEntityService.add(nbfcEntityBean);
+			}
+		} catch (ServiceException e) {
+			Logger.error("Request object not proper to save ");
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0771.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0771.toString())).build();
+		} catch (Exception e) {
+			Logger.error("Exception while saving NbfcEntityBean info for job processingid " + jobProcessId, e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+		}
+		ServiceResponse response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+		response.setResponse(nbfcEntityBean);
+		Logger.info("request completed to save NbfcEntityBean for job processingid" + jobProcessId);
+		return response;
+	}
+
+	/**
+	 * save the NbfcEntityBean. This method is to save ReturnGroupMapping .
+	 *
+	 * @param jobProcessId
+	 * @param nbfcRegistrationBean
+	 * @return
+	 */
+	@PostMapping(value = "/updateNbfcEntityBean")
+	public ServiceResponse updateNbfcEntityBean(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody NbfcRegistrationBean nbfcRegistrationBean) {
+		Boolean flag;
+		try {
+			Map<String, List<String>> columnValueMap = new HashMap<>();
+			List<String> panList = new ArrayList<>();
+			panList.add(nbfcRegistrationBean.getPanNumber());
+			columnValueMap.put(ColumnConstants.PAN_NUMBER.getConstantVal(), panList);
+			nbfcEntityBean = nbfcEntityService.getDataByColumnValue(columnValueMap, MethodConstants.GET_NBFC_ENTITY_BY_PAN_NUMBER.getConstantVal()).get(0);
+
+			Map<String, List<String>> valueMap = new HashMap<>();
+			List<String> userNameList = new ArrayList<>();
+			AESV2 aesv2 = AESV2.getInstance();
+			userNameList.add(aesv2.encrypt(nbfcRegistrationBean.getPanNumber()));
+			valueMap.put(ColumnConstants.USER_NAME.getConstantVal(), userNameList);
+			List<UserMaster> userMasterList = userMasterService.getDataByColumnValue(valueMap, MethodConstants.GET_USER_DATA_BY_USER_NAME.getConstantVal());
+			if (CollectionUtils.isEmpty(userMasterList)) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			}
+			nbfcEntityBean.setUser(userMasterList.get(0));
+			nbfcEntityBean.setIsVerified(true);
+			nbfcEntityBean.setRegisteredOn(new Date());
+			flag = nbfcEntityService.update(nbfcEntityBean);
+		} catch (ServiceException e) {
+			Logger.error("Request object not proper to update ");
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0869.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0869.toString())).build();
+		} catch (Exception e) {
+			Logger.error("Exception while updating NbfcEntityBean info for job processingid " + jobProcessId, e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+		}
+		ServiceResponse response = null;
+		if (Boolean.TRUE.equals(flag)) {
+			if (nbfcEntityBean.getUser() != null) {
+				UserMaster user = new UserMaster();
+				user.setUserId(nbfcEntityBean.getUser().getUserId());
+				nbfcEntityBean.setUser(user);
+			}
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			response.setResponse(nbfcEntityBean);
+		} else {
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+		}
+		Logger.info("request completed to update NbfcEntityBean for job processingid" + jobProcessId);
+		return response;
+	}
+
+	@GetMapping(value = "/getNBFCMessages/{companyType}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ServiceResponse getNBFCMessages(@PathVariable(value = "companyType") Integer companyType, @RequestHeader(name = "JobProcessingId") String jobProcessId) {
+		ServiceResponse response;
+		NbfcDisplayMessages nbfcDisplayMessages = null;
+		try {
+			Map<String, Object> columnValueMap = new HashMap<>();
+			columnValueMap.put(ColumnConstants.COMPANY_TYPE.getConstantVal(), companyType);
+			nbfcDisplayMessages = nbfcMessagesService.getDataByObject(columnValueMap, MethodConstants.GET_NBFC_MESSAGES_BY_COMPANY_TYPE.getConstantVal()).get(0);
+		} catch (ServiceException e) {
+			Logger.error("Exception while fetching NBFCMessages info for job processingid " + jobProcessId, e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0836.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0836.toString())).build();
+		} catch (Exception e) {
+			Logger.error("Exception while fetching NBFCMessages info for job processingid " + jobProcessId, e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+		}
+		if (Objects.isNull(nbfcDisplayMessages)) {
+			Logger.error("Exception while fetching NBFCMessages info for job processingid " + jobProcessId);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0836.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0836.toString())).build();
+		} else {
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			response.setResponse(nbfcDisplayMessages);
+			return response;
+		}
+	}
+}

@@ -1,0 +1,26 @@
+package com.iris.model;
+
+public class PageJson {
+	private NbfcProfileDetailsPage1Dto nbfcProfileDetailsPage1Dto;
+	private NbfcProfileDetailsPage2Dto nbfcProfileDetailsPage2Dto;
+	private NbfcProfileDetailsPage3Dto nbfcProfileDetailsPage3Dto;
+	public NbfcProfileDetailsPage1Dto getNbfcProfileDetailsPage1Dto() {
+		return nbfcProfileDetailsPage1Dto;
+	}
+	public void setNbfcProfileDetailsPage1Dto(NbfcProfileDetailsPage1Dto nbfcProfileDetailsPage1Dto) {
+		this.nbfcProfileDetailsPage1Dto = nbfcProfileDetailsPage1Dto;
+	}
+	public NbfcProfileDetailsPage2Dto getNbfcProfileDetailsPage2Dto() {
+		return nbfcProfileDetailsPage2Dto;
+	}
+	public void setNbfcProfileDetailsPage2Dto(NbfcProfileDetailsPage2Dto nbfcProfileDetailsPage2Dto) {
+		this.nbfcProfileDetailsPage2Dto = nbfcProfileDetailsPage2Dto;
+	}
+	public NbfcProfileDetailsPage3Dto getNbfcProfileDetailsPage3Dto() {
+		return nbfcProfileDetailsPage3Dto;
+	}
+	public void setNbfcProfileDetailsPage3Dto(NbfcProfileDetailsPage3Dto nbfcProfileDetailsPage3Dto) {
+		this.nbfcProfileDetailsPage3Dto = nbfcProfileDetailsPage3Dto;
+	}
+	
+}

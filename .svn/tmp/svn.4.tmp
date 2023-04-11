@@ -1,0 +1,56 @@
+server.servlet.context-path=/CIMSCustomizationService
+
+
+########crontab entries#######
+#comment below entries while using QA db with local machine and uncomment below entries before deployment on QA server
+#cron.entry=0 * * * * *
+#cron.data.template.upload=0 * * * * *
+#cron.mailScheduler = 0 0 0 * * *
+#cron.panBulkScheduler = 0 * * * * *
+#cron.entityAuditorMapScheduler = 0 0 12 * * *
+#cron.groupMasterScheduler = 0 * * * * *
+#cron.panMasterSchedular = 0 0/5 * * * *
+#cron.groupMasterSchedular = 0 0/5 * * * *
+#cron.workFlowTrigger = 0 0/5 * * * *
+#cron.crosStatusScheduler = 0 * * * * *
+#cron.ebrToRbrScheduler = 0 * * * * *
+#cron.returnFilingEntryScheduler = 0 0 1 * * ?
+#cron.ebrMetaDataScheduler=0 * * * * *
+#cron.return.preview.publish.scheduler=0 * * * * *
+
+#uncomment below entries while using QA db with local machine and comment below entries before deployment on QA server
+cron.entry=-
+cron.data.template.upload=-
+cron.mailScheduler = -
+cron.panBulkScheduler = -
+cron.entityAuditorMapScheduler = -
+cron.groupMasterScheduler = -
+cron.panMasterSchedular = -
+cron.groupMasterSchedular = -
+cron.workFlowTrigger = -
+cron.crosStatusScheduler=-
+cron.ebrToRbrScheduler = -
+cron.returnFilingEntryScheduler = -
+cron.ebrMetaDataScheduler = -
+cron.return.preview.publish.scheduler=-
+
+# can give multiple appId by ~ separator. Below is hash value of 'IRISREST'
+appId.allowed = APP-a8bf3264f58259e263342e91522c7a07647014f68da3ad7466a7500110a7d91b~1234
+
+spring.mvc.view.prefix: /
+server.port=8081
+spring.jackson.serialization.fail-on-empty-beans=false
+spring.jackson.serialization.fail-on-self-references=false
+#SQL Loggins
+#logging.level.org.hibernate.SQL=DEBUG
+#logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
+
+#common properties
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.jpa.hibernate.naming.physical-strategy =  org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+spring.jpa.properties.hibernate.enable_lazy_load_no_trans=true
+spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.MySQLDialect
+#base.date.for.fortnightly=10-10-1990
+base.date.for.fortnightly=09-10-1998
+spring.profiles.active=dbcp2
+isBsr.newImplementation=true

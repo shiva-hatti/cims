@@ -1,0 +1,36 @@
+/**
+ * 
+ */
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.UserRole;
+
+/**
+ * @author Siddique
+ *
+ */
+public interface UserRoleRepo extends JpaRepository<UserRole, Long> {
+
+	@Query(value= "FROM UserRole where isActive=1 and userRoleId =:roleId")
+	UserRole findByUserRoleIdAndIsActiveTrue(@Param("roleId") Long roleId);
+	
+	@Query("from UserRole userRole where userRoleId IN :roleIds")
+	List<UserRole> findByUserRoleIds(@Param("roleIds") List<Long> roleIds);
+	
+	List<UserRole> findByCreatedByRoleUserRoleIdAndIsActiveTrue(Long userRoleId);
+	
+	List<UserRole> getDataByRoleNameInAndIsActiveTrue(List<String> userNamwe);
+	
+	Long countByRoleNameAndIsActiveTrue(String roleName);
+
+	List<UserRole> findByRoleName(String string);
+	
+	
+
+}

@@ -1,0 +1,325 @@
+/**
+ * 
+ */
+package com.iris.sdmx.element.bean;
+
+import java.util.Date;
+
+import com.iris.sdmx.element.bean.SdmxElementClassificationBean;
+import com.iris.sdmx.element.bean.SdmxElementDependencyTypeBean;
+import com.iris.sdmx.element.bean.SdmxElementFlowTypeBean;
+import com.iris.sdmx.element.bean.SdmxElementNatureBean;
+import com.iris.sdmx.element.bean.SdmxElementSectorBean;
+import com.iris.model.EntityBean;
+
+/**
+ * @author apagaria
+ *
+ */
+public class SdmxElementBean {
+
+	private Long elementId;
+
+	private String dsdCode;
+
+	private String elementLable;
+
+	private String elementVer;
+
+	private SdmxElementClassificationBean classificationBeanIdFk;
+
+	private SdmxElementDependencyTypeBean dependencyTypeBeanIdFk;
+
+	private SdmxElementFlowTypeBean flowTypeBeanIdFk;
+
+	private SdmxElementNatureBean natureBeanIdFk;
+
+	private SdmxElementSectorBean sectorBeanIdFk;
+
+	private String elementDesc;
+
+	private SdmxElementBean sdmxParentElementBeanFk;
+
+	private Boolean isActive;
+
+	private Date lastUpdateOn;
+
+	private Long createdBy;
+
+	private Date createdOn;
+
+	private Long modifyBy;
+
+	private Date modifyOn;
+
+	private EntityBean regulatorOwnerIdFk;
+
+	/**
+	 * @return the elementId
+	 */
+	public Long getElementId() {
+		return elementId;
+	}
+
+	/**
+	 * @param elementId the elementId to set
+	 */
+	public void setElementId(Long elementId) {
+		this.elementId = elementId;
+	}
+
+	/**
+	 * @return the dsdCode
+	 */
+	public String getDsdCode() {
+		return dsdCode;
+	}
+
+	/**
+	 * @param dsdCode the dsdCode to set
+	 */
+	public void setDsdCode(String dsdCode) {
+		this.dsdCode = dsdCode;
+	}
+
+	/**
+	 * @return the elementLable
+	 */
+	public String getElementLable() {
+		return elementLable;
+	}
+
+	/**
+	 * @param elementLable the elementLable to set
+	 */
+	public void setElementLable(String elementLable) {
+		this.elementLable = elementLable;
+	}
+
+	/**
+	 * @return the elementVer
+	 */
+	public String getElementVer() {
+		return elementVer;
+	}
+
+	/**
+	 * @param elementVer the elementVer to set
+	 */
+	public void setElementVer(String elementVer) {
+		this.elementVer = elementVer;
+	}
+
+	/**
+	 * @return the classificationBeanIdFk
+	 */
+	public SdmxElementClassificationBean getClassificationBeanIdFk() {
+		return classificationBeanIdFk;
+	}
+
+	/**
+	 * @param classificationBeanIdFk the classificationBeanIdFk to set
+	 */
+	public void setClassificationBeanIdFk(SdmxElementClassificationBean classificationBeanIdFk) {
+		this.classificationBeanIdFk = classificationBeanIdFk;
+	}
+
+	/**
+	 * @return the dependencyTypeBeanIdFk
+	 */
+	public SdmxElementDependencyTypeBean getDependencyTypeBeanIdFk() {
+		return dependencyTypeBeanIdFk;
+	}
+
+	/**
+	 * @param dependencyTypeBeanIdFk the dependencyTypeBeanIdFk to set
+	 */
+	public void setDependencyTypeBeanIdFk(SdmxElementDependencyTypeBean dependencyTypeBeanIdFk) {
+		this.dependencyTypeBeanIdFk = dependencyTypeBeanIdFk;
+	}
+
+	/**
+	 * @return the flowTypeBeanIdFk
+	 */
+	public SdmxElementFlowTypeBean getFlowTypeBeanIdFk() {
+		return flowTypeBeanIdFk;
+	}
+
+	/**
+	 * @param flowTypeBeanIdFk the flowTypeBeanIdFk to set
+	 */
+	public void setFlowTypeBeanIdFk(SdmxElementFlowTypeBean flowTypeBeanIdFk) {
+		this.flowTypeBeanIdFk = flowTypeBeanIdFk;
+	}
+
+	/**
+	 * @return the natureBeanIdFk
+	 */
+	public SdmxElementNatureBean getNatureBeanIdFk() {
+		return natureBeanIdFk;
+	}
+
+	/**
+	 * @param natureBeanIdFk the natureBeanIdFk to set
+	 */
+	public void setNatureBeanIdFk(SdmxElementNatureBean natureBeanIdFk) {
+		this.natureBeanIdFk = natureBeanIdFk;
+	}
+
+	/**
+	 * @return the sectorBeanIdFk
+	 */
+	public SdmxElementSectorBean getSectorBeanIdFk() {
+		return sectorBeanIdFk;
+	}
+
+	/**
+	 * @param sectorBeanIdFk the sectorBeanIdFk to set
+	 */
+	public void setSectorBeanIdFk(SdmxElementSectorBean sectorBeanIdFk) {
+		this.sectorBeanIdFk = sectorBeanIdFk;
+	}
+
+	/**
+	 * @return the elementDesc
+	 */
+	public String getElementDesc() {
+		return elementDesc;
+	}
+
+	/**
+	 * @param elementDesc the elementDesc to set
+	 */
+	public void setElementDesc(String elementDesc) {
+		this.elementDesc = elementDesc;
+	}
+
+	/**
+	 * @return the sdmxParentElementBeanFk
+	 */
+	public SdmxElementBean getSdmxParentElementBeanFk() {
+		return sdmxParentElementBeanFk;
+	}
+
+	/**
+	 * @param sdmxParentElementBeanFk the sdmxParentElementBeanFk to set
+	 */
+	public void setSdmxParentElementBeanFk(SdmxElementBean sdmxParentElementBeanFk) {
+		this.sdmxParentElementBeanFk = sdmxParentElementBeanFk;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the lastUpdateOn
+	 */
+	public Date getLastUpdateOn() {
+		return lastUpdateOn;
+	}
+
+	/**
+	 * @param lastUpdateOn the lastUpdateOn to set
+	 */
+	public void setLastUpdateOn(Date lastUpdateOn) {
+		this.lastUpdateOn = lastUpdateOn;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public Long getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(Long createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the modifyBy
+	 */
+	public Long getModifyBy() {
+		return modifyBy;
+	}
+
+	/**
+	 * @param modifyBy the modifyBy to set
+	 */
+	public void setModifyBy(Long modifyBy) {
+		this.modifyBy = modifyBy;
+	}
+
+	/**
+	 * @return the modifyOn
+	 */
+	public Date getModifyOn() {
+		return modifyOn;
+	}
+
+	/**
+	 * @param modifyOn the modifyOn to set
+	 */
+	public void setModifyOn(Date modifyOn) {
+		this.modifyOn = modifyOn;
+	}
+
+	/**
+	 * @return the regulatorOwnerIdFk
+	 */
+	public EntityBean getRegulatorOwnerIdFk() {
+		return regulatorOwnerIdFk;
+	}
+
+	/**
+	 * @param regulatorOwnerIdFk the regulatorOwnerIdFk to set
+	 */
+	public void setRegulatorOwnerIdFk(EntityBean regulatorOwnerIdFk) {
+		this.regulatorOwnerIdFk = regulatorOwnerIdFk;
+	}
+
+	/**
+	 *
+	 */
+	@Override
+	public String toString() {
+		return "SdmxElementBean [elementId=" + elementId + ", dsdCode=" + dsdCode + ", elementLable=" + elementLable
+				+ ", elementVer=" + elementVer + ", classificationBeanIdFk=" + classificationBeanIdFk
+				+ ", dependencyTypeBeanIdFk=" + dependencyTypeBeanIdFk + ", flowTypeBeanIdFk=" + flowTypeBeanIdFk
+				+ ", natureBeanIdFk=" + natureBeanIdFk + ", sectorBeanIdFk=" + sectorBeanIdFk + ", elementDesc="
+				+ elementDesc + ", sdmxParentElementBeanFk=" + sdmxParentElementBeanFk + ", isActive=" + isActive
+				+ ", lastUpdateOn=" + lastUpdateOn + ", createdBy=" + createdBy + ", createdOn=" + createdOn
+				+ ", modifyBy=" + modifyBy + ", modifyOn=" + modifyOn + ", regulatorOwnerIdFk=" + regulatorOwnerIdFk
+				+ "]";
+	}
+
+	
+}

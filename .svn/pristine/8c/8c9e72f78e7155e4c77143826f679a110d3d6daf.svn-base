@@ -1,0 +1,24 @@
+package com.iris.dto;
+
+public class TaxonomyInfoDto {
+
+	private Long taxonomyId;
+	private Long returnId;
+
+	public Long getReturnId() {
+		return returnId;
+	}
+
+	public void setReturnId(Long returnId) {
+		this.returnId = returnId;
+	}
+
+	public Long getTaxonomyId() {
+		return taxonomyId;
+	}
+
+	public void setTaxonomyId(Long taxonomyId) {
+		this.taxonomyId = taxonomyId;
+	}
+
+}

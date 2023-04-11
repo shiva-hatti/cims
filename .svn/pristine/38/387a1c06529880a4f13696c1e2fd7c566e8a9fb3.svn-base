@@ -1,0 +1,142 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * This is the ReturnRegulatorMappingDto bean class with Hibernate mapping.
+ * 
+ * @author pmohite
+ */
+
+public class ReturnRegulatorMappingDto implements Serializable {
+
+	private static final long serialVersionUID = 8262415709009662785L;
+
+	private Long returnIdFk;
+	private List<ReturnDto> returnList;
+	private Long regulatorIdFk;
+	private Boolean isActive;
+	private Long createdBy;
+	private String emailIds;
+	private Long roleIdFk;
+	private String langCode;
+
+	private Map<Long, String> returnEmailIdMap;
+
+	/**
+	 * @return the returnIdFk
+	 */
+	public Long getReturnIdFk() {
+		return returnIdFk;
+	}
+
+	/**
+	 * @param returnIdFk the returnIdFk to set
+	 */
+	public void setReturnIdFk(Long returnIdFk) {
+		this.returnIdFk = returnIdFk;
+	}
+
+	/**
+	 * @return the regulatorIdFk
+	 */
+	public Long getRegulatorIdFk() {
+		return regulatorIdFk;
+	}
+
+	/**
+	 * @param regulatorIdFk the regulatorIdFk to set
+	 */
+	public void setRegulatorIdFk(Long regulatorIdFk) {
+		this.regulatorIdFk = regulatorIdFk;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public Long getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(Long createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the emailIds
+	 */
+	public String getEmailIds() {
+		return emailIds;
+	}
+
+	/**
+	 * @param emailIds the emailIds to set
+	 */
+	public void setEmailIds(String emailIds) {
+		this.emailIds = emailIds;
+	}
+
+	/**
+	 * @return the returnList
+	 */
+	public List<ReturnDto> getReturnList() {
+		return returnList;
+	}
+
+	/**
+	 * @param returnList the returnList to set
+	 */
+	public void setReturnList(List<ReturnDto> returnList) {
+		this.returnList = returnList;
+	}
+
+	/**
+	 * @return the returnEmailIdMap
+	 */
+	public Map<Long, String> getReturnEmailIdMap() {
+		return returnEmailIdMap;
+	}
+
+	/**
+	 * @param returnEmailIdMap the returnEmailIdMap to set
+	 */
+	public void setReturnEmailIdMap(Map<Long, String> returnEmailIdMap) {
+		this.returnEmailIdMap = returnEmailIdMap;
+	}
+
+	public Long getRoleIdFk() {
+		return roleIdFk;
+	}
+
+	public void setRoleIdFk(Long roleIdFk) {
+		this.roleIdFk = roleIdFk;
+	}
+
+	public String getLangCode() {
+		return langCode;
+	}
+
+	public void setLangCode(String langCode) {
+		this.langCode = langCode;
+	}
+
+}

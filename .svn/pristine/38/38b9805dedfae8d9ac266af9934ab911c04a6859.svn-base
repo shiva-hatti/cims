@@ -1,0 +1,93 @@
+/**
+ * 
+ */
+package com.iris.sdmx.codelist.controller;
+
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.bean.ErrorMessage;
+import com.iris.caching.ObjectCache;
+import com.iris.sdmx.codelist.bean.CodelListMasterRequestBean;
+import com.iris.sdmx.codelist.entity.CodeListMaster;
+import com.iris.sdmx.codelist.service.CodeListMasterService;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.exception.ApplicationException;
+import com.iris.util.JsonUtility;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.ErrorConstants;
+
+/**
+ * @author sajadhav
+ *
+ */
+@RestController
+@RequestMapping(value = "/service/codeListMasterController")
+public class CodeListMasterController {
+
+	private static final Logger LOGGER = LogManager.getLogger(CodeListMasterController.class);
+	
+	@Autowired
+	private CodeListMasterService codeListmasterService;
+	
+	@PostMapping(value = "/getCodeListMasterRecord")
+	public ServiceResponse getCodeListMasterRecord(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody CodelListMasterRequestBean codeListMasterRequestBean) {
+		LOGGER.info("Request received to get code list master data for job processing Id : " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(codeListMasterRequestBean));
+		
+		try {
+			List<CodeListMaster> codeListMasterList = codeListmasterService.getActiveDataFor(null,null);
+
+			return new ServiceResponseBuilder().setStatus(true).setResponse(codeListmasterService.prepareCodeListMasterResponseList(codeListMasterList)).build();
+		}catch(Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+		}
+		
+		LOGGER.info("Request completed to get code list master data for job processing Id : " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(codeListMasterRequestBean));
+		return new ServiceResponseBuilder().setStatus(false).setStatusMessage(ErrorCode.E0808.toString()).setStatusCode(ObjectCache.getErrorCodeKey(ErrorCode.E0808.toString())).build();
+	}
+
+	@PostMapping(value = "/addEditDeleteCodeListMasterRecord")
+	public ServiceResponse addEditDeleteCodeListMasterRecord(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody CodeListMasterBean codeListMasterBean) {
+		LOGGER.info("Request received to add code list master data for job processing Id : " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(codeListMasterBean));
+		
+		try {
+			boolean isSuccess;
+			if(codeListMasterBean.getAction().equalsIgnoreCase("ADD")) {
+				validateInputRequestObject(codeListMasterBean);
+				isSuccess = codeListmasterService.addCodeListmasterData(codeListMasterBean);
+			}else if(codeListMasterBean.getAction().equalsIgnoreCase("EDIT")) {
+				validateInputRequestObject(codeListMasterBean);
+				isSuccess = codeListmasterService.editCodeListmasterData(codeListMasterBean);
+			}else if(codeListMasterBean.getAction().equalsIgnoreCase("DELETE")) {
+				validateInputRequestObject(codeListMasterBean);
+				isSuccess = codeListmasterService.deleteCodeListmasterData(codeListMasterBean);
+			}else{
+				return new ServiceResponseBuilder().setStatus(true).setStatusCode("EOOO2").setStatusMessage("Action Not Found").build();
+			}
+			
+			LOGGER.info("Request completed to add code list master data for job processing Id : " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(codeListMasterBean));
+
+			if(isSuccess) {
+				return new ServiceResponseBuilder().setStatus(true).setStatusMessage(ErrorConstants.RECORD_SAVED_SUCCESSFULLY.getErrorMessage()).build();
+			}
+		}catch(Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+		}
+		return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+	}
+
+	private void validateInputRequestObject(CodeListMasterBean codeListMasterBean) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+}

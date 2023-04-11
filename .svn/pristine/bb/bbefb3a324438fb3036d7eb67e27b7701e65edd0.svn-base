@@ -1,0 +1,84 @@
+/**
+ * 
+ */
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+/**
+ * @author Shivabasava Hatti
+ *
+ */
+@Entity
+@Table(name = "TBL_FILING_CAL_MOD_HISTORY")
+public class FilingCalendarModificationHistory implements Serializable {
+	
+	private static final long serialVersionUID = 4493022601121932797L;
+	
+	@Id
+	@Column(name = "FILING_MODIFICATION_ID")
+	private int filingCaldModId;
+
+	@Column(name = "FILING_MODIFICATION_JSON")
+	private String filingModJson;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="FILING_CALENDER_ID_FK")
+	private FilingCalendar filingCalendarFk;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="MODIFIED_ID_FK")
+	private UserMaster userModify;
+	
+	@Column(name="MODIFIED_ON")
+	private Date modifiedOn;
+
+	public int getFilingCaldModId() {
+		return filingCaldModId;
+	}
+
+	public void setFilingCaldModId(int filingCaldModId) {
+		this.filingCaldModId = filingCaldModId;
+	}
+
+	public String getFilingModJson() {
+		return filingModJson;
+	}
+
+	public void setFilingModJson(String filingModJson) {
+		this.filingModJson = filingModJson;
+	}
+
+	public FilingCalendar getFilingCalendarFk() {
+		return filingCalendarFk;
+	}
+
+	public void setFilingCalendarFk(FilingCalendar filingCalendarFk) {
+		this.filingCalendarFk = filingCalendarFk;
+	}
+
+	public UserMaster getUserModify() {
+		return userModify;
+	}
+
+	public void setUserModify(UserMaster userModify) {
+		this.userModify = userModify;
+	}
+
+	public Date getModifiedOn() {
+		return modifiedOn;
+	}
+
+	public void setModifiedOn(Date modifiedOn) {
+		this.modifiedOn = modifiedOn;
+	}
+}

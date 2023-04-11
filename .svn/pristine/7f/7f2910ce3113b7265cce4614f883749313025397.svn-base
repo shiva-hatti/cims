@@ -1,0 +1,2508 @@
+package com.iris.ebr.business.technical.metadata.service;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+import javax.persistence.EntityManager;
+import javax.persistence.Tuple;
+import javax.sql.DataSource;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.FormulaEvaluator;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.iris.dateutility.enums.DateConstants;
+import com.iris.dateutility.util.DateManip;
+import com.iris.ebr.business.technical.metadata.bean.BusMetadatProcessBean;
+import com.iris.ebr.business.technical.metadata.bean.CSVItemMappingBean;
+import com.iris.ebr.business.technical.metadata.bean.CodeListDimension;
+import com.iris.ebr.business.technical.metadata.bean.CommonDimension;
+import com.iris.ebr.business.technical.metadata.bean.DimCombination;
+import com.iris.ebr.business.technical.metadata.bean.EbrRbrTableDto;
+import com.iris.ebr.business.technical.metadata.bean.ElementDimensionBean;
+import com.iris.ebr.business.technical.metadata.bean.ElementDimensionStoredJson;
+import com.iris.ebr.business.technical.metadata.bean.InputDimension;
+import com.iris.ebr.business.technical.metadata.bean.ItemCodeBeanForMapping;
+import com.iris.ebr.business.technical.metadata.bean.ItemDto;
+import com.iris.ebr.business.technical.metadata.bean.ReadReturnCSVForEBRMapping;
+import com.iris.ebr.business.technical.metadata.bean.SDMXReturnModelBean;
+import com.iris.ebr.business.technical.metadata.constant.ExcelContstant;
+import com.iris.ebr.business.technical.metadata.entity.BusMetadatProcess;
+import com.iris.ebr.business.technical.metadata.repo.MetadataRepo;
+import com.iris.exception.ServiceException;
+import com.iris.model.UserMaster;
+import com.iris.service.GenericService;
+import com.iris.util.ResourceUtil;
+import com.iris.util.Validations;
+
+@Service
+public class MetadataService  implements GenericService<BusMetadatProcess, Long> {
+
+	private static final Logger LOGGER = LogManager.getLogger(MetadataService.class);
+	private String filename = "";
+	private HSSFWorkbook workbook;
+	private Map<Integer, ItemCodeBeanForMapping> itemCodeMap = null;
+	private Map<String, List<String>> rowHeaderMap = null;
+	private Map<String, List<EbrRbrTableDto>> ebrRbrTableMap = null;
+	private Map<String, ItemDto> oldItemDetailMap = null;
+	private static boolean SET_LENIENT = DateConstants.SET_LENIENT.isDateConstantsBoolean();
+	private Map<String,String> dmidMap = new TreeMap<>();
+	private Map<String,String> techMetadataRbrColumnMap = new TreeMap<String, String>();
+	private Set<String> itemFreeTextApplicableSet = null;
+	private Map<String,Set<String>> dimMapData = null;
+	private BusMetadatProcess busMetadatProcess = null;
+	private  int excelRowOutputCount = 0;
+	private  int excelCreateCellOutoutCount = 0;
+	private  HSSFSheet sheet2;
+	private  HSSFRow outputRow;
+	private static final String DD_SLASH_MM_SLASH_YYYY = "dd/MM/yyyy";
+	private static final String calendarFormat = "en";
+	private static final String timeFormat = DateConstants.HH_MM_SS.getDateConstants().toLowerCase() + " " + DateConstants.AM_PM.getDateConstants();
+
+
+	
+	@Autowired
+	private EntityManager entityManager;
+	
+	@Autowired
+	private MetadataRepo metadataRepo;
+	
+	@Autowired
+	DataSource datasource;
+	
+	@Override
+	public BusMetadatProcess add(BusMetadatProcess entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean update(BusMetadatProcess entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public List<BusMetadatProcess> getDataByIds(Long[] ids) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public BusMetadatProcess getDataById(Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<BusMetadatProcess> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<BusMetadatProcess> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName)
+			throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<BusMetadatProcess> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<BusMetadatProcess> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<BusMetadatProcess> getAllDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void deleteData(BusMetadatProcess bean) throws ServiceException {
+		// TODO Auto-generated method stub
+		
+	} 
+	
+	@Transactional(rollbackFor = Exception.class)
+	public List<BusMetadatProcessBean> sdmxDataMappingConvertToExcel(Boolean isActive,String returnCode, String returnVersion,String csvPathHavingEBRCellRef,String ebrVersion,UserMaster userMaster,String fileName,String returnName) throws Exception{
+		
+		LOGGER.info("Business Metadata Generation Start : ");
+		
+		String key = "";
+		String query = " SELECT " + " TSE.DSD_CODE ," + " TSE.ELEMENT_VER ," + " TSE.ELEMENT_LABEL ,"
+				+ " TSED.ELEMENT_DIMENSIONS ," + " TSMC.MODEL_DIM ," + " TSMC.MODEL_CODE ," + " TSRSI.SHEET_CODE ,"
+				+ " TR.RETURN_CODE ," + " TR.RETURN_NAME ," + " TSRSI.SHEET_NAME ," + " TSRSI.SECTION_CODE ,"
+				+ " TSRSI.SECTION_NAME ," + " TSRMI.RETURN_CELL_REF ,"
+				+ " TR.FREQUENCY_ID_FK , TSMC.MODEL_DIM_HASH ,TN.NATURE_NAME " +
+
+				" FROM TBL_SDMX_RETURN_SHEET_INFO TSRSI  "
+				+ " JOIN TBL_SDMX_RETURN_MODEL_INFO  TSRMI ON TSRMI.RETURN_SHEET_INFO_ID_FK = TSRSI.RETURN_SHEET_INFO_ID "
+				+ " JOIN TBL_SDMX_MODEL_CODES TSMC ON TSMC.MODEL_CODES_ID = TSRMI.MODEL_CODES_ID_FK "
+				+ " JOIN TBL_SDMX_ELEMENT TSE ON TSE.ELEMENT_ID = TSMC.ELEMENT_ID_FK "
+				+ " JOIN TBL_SDMX_ELEMENT_DIMENSIONS TSED ON TSED.ELEMENT_ID_FK = TSE.ELEMENT_ID "
+				+ " JOIN TBL_RETURN_TEMPLATE TRT ON TRT.RETURN_TEMPLATE_ID = TSRSI.RETURN_TEMPLATE_ID_FK "
+				+ " JOIN TBL_RETURN TR ON TR.RETURN_ID = TRT.RETURN_ID_FK "
+				+ " JOIN TBL_SDMX_RETURN_PREVIEW SRP ON TSRSI.RETURN_PREVIEW_ID_FK = SRP.RETURN_PREVIEW_TYPE_ID  "
+				+ " JOIN TBL_SDMX_ELE_NATURE TN ON TN.NATURE_ID = TSE.NATURE_ID_FK ";
+				
+
+		if (isActive != null) {
+			if (isActive.booleanValue()) {
+				query = query
+						+ " WHERE (  TSRMI.IS_ACTIVE = '1' AND SRP.IS_ACTIVE = '1'  AND SRP.IS_PUBLISHED = '1' AND SRP.AGENCY_MASTER_ID_FK = '1'  AND TSMC.IS_ACTIVE = '1'  AND TSE.IS_ACTIVE = '1' AND TSED.IS_ACTIVE = '1' AND TRT.IS_ACTIVE = '1' AND TR.IS_ACTIVE = '1' AND TR.RETURN_CODE = '"+returnCode+"' AND TRT.VERSION_NUMBER = '"+returnVersion+"' AND SRP.EBR_VERSION = '"+ebrVersion+"' )  ";
+			} else {
+				query = query
+						+ " WHERE (  TSRMI.IS_ACTIVE = '0' AND TSMC.IS_ACTIVE = TSRMI.IS_ACTIVE AND TSE.IS_ACTIVE = TSRMI.IS_ACTIVE AND TSED.IS_ACTIVE = TSRMI.IS_ACTIVE AND TRT.IS_ACTIVE = TSRMI.IS_ACTIVE AND TR.IS_ACTIVE = TSRMI.IS_ACTIVE AND TR.RETURN_CODE = '"+returnCode+"' AND TRT.VERSION_NUMBER = '"+returnVersion+"'  AND SRP.EBR_VERSION = '"+ebrVersion+"' )  ";
+			}
+		}
+
+		query = query + " ORDER BY TSE.DSD_CODE , TSE.ELEMENT_VER ";
+		LOGGER.info("SQL to execute: " + query);
+		
+		List<Tuple> tuples = entityManager.createNativeQuery(query.toString(), Tuple.class).getResultList();
+		Date createdOn = new Date();
+		busMetadatProcess = new BusMetadatProcess();
+		busMetadatProcess.setReturnCode(returnCode);
+		busMetadatProcess.setReturnVersion(returnVersion);
+		busMetadatProcess.setEbrVersion(ebrVersion);
+		busMetadatProcess.setItemMasterUploadedOn(createdOn);
+		busMetadatProcess.setItemMasterCreatedBy(userMaster);
+		busMetadatProcess.setItemMasterFileName(fileName);
+		busMetadatProcess.setReturnName(returnName);
+		
+		
+
+		List<ElementDimensionBean> elementDimensionBeans = null;
+		ElementDimensionBean bean = null;
+		int p = 0;
+		Map<String, List<ElementDimensionBean>> elementData = new TreeMap();
+		Map<Integer, String> frequencyMap = getFrequncyMap();
+
+		
+			
+		for (Tuple tuple : tuples) {
+				key = (String)tuple.get("DSD_CODE") + "#@" + (String)tuple.get("ELEMENT_VER");
+				if (p == 0) {
+					p++;
+					elementDimensionBeans = new ArrayList<>();
+					bean = new ElementDimensionBean();
+					
+					bean.setDsdCode((String)tuple.get("DSD_CODE"));
+					
+					bean.setElementVersion((String)tuple.get("ELEMENT_VER"));
+					
+					bean.setElementLabel((String)tuple.get("ELEMENT_LABEL"));
+					bean.setElementDimensions((String)tuple.get("ELEMENT_DIMENSIONS"));
+					
+					bean.setModelDim((String)tuple.get("MODEL_DIM"));
+					bean.setModelCode((String)tuple.get("MODEL_CODE"));
+					
+					bean.setElementReturnTempSheetNo((String)tuple.get("SHEET_CODE"));
+					returnCode = (String)tuple.get("RETURN_CODE");
+					
+					bean.setReturnCode((String)tuple.get("RETURN_CODE"));
+					
+					bean.setReturnName((String)tuple.get("RETURN_NAME"));
+					
+					bean.setReturnTempSheetName((String)tuple.get("SHEET_NAME"));
+					
+					bean.setReturnSectionCode((String)tuple.get("SECTION_CODE"));
+					
+					bean.setReturnSectionName((String)tuple.get("SECTION_NAME"));
+					
+					bean.setElementDimensions((String)tuple.get("ELEMENT_DIMENSIONS"));
+					
+					bean.setReturnCellRef(tuple.get("RETURN_CELL_REF").toString());
+					
+					bean.setFrequency(frequencyMap.get((Integer)tuple.get("FREQUENCY_ID_FK")));
+					
+					bean.setEncodedString((String)tuple.get("MODEL_DIM_HASH"));
+					
+					bean.setNatureName((String)tuple.get("NATURE_NAME"));
+					
+					elementDimensionBeans.add(bean);
+					elementData.put(key,elementDimensionBeans);
+				} else {
+					
+					bean = new ElementDimensionBean();
+					
+					bean.setDsdCode((String)tuple.get("DSD_CODE"));
+					bean.setElementVersion((String)tuple.get("ELEMENT_VER"));
+					bean.setElementLabel((String)tuple.get("ELEMENT_LABEL"));
+					bean.setElementDimensions((String)tuple.get("ELEMENT_DIMENSIONS"));
+					bean.setModelDim((String)tuple.get("MODEL_DIM"));
+					bean.setModelCode((String)tuple.get("MODEL_CODE"));
+					bean.setElementReturnTempSheetNo((String)tuple.get("SHEET_CODE"));
+					bean.setReturnCode((String)tuple.get("RETURN_CODE"));
+					bean.setReturnName((String)tuple.get("RETURN_NAME"));
+					bean.setReturnTempSheetName((String)tuple.get("SHEET_NAME"));
+					bean.setReturnSectionCode((String)tuple.get("SECTION_CODE"));
+					bean.setReturnSectionName((String)tuple.get("SECTION_NAME"));
+					bean.setElementDimensions((String)tuple.get("ELEMENT_DIMENSIONS"));
+					bean.setReturnCellRef(tuple.get("RETURN_CELL_REF").toString());
+					bean.setFrequency(frequencyMap.get((Integer)tuple.get("FREQUENCY_ID_FK")));
+					bean.setEncodedString((String)tuple.get("MODEL_DIM_HASH"));
+					bean.setNatureName((String)tuple.get("NATURE_NAME"));
+					
+					if (elementData.containsKey(key)) {
+						elementDimensionBeans = elementData.get(key);
+					} else {
+						elementDimensionBeans = new ArrayList<>();
+					}
+					
+					elementDimensionBeans.add(bean);
+					elementData.put(key,elementDimensionBeans);
+				}
+			}
+
+			
+			loadFactTableForItemFreeText(returnCode);
+
+			/*
+			 * THIS CODE CREATE DYNAMIC ELEMENT WISE SHEET FOR UNIQUE ELEMENT
+			 */
+
+			int sheetCount = 0;
+
+			for (Map.Entry<String, List<ElementDimensionBean>> entry : elementData.entrySet()) {
+				String elementNameAndVerCombo = entry.getKey();
+				String[] elementNameAndVer = elementNameAndVerCombo.split("#@", 2);
+				String elementName = elementNameAndVer[0];
+				String elementVersion = elementNameAndVer[1];
+				createMappingExcel(elementName + "__" + elementVersion, sheetCount, entry.getValue(),csvPathHavingEBRCellRef,returnCode,ebrVersion);
+				Date metadataCreatedOn = new Date();
+				if(sheetCount == 0) {
+					busMetadatProcess.setBussCreatedOn(metadataCreatedOn);
+					busMetadatProcess.setBusCreatedBy(userMaster);
+				}
+				sheetCount++;
+				
+			}
+
+			/*
+			 * THIS CODE CREATE EBR_RBR_TABLE_STRUCTURE SHEET USING ELEMENT WISE SHEEET
+			 * HEADER COLUMN
+			 */
+
+			String sheetNameForMappingTblStr = ExcelContstant.MAP_EBR_RBR_LND_COL_TECH_METADATA.getExcelColumnConstants();
+			createEbrRbrMappingTableStructure(elementData, rowHeaderMap, sheetNameForMappingTblStr);
+
+			/*
+			 * This Code Create EBR To RBR Table Mapping EXCEL
+			 */
+
+			String ebrRbrTableSheetName = ExcelContstant.MAP_EBR_RBR_LND_TBL_TECH_METADATA.getExcelColumnConstants();
+			createEbrRbrTableMap(ebrRbrTableMap, ebrRbrTableSheetName);
+
+			/*
+			 * This Code For Creating Automatic DDL Creation
+			 */
+
+			// updateDB();
+			
+			//updateUserInfo(returnCode,returnVersion,ebrVersion,userMaster,fileName);
+			LOGGER.info("Get Only Active Record");
+			List<BusMetadatProcessBean> busMetadatProcessBean = getActiveBusinessMetadata(returnCode,returnVersion,ebrVersion,false);
+			return busMetadatProcessBean;
+
+		
+	}
+	
+	public List<BusMetadatProcessBean> getActiveBusinessMetadata(String returnCode , String returnVersion , String ebrVersion,boolean ValideErrorFound)throws Exception{
+		List<BusMetadatProcessBean> busMetadatProcessBean = null;
+		LOGGER.info("Get Only Active Record");
+		BusMetadatProcess busMetadatProcess = metadataRepo.getActiveRecordForReturnAndEbrVersion(returnCode,returnVersion,ebrVersion);
+		if(busMetadatProcess != null) {
+			busMetadatProcessBean = new ArrayList<>();
+			BusMetadatProcessBean bean = new BusMetadatProcessBean();
+			bean.setReturnCode(busMetadatProcess.getReturnCode());
+			bean.setEbrVersion(busMetadatProcess.getEbrVersion());
+			bean.setReturnVersion(busMetadatProcess.getReturnVersion());
+			bean.setBussFileName(busMetadatProcess.getBussFileName());
+			bean.setItemMasterFileName(busMetadatProcess.getItemMasterFileName());
+			bean.setProcessExecutedBy(busMetadatProcess.getBusCreatedBy().getFirstName());
+			bean.setBusMetadataProcessId(busMetadatProcess.getBusMetadataProcessId());
+			bean.setBussValidateFileName(busMetadatProcess.getBussValidateFileName());
+			bean.setReturnName(busMetadatProcess.getReturnName());
+			bean.setValideError(ValideErrorFound);
+			bean.setInsertStatus(busMetadatProcess.getInsertStatus());
+			
+			if(busMetadatProcess.getBussMetadataInsertStart() != null) {
+				String insertStartDate = DateManip.formatAppDateTime(busMetadatProcess.getBussMetadataInsertStart(), DD_SLASH_MM_SLASH_YYYY + " " + timeFormat, calendarFormat);
+				bean.setInsertStartTimeStr(insertStartDate);
+			}else {
+				bean.setInsertStartTimeStr("");
+			}
+			
+			if(busMetadatProcess.getBussMetadataInsertEnd() != null) {
+				String insertEndDate = DateManip.formatAppDateTime(busMetadatProcess.getBussMetadataInsertEnd(), DD_SLASH_MM_SLASH_YYYY + " " + timeFormat, calendarFormat);
+				bean.setInsertEndTimeStr(insertEndDate);
+			}else {
+				bean.setInsertEndTimeStr("");
+			}
+			
+			
+			busMetadatProcessBean.add(bean);
+			LOGGER.info("only Active Record for return found");
+		}
+		
+		
+		return busMetadatProcessBean;
+	}
+	
+	public List<BusMetadatProcessBean> getActiveBusinessMetadataWrapper(Long metadataProcessI)throws Exception{
+		List<BusMetadatProcessBean> busMetadatProcessBean = null;
+		LOGGER.info("Get Only Active Record");
+		BusMetadatProcess busMetadatProcess = metadataRepo.getOne(metadataProcessI);
+		if(busMetadatProcess != null) {
+			busMetadatProcessBean = new ArrayList<>();
+			BusMetadatProcessBean bean = new BusMetadatProcessBean();
+			bean.setReturnCode(busMetadatProcess.getReturnCode());
+			bean.setEbrVersion(busMetadatProcess.getEbrVersion());
+			bean.setReturnVersion(busMetadatProcess.getReturnVersion());
+			bean.setBussFileName(busMetadatProcess.getBussFileName());
+			bean.setItemMasterFileName(busMetadatProcess.getItemMasterFileName());
+			bean.setProcessExecutedBy(busMetadatProcess.getBusCreatedBy().getFirstName());
+			bean.setBusMetadataProcessId(busMetadatProcess.getBusMetadataProcessId());
+			bean.setBussValidateFileName(busMetadatProcess.getBussValidateFileName());
+			bean.setReturnName(busMetadatProcess.getReturnName());
+			bean.setValideError(false);
+			bean.setInsertStatus(busMetadatProcess.getInsertStatus());
+			
+			if(busMetadatProcess.getBussMetadataInsertStart() != null) {
+				String insertStartDate = DateManip.formatAppDateTime(busMetadatProcess.getBussMetadataInsertStart(), DD_SLASH_MM_SLASH_YYYY + " " + timeFormat, calendarFormat);
+				bean.setInsertStartTimeStr(insertStartDate);
+			}else {
+				bean.setInsertStartTimeStr("");
+			}
+			
+			if(busMetadatProcess.getBussMetadataInsertEnd() != null) {
+				String insertEndDate = DateManip.formatAppDateTime(busMetadatProcess.getBussMetadataInsertEnd(), DD_SLASH_MM_SLASH_YYYY + " " + timeFormat, calendarFormat);
+				bean.setInsertEndTimeStr(insertEndDate);
+			}else {
+				bean.setInsertEndTimeStr("");
+			}
+			
+			
+			busMetadatProcessBean.add(bean);
+		}
+		
+		
+		return busMetadatProcessBean;
+	}
+	
+	public Set<String> loadFactTableForItemFreeText(String returnCodeName) throws SQLException {
+		LOGGER.info("load 181 sheet for ITEM_FREE_TEXT : ");
+		String returnTableName = "";
+		itemFreeTextApplicableSet = new HashSet<>();
+		String columnName = "ITEM_FREE_TEXT";
+		
+			String sql = "select DW_HIVE_TBL_NAME from TBL_DW_HIVE_TBL_DESIGN where DW_HIVE_TBL_RETURN_CODE like '%"+returnCodeName+ "%' "
+					+ " and DW_HIVE_TBL_COLS like '%" + columnName+ "%' and DW_HIVE_TBL_COLS != 'ITEM_FREE_TEXT_SORT_ORDER' ";
+			LOGGER.info("load 181 sheet for ITEM_FREE_TEXT Query : "+sql);
+			
+			List<Tuple> tuples = entityManager.createNativeQuery(sql.toString(), Tuple.class).getResultList();
+
+			for (Tuple tuple : tuples) {
+				if ((String)tuple.get("DW_HIVE_TBL_NAME") != null) {
+					returnTableName = (String)tuple.get("DW_HIVE_TBL_NAME");
+					if(!itemFreeTextApplicableSet.contains(returnTableName)) {
+						itemFreeTextApplicableSet.add(returnTableName);
+					}
+				}			
+			}
+			
+			return itemFreeTextApplicableSet;
+	}
+	
+	public void updateUserInfo(String returnCode , String returnVersion, String ebrVersion , UserMaster userMaster,String fileName)throws Exception {
+		
+		
+	}
+	
+	public Map<Integer, String> getFrequncyMap() {
+		Map<Integer, String> frequencyMap = new HashMap<Integer, String>();
+		frequencyMap.put(1, "ANLY");
+		frequencyMap.put(2, "HFYRLY");
+		frequencyMap.put(3, "QTRLY");
+		frequencyMap.put(4, "MNTH");
+		frequencyMap.put(5, "FRTNT");
+		frequencyMap.put(6, "WKLY");
+		frequencyMap.put(7, "DLY");
+		return frequencyMap;
+
+	}
+	
+	/*
+	 * THIS CODE CREATE DYNAMIC ELEMENT WISE SHEET FOR UNIQUE ELEMENT
+	 */
+	public void createMappingExcel(String sheetName, int sheetCount, List<ElementDimensionBean> elementDimensionBeans,
+			String csvPathHavingEBRCellRef,String returnCodeTemp,String ebrVersionData) throws Exception {
+		    LOGGER.info("Business Metadata Sheet Start Generate Element Wise");
+		    
+		    //ITEM_FREE_TEXT Logic
+		    
+		    boolean elementFound = false;
+		    boolean microFound = false;
+		    boolean othSpecifyDimFound = false;
+		    boolean itemFreeTextFoundWithOthDim = false;
+		    boolean itemFreeTextBoolean = false;
+		    
+		    if(!CollectionUtils.isEmpty(elementDimensionBeans)) {
+		    	String dsdCode  = elementDimensionBeans.get(0).getDsdCode();
+		    	String natureName = elementDimensionBeans.get(0).getNatureName();
+		    	if(natureName != null) {
+			    	if(natureName.equals(ExcelContstant.MICRO.getExcelColumnConstants())) {
+			    		microFound = true;
+			    	}
+
+		    	}
+		    	
+		    	if(dsdCode.startsWith("OPS_")) {
+		    		elementFound = true;
+		    		
+		    	}
+		    }
+		    
+			Set<String> rbrTableSet = new HashSet<String>();
+
+			if (sheetCount == 0) {
+				
+				SimpleDateFormat simpleDateFormat =  new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+				String dateString = simpleDateFormat.format(new Date()).replace(" ", "_");
+				dateString = dateString.replace(":", "_");
+				
+				
+				File fileCheck = new File(ResourceUtil.getKeyValue("filepath.root")+ ResourceUtil.getKeyValue("returnTemplate.upload.path")+ returnCodeTemp + File.separator + ResourceUtil.getKeyValue("filePath.SDMXFolder") + File.separator +ebrVersionData+File.separator+"RBR_EBR_MAP_BUS_METADATA"+"_"+dateString+".xls" );
+
+				if (fileCheck.exists()) {
+					fileCheck.delete();	
+				}
+				
+				filename = new File(csvPathHavingEBRCellRef).getParent()+File.separator+"RBR_EBR_MAP_BUS_METADATA"+"_"+dateString+".xls";
+				busMetadatProcess.setBussFileName("RBR_EBR_MAP_BUS_METADATA"+"_"+dateString+".xls");
+				workbook = new HSSFWorkbook();
+				itemCodeMap = getCellRefrence(csvPathHavingEBRCellRef);
+				rowHeaderMap = new TreeMap<>();
+				ebrRbrTableMap = new TreeMap<>();
+				oldItemDetailMap = new TreeMap<>();
+				oldItemDetailMap = readItemMasterSheet(returnCodeTemp);
+			}
+
+			String elementCodeTemp = "";
+			String elementVerTemp = "";
+
+			Map<Integer, String> itemFreeTextMap = new HashMap<>();
+			Map<Integer, String> filerToSelectMap = new HashMap<>();
+
+			List<EbrRbrTableDto> ebrRbrTableDtos = new ArrayList<>();
+
+			HSSFSheet sheet = workbook.createSheet(sheetName);
+			HSSFRow rowhead = sheet.createRow((short) 0);
+
+			int itemFreetextIndexColumn = 0;
+			int filerToSelectIndexColumn = 0;
+
+			int j = 0;
+			int dynamicDimHeaderCount = 0;
+			List<String> headerList = new ArrayList<>();
+
+		
+			
+			CellStyle cellStyle1 = workbook.createCellStyle();
+	        cellStyle1.setFillForegroundColor(IndexedColors.AQUA.index);
+	        cellStyle1.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+			rowhead.createCell(j).setCellValue(ExcelContstant.EBR_TABLE_NAME.getExcelColumnConstants());
+			headerList.add(ExcelContstant.EBR_TABLE_NAME.getExcelColumnConstants());
+			j++;
+			rowhead.createCell(j).setCellValue(ExcelContstant.ELEMENT_CODE.getExcelColumnConstants());
+			headerList.add(ExcelContstant.ELEMENT_CODE.getExcelColumnConstants());
+			j++;
+			rowhead.createCell(j).setCellValue(ExcelContstant.ELEMENT_VERSION.getExcelColumnConstants());
+			headerList.add(ExcelContstant.ELEMENT_VERSION.getExcelColumnConstants());
+			j++;
+			rowhead.createCell(j).setCellValue(ExcelContstant.ELEMENT_LABEL.getExcelColumnConstants());
+			headerList.add(ExcelContstant.ELEMENT_LABEL.getExcelColumnConstants());
+			j++;
+			rowhead.createCell(j).setCellValue(ExcelContstant.ELEMENT_DIMENSIONS.getExcelColumnConstants());
+			headerList.add(ExcelContstant.ELEMENT_DIMENSIONS.getExcelColumnConstants());
+			j++;
+			rowhead.createCell(j).setCellValue(ExcelContstant.ELEMENT_SDMX_MODEL_DIM.getExcelColumnConstants());
+			headerList.add(ExcelContstant.ELEMENT_SDMX_MODEL_DIM.getExcelColumnConstants());
+			j++;
+
+			// For Dynamic Dim Header Creation Start
+			ElementDimensionStoredJson elementDimensionStoredJson = new Gson().fromJson(elementDimensionBeans.get(0).getElementDimensions(), ElementDimensionStoredJson.class);
+			int dynamicHeaderAppendCount = elementDimensionStoredJson.getDimCombination().size();
+			for (DimCombination dim : elementDimensionStoredJson.getDimCombination()) {
+				
+				if (!StringUtils.isBlank(dim.getDimConceptId()) && !dim.getDimConceptId().equalsIgnoreCase(ExcelContstant.DMID.getExcelColumnConstants())) {
+					
+					
+					dynamicDimHeaderCount++;
+					String updatedValue = "";
+					
+					if(dim.getDimConceptId().equalsIgnoreCase(ExcelContstant.COMMENT.getExcelColumnConstants())) {
+						updatedValue = ExcelContstant.COMMENTS.getExcelColumnConstants();
+					}else if(dim.getDimConceptId().equalsIgnoreCase(ExcelContstant.DATE.getExcelColumnConstants())) {
+						updatedValue = ExcelContstant.OBS_VALUE_RECORD_DT.getExcelColumnConstants();
+					}else if(dim.getDimConceptId().equalsIgnoreCase(ExcelContstant.NOT.getExcelColumnConstants())) {
+						updatedValue = ExcelContstant.NATURE_OF_TRANSACTIONS.getExcelColumnConstants();
+					}else if(dim.getDimConceptId().equalsIgnoreCase(ExcelContstant.CASE.getExcelColumnConstants())) {
+						updatedValue = ExcelContstant.TYPE_OF_CASE.getExcelColumnConstants();
+					}else {
+						updatedValue = dim.getDimConceptId().toUpperCase();
+					}
+					
+					if(dim.getDimConceptId().equals(ExcelContstant.OTH_SPECIFY.getExcelColumnConstants()) && !othSpecifyDimFound) {
+						othSpecifyDimFound = true;
+					}
+					
+					rowhead.createCell(j).setCellValue(ExcelContstant.ELEMENT_.getExcelColumnConstants() + updatedValue);
+					headerList.add(ExcelContstant.ELEMENT_.getExcelColumnConstants() + updatedValue);
+					j++;
+					
+					if(dynamicHeaderAppendCount == dynamicDimHeaderCount) {
+						rowhead.createCell(j).setCellValue(ExcelContstant.ELEMENT_DEPENDENCY_TYPE.getExcelColumnConstants() );
+						headerList.add(ExcelContstant.ELEMENT_DEPENDENCY_TYPE.getExcelColumnConstants());
+						j++;
+						dynamicDimHeaderCount++;
+					}
+				}
+
+			}
+			// end
+			
+			rowhead.createCell(j).setCellValue(ExcelContstant.ELEMENT_DMID.getExcelColumnConstants());
+			headerList.add(ExcelContstant.ELEMENT_DMID.getExcelColumnConstants());
+			j++;
+			
+			rowhead.createCell(j).setCellValue(ExcelContstant.RETURN_TOTAL_DISB_BAL_OUTSTD_OFWHICH_FLG.getExcelColumnConstants());
+			headerList.add(ExcelContstant.RETURN_TOTAL_DISB_BAL_OUTSTD_OFWHICH_FLG.getExcelColumnConstants());
+			j++;
+
+			rowhead.createCell(j)
+					.setCellValue(ExcelContstant.ELEMENT_RETURN_TEMPLATE_SHEET_NO.getExcelColumnConstants());
+			headerList.add(ExcelContstant.ELEMENT_RETURN_TEMPLATE_SHEET_NO.getExcelColumnConstants());
+			j++;
+			rowhead.createCell(j).setCellValue(ExcelContstant.RETURN_CODE.getExcelColumnConstants());
+			headerList.add(ExcelContstant.RETURN_CODE.getExcelColumnConstants());
+			j++;
+			rowhead.createCell(j).setCellValue(ExcelContstant.RETURN_NAME.getExcelColumnConstants());
+			headerList.add(ExcelContstant.RETURN_NAME.getExcelColumnConstants());
+			j++;
+			rowhead.createCell(j).setCellValue(ExcelContstant.RETURN_TEMPLATE_SHEET_NAME.getExcelColumnConstants());
+			headerList.add(ExcelContstant.RETURN_TEMPLATE_SHEET_NAME.getExcelColumnConstants());
+			j++;
+			rowhead.createCell(j).setCellValue(ExcelContstant.RETURN_SECTION_CODE.getExcelColumnConstants());
+			headerList.add(ExcelContstant.RETURN_SECTION_CODE.getExcelColumnConstants());
+			j++;
+			rowhead.createCell(j).setCellValue(ExcelContstant.RETURN_SECTION_NAME.getExcelColumnConstants());
+			headerList.add(ExcelContstant.RETURN_SECTION_NAME.getExcelColumnConstants());
+			j++;
+			rowhead.createCell(j).setCellValue(ExcelContstant.RETURN_CELL_REF_NO.getExcelColumnConstants());
+			headerList.add(ExcelContstant.RETURN_CELL_REF_NO.getExcelColumnConstants());
+			j++;
+			rowhead.createCell(j).setCellValue(ExcelContstant.RETURN_TABLE_NAME.getExcelColumnConstants());
+			headerList.add(ExcelContstant.RETURN_TABLE_NAME.getExcelColumnConstants());
+			j++;
+			rowhead.createCell(j).setCellValue(ExcelContstant.RETURN_TEMPLATE_SHEET_NO.getExcelColumnConstants());
+			headerList.add(ExcelContstant.RETURN_TEMPLATE_SHEET_NO.getExcelColumnConstants());
+			j++;
+			rowhead.createCell(j).setCellValue(ExcelContstant.RETURN_ITEM_CODE.getExcelColumnConstants());
+			headerList.add(ExcelContstant.RETURN_ITEM_CODE.getExcelColumnConstants());
+			j++;
+			rowhead.createCell(j).setCellValue(ExcelContstant.RETURN_COLUMN_NAME.getExcelColumnConstants());
+			headerList.add(ExcelContstant.RETURN_COLUMN_NAME.getExcelColumnConstants());
+			j++;
+			//
+			rowhead.createCell(j).setCellValue(ExcelContstant.RETURN_ITEM_OLD_SK.getExcelColumnConstants());
+			headerList.add(ExcelContstant.RETURN_ITEM_OLD_SK.getExcelColumnConstants());
+			j++;
+
+			rowhead.createCell(j).setCellValue(ExcelContstant.RETURN_ITEM_DISPLAY_TEXT.getExcelColumnConstants());
+			headerList.add(ExcelContstant.RETURN_ITEM_DISPLAY_TEXT.getExcelColumnConstants());
+			j++;
+
+			rowhead.createCell(j).setCellValue(ExcelContstant.RETURN_ITEM_ACTIVE_FLAG.getExcelColumnConstants());
+			headerList.add(ExcelContstant.RETURN_ITEM_ACTIVE_FLAG.getExcelColumnConstants());
+			j++;
+
+			rowhead.createCell(j)
+					.setCellValue(ExcelContstant.RETURN_ITEM_START_EFFECTIVE_DATE.getExcelColumnConstants());
+			headerList.add(ExcelContstant.RETURN_ITEM_START_EFFECTIVE_DATE.getExcelColumnConstants());
+			j++;
+
+			rowhead.createCell(j).setCellValue(ExcelContstant.RETURN_ITEM_END_EFFECTIVE_DATE.getExcelColumnConstants());
+			headerList.add(ExcelContstant.RETURN_ITEM_END_EFFECTIVE_DATE.getExcelColumnConstants());
+			j++;
+			
+			rowhead.createCell(j).setCellValue(ExcelContstant.ENCODE_VALUE.getExcelColumnConstants());
+			headerList.add(ExcelContstant.ENCODE_VALUE.getExcelColumnConstants());
+			j++;
+			
+			rowhead.createCell(j).setCellValue(ExcelContstant.DECODE_VALUE.getExcelColumnConstants());
+			headerList.add(ExcelContstant.DECODE_VALUE.getExcelColumnConstants());
+			j++;
+			
+			rowhead.createCell(j).setCellValue(ExcelContstant.IS_EBR_RBR_APPLICABLE.getExcelColumnConstants());
+			headerList.add(ExcelContstant.IS_EBR_RBR_APPLICABLE.getExcelColumnConstants());
+			j++;
+
+			rowhead.setRowStyle(cellStyle1);
+
+			boolean itemFreeTextColumnFound = false;
+			boolean filerToSelectColumnFound = false;
+			
+			boolean itemFreeTextGoInside = false;
+			Set<String> returnTableNameSet = new HashSet<>();
+			boolean itemFreeTextCreatedNewly = false;
+			
+			
+			int i = 0;
+			int len = 1;
+			
+
+			for (ElementDimensionBean elementDimensionBean : elementDimensionBeans) {
+				boolean samedmidFound = false ;
+
+				elementCodeTemp = elementDimensionBean.getDsdCode();
+				elementVerTemp = elementDimensionBean.getElementVersion();
+
+				if (i == 0) {
+					rowHeaderMap.put(elementDimensionBean.getDsdCode() + "#@" + elementDimensionBean.getElementVersion(),headerList);
+					dmidMap.put(elementDimensionBean.getModelCode(), elementCodeTemp+"~~"+elementVerTemp);
+				}else {
+					if(dmidMap.containsKey(elementDimensionBean.getModelCode())) {
+						samedmidFound = true;
+					}else {
+						dmidMap.put(elementDimensionBean.getModelCode(), elementCodeTemp+"~~"+elementVerTemp);
+					}
+				}
+				
+				i++;
+				HSSFRow row = sheet.createRow((short) i);
+				int k = 0;
+
+				row.createCell(k).setCellValue("LND_FACT_EBR_" + elementDimensionBean.getDsdCode() + "_00"+ elementDimensionBean.getElementVersion().replace(".", ""));
+				k++;
+				row.createCell(k).setCellValue(elementDimensionBean.getDsdCode());
+				k++;
+				row.createCell(k).setCellValue(elementDimensionBean.getElementVersion());
+				k++;
+				row.createCell(k).setCellValue(elementDimensionBean.getElementLabel());
+				k++;
+				row.createCell(k).setCellValue(elementDimensionBean.getElementDimensions());
+				k++;
+				row.createCell(k).setCellValue(elementDimensionBean.getModelDim());
+				k++;
+
+				SDMXReturnModelBean sdmxReturnModelBean = new SDMXReturnModelBean();
+				sdmxReturnModelBean = new Gson().fromJson(elementDimensionBean.getModelDim(),SDMXReturnModelBean.class);
+				String outStdOfWhichFlag = ExcelContstant.BLANK_SPACE.getExcelColumnConstants();
+				boolean elementAndDimensionFound = false;
+				// For Dynamic Dimension Value Creations Start
+				for (int g = 0; g < dynamicDimHeaderCount; g++) {
+					boolean columnFound = false;
+					HSSFCell rowHeaderValue = rowhead.getCell(k);// 5
+					String dimNameCom = rowHeaderValue.toString();
+					String[] dimName = dimNameCom.split("_", 2);
+					String finalDim = dimName[1];
+					if (!finalDim.equals(ExcelContstant.DMID.getExcelColumnConstants())) {
+						
+						
+						
+						if (!Validations.isEmpty(sdmxReturnModelBean.getClosedDim())) {
+							closeDimBreak: for (CodeListDimension closeDim : sdmxReturnModelBean.getClosedDim()) {
+								if (closeDim.getDimConceptId().equalsIgnoreCase(finalDim)) {
+									
+									if(elementDimensionBean.getDsdCode().equals(ExcelContstant.EXP_CRDT.getExcelColumnConstants()) && 
+											finalDim.equals(ExcelContstant.EXPC_LI.getExcelColumnConstants()) && !StringUtils.isBlank(closeDim.getClValueCode())) {
+											
+										if(closeDim.getClValueCode().equals(ExcelContstant.DISBP.getExcelColumnConstants()) || 
+												closeDim.getClValueCode().equals(ExcelContstant.BOPE.getExcelColumnConstants())) {
+												outStdOfWhichFlag = "1";
+										}else if(closeDim.getClValueCode().equals(ExcelContstant.DISBPGH.getExcelColumnConstants()) || 
+												closeDim.getClValueCode().equals(ExcelContstant.BOPEGH.getExcelColumnConstants()) || 
+												closeDim.getClValueCode().equals(ExcelContstant.GCI.getExcelColumnConstants())) {
+												outStdOfWhichFlag = "2";
+										}
+									}
+									
+									if (!StringUtils.isBlank(closeDim.getClValueCode()) && closeDim.getClValueCode().equalsIgnoreCase(ExcelContstant.ITEM_FREE_TEXT.getExcelColumnConstants())) {
+										itemFreeTextColumnFound = true;
+										itemFreeTextBoolean = true;
+										row.createCell(k).setCellValue(ExcelContstant.ITEM_FREE_TEXT.getExcelColumnConstants());
+										k++;
+										itemFreeTextMap.put(row.getRowNum(),ExcelContstant.ITEM_FREE_TEXT.getExcelColumnConstants());
+									} else if (!StringUtils.isBlank(closeDim.getClValueCode())&& closeDim.getClValueCode().equalsIgnoreCase(ExcelContstant.FILER_TO_SELECT.getExcelColumnConstants())) {
+										filerToSelectColumnFound = true;
+										row.createCell(k).setCellValue(closeDim.getClValueCode());
+										k++;
+										filerToSelectMap.put(row.getRowNum(), closeDim.getClValueCode());
+									} else {
+										row.createCell(k).setCellValue(closeDim.getClValueCode());
+										k++;
+									}
+
+									columnFound = true;
+									break closeDimBreak;
+								}
+							}
+						}
+
+						if (!Validations.isEmpty(sdmxReturnModelBean.getOpenDimension())) {
+							openDimBreak: for (InputDimension openDim : sdmxReturnModelBean.getOpenDimension()) {
+								if (openDim.getDimConceptId().equalsIgnoreCase(finalDim)) {
+									
+									if(elementDimensionBean.getDsdCode().equals(ExcelContstant.EXP_CRDT.getExcelColumnConstants()) && 
+											finalDim.equals(ExcelContstant.EXPC_LI.getExcelColumnConstants()) && !StringUtils.isBlank(openDim.getClValueCode())) {
+										
+										if(openDim.getClValueCode().equals(ExcelContstant.DISBP.getExcelColumnConstants()) || 
+												openDim.getClValueCode().equals(ExcelContstant.BOPE.getExcelColumnConstants())) {
+												outStdOfWhichFlag = "1";
+										}else if(openDim.getClValueCode().equals(ExcelContstant.DISBPGH.getExcelColumnConstants()) || 
+												openDim.getClValueCode().equals(ExcelContstant.BOPEGH.getExcelColumnConstants()) || 
+												openDim.getClValueCode().equals(ExcelContstant.GCI.getExcelColumnConstants())) {
+												outStdOfWhichFlag = "2";
+										}
+										
+									}
+									
+									if (!StringUtils.isBlank(openDim.getClValueCode())&& openDim.getClValueCode().equalsIgnoreCase(ExcelContstant.ITEM_FREE_TEXT.getExcelColumnConstants())) {
+										itemFreeTextColumnFound = true;
+										itemFreeTextBoolean = true;
+										row.createCell(k).setCellValue(ExcelContstant.ITEM_FREE_TEXT.getExcelColumnConstants());
+										
+										itemFreeTextMap.put(row.getRowNum(),ExcelContstant.ITEM_FREE_TEXT.getExcelColumnConstants());
+										k++;
+									} else if (!StringUtils.isBlank(openDim.getClValueCode())&& openDim.getClValueCode().equalsIgnoreCase(ExcelContstant.FILER_TO_SELECT.getExcelColumnConstants())) {
+										filerToSelectColumnFound = true;
+										row.createCell(k).setCellValue(openDim.getClValueCode());
+										k++;
+										filerToSelectMap.put(row.getRowNum(), openDim.getClValueCode());
+									} else {
+										row.createCell(k).setCellValue(openDim.getClValueCode());
+										k++;
+									}
+
+									columnFound = true;
+									break openDimBreak;
+								}
+							}
+						}
+
+						if (!Validations.isEmpty(sdmxReturnModelBean.getCommonDimension())) {
+							commonDimBreak: for (CommonDimension commDim : sdmxReturnModelBean.getCommonDimension()) {
+								if (commDim.getDimConceptId().equalsIgnoreCase(finalDim)) {
+									
+									if(elementDimensionBean.getDsdCode().equals(ExcelContstant.EXP_CRDT.getExcelColumnConstants()) && 
+											finalDim.equals(ExcelContstant.EXPC_LI.getExcelColumnConstants()) && !StringUtils.isBlank(commDim.getClValueCode())) {
+										
+										if(commDim.getClValueCode().equals(ExcelContstant.DISBP.getExcelColumnConstants()) || 
+												commDim.getClValueCode().equals(ExcelContstant.BOPE.getExcelColumnConstants())) {
+												outStdOfWhichFlag = "1";
+										}else if(commDim.getClValueCode().equals(ExcelContstant.DISBPGH.getExcelColumnConstants()) || 
+												commDim.getClValueCode().equals(ExcelContstant.BOPEGH.getExcelColumnConstants()) || 
+												commDim.getClValueCode().equals(ExcelContstant.GCI.getExcelColumnConstants())) {
+												outStdOfWhichFlag = "2";
+										}
+										
+									}
+									
+
+									if (!StringUtils.isBlank(commDim.getClValueCode())&& commDim.getClValueCode().equalsIgnoreCase(ExcelContstant.ITEM_FREE_TEXT.getExcelColumnConstants())) {
+										itemFreeTextColumnFound = true;
+										itemFreeTextBoolean = true;
+										row.createCell(k).setCellValue(ExcelContstant.ITEM_FREE_TEXT.getExcelColumnConstants());
+										itemFreeTextMap.put(row.getRowNum(),ExcelContstant.ITEM_FREE_TEXT.getExcelColumnConstants());
+										k++;
+									} else if (!StringUtils.isBlank(commDim.getClValueCode())&& commDim.getClValueCode().equalsIgnoreCase(ExcelContstant.FILER_TO_SELECT.getExcelColumnConstants())) {
+										filerToSelectColumnFound = true;
+										row.createCell(k).setCellValue(commDim.getClValueCode());
+										filerToSelectMap.put(row.getRowNum(), commDim.getClValueCode());
+										k++;
+									} else {
+										row.createCell(k).setCellValue(commDim.getClValueCode());
+										k++;
+									}
+
+									columnFound = true;
+									break commonDimBreak;
+								}
+							}
+						}
+						
+						
+						  if (sdmxReturnModelBean.getModelOtherDetails() != null) {
+							  if (finalDim.equalsIgnoreCase(ExcelContstant.DEPENDENCY_TYPE.getExcelColumnConstants())) {
+								  
+							
+								  if(!Validations.isEmpty(sdmxReturnModelBean.getModelOtherDetails().getDependencyType())) {
+									  
+									  row.createCell(k).setCellValue(sdmxReturnModelBean.getModelOtherDetails().getDependencyType()); 
+									  k++; 
+								  }else {
+									  row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.
+									  getExcelColumnConstants());
+									  k++;
+								  }
+								  columnFound = true;
+								  
+							  }
+						  }
+						 
+
+						if (!columnFound) {
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+						}
+					}
+					
+					if(finalDim.equals(ExcelContstant.OTH_SPECIFY.getExcelColumnConstants()) &&  !itemFreeTextFoundWithOthDim) {
+						itemFreeTextFoundWithOthDim = true;
+					}
+					
+				}
+				// end
+
+				row.createCell(k).setCellValue(elementDimensionBean.getModelCode());
+				k++;
+				
+				row.createCell(k).setCellValue(outStdOfWhichFlag);
+				k++;
+				
+				
+				row.createCell(k).setCellValue(elementDimensionBean.getElementReturnTempSheetNo());
+				k++;
+				row.createCell(k).setCellValue(elementDimensionBean.getReturnCode());
+				k++;
+				row.createCell(k).setCellValue(elementDimensionBean.getReturnName());
+				k++;
+				row.createCell(k).setCellValue(elementDimensionBean.getReturnTempSheetName());
+				k++;
+				row.createCell(k).setCellValue(elementDimensionBean.getReturnSectionCode());
+				k++;
+				row.createCell(k).setCellValue(elementDimensionBean.getReturnSectionName());
+				k++;
+				row.createCell(k).setCellValue(elementDimensionBean.getReturnCellRef());
+
+				DataFormatter formatter = new DataFormatter();
+				String cellRefValue = formatter.formatCellValue(row.getCell(k));
+				ItemCodeBeanForMapping ietmBean = null;
+
+				if (itemCodeMap != null && itemCodeMap.containsKey(Integer.parseInt(cellRefValue))) {
+					ietmBean = itemCodeMap.get(Integer.parseInt(cellRefValue));
+				}
+
+				k++;
+
+				if (ietmBean != null) {
+					if(!returnTableNameSet.contains(ietmBean.getTableColumn())) {
+						returnTableNameSet.add(ietmBean.getTableColumn());
+					}
+					row.createCell(k).setCellValue(ietmBean.getTableColumn());
+					k++;
+					row.createCell(k).setCellValue(ietmBean.getTemSheetNo());
+					k++;
+					row.createCell(k).setCellValue(ietmBean.getItemCode());
+					k++;
+					row.createCell(k).setCellValue(ietmBean.getColName());
+					k++;
+				} else {
+					row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+					k++;
+					row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+					k++;
+					row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+					k++;
+					row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+					k++;
+				}
+
+				if (ietmBean != null) {
+					if (!rbrTableSet.contains(ietmBean.getTableColumn())) {
+						EbrRbrTableDto ebrRbrTableDto = new EbrRbrTableDto();
+						ebrRbrTableDto.setElementCode(elementDimensionBean.getDsdCode());
+						ebrRbrTableDto.setElementVer(elementDimensionBean.getElementVersion());
+						ebrRbrTableDto.setEbrTableName(formatter.formatCellValue(row.getCell(0)));
+						ebrRbrTableDto.setBusMetaDataTableName("");
+						ebrRbrTableDto.setReturnCode(elementDimensionBean.getReturnCode());
+						ebrRbrTableDto.setRbrTableName(ietmBean.getTableColumn());
+						ebrRbrTableDtos.add(ebrRbrTableDto);
+						rbrTableSet.add(ietmBean.getTableColumn());
+					}
+				}
+
+				ItemDto itemDto = null;
+				if (oldItemDetailMap != null && ietmBean != null && oldItemDetailMap.containsKey(returnCodeTemp + "~" + ietmBean.getItemCode())) {
+					itemDto = oldItemDetailMap.get(returnCodeTemp + "~" + ietmBean.getItemCode());
+				}
+
+				if (itemDto != null) {
+					row.createCell(k).setCellValue(itemDto.getItemOldSk());
+					k++;
+					row.createCell(k).setCellValue(itemDto.getItemDisplayText());
+					k++;
+					row.createCell(k).setCellValue(itemDto.getActiveFlag());
+					k++;
+					
+					String startDate = "";
+					String endDate = "";
+					
+					if(!StringUtils.isBlank(itemDto.getStartEffectiveDate())) {
+						startDate = convertDate(itemDto.getStartEffectiveDate(), "dd/MMM/yyyy", DateConstants.LOCALE_ENG.getDateConstantsLocale(), DateConstants.YYYY_MM_DD.getDateConstants(),  DateConstants.LOCALE_ENG.getDateConstantsLocale());
+					}
+					
+					if(!StringUtils.isBlank(itemDto.getEndEffectiveDate())) {
+						 endDate  = convertDate(itemDto.getEndEffectiveDate(), "dd/MMM/yyyy", DateConstants.LOCALE_ENG.getDateConstantsLocale(), DateConstants.YYYY_MM_DD.getDateConstants(),  DateConstants.LOCALE_ENG.getDateConstantsLocale());
+					}
+					
+
+					row.createCell(k).setCellValue(startDate);
+					k++;
+					row.createCell(k).setCellValue(endDate);
+					k++;
+				} else {
+					row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+					k++;
+					row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+					k++;
+					row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+					k++;
+					row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+					k++;
+					row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+					k++;
+				}
+				
+				row.createCell(k).setCellValue(elementDimensionBean.getEncodedString());
+				k++;
+				
+				byte[] encodeStringByte = Base64.decodeBase64(elementDimensionBean.getEncodedString());
+				String decodedString = new String(encodeStringByte);
+				Gson gson = new Gson();
+				String str = sortJsonStr(decodedString,gson);
+				row.createCell(k).setCellValue(str);
+				k++;
+				
+				//Check Duplicate DMID Logic Here 
+				if(!samedmidFound) {
+					row.createCell(k).setCellValue(ExcelContstant.IS_EBR_RBR_APPLICABLE_YES.getExcelColumnConstants());
+				}else {
+					row.createCell(k).setCellValue(ExcelContstant.IS_EBR_RBR_APPLICABLE_NO.getExcelColumnConstants());
+				}
+				
+				k++;
+				
+				
+
+				// These Code Will Create for Dynamically Item_free_text Column
+
+				if (len == elementDimensionBeans.size()  && !CollectionUtils.isEmpty(returnTableNameSet)) {
+					/*
+					 * rowhead.createCell(j).setCellValue(ExcelContstant.RETURN_ITEM_FREE_TEXT.
+					 * getExcelColumnConstants());
+					 * headerList.add(ExcelContstant.RETURN_ITEM_FREE_TEXT.getExcelColumnConstants()
+					 * ); itemFreetextIndexColumn = j; j++;
+					 */
+					//itemFreeTextGoInside = true;
+					
+					itemFreeTectBreak:for(String strTableName :returnTableNameSet ) {
+						if(itemFreeTextApplicableSet.contains(strTableName)) {
+							rowhead.createCell(j).setCellValue(ExcelContstant.RETURN_ITEM_FREE_TEXT.getExcelColumnConstants());
+							headerList.add(ExcelContstant.RETURN_ITEM_FREE_TEXT.getExcelColumnConstants());
+							itemFreetextIndexColumn = j;
+							j++;
+							itemFreeTextCreatedNewly = true;
+							break itemFreeTectBreak;
+						}
+					}
+				}
+
+				if (len == elementDimensionBeans.size() && filerToSelectColumnFound) {
+					rowhead.createCell(j).setCellValue(ExcelContstant.RETURN_FILER_TO_SELECT.getExcelColumnConstants());
+					headerList.add(ExcelContstant.RETURN_FILER_TO_SELECT.getExcelColumnConstants());
+					filerToSelectIndexColumn = j;
+					j++;
+				}
+				
+				/*
+				 * if(itemFreeTextGoInside && !CollectionUtils.isEmpty(returnTableNameSet) &&
+				 * len == elementDimensionBeans.size() ) { itemFreeTectBreak:for(String
+				 * strTableName :returnTableNameSet ) {
+				 * if(itemFreeTextApplicableSet.contains(strTableName)) {
+				 * rowhead.createCell(j).setCellValue(ExcelContstant.RETURN_ITEM_FREE_TEXT.
+				 * getExcelColumnConstants());
+				 * headerList.add(ExcelContstant.RETURN_ITEM_FREE_TEXT.getExcelColumnConstants()
+				 * ); itemFreetextIndexColumn = j; j++; itemFreeTextCreatedNewly = true; break
+				 * itemFreeTectBreak; } } }
+				 */
+				
+
+				/*
+				 * if (len == elementDimensionBeans.size() && elementFound && microFound &&
+				 * othSpecifyDimFound && itemFreeTextFoundWithOthDim && itemFreeTextBoolean) {
+				 * int t = 0; for (Row r : sheet) { String itemFreeTextValue = ""; if (t != 0) {
+				 * if (itemFreeTextMap.containsKey(t)) { itemFreeTextValue =
+				 * itemFreeTextMap.get(t); } else { itemFreeTextValue = "N_A"; }
+				 * r.createCell(itemFreetextIndexColumn).setCellValue(itemFreeTextValue); } t++;
+				 * } }else
+				 */ 
+				if(len == elementDimensionBeans.size() && itemFreeTextCreatedNewly) {
+					int t = 0;
+					for (Row r : sheet) {
+						String itemFreeTextValue = ExcelContstant.BLANK_SPACE.getExcelColumnConstants();
+						if (t != 0) {
+							if (itemFreeTextMap.containsKey(t) && microFound && itemFreeTextFoundWithOthDim) {
+								itemFreeTextValue = itemFreeTextMap.get(t);
+							} else {
+								itemFreeTextValue = ExcelContstant.N_A.getExcelColumnConstants();
+							}
+							r.createCell(itemFreetextIndexColumn).setCellValue(itemFreeTextValue);
+						}
+						t++;
+					}
+				}
+
+				if (len == elementDimensionBeans.size() && filerToSelectColumnFound) {
+					int t = 0;
+					for (Row r : sheet) {
+						String filerToSelectValues = ExcelContstant.BLANK_SPACE.getExcelColumnConstants();
+						if (t != 0) {
+							if (filerToSelectMap.containsKey(t)) {
+								filerToSelectValues = filerToSelectMap.get(t);
+							} else {
+								filerToSelectValues = ExcelContstant.N_A.getExcelColumnConstants();
+							}
+							r.createCell(filerToSelectIndexColumn).setCellValue(filerToSelectValues);
+						}
+						t++;
+					}
+				}
+
+				len++;
+			}
+
+			ebrRbrTableMap.put(elementCodeTemp + "###" + elementVerTemp, ebrRbrTableDtos);
+			FileOutputStream fileOut = new FileOutputStream(filename);
+			workbook.write(fileOut);
+			fileOut.close();
+			workbook.close();
+
+		
+	}
+	
+	private String sortJsonStr(String jsonString, Gson gson) {
+		SortedMap<String, Object> retMap = gson.fromJson(jsonString, new TypeToken<TreeMap<String, Object>>() {
+		}.getType());
+		return gson.toJson(retMap);
+	}
+	
+	@SuppressWarnings("unlikely-arg-type")
+	public Map<Integer, ItemCodeBeanForMapping> getCellRefrence(String csvPathHavingEBRCellRef ) throws Exception {
+	    LOGGER.info("RBR CSV Reading Start ");
+
+		Map<Integer, ItemCodeBeanForMapping> itemCodeMap = new TreeMap<>();
+		ItemCodeBeanForMapping itemBean = null;
+
+		ReadReturnCSVForEBRMapping readReturnCSVForEBRMapping = new ReadReturnCSVForEBRMapping();
+		List<CSVItemMappingBean> csvItemMappingBeans = readReturnCSVForEBRMapping.readDataFromCustomSeperator(csvPathHavingEBRCellRef);
+		
+		if(!Validations.isEmpty(csvItemMappingBeans)) {
+			for(CSVItemMappingBean csvItemMappingBean : csvItemMappingBeans) {
+				
+				if(csvItemMappingBean.getSdmxCellRef() == 0) {
+					continue;
+				}
+				
+				itemBean = new ItemCodeBeanForMapping();
+				itemBean.setCellRef(csvItemMappingBean.getSdmxCellRef());
+				itemBean.setColName(csvItemMappingBean.getColumnName());
+				itemBean.setItemCode(csvItemMappingBean.getItemCode());
+				itemBean.setTableColumn(csvItemMappingBean.getTableName());
+				itemBean.setTemSheetNo(csvItemMappingBean.getTemplateSheetNo());
+				
+				if (!itemCodeMap.containsKey(itemBean.getCellRef())) {
+					itemCodeMap.put(itemBean.getCellRef(), itemBean);
+				}	
+			}
+		}
+		LOGGER.info("RBR CSV Reading End ");
+		return itemCodeMap;
+	  
+	}
+	
+	/*
+	 * THIS CODE READ 236 EXCEL WHICH IS PROVIDED BY TCS AND READ ITEM_CODE SPECIFIC
+	 * INFO
+	 */
+	public Map<String, ItemDto> readItemMasterSheet(String returnCode) throws Exception {
+		
+		String key = "";
+		String query = " SELECT " + " TDTIM.ITEM_CODE ," + " TDTIM.ACTIVE_FLAG ," + " TDTIM.START_EFFECTIVE_DATE ,"
+				+ " TDTIM.END_EFFECTIVE_DATE ," + " TDTIM.ITEM_DISPLAY_TEXT ," + " TDTIM.RETURN_CODE ," + " TDTIM.ITEM_OLD_SK " +
+				" FROM TBL_DW_TEMP_ITEM_MASTER TDTIM  ";
+		
+		query = query+ " WHERE TDTIM.RETURN_CODE = '"+returnCode+"'";			
+		LOGGER.info("SQL to execute: " + query);
+		
+		List<Tuple> tuples = entityManager.createNativeQuery(query.toString(), Tuple.class).getResultList();
+		
+		Map<String, ItemDto> itemMasterMap = new TreeMap<>();
+		
+			int p =0;
+			ItemDto itemBean = null;
+
+			for (Tuple tuple : tuples) {
+				key = (String)tuple.get("RETURN_CODE") + "~" + (String)tuple.get("ITEM_CODE");
+				if (p == 0) {
+					p++;
+					itemBean = new ItemDto();
+					itemBean.setActiveFlag(tuple.get("ACTIVE_FLAG").toString());
+					itemBean.setEndEffectiveDate((String)tuple.get("END_EFFECTIVE_DATE"));
+					itemBean.setItemCode((String)tuple.get("ITEM_CODE"));
+					itemBean.setItemDisplayText((String)tuple.get("ITEM_DISPLAY_TEXT"));
+					itemBean.setItemOldSk((String)tuple.get("ITEM_OLD_SK"));
+					itemBean.setReturnCode((String)tuple.get("RETURN_CODE"));
+					itemBean.setStartEffectiveDate((String)tuple.get("START_EFFECTIVE_DATE"));
+					itemMasterMap.put(key,itemBean);
+				} else {
+					if (!itemMasterMap.containsKey(key)) {
+						itemBean = new ItemDto();
+						itemBean.setActiveFlag(tuple.get("ACTIVE_FLAG").toString());
+						itemBean.setEndEffectiveDate((String)tuple.get("END_EFFECTIVE_DATE"));
+						itemBean.setItemCode((String)tuple.get("ITEM_CODE"));
+						itemBean.setItemDisplayText((String)tuple.get("ITEM_DISPLAY_TEXT"));
+						itemBean.setItemOldSk((String)tuple.get("ITEM_OLD_SK"));
+						itemBean.setReturnCode((String)tuple.get("RETURN_CODE"));
+						itemBean.setStartEffectiveDate((String)tuple.get("START_EFFECTIVE_DATE"));
+						itemMasterMap.put(key,itemBean);
+					}
+				}
+			}
+		return itemMasterMap;
+	}
+	
+	public  String convertDate(String inDate, String inDateFmt, Locale inLocale, String outDateFmt, Locale outLocale) throws Exception {
+		String outDt = null;
+		SimpleDateFormat sdf = new SimpleDateFormat(inDateFmt, inLocale);
+		sdf.setLenient(SET_LENIENT);
+		Date baseDate = sdf.parse(inDate);
+		DateFormat dateFormat = new SimpleDateFormat(outDateFmt, outLocale);
+		outDt = dateFormat.format(baseDate);
+		return outDt;
+	}
+	
+	public void createEbrRbrMappingTableStructure(Map<String, List<ElementDimensionBean>> elementData,
+			Map<String, List<String>> rowHeaderMapData, String sheetName) throws Exception {
+
+		    LOGGER.info("In Business Metadata Element Wise Sheet Start: " );
+			HSSFSheet sheet = workbook.createSheet(sheetName);
+			HSSFRow rowhead = sheet.createRow((short) 0);
+
+			List<String> headerDetails = new ArrayList<>();
+
+			int h = 0;
+			rowhead.createCell(h).setCellValue(ExcelContstant.DL_LAYER.getExcelColumnConstants());
+			h++;
+			rowhead.createCell(h).setCellValue(ExcelContstant.TABLE_NAME.getExcelColumnConstants());
+			h++;
+			rowhead.createCell(h).setCellValue(ExcelContstant.TABLE_COMMENT.getExcelColumnConstants());
+			h++;
+			rowhead.createCell(h).setCellValue(ExcelContstant.COLUMN_NAME_.getExcelColumnConstants());
+			h++;
+			rowhead.createCell(h).setCellValue(ExcelContstant.COLUMN_COMMENT.getExcelColumnConstants());
+			h++;
+			rowhead.createCell(h).setCellValue(ExcelContstant.KEY.getExcelColumnConstants());
+			h++;
+			rowhead.createCell(h).setCellValue(ExcelContstant.DATA_TYPE.getExcelColumnConstants());
+			h++;
+			rowhead.createCell(h).setCellValue(ExcelContstant.PRECISION.getExcelColumnConstants());
+			h++;
+			rowhead.createCell(h).setCellValue(ExcelContstant.SCALE.getExcelColumnConstants());
+			h++;
+			rowhead.createCell(h).setCellValue(ExcelContstant.IS_NULL.getExcelColumnConstants());
+			h++;
+			rowhead.createCell(h).setCellValue(ExcelContstant.CREATED_BY.getExcelColumnConstants());
+			h++;
+			rowhead.createCell(h).setCellValue(ExcelContstant.DEPARTMENT.getExcelColumnConstants());
+			h++;
+			rowhead.createCell(h).setCellValue(ExcelContstant.ELEMENT.getExcelColumnConstants());
+			h++;
+			rowhead.createCell(h).setCellValue(ExcelContstant.RETURN_NON_RETURN.getExcelColumnConstants());
+			h++;
+			rowhead.createCell(h).setCellValue(ExcelContstant.SOURCE.getExcelColumnConstants());
+			h++;
+			rowhead.createCell(h).setCellValue(ExcelContstant.COMMENTS.getExcelColumnConstants());
+			h++;
+			rowhead.createCell(h).setCellValue(ExcelContstant.ETL_TABLE_LEVEL_REMARKS.getExcelColumnConstants());
+			h++;
+			rowhead.createCell(h).setCellValue(ExcelContstant.ETL_COLUMN_LEVEL_REMARKS.getExcelColumnConstants());
+			h++;
+			rowhead.createCell(h).setCellValue(ExcelContstant.DATA_COLLECTION.getExcelColumnConstants());
+			h++;
+			rowhead.createCell(h).setCellValue(ExcelContstant.PORTAL.getExcelColumnConstants());
+			h++;
+			rowhead.createCell(h).setCellValue(ExcelContstant.SAP_BO.getExcelColumnConstants());
+			h++;
+			rowhead.createCell(h).setCellValue(ExcelContstant.PRIORITY.getExcelColumnConstants());
+			h++;
+			rowhead.createCell(h).setCellValue(ExcelContstant.METADATA_FILENAME.getExcelColumnConstants());
+			h++;
+			rowhead.createCell(h).setCellValue(ExcelContstant.RELEASE_VERSION.getExcelColumnConstants());
+			h++;
+			rowhead.createCell(h).setCellValue(ExcelContstant.CHANGE_DATE.getExcelColumnConstants());
+			h++;
+			rowhead.createCell(h).setCellValue(ExcelContstant.SCHEMA.getExcelColumnConstants());
+			h++;
+
+			int p = 0;
+			int sizeOfMap = 0;
+			if(!elementData.isEmpty()) {
+				
+			
+				for (Map.Entry<String, List<ElementDimensionBean>> entry : elementData.entrySet()) {
+					sizeOfMap++;
+					
+					
+					headerDetails = rowHeaderMapData.get(entry.getKey());
+					String elementNameAndVerCombo = entry.getKey();
+					List<ElementDimensionBean> elementDimensionBeans = elementData.get(entry.getKey());
+	
+					String[] elementNameAndVer = elementNameAndVerCombo.split("#@", 2);
+					String elementName = elementNameAndVer[0];
+					boolean insideFound = false;
+	
+					for (String str : headerDetails) {
+						boolean found = false;
+						p++;
+						HSSFRow row = sheet.createRow((short) p);
+						int k = 0;
+						row.createCell(k).setCellValue(ExcelContstant.EBR_LANDING.getExcelColumnConstants());
+						k++;
+						row.createCell(k).setCellValue(ExcelContstant.MAP_EBR_RBR_.getExcelColumnConstants() + elementName
+								+ ExcelContstant._BUSINESS_METADATA.getExcelColumnConstants());
+						k++;
+						row.createCell(k).setCellValue(
+								"Business Metadata RBR and EBR Mapping table for " + elementName + " element ");
+						k++;
+						row.createCell(k).setCellValue(str.toUpperCase());
+						k++;
+	
+						if (str.equalsIgnoreCase(ExcelContstant.ELEMENT_CODE.getExcelColumnConstants())) {
+							found = true;
+							row.createCell(k).setCellValue("Short code given to Element(eg:LNA, OIBA)");
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.UK.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.VARCHAR_45.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("N");
+							k++;
+						} else if (str.equalsIgnoreCase(ExcelContstant.ELEMENT_VERSION.getExcelColumnConstants())) {
+							found = true;
+							row.createCell(k).setCellValue("Version of element (eg:1.0,2.0)");
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.UK.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.VARCHAR_5.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("N");
+							k++;
+						} else if (str.equalsIgnoreCase(ExcelContstant.ELEMENT_LABEL.getExcelColumnConstants())) {
+							found = true;
+							row.createCell(k).setCellValue(
+									"Element Name provided by source system (eg: Loans and Advances, Other Interest Bearing Assets)");
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.TEXT.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("N");
+							k++;
+						} else if (str.equalsIgnoreCase(ExcelContstant.ELEMENT_DIMENSIONS.getExcelColumnConstants())) {
+							found = true;
+							row.createCell(k).setCellValue("Element JSON combo of all dimension");
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.JSON.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("N");
+							k++;
+						} else if (str.equalsIgnoreCase(ExcelContstant.ELEMENT_SDMX_MODEL_DIM.getExcelColumnConstants())) {
+							found = true;
+							row.createCell(k).setCellValue("Element JSON combo of all code list value");
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.JSON.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("N");
+							k++;
+						} else if (str.equalsIgnoreCase(ExcelContstant.EBR_TABLE_NAME.getExcelColumnConstants())) {
+							found = true;
+							row.createCell(k).setCellValue("EBR Table Name");
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.TEXT.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("N");
+							k++;
+						} else if (!found && !insideFound) {
+							String[] eleDimName = str.split("_", 2);
+							String dimName = eleDimName[1];
+	
+							if (!str.equalsIgnoreCase(ExcelContstant.ELEMENT_DMID.getExcelColumnConstants())) {
+								row.createCell(k)
+										.setCellValue("Short code of the codelist value of the " + dimName + " dimension");
+								k++;
+								row.createCell(k).setCellValue(ExcelContstant.UK.getExcelColumnConstants());
+								k++;
+								row.createCell(k).setCellValue(ExcelContstant.TEXT.getExcelColumnConstants());
+								k++;
+								row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+								k++;
+								row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+								k++;
+								row.createCell(k).setCellValue("Y");
+								k++;
+							}
+						}
+	
+						// break else if for facing issues in for dynamic data generation
+	
+						if (str.equalsIgnoreCase(ExcelContstant.ELEMENT_DMID.getExcelColumnConstants())) {
+							insideFound = true;
+							row.createCell(k).setCellValue(
+									"Unique alphanumeric identifier for each combination of element and dimension (code list values)");
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.UK.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.TEXT.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("N");
+							k++;
+						} else if (str.equalsIgnoreCase(ExcelContstant.RETURN_TOTAL_DISB_BAL_OUTSTD_OFWHICH_FLG.getExcelColumnConstants())) {
+							insideFound = true;
+							row.createCell(k)
+									.setCellValue("Identifier for SOme Returns");
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.UK.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.VARCHAR_5.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("Y");
+							k++;
+						} else if (str.equalsIgnoreCase("ELEMENT_RETURN_TEMPLATE_SHEET_NO")) {
+							insideFound = true;
+							row.createCell(k)
+									.setCellValue("Unique alphanumeric identifier for EBR Return Template Sheet No");
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.UK.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.VARCHAR_1000.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("N");
+							k++;
+						} else if (str.equalsIgnoreCase(ExcelContstant.RETURN_CODE.getExcelColumnConstants())) {
+							insideFound = true;
+							row.createCell(k).setCellValue("Unique alphanumeric identifier for Return Code");
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.UK.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.VARCHAR_1000.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("N");
+							k++;
+						} else if (str.equalsIgnoreCase(ExcelContstant.RETURN_NAME.getExcelColumnConstants())) {
+							insideFound = true;
+							row.createCell(k).setCellValue("Return Name provided by business ");
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.UK.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.TEXT.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("N");
+							k++;
+						} else if (str
+								.equalsIgnoreCase(ExcelContstant.RETURN_TEMPLATE_SHEET_NO.getExcelColumnConstants())) {
+							insideFound = true;
+							row.createCell(k).setCellValue("Unique alphanumeric identifier for Return Template Sheet No");
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.UK.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.VARCHAR_1000.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("N");
+							k++;
+						} else if (str
+								.equalsIgnoreCase(ExcelContstant.RETURN_TEMPLATE_SHEET_NAME.getExcelColumnConstants())) {
+							insideFound = true;
+							row.createCell(k).setCellValue("Return Template sheet Name provided in return format");
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.UK.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.TEXT.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("N");
+							k++;
+						} else if (str.equalsIgnoreCase(ExcelContstant.RETURN_SECTION_CODE.getExcelColumnConstants())) {
+							insideFound = true;
+							row.createCell(k).setCellValue("Return Section Code  provided in return format");
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.UK.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.VARCHAR_1000.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("N");
+							k++;
+						} else if (str.equalsIgnoreCase(ExcelContstant.RETURN_SECTION_NAME.getExcelColumnConstants())) {
+							insideFound = true;
+							row.createCell(k).setCellValue("Return Section Name  provided in return format");
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.UK.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.TEXT.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("N");
+							k++;
+						} else if (str.equalsIgnoreCase(ExcelContstant.RETURN_CELL_REF_NO.getExcelColumnConstants())) {
+							insideFound = true;
+							row.createCell(k).setCellValue("Return Cell Ref No  provided in return format");
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.UK.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.INT.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("N");
+							k++;
+						} else if (str.equalsIgnoreCase(ExcelContstant.RETURN_ITEM_CODE.getExcelColumnConstants())) {
+							insideFound = true;
+							row.createCell(k).setCellValue("Unique alphanumeric identifier for Return Item Code");
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.UK.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.VARCHAR_1000.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("Y");
+							k++;
+						} else if (str.equalsIgnoreCase(ExcelContstant.RETURN_COLUMN_NAME.getExcelColumnConstants())) {
+							insideFound = true;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.UK.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.TEXT.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("N");
+							k++;
+						} else if (str.equalsIgnoreCase(ExcelContstant.RETURN_TABLE_NAME.getExcelColumnConstants())) {
+							insideFound = true;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.UK.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.TEXT.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("N");
+							k++;
+						} else if (str.equalsIgnoreCase(ExcelContstant.RETURN_ITEM_OLD_SK.getExcelColumnConstants())) {
+							insideFound = true;
+							row.createCell(k).setCellValue(
+									"Old Surrogate Key  identifier for Return Item Code exists in existing EDW");
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.INT.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("Y");
+							k++;
+						} else if (str
+								.equalsIgnoreCase(ExcelContstant.RETURN_ITEM_DISPLAY_TEXT.getExcelColumnConstants())) {
+							insideFound = true;
+							row.createCell(k).setCellValue("Item Display Text ( Item Name)");
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.TEXT.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("Y");
+							k++;
+						} else if (str.equalsIgnoreCase(ExcelContstant.RETURN_ITEM_ACTIVE_FLAG.getExcelColumnConstants())) {
+							insideFound = true;
+							row.createCell(k).setCellValue("Flag for Active / Inactive");
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.VARCHAR_1.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("Y");
+							k++;
+						} else if (str.equalsIgnoreCase(
+								ExcelContstant.RETURN_ITEM_START_EFFECTIVE_DATE.getExcelColumnConstants())) {
+							insideFound = true;
+							row.createCell(k).setCellValue("Effective Start Date");
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.DATE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("Y");
+							k++;
+						} else if (str.equalsIgnoreCase(
+								ExcelContstant.RETURN_ITEM_END_EFFECTIVE_DATE.getExcelColumnConstants())) {
+							insideFound = true;
+							row.createCell(k).setCellValue("Effective End Date");
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.DATE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("Y");
+							k++;
+						} else if (str.equalsIgnoreCase(
+								ExcelContstant.ENCODE_VALUE.getExcelColumnConstants())) {
+							insideFound = true;
+							row.createCell(k).setCellValue("Encode Value");
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.TEXT.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("N");
+							k++;
+						}else if (str.equalsIgnoreCase(
+								ExcelContstant.DECODE_VALUE.getExcelColumnConstants())) {
+							insideFound = true;
+							row.createCell(k).setCellValue("Decoded Value");
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.TEXT.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("N");
+							k++;
+						}else if (str.equalsIgnoreCase(
+								ExcelContstant.IS_EBR_RBR_APPLICABLE.getExcelColumnConstants())) {
+							insideFound = true;
+							row.createCell(k).setCellValue("Ebr Rbr Applicable Check");
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.VARCHAR_1.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("N");
+							k++;
+						}else if (str.equalsIgnoreCase(ExcelContstant.RETURN_ITEM_FREE_TEXT.getExcelColumnConstants())) {
+							insideFound = true;
+							row.createCell(k).setCellValue("Item Free Text");
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.VARCHAR_1000.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("Y");
+							k++;
+						} else if (str.equalsIgnoreCase(ExcelContstant.RETURN_FILER_TO_SELECT.getExcelColumnConstants())) {
+							insideFound = true;
+							row.createCell(k).setCellValue("Filer To Select");
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.VARCHAR.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+							k++;
+							row.createCell(k).setCellValue("Y");
+							k++;
+						}
+	
+						row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+						k++;
+						row.createCell(k).setCellValue(ExcelContstant.ALL.getExcelColumnConstants());
+						k++;
+						row.createCell(k).setCellValue(elementDimensionBeans.get(0).getElementLabel());
+						k++;
+						row.createCell(k).setCellValue(elementDimensionBeans.get(0).getReturnName());
+	
+						k++;
+						row.createCell(k).setCellValue(ExcelContstant.EBR_RBR_BUSINESS_METADATA.getExcelColumnConstants());
+						k++;
+						row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+						k++;
+						row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+						k++;
+						row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+						k++;
+						row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+						k++;
+						row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+						k++;
+						row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+						k++;
+						row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+						k++;
+						row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+						k++;
+						row.createCell(k).setCellValue(elementDimensionBeans.get(0).getElementVersion());
+						k++;
+						row.createCell(k).setCellValue(ExcelContstant.BLANK_SPACE.getExcelColumnConstants());
+						k++;
+						row.createCell(k).setCellValue(ExcelContstant.SRC_ELEMENT.getExcelColumnConstants());
+						k++;
+					}
+				}
+				
+			}
+
+			FileOutputStream fileOut = new FileOutputStream(filename);
+			workbook.write(fileOut);
+			fileOut.close();
+			workbook.close();
+			LOGGER.info("In Business Metadata Element Wise Sheet End: " );
+	
+	}
+	
+	
+	/*
+	 * This Code Create EBR To RBR Table Mapping EXCEL
+	 */
+	public void createEbrRbrTableMap(Map<String, List<EbrRbrTableDto>> ebrRbrMap, String sheetName)throws Exception {
+		
+		LOGGER.info("Business Metadata Sheet Tech Metadata Sheet Start");
+		HSSFSheet sheet = workbook.createSheet(sheetName);
+		HSSFRow rowhead = sheet.createRow((short) 0);
+
+		int h = 0;
+		rowhead.createCell(h).setCellValue(ExcelContstant.ELEMENT_CODE.getExcelColumnConstants());
+		h++;
+		rowhead.createCell(h).setCellValue(ExcelContstant.ELEMENT_VERSION.getExcelColumnConstants());
+		h++;
+		rowhead.createCell(h).setCellValue(ExcelContstant.EBR_TABLE_NAME.getExcelColumnConstants());
+		h++;
+		rowhead.createCell(h).setCellValue(ExcelContstant.BUSINESS_METADATA_TABLE_NAME.getExcelColumnConstants());
+		h++;
+		rowhead.createCell(h).setCellValue(ExcelContstant.RETURN_CODE.getExcelColumnConstants());
+		h++;
+		rowhead.createCell(h).setCellValue(ExcelContstant.RBR_TABLE_NAME.getExcelColumnConstants());
+		h++;
+
+		int p = 0;
+		String returnCodeTemp = "";
+		
+		if(!ebrRbrMap.isEmpty()) {
+			for (Map.Entry<String, List<EbrRbrTableDto>> entry : ebrRbrMap.entrySet()) {
+				List<EbrRbrTableDto> elemDtos = ebrRbrMap.get(entry.getKey());
+				for (EbrRbrTableDto ebrdto : elemDtos) {
+					int k = 0;
+					p++;
+					returnCodeTemp = ebrdto.getReturnCode();
+					HSSFRow row = sheet.createRow((short) p);
+					row.createCell(k).setCellValue(ebrdto.getElementCode());
+					k++;
+					row.createCell(k).setCellValue(ebrdto.getElementVer());
+					k++;
+					row.createCell(k).setCellValue(ebrdto.getEbrTableName());
+					k++;
+					row.createCell(k).setCellValue(ExcelContstant.MAP_EBR_RBR_.getExcelColumnConstants()
+							+ ebrdto.getElementCode() + ExcelContstant._BUSINESS_METADATA.getExcelColumnConstants());
+					k++;
+					row.createCell(k).setCellValue(ebrdto.getReturnCode());
+					k++;
+					row.createCell(k).setCellValue(ebrdto.getRbrTableName());
+					k++;
+				}
+			}
+		}
+		
+		
+		String returnTableName = loadReturnVersionSpecificTableName(returnCodeTemp);
+		
+		int k = 0;
+		p++;
+		
+		HSSFRow row = sheet.createRow((short) p);
+		row.createCell(k).setCellValue("ALL");
+		k++;
+		row.createCell(k).setCellValue("N_A");
+		k++;
+		row.createCell(k).setCellValue("N_A");
+		k++;
+		row.createCell(k).setCellValue("N_A");		
+		k++;
+		row.createCell(k).setCellValue(returnCodeTemp);
+		k++;
+		row.createCell(k).setCellValue(returnTableName);
+		k++;
+		
+		FileOutputStream fileOut = new FileOutputStream(filename);
+		workbook.write(fileOut);
+		fileOut.close();
+		workbook.close();
+		LOGGER.info("Business Metadata Sheet Tech Metadata Sheet End");
+		
+		busMetadatProcess.setIsActive(true);
+		busMetadatProcess.setInsertStatus(false);
+		
+		BusMetadatProcess deactivateBusExistingEntity = metadataRepo.getActiveRecordForReturnAndEbrVersion(busMetadatProcess.getReturnCode(),busMetadatProcess.getReturnVersion(),busMetadatProcess.getEbrVersion());
+		if(deactivateBusExistingEntity != null) {
+			deactivateBusExistingEntity.setIsActive(false);
+			metadataRepo.save(deactivateBusExistingEntity);
+		}
+		
+		metadataRepo.save(busMetadatProcess);
+
+
+	}
+	
+	public String loadReturnVersionSpecificTableName(String returnCodeName)throws Exception {
+		String returnTableName = "";
+		String likeTableName = "RETURN_VERSION";
+		
+			String sql = "select DW_HIVE_TBL_NAME from TBL_DW_HIVE_TBL_DESIGN where DW_HIVE_TBL_RETURN_CODE like '%"+returnCodeName+ "%' and DW_HIVE_TBL_NAME like '%" + likeTableName
+					+ "%'";
+			
+			List<Tuple> tuples = entityManager.createNativeQuery(sql.toString(), Tuple.class).getResultList();
+			for (Tuple tuple : tuples) {
+				if ((String)tuple.get("DW_HIVE_TBL_NAME") != null) {
+					returnTableName = (String)tuple.get("DW_HIVE_TBL_NAME");
+					return returnTableName;
+				}			
+			}
+	
+		return returnTableName;
+	}
+	
+	
+	
+	public List<BusMetadatProcessBean> validateBusinessMetaDataSheet(String fileName,String returnCode,String ebrVersion,Long metadataProcessId,String returnVersion)throws Exception{
+		workbook = new HSSFWorkbook();
+	    sheet2 = workbook.createSheet("Error");
+		try(FileInputStream fis = new FileInputStream(new File(ResourceUtil.getKeyValue("filepath.root")+ ResourceUtil.getKeyValue("returnTemplate.upload.path")+File.separator+returnCode + File.separator + ResourceUtil.getKeyValue("filePath.SDMXFolder") + File.separator +ebrVersion+File.separator+fileName));
+				HSSFWorkbook wb = new HSSFWorkbook(fis);){
+			Map<String, List<String>> issueMap = new TreeMap<>();
+			int returnCellReferenceIndex = 0;
+			int returnTableNameIndex = 0;
+			int returnItemCodeIndex = 0;
+			int returnColumnNameIndex = 0;
+			int returnItemDisplayTextIndex = 0;
+			int returnItemFreeTextIndex = -1;
+
+			int rowNo = 0;
+
+			boolean itemFreeTextFound = false;
+			
+			boolean errorFound = false;
+
+			Set<String> columnNames = new HashSet<>();
+
+			for (int i = 0; i < wb.getNumberOfSheets(); i++) {
+				HSSFSheet sheet = wb.getSheetAt(i);
+				if (sheet.getSheetName().toUpperCase().contains("MAP_EBR_RBR_LND_COL_TECH")|| sheet.getSheetName().toUpperCase().contains("MAP_EBR_RBR_LND_COL_TECH")|| sheet.getSheetName().toUpperCase().contains("MAP_EBR_RBR_LND_TBL_TECH")|| sheet.getSheetName().toUpperCase().contains("SHEET")) {
+					continue;
+				}
+				returnItemFreeTextIndex = -1;
+				
+				issueMap.put(sheet.getSheetName(), new ArrayList<>());
+
+				FormulaEvaluator formulaEvaluator = wb.getCreationHelper().createFormulaEvaluator();
+				for (Row row : sheet) // iteration over row using for each loop
+				{
+					try {
+						rowNo = row.getRowNum();
+						itemFreeTextFound = false;
+						for (int j = 0; j < row.getLastCellNum(); j++) {
+							Cell cell = row.getCell(j);
+
+							if (cell != null) {
+								if (rowNo == 0) {
+
+									switch (formulaEvaluator.evaluateInCell(cell).getCellType()) {
+									case Cell.CELL_TYPE_STRING: // field that represents string cell type
+										if (cell.getStringCellValue().equalsIgnoreCase("RETURN_ITEM_DISPLAY_TEXT")) {
+											returnItemDisplayTextIndex = cell.getColumnIndex();
+										} else if (cell.getStringCellValue().equalsIgnoreCase("RETURN_CELL_REF_NO")) {
+											returnCellReferenceIndex = cell.getColumnIndex();
+										} else if (cell.getStringCellValue().equalsIgnoreCase("RETURN_TABLE_NAME")) {
+											returnTableNameIndex = cell.getColumnIndex();
+										} else if (cell.getStringCellValue().equalsIgnoreCase("RETURN_ITEM_CODE")) {
+											returnItemCodeIndex = cell.getColumnIndex();
+										} else if (cell.getStringCellValue().equalsIgnoreCase("RETURN_COLUMN_NAME")) {
+											returnColumnNameIndex = cell.getColumnIndex();
+										} else if (cell.getStringCellValue().equalsIgnoreCase("RETURN_ITEM_FREE_TEXT")) {
+											returnItemFreeTextIndex = cell.getColumnIndex();
+										}
+										break;
+									}
+								} else {
+									if (cell.getColumnIndex() == returnItemCodeIndex) {
+										switch (formulaEvaluator.evaluateInCell(cell).getCellType()) {
+										case Cell.CELL_TYPE_STRING:
+											if (cell.getStringCellValue() == null || cell.getStringCellValue().equals("")
+													|| cell.getStringCellValue().equals(" ")) {
+													//issueMap.get(sheet.getSheetName()).add("Item Code blank for row : " + rowNo + "  Having return cell reference :  " + row.getCell(returnCellReferenceIndex).getStringCellValue());
+											}
+											break;
+										}
+									} else if (cell.getColumnIndex() == returnColumnNameIndex) {
+										switch (formulaEvaluator.evaluateInCell(cell).getCellType()) {
+										case Cell.CELL_TYPE_STRING:
+											if (cell.getStringCellValue() == null || cell.getStringCellValue().equals("")
+													|| cell.getStringCellValue().equals(" ")) {
+												if(!errorFound) {
+													errorFound = true;
+												}
+												 
+													issueMap.get(sheet.getSheetName()).add("ReturnColumn name blank for row : " + rowNo + " ,sdmx cell reference no : " + row.getCell(returnCellReferenceIndex).getStringCellValue());
+											} else {
+												if (!cell.getStringCellValue().toUpperCase().equals(cell.getStringCellValue())) {
+														issueMap.get(sheet.getSheetName()).add("ReturnColumn name Invalid for row : " + rowNo + " ,sdmx cell reference no : " + row.getCell(returnCellReferenceIndex).getStringCellValue());
+												
+														if(!errorFound) {
+															errorFound = true;
+														}
+												} else {
+													columnNames.add(cell.getStringCellValue());
+												}
+											}
+											break;
+										}
+									} else if (cell.getColumnIndex() == returnTableNameIndex) {
+										switch (formulaEvaluator.evaluateInCell(cell).getCellType()) {
+										case Cell.CELL_TYPE_STRING:
+											if (cell.getStringCellValue() == null || cell.getStringCellValue().equals("") || cell.getStringCellValue().equals(" ")) {
+												if(!errorFound) {
+													errorFound = true;
+												}
+												
+													issueMap.get(sheet.getSheetName()).add("Return Table  name blank for row : " + rowNo + ", cell reference no is : " + row.getCell(returnCellReferenceIndex).getStringCellValue());
+											}
+											break;
+										}
+									} else if (cell.getColumnIndex() == returnItemDisplayTextIndex) {
+										switch (formulaEvaluator.evaluateInCell(cell).getCellType()) {
+										case Cell.CELL_TYPE_STRING:
+											if (cell.getStringCellValue() == null || cell.getStringCellValue().equals("")
+													|| cell.getStringCellValue().equals(" ")) {
+												if (row.getCell(returnItemCodeIndex) != null
+														&& row.getCell(returnItemCodeIndex).getStringCellValue() != null
+														&& !row.getCell(returnItemCodeIndex).getStringCellValue().equals("")
+														&& !row.getCell(returnItemCodeIndex).getStringCellValue()
+																.equals(" ")) {
+														//issueMap.get(sheet.getSheetName()).add("Item Code Present but Display Text null for row : "
+															//	+ rowNo + " having Item Code : "
+																//+ row.getCell(returnItemCodeIndex).getStringCellValue()
+																//+ " and cell reference no is : "
+																//+ row.getCell(returnCellReferenceIndex).getStringCellValue());
+												}
+											}
+											break;
+										}
+									} else if (cell.getColumnIndex() == returnItemFreeTextIndex) {
+										switch (formulaEvaluator.evaluateInCell(cell).getCellType()) {
+										case Cell.CELL_TYPE_STRING:
+											if (cell.getStringCellValue() != null && !cell.getStringCellValue().equals("")
+													&& !cell.getStringCellValue().equals(" ")) {
+												if (!itemFreeTextFound) {
+													if (!cell.getStringCellValue().equals("N_A")) {
+															issueMap.get(sheet.getSheetName()).add("N_A not found for cell reference no is : "
+																	+ row.getCell(returnCellReferenceIndex)
+																			.getStringCellValue());
+													}
+												}
+											}
+											break;
+										}
+									} else {
+										switch (formulaEvaluator.evaluateInCell(cell).getCellType()) {
+										case Cell.CELL_TYPE_STRING:
+											if (cell.getStringCellValue().equals("ITEM_FREE_TEXT")) {
+												itemFreeTextFound = true;
+												if(returnItemFreeTextIndex < 0 || row.getCell(returnItemFreeTextIndex) == null || !row.getCell(returnItemFreeTextIndex).getStringCellValue().equals("ITEM_FREE_TEXT")) {
+													//issueMap.get(sheet.getSheetName()).add(
+														//	"Return Item free text not found for cell reference no is : "
+															//		+ row.getCell(returnCellReferenceIndex)
+																//			.getStringCellValue());
+												}
+											}
+											break;
+										}
+									}
+								}
+							} else {
+								// cell is null
+								if (j == returnItemCodeIndex) {
+										issueMap.get(sheet.getSheetName()).add("Item Code blank for row : " + rowNo + "  Having return cell reference :  " + row.getCell(returnCellReferenceIndex).getStringCellValue());
+								} else if (j == returnColumnNameIndex) {
+									if(!errorFound) {
+										errorFound = true;
+									}
+										issueMap.get(sheet.getSheetName()).add("ReturnColumn name blank for row : " + rowNo + " ,sdmx cell reference no : " + row.getCell(returnCellReferenceIndex).getStringCellValue());
+								} else if (j == returnTableNameIndex) {
+									if(!errorFound) {
+										errorFound = true;
+									}	
+									issueMap.get(sheet.getSheetName()).add("Return Table  name blank for row : " + rowNo + ", cell reference no is : " + row.getCell(returnCellReferenceIndex).getStringCellValue());
+								} else if (j == returnItemDisplayTextIndex) {
+										issueMap.get(sheet.getSheetName()).add("Item Code Present but Display Text null for row : " + rowNo + " having Item Code : " + row.getCell(returnItemCodeIndex).getStringCellValue() + " and cell reference no is : " + row.getCell(returnCellReferenceIndex).getStringCellValue());
+								} else if (j == returnItemFreeTextIndex && itemFreeTextFound) {
+										issueMap.get(sheet.getSheetName()).add("Return Item free text not found for cell reference no is : " + row.getCell(returnCellReferenceIndex).getStringCellValue());
+								}
+							}
+						}
+					} catch (Exception e) {
+						LOGGER.error("Exception :", e);
+					}
+				}
+			}
+			File inputFile = new File(ResourceUtil.getKeyValue("filepath.root")+ ResourceUtil.getKeyValue("returnTemplate.upload.path")+File.separator+returnCode + File.separator + ResourceUtil.getKeyValue("filePath.SDMXFolder") + File.separator +ebrVersion+File.separator+fileName);
+			SimpleDateFormat simpleDateFormat =  new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+			String dateString = simpleDateFormat.format(new Date()).replace(" ", "_");
+			dateString = dateString.replace(":", "_");
+			//new File(fileName).getParent() + File.separator + returnCode + "_" + dateString + "_Error_List.xls";
+			excelRowOutputCount = 0;
+			excelCreateCellOutoutCount = 0;
+			//String errorFileName= new File( 
+			String errorFileName= ResourceUtil.getKeyValue("filepath.root")+ ResourceUtil.getKeyValue("returnTemplate.upload.path")+File.separator+returnCode+File.separator+ResourceUtil.getKeyValue("filePath.SDMXFolder") + File.separator +ebrVersion+File.separator+"RBR_EBR_MAP_BUS_METADATA_RESULT"+"_"+dateString+".xls";
+			//LOGGER.info("File created : " + fileName.createNewFile());
+
+			List<String> errorList = new ArrayList<>();
+			errorList.clear();
+					
+			for (Map.Entry<String, List<String>> issueMapList: issueMap.entrySet()) {
+				outputRow = sheet2.createRow((short) excelRowOutputCount);
+				outputRow.createCell(excelCreateCellOutoutCount).setCellValue("Sheet Name : " + issueMapList.getKey());
+				excelRowOutputCount++;
+				
+				//errorList.add("Sheet Name : " + issueMapList.getKey());
+				List<String> listData = issueMap.get(issueMapList.getKey());
+				for(String data : listData) {
+					outputRow = sheet2.createRow((short) excelRowOutputCount);
+					outputRow.createCell(excelCreateCellOutoutCount).setCellValue(data);
+					excelRowOutputCount++;
+				}
+				
+				//errorList.addAll(issueMapList.getValue());
+				
+				outputRow = sheet2.createRow((short) excelRowOutputCount);
+				outputRow.createCell(excelCreateCellOutoutCount).setCellValue("----------------------------------------------------------------------------------------");
+				excelRowOutputCount++;
+				//errorList.add("----------------------------------------------------------------------------------------");
+			}
+			
+			outputRow = sheet2.createRow((short) excelRowOutputCount);
+			outputRow.createCell(excelCreateCellOutoutCount).setCellValue("Total Unique column Names :");
+			excelRowOutputCount++;
+			//errorList.add("Total Unique column Names :");
+			for (String columnName : columnNames) {
+				outputRow = sheet2.createRow((short) excelRowOutputCount);
+				outputRow.createCell(excelCreateCellOutoutCount).setCellValue(columnName);
+				excelRowOutputCount++;
+				//errorList.add(columnName);
+			}
+			
+			columnNames.add("REPORT_AS_ON_DATE");
+			columnNames.add("BANK_WORKING_CODE");
+			columnNames.add("BANK_PEERGROUP_CODE");
+			columnNames.add("TEMPLATE_SHEET_NO");
+			columnNames.add("UPLOAD_ID");
+			columnNames.add("AUDIT_FLAG");
+			columnNames.add("RETURN_CODE");
+			columnNames.add("RETURN_REPORTING_FREQUENCY");
+			columnNames.add("RETURN_TAXONOMY_VERSION");
+			columnNames.add("UNIT_DESCRIPTION");
+			columnNames.add("CURRENCY_CODE");
+			columnNames.add("PERIOD_DETAIL_START_DATE");
+			columnNames.add("PERIOD_DETAIL_END_DATE");
+			columnNames.add("UPLOAD_DATE");
+			columnNames.add("REPORTING_INSTITUTION");
+			columnNames.add("ADDRESS_REPORTING_INSTITUTION");
+			columnNames.add("BANK_CATEGORY");
+			columnNames.add("RETURN_NAME");
+			columnNames.add("FOR_PERIOD_ENDED");
+			//columnNames.add("ITEM_FREE_TEXT");
+			columnNames.add("ITEM_FREE_TEXT_SORT_ORDER");
+			columnNames.add("ITEM_CODE");
+			columnNames.add("FREQ");
+			
+		
+			FileOutputStream fileOut = new FileOutputStream(errorFileName);
+			workbook.write(fileOut);
+			fileOut.close();
+			workbook.close();
+			
+			BusMetadatProcess busMetadatProcess = metadataRepo.getOne(metadataProcessId);
+			if(busMetadatProcess != null) {
+				busMetadatProcess.setBussValidateFileName("RBR_EBR_MAP_BUS_METADATA_RESULT"+"_"+dateString+".xls");
+				metadataRepo.save(busMetadatProcess);
+			}
+			
+			List<BusMetadatProcessBean> busMetadatProcessBean = getActiveBusinessMetadata(returnCode,returnVersion,ebrVersion,errorFound);
+			
+			return busMetadatProcessBean;
+		}catch(Exception e) {
+			LOGGER.error("Exception : ", e);
+		}
+		return null;	
+	}
+
+
+	public List<BusMetadatProcessBean> insertBusinessMetadata(String fileName , String returnCode,String ebrVersion,String returnVersion,Long metadataProcessId ) throws Exception {
+		
+		StringBuilder insertQueryBuilder =null;
+		BusMetadatProcess busMetadatProcess = metadataRepo.getOne(metadataProcessId);
+		Date insertStart = new Date();
+		busMetadatProcess.setBussMetadataInsertStart(insertStart);
+		metadataRepo.save(busMetadatProcess);
+	
+		String filePath = ResourceUtil.getKeyValue("filepath.root")+ ResourceUtil.getKeyValue("returnTemplate.upload.path")+File.separator+returnCode+File.separator+ResourceUtil.getKeyValue("filePath.SDMXFolder") + File.separator +ebrVersion+File.separator+fileName;
+		StringBuilder columnStringBuilder = null;
+		StringBuilder questionMarkStringBuilder = null;
+		PreparedStatement pstmt = null;
+		List<String> headerColumns = null;
+		Connection connection = datasource.getConnection();
+		int index = 1;
+		File file = new File(filePath);
+		
+		try(FileInputStream fis = new FileInputStream(file);
+				HSSFWorkbook wb = new HSSFWorkbook(fis);
+				) {
+			if(createTables(wb,connection, returnCode)) {
+				Sheet sheet = null;
+				
+				for(int sheetNo = 0 ; sheetNo < wb.getNumberOfSheets() ; sheetNo++) {
+					sheet = wb.getSheetAt(sheetNo);
+
+					//System.out.println(""+sheetNo+"   #########" + sheet.getSheetName() + "#########");
+
+					if(sheet.getSheetName().equalsIgnoreCase("MAP_EBR_RBR_LND_COL_TECH")
+							|| sheet.getSheetName().toUpperCase().contains("SHEET")) {
+						continue;
+					}
+					
+					
+
+					
+					headerColumns = new ArrayList<>();
+					insertQueryBuilder = new StringBuilder();
+					columnStringBuilder = new StringBuilder();
+					questionMarkStringBuilder = new StringBuilder();
+					
+					for(int rowNo = 0 ; rowNo <= sheet.getLastRowNum() ; rowNo ++) {
+						Row row = sheet.getRow(rowNo);
+						if(rowNo == 0) {
+							for(int columnNo = row.getFirstCellNum() ; columnNo < row.getLastCellNum(); columnNo++) {
+								 Cell cell = row.getCell(columnNo);
+								 headerColumns.add(cell.getStringCellValue());
+							}	
+						}else {
+							if (rowNo == 1) {
+								String elementCode = sheet.getRow(rowNo).getCell(1).getStringCellValue();
+								if(sheet.getSheetName().equalsIgnoreCase("MAP_EBR_RBR_LND_TBL_TECH")) {
+									insertQueryBuilder.append("insert into MAP_EBR_RBR_LND_TBL_TECH_METADATA (");
+								}else {
+									insertQueryBuilder.append("insert into MAP_EBR_RBR_"+elementCode+"_BUSINESS_METADATA (");
+								}
+								
+								for(int i = 0 ; i < headerColumns.size() ; i++) {
+									if(i == 0) {
+										columnStringBuilder.append(headerColumns.get(i));
+										questionMarkStringBuilder.append("?");
+									}else {
+										columnStringBuilder.append(", " + headerColumns.get(i));
+										questionMarkStringBuilder.append(", ?");
+									}
+								}
+								insertQueryBuilder.append(columnStringBuilder + " ) values ( " + questionMarkStringBuilder + " )");
+								
+								pstmt = connection.prepareStatement(insertQueryBuilder.toString());
+							}
+							
+							if(pstmt!= null) {
+								for(int k = row.getFirstCellNum() ; k < row.getLastCellNum(); k++) {
+									Cell cell = row.getCell(k);
+									index = k + 1;
+									if(cell!= null) {
+										if(cell.getStringCellValue().trim().equals("")) {
+											pstmt.setString(index, null);
+										}else {
+											pstmt.setString(index, cell.getStringCellValue().trim());	 
+										}
+									}else {
+										pstmt.setString(index, null);
+									}
+								}
+								pstmt.addBatch();
+							}
+						}
+					}	
+					
+					pstmt.executeBatch();
+				}		
+				connection.commit();
+			}
+		}catch(Exception e) {
+			LOGGER.error("Exception : ", e);
+			//e.printStackTrace();
+			throw e;
+		}finally {
+			connection.close();
+		}
+		
+		
+		if(busMetadatProcess != null) {
+			Date insertEnd = new Date();
+			busMetadatProcess.setBussMetadataInsertEnd(insertEnd);
+			busMetadatProcess.setInsertStatus(true);
+			metadataRepo.save(busMetadatProcess);
+		}
+		
+		List<BusMetadatProcessBean> busMetadatProcessBean = getActiveBusinessMetadata(returnCode,returnVersion,ebrVersion,false);
+		
+		return busMetadatProcessBean;
+		
+	}
+	
+	
+	@SuppressWarnings("resource")
+	private boolean createTables(HSSFWorkbook wb, Connection connection, String returnCode) throws Exception {
+		Sheet sheet = wb.getSheet("MAP_EBR_RBR_LND_COL_TECH");
+		
+		String tableName = null;
+		String columnName = null;
+		String dataType = null;
+		String isNullable = null;
+		
+		Map<String, List<String>> tableMap = new HashMap<>();
+		
+		for(int j = 0 ; j <= sheet.getLastRowNum() ; j ++) {
+			if(j > 0) {
+				Row row = sheet.getRow(j);
+
+				try {
+					if(row!= null && row.getCell(1)!= null && row.getCell(3) != null && row.getCell(6)!= null) {
+						tableName = row.getCell(1).getStringCellValue();
+						columnName = row.getCell(3).getStringCellValue();
+						dataType = row.getCell(6).getStringCellValue();
+						isNullable = row.getCell(9).getStringCellValue();
+						
+						
+						if(isNullable == null || isNullable.equals("Y")) {
+							isNullable = "NULL";
+						}else {
+							isNullable = "NOT NULL";
+						}
+						
+						if(tableMap.containsKey(tableName)) {
+							List<String> columnList = tableMap.get(tableName);
+							
+							columnList.add(columnName + "~" + dataType + "~" + isNullable);
+							
+							tableMap.put(tableName, columnList);
+						}else {
+							List<String> columnList = new ArrayList<>();
+							
+							columnList.add(columnName + "~" + dataType + "~" + isNullable);
+							
+							tableMap.put(tableName, columnList);
+						}		
+					}
+				}catch(Exception e) {
+					LOGGER.error("Exception :", e);
+				}
+			}
+		}
+
+		
+		StringBuilder createTableQuery = null;
+		int i = 0;
+		
+		boolean tableExist = false;
+//		ResultSet resultSet = null;
+		try(Statement statement = connection.createStatement();){
+			connection.setAutoCommit(false);
+			for (String key : tableMap.keySet()) {
+				if(key.equalsIgnoreCase("MAP_EBR_RBR_TECHNICAL_METADATA")) {
+					continue;
+				}
+				createTableQuery = new StringBuilder("");
+				try(ResultSet resultSet = statement.executeQuery("show tables like '%"+key+"%'");) {
+					tableExist = false;
+					i = 0;
+					
+					
+					while(resultSet.next()) {
+						tableExist = true;
+						break;
+					}
+					
+					if(!tableExist) {
+						createTableQuery.append("create table "+key+" (");
+						
+						for (String column: tableMap.get(key)) {
+							if(i == 0 ) {
+								createTableQuery.append(column.split("~")[0] + " " + column.split("~")[1] + " " + column.split("~")[2]) ;
+							}else {
+								createTableQuery.append( ",  " + column.split("~")[0] + " " + column.split("~")[1] + " " + column.split("~")[2]);
+							}
+							i++;
+						}
+						createTableQuery.append(")");
+						//System.out.println(createTableQuery.toString());		
+						statement.executeUpdate(createTableQuery.toString());
+					}else {
+						statement.executeUpdate("delete from "+key+" where RETURN_CODE = '"+returnCode+"'");
+						
+						String descQuery = "desc "+key+"";
+						
+						ResultSet descQueryResultSet = statement.executeQuery(descQuery);
+						
+						List<String> existingColumnList = new ArrayList<>();
+						Map<String, String> existingColumnMap = new HashMap<>();
+
+						
+						while(descQueryResultSet.next()) {
+							existingColumnList.add(descQueryResultSet.getString("Field"));
+							existingColumnMap.put(descQueryResultSet.getString("Field"), descQueryResultSet.getString("Type") + "~" + descQueryResultSet.getString("Null"));
+						}
+
+						StringBuilder alterQuery = new StringBuilder();
+						int j = 0;
+						String columnDataType = "";
+						String nullableString = "";
+						for (String column : tableMap.get(key)) {
+							if (!existingColumnList.contains(column.split("~")[0])) {
+								if (j == 0) {
+									alterQuery.append("ADD COLUMN " + column.split("~")[0] + " " + column.split("~")[1] + " "
+											+ column.split("~")[2] + "");
+								} else {
+									alterQuery.append(", ADD COLUMN " + column.split("~")[0] + " " + column.split("~")[1]
+											+ " " + column.split("~")[2] + "");
+								}
+								j++;	
+							}else {
+								columnDataType = existingColumnMap.get(column.split("~")[0]).split("~")[0];
+								if(existingColumnMap.get(column.split("~")[0]).split("~")[1].equals("NO")) {
+									nullableString = "NOT NULL";
+								}else {
+									nullableString = "NULL";
+								}
+								
+								if(!columnDataType.equalsIgnoreCase(column.split("~")[1]) || !nullableString.equalsIgnoreCase(column.split("~")[2])) {
+									if (j == 0) {
+										alterQuery.append("CHANGE COLUMN " + column.split("~")[0] + " " + column.split("~")[0] + " " + column.split("~")[1] + " "
+												+ column.split("~")[2] + "");
+									} else {
+										alterQuery.append(", CHANGE COLUMN " + column.split("~")[0] + " " + column.split("~")[0] + " " + column.split("~")[1]
+												+ " " + column.split("~")[2] + "");
+									}
+									j++;
+								}
+							}
+						}
+						
+						if(j > 0) {
+							//System.out.println("Alter table "+key+" " + alterQuery.toString());
+							statement.executeUpdate("Alter table "+key+" " + alterQuery.toString());
+						}
+					}
+				}catch(Exception e){
+					LOGGER.error("Exception : ", e);
+					throw e;
+				}
+			}
+
+			// EBR_RBR_MAPPING_TABLE_STRUCTURE
+			tableExist = false;
+			createTableQuery = new StringBuilder("");
+			try(ResultSet resSet = statement.executeQuery("show tables like '%MAP_EBR_RBR_LND_TBL_TECH_METADATA%'");){
+				while(resSet.next()) {
+					tableExist = true;
+					break;
+				}
+				
+				if(!tableExist) {
+					createTableQuery.append("create table MAP_EBR_RBR_LND_TBL_TECH_METADATA (ELEMENT_CODE varchar(45), ELEMENT_VERSION varchar(45), EBR_TABLE_NAME varchar(250), BUSINESS_METADATA_TABLE_NAME varchar(250), RETURN_CODE varchar(45), RBR_TABLE_NAME varchar(250))");
+				//	System.out.println(createTableQuery.toString());		
+					statement.executeUpdate(createTableQuery.toString());
+				}else {
+					 statement.executeUpdate("delete from MAP_EBR_RBR_LND_TBL_TECH_METADATA where RETURN_CODE = '"+returnCode+"'");
+				}	
+			}
+			
+			connection.commit();
+		}catch(Exception e) {
+			LOGGER.error("Exception", e);
+			throw e;
+		}
+		
+		return true;
+	}
+
+
+}

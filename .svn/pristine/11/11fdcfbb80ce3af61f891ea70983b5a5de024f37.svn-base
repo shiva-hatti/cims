@@ -1,0 +1,769 @@
+package com.iris.controller;
+
+import java.io.Serializable;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Controller;
+import org.springframework.util.CollectionUtils;
+
+import com.iris.dateutility.enums.DateConstants;
+import com.iris.dateutility.util.DateManip;
+import com.iris.dto.FillingEndDatesBean;
+import com.iris.model.FinYearFreqDates;
+import com.iris.model.Holiday;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.GeneralConstants;
+
+/**
+ * This is the filling calendar date operation management controller.
+ * 
+ * @author Mohd Arshil A Shaikh
+ * @version 1.0
+ * @since 13-10-2014
+ */
+@Controller
+public class DateValidationsController implements Serializable {
+
+	private static final long serialVersionUID = 5373335854133657238L;
+	private String fillingWindow = null;
+	private String startDate = null, endDate = null, endDateCalc = null;
+
+	private FillingEndDatesBean fillingEndDatesBeanObj = null;
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(DateValidationsController.class);
+
+	@Value("${base.date.for.fortnightly}")
+	private String baseDateForFortNightly;
+	
+	/**
+	 * This method is used for fetch existing dates for filling window for
+	 * annual,half yearly,quarterly
+	 * 
+	 * @author Mohd Arshil A Shaikh
+	 * @since 13-10-2014
+	 * @param Dates
+	 *            map based for all frequency, All the extension list , year,
+	 *            financial year id , form frequency id list
+	 * @return Map with extension as key and object of date as values
+	 */
+
+	public Map<String, Map<Integer, String>> getFillingWindowForYearly(Map<String, FillingEndDatesBean> fillingFreqFinFormatDatesMap, List<Integer> fillingWindowExtensionList, String year, Long finYearId, List<Long> finYrFreqIdList, List<Holiday> holidayList, Long formFreqId, boolean isIncludeHoliday, boolean isIncludeWeekend) {
+		Map<String, Map<Integer, String>> fillingWindowMap = new HashMap<String, Map<Integer, String>>();
+		Map<Integer, String> fillingWindowDatesMap = new HashMap<Integer, String>();
+
+		long yearCalc = 0;
+		if (formFreqId == 1 || formFreqId == 10 || formFreqId == 11) {
+			for (Long finYrFreqId : finYrFreqIdList) {
+				fillingEndDatesBeanObj = fillingFreqFinFormatDatesMap.get(finYearId + GeneralConstants.FILLING_DATES_MAP_SEPARATOR.getConstantVal() + finYrFreqId);
+				endDate = fillingEndDatesBeanObj.getEndDate() + GeneralConstants.FILLING_WINDOW_DATE_SEPARATOR.getConstantVal() + Long.parseLong(year);
+				fillingWindowDatesMap = new HashMap<Integer, String>();
+				for (Integer fillingWindowExtension : fillingWindowExtensionList) {
+//					endDateCalc = addDateForReport(endDate, DateConstants.DD_MM_YYYY.getDateConstants(), 1);
+					endDateCalc = addDate(endDate, DateConstants.DD_MM_YYYY.getDateConstants(), 1, holidayList,  isIncludeHoliday, isIncludeWeekend);
+					fillingWindow = endDateCalc + GeneralConstants.FILLING_WINDOW_DATE_SEPARATOR_FOR_VIEW.getConstantVal() + addDate(endDateCalc, DateConstants.DD_MM_YYYY.getDateConstants(), fillingWindowExtension - 1, holidayList,  isIncludeHoliday, isIncludeWeekend);
+					fillingWindowDatesMap.put(fillingWindowExtension, fillingWindow);
+				}
+				fillingWindowMap.put(finYearId + GeneralConstants.FILLING_DATES_MAP_SEPARATOR.getConstantVal() + finYrFreqId, fillingWindowDatesMap);
+			}
+		} else if (formFreqId == 2) {
+			for (Long finYrFreqId : finYrFreqIdList) {
+				yearCalc = Long.parseLong(year);
+				fillingEndDatesBeanObj = fillingFreqFinFormatDatesMap.get(finYearId + GeneralConstants.FILLING_DATES_MAP_SEPARATOR.getConstantVal() + finYrFreqId);
+				startDate = fillingEndDatesBeanObj.getStartDate() + GeneralConstants.FILLING_WINDOW_DATE_SEPARATOR.getConstantVal() + yearCalc;
+				endDate = fillingEndDatesBeanObj.getEndDate() + GeneralConstants.FILLING_WINDOW_DATE_SEPARATOR.getConstantVal() + yearCalc;
+
+				fillingWindowDatesMap = new HashMap<Integer, String>();
+				for (Integer fillingWindowExtension : fillingWindowExtensionList) {
+//					endDateCalc = addDateForReport(endDate, DateConstants.DD_MM_YYYY.getDateConstants(), 1);
+					endDateCalc = addDate(endDate, DateConstants.DD_MM_YYYY.getDateConstants(), 1, holidayList,  isIncludeHoliday, isIncludeWeekend);
+					fillingWindow = endDateCalc + GeneralConstants.FILLING_WINDOW_DATE_SEPARATOR_FOR_VIEW.getConstantVal() + addDate(endDateCalc, DateConstants.DD_MM_YYYY.getDateConstants(), fillingWindowExtension - 1, holidayList, isIncludeHoliday, isIncludeWeekend);
+					fillingWindowDatesMap.put(fillingWindowExtension, fillingWindow);
+				}
+				fillingWindowMap.put(finYearId + GeneralConstants.FILLING_DATES_MAP_SEPARATOR.getConstantVal() + finYrFreqId, fillingWindowDatesMap);
+			}
+		} else if (formFreqId == 3) {
+			for (Long finYrFreqId : finYrFreqIdList) {
+				fillingEndDatesBeanObj = fillingFreqFinFormatDatesMap.get(finYearId + GeneralConstants.FILLING_DATES_MAP_SEPARATOR.getConstantVal() + finYrFreqId);
+				yearCalc = Long.parseLong(year);
+				startDate = fillingEndDatesBeanObj.getStartDate() + GeneralConstants.FILLING_WINDOW_DATE_SEPARATOR.getConstantVal() + yearCalc;
+				endDate = fillingEndDatesBeanObj.getEndDate() + GeneralConstants.FILLING_WINDOW_DATE_SEPARATOR.getConstantVal() + yearCalc;
+
+				fillingWindowDatesMap = new HashMap<Integer, String>();
+				for (Integer fillingWindowExtension : fillingWindowExtensionList) {
+//					endDateCalc = addDateForReport(endDate, DateConstants.DD_MM_YYYY.getDateConstants(), 1);
+					endDateCalc = addDate(endDate, DateConstants.DD_MM_YYYY.getDateConstants(), 1, holidayList,  isIncludeHoliday, isIncludeWeekend);
+					fillingWindow = endDateCalc + GeneralConstants.FILLING_WINDOW_DATE_SEPARATOR_FOR_VIEW.getConstantVal() + addDate(endDateCalc, DateConstants.DD_MM_YYYY.getDateConstants(), fillingWindowExtension - 1, holidayList, isIncludeHoliday, isIncludeWeekend);
+					fillingWindowDatesMap.put(fillingWindowExtension, fillingWindow);
+				}
+				fillingWindowMap.put(finYearId + GeneralConstants.FILLING_DATES_MAP_SEPARATOR.getConstantVal() + finYrFreqId, fillingWindowDatesMap);
+			}
+		}
+
+		return fillingWindowMap;
+	}
+	
+	public Map<Long, Map<Long, FillingEndDatesBean>> getFillingWindow(Long freqId,
+			Integer exensionDays, String endDate, List<Holiday> holidayList, boolean isIncludeHoliday,
+			boolean isIncludeWeekend, Integer graceDays) {
+		Map<Long, Map<Long, FillingEndDatesBean>> formFillingWindowMap = new HashMap<Long, Map<Long, FillingEndDatesBean>>();
+		Map<Long, FillingEndDatesBean> fillingWindowEndDatesMap = new HashMap<Long, FillingEndDatesBean>();
+		FillingEndDatesBean fillingEndDatesObj = new FillingEndDatesBean();
+		String calculatedStartDate = addDate(endDate, DateConstants.DD_MM_YYYY.getDateConstants(), 1, holidayList, isIncludeHoliday, isIncludeWeekend);
+		String calculatedEndDate = addDate(calculatedStartDate, DateConstants.DD_MM_YYYY.getDateConstants(), exensionDays - 1, holidayList, isIncludeHoliday, isIncludeWeekend);
+		String calculatedGraceDate = null;
+		if(graceDays!= 0 && graceDays != null) {
+			calculatedGraceDate = addDate(calculatedEndDate, DateConstants.DD_MM_YYYY.getDateConstants(), graceDays, holidayList, isIncludeHoliday, isIncludeWeekend);
+		}else {
+			calculatedGraceDate = calculatedEndDate;
+		}
+
+		fillingEndDatesObj.setStartDate(calculatedStartDate);
+		fillingEndDatesObj.setEndDate(calculatedEndDate);
+		fillingEndDatesObj.setGraceDaysDate(calculatedGraceDate);
+		
+		fillingWindowEndDatesMap.put(0L, fillingEndDatesObj);
+		formFillingWindowMap.put(freqId, fillingWindowEndDatesMap);
+		return formFillingWindowMap;
+	}
+	
+	public Map<String, Map<Integer, String>> getUploadNepaliFillingWindowForYearly(String reportingStartDate, String reportingEndDate,  
+			List<Integer> fillingWindowExtensionList, List<Integer> fillingWindowEndExtensionList, Long finYearId, List<Long> finYrFreqIdList, 
+			List<Holiday> holidayList, Long formFreqId, boolean isIncludeHoliday, boolean isIncludeWeekend) {
+
+		Map<String, Map<Integer, String>> fillingWindowMap = new HashMap<String, Map<Integer, String>>();
+		Map<Integer, String> fillingWindowDatesMap = new HashMap<Integer, String>();
+		
+		endDate = reportingEndDate;
+
+		if(formFreqId == 7) { // Daily
+
+			Integer index = 0;
+			// --- processing the start date map
+			for (Integer fillingWindowExtension : fillingWindowExtensionList) {
+				fillingWindowDatesMap = new HashMap<>();
+				startDate = addDate(reportingEndDate, DateConstants.DD_MM_YYYY.getDateConstants(), fillingWindowExtension, holidayList, isIncludeHoliday, isIncludeWeekend);
+				fillingWindowDatesMap.put(fillingWindowExtension, startDate);
+				fillingWindowMap.put(index.toString(), fillingWindowDatesMap);
+			}
+			fillingWindowDatesMap = new HashMap<Integer, String>();
+			index++;
+			// --- processing the end date map
+			for (Integer fillingWindowExtension : fillingWindowEndExtensionList) {
+				fillingWindowDatesMap = new HashMap<Integer, String>();
+				endDate = addDate(reportingEndDate, DateConstants.DD_MM_YYYY.getDateConstants(), fillingWindowExtension, holidayList, isIncludeHoliday, isIncludeWeekend);
+				fillingWindowDatesMap.put(fillingWindowExtension, endDate);
+				fillingWindowMap.put(index.toString(), fillingWindowDatesMap);
+			}
+			return fillingWindowMap;
+			
+		} else {
+			fillingWindowDatesMap = new HashMap<Integer, String>();
+			for (Integer fillingWindowExtension : fillingWindowExtensionList) {
+				endDateCalc = addDateForReport(endDate, DateConstants.DD_MM_YYYY.getDateConstants(), 1);
+				fillingWindow = endDateCalc + GeneralConstants.FILLING_WINDOW_DATE_SEPARATOR_FOR_VIEW.getConstantVal() + addDate(endDateCalc, DateConstants.DD_MM_YYYY.getDateConstants(), fillingWindowExtension - 1, holidayList,  isIncludeHoliday, isIncludeWeekend);
+				fillingWindowDatesMap.put(fillingWindowExtension, fillingWindow);
+			}
+			fillingWindowMap.put(finYearId + GeneralConstants.FILLING_DATES_MAP_SEPARATOR.getConstantVal() + formFreqId, fillingWindowDatesMap);
+		}
+		
+		return fillingWindowMap;
+	}
+
+	
+	public Map<String, Map<Integer, String>> getFillingWindowDaily(List<Integer> fillingWindowExtensionList, List<Integer> fillingWindowEndExtensionList, 
+			String financialDateForDaily, List<Holiday> holidayList, boolean isIncludeHoliday, boolean isIncludeWeekend, String financialMonth, String year) {
+		Map<String, Map<Integer, String>> fillingWindowMap = new HashMap<>();
+		Map<Integer, String> fillingWindowDatesMap;
+		
+		Integer index = 0;
+		
+		
+//		startDate = GeneralConstants.START_DATE_VAL_FOR_MONTH.getConstantVal() + GeneralConstants.FILLING_WINDOW_DATE_SEPARATOR.getConstantVal() + financialMonth + GeneralConstants.FILLING_WINDOW_DATE_SEPARATOR.getConstantVal() + year;
+		startDate = addDate(financialDateForDaily, DateConstants.DD_MM_YYYY.getDateConstants(), 1, holidayList, isIncludeHoliday, isIncludeWeekend);
+		fillingWindowDatesMap = new HashMap<>();
+		fillingWindowDatesMap.put(1, startDate);
+		fillingWindowMap.put(index.toString(), fillingWindowDatesMap);
+		
+		// --- processing the start date map
+//		for (Integer fillingWindowExtension : fillingWindowExtensionList) {
+//			fillingWindowDatesMap = new HashMap<>();
+////			startDate = addDate(financialDateForDaily, DateConstants.DD_MM_YYYY.getDateConstants(), fillingWindowExtension, holidayList, isIncludeWeekend, isIncludeWeekend);
+//			startDate = GeneralConstants.START_DATE_VAL_FOR_MONTH.getConstantVal() + GeneralConstants.FILLING_WINDOW_DATE_SEPARATOR.getConstantVal() + financialMonth + GeneralConstants.FILLING_WINDOW_DATE_SEPARATOR.getConstantVal() + year;
+//			fillingWindowDatesMap.put(fillingWindowExtension, startDate);
+//			fillingWindowMap.put(index.toString(), fillingWindowDatesMap);
+//		}
+		
+		fillingWindowDatesMap = new HashMap<Integer, String>();
+		index++;
+		// --- processing the end date map
+		for (Integer fillingWindowExtension : fillingWindowExtensionList) {
+			fillingWindowDatesMap = new HashMap<Integer, String>();
+			endDate = addDate(startDate, DateConstants.DD_MM_YYYY.getDateConstants(), fillingWindowExtension-1, holidayList, isIncludeHoliday, isIncludeWeekend);
+			fillingWindowDatesMap.put(fillingWindowExtension, endDate);
+			fillingWindowMap.put(index.toString(), fillingWindowDatesMap);
+		}
+		return fillingWindowMap;
+	}
+	
+	
+	/**
+	 * This method would add days, weekends and holidays to the given date
+	 * @param date				The given date
+	 * @param dateFormat		The given date format
+	 * @param daysToAdd			The number of days to add
+	 * @param addWeenEnd		true if weekends are to be added, else false
+	 * @param holidayDates		The list of holiday dates
+	 * @return					The output date
+	 * @throws ParseException 
+	 */
+	public static String addDate(String date, String dateFormat, int daysToAdd, boolean addWeenEnd, List<String> holidayDates, boolean isIncludeHoliday, boolean isIncludeWeekend) throws ParseException {
+			
+			String outDate = null;
+			String tempDate = DateManip.formatDate(date, dateFormat, DateConstants.DD_MM_YYYY.getDateConstants());
+			if(isIncludeWeekend && isIncludeHoliday) {
+				//Add All days to Date
+				date = DateManip.addDate(date, dateFormat, daysToAdd);
+				outDate = date;
+			} else if(isIncludeWeekend && !isIncludeHoliday) {
+				//Add only weekend
+				while (daysToAdd > 0) {
+					date = DateManip.addDate(date, dateFormat, 1);
+					tempDate = DateManip.formatDate(date, dateFormat, DateConstants.DD_MM_YYYY.getDateConstants());
+					
+					while(holidayDates.contains(tempDate)) {
+						date = DateManip.addDate(date, dateFormat, 1);
+						tempDate = DateManip.formatDate(date, dateFormat, DateConstants.DD_MM_YYYY.getDateConstants());
+					}
+					daysToAdd--;
+				}
+				outDate = date;
+				
+			} else if(!isIncludeWeekend && isIncludeHoliday) {
+				while (daysToAdd > 0) {
+					date = DateManip.addDate(date, dateFormat, 1);
+					
+					while(DateManip.checkWeekEndDate(date, dateFormat)) {
+						date = DateManip.addDate(date, dateFormat, 1);
+					}
+					daysToAdd--;
+				}
+				outDate = date;
+				
+			} else if(!isIncludeWeekend && !isIncludeHoliday){
+				//Add only weekdays excluding weekend And holidays
+				while (daysToAdd > 0) {
+					date = DateManip.addDate(date, dateFormat, 1);
+					tempDate = DateManip.formatDate(date, dateFormat, DateConstants.DD_MM_YYYY.getDateConstants());
+
+					while(DateManip.checkWeekEndDate(date, dateFormat) || (holidayDates!= null && holidayDates.size() > 0 && holidayDates.contains(tempDate))) {
+						date = DateManip.addDate(date, dateFormat, 1);
+						tempDate = DateManip.formatDate(date, dateFormat, DateConstants.DD_MM_YYYY.getDateConstants());
+					}
+					daysToAdd--;
+				}
+				outDate = date;
+			}
+			return outDate;
+	}
+
+	/**
+	 * This method is used for fetch existing dates for filling window for
+	 * monthly
+	 * 
+	 * @author Mohd Arshil A Shaikh
+	 * @param isIncludeWeekend 
+	 * @param isIncludeHoliday 
+	 * @since 15-10-2014
+	 * @param All
+	 *            the extension list , End Date of selected Month , year,
+	 *            financial year id
+	 * @return Map with extension as key and object of date as values
+	 */
+	public Map<String, Map<Integer, String>> getFillingWindowMonthly(List<Integer> fillingWindowExtensionList, List<String> fillingStartEndDatesMonthly, Long formFreqId, List<Holiday> holidayList, boolean isIncludeHoliday, boolean isIncludeWeekend) {
+
+		Map<String, Map<Integer, String>> fillingWindowMap = new HashMap<String, Map<Integer, String>>();
+		Map<Integer, String> fillingWindowDatesMap = new HashMap<Integer, String>();
+
+		startDate = fillingStartEndDatesMonthly.get(0);
+		endDate = fillingStartEndDatesMonthly.get(1);
+
+		for (Integer fillingWindowExtension : fillingWindowExtensionList) {
+//			endDateCalc = addDateForReport(endDate, DateConstants.DD_MM_YYYY.getDateConstants(), 1);
+			endDateCalc = addDate(endDate, DateConstants.DD_MM_YYYY.getDateConstants(), 1, holidayList, isIncludeHoliday, isIncludeWeekend);
+			fillingWindow = endDateCalc + GeneralConstants.FILLING_WINDOW_DATE_SEPARATOR_FOR_VIEW.getConstantVal() + addDate(endDateCalc, DateConstants.DD_MM_YYYY.getDateConstants(), fillingWindowExtension - 1, holidayList, isIncludeHoliday, isIncludeWeekend);
+			fillingWindowDatesMap.put(fillingWindowExtension, fillingWindow);
+		}
+
+		fillingWindowMap.put(formFreqId.toString(), fillingWindowDatesMap);
+		return fillingWindowMap;
+	}
+
+	/**
+	 * This method is used for fetch existing dates for filling window for
+	 * fortnightly
+	 * 
+	 * @author Mohd Arshil A Shaikh
+	 * @param isIncludeWeekend 
+	 * @param isIncludeHoliday 
+	 * @since 16-10-2014
+	 * @param All
+	 *            the extension list , End Date of fortnight dates in selected
+	 *            month
+	 * @return Map with extension as key and object of date as values
+	 */
+	public Map<String, Map<Integer, String>> getFillingWindowFortNightly(List<Integer> fillingWindowExtensionList, List<FillingEndDatesBean> fillingStartEndDatesFortNightly, List<Holiday> holidayList, boolean isIncludeHoliday, boolean isIncludeWeekend) {
+		Map<String, Map<Integer, String>> fillingWindowMap = new HashMap<String, Map<Integer, String>>();
+		Map<Integer, String> fillingWindowDatesMap = new HashMap<Integer, String>();
+
+		Integer index = 0;
+		for (FillingEndDatesBean fillingDatesBeanObj : fillingStartEndDatesFortNightly) {
+			fillingWindowDatesMap = new HashMap<Integer, String>();
+			startDate = fillingDatesBeanObj.getStartDate();
+			for (Integer fillingWindowExtension : fillingWindowExtensionList) {
+				fillingWindow = startDate + GeneralConstants.FILLING_WINDOW_DATE_SEPARATOR_FOR_VIEW.getConstantVal() + addDate(startDate, DateConstants.DD_MM_YYYY.getDateConstants(), fillingWindowExtension - 1, holidayList, isIncludeHoliday, isIncludeWeekend);
+				fillingWindowDatesMap.put(fillingWindowExtension, fillingWindow);
+			}
+			index++;
+			fillingWindowMap.put(index.toString(), fillingWindowDatesMap);
+		}
+
+		return fillingWindowMap;
+	}
+
+	/**
+	 * This method is used for fetch existing dates for filling window for
+	 * weekly
+	 * 
+	 * @author Mohd Arshil A Shaikh
+	 * @since 16-10-2014
+	 * @param All
+	 *            the extension list , End Date of selected weekly in selected
+	 *            month
+	 * @return Map with extension as key and object of date as values
+	 */
+	public Map<String, Map<Integer, String>> getFillingWindowWeekly(List<Integer> fillingWindowExtensionList, List<FillingEndDatesBean> fillingStartEndDatesFortWeekly, List<Holiday> holidayList, boolean isIncludeHoliday, boolean isIncludeWeekend) {
+		Map<String, Map<Integer, String>> fillingWindowMap = new HashMap<String, Map<Integer, String>>();
+		Map<Integer, String> fillingWindowDatesMap = new HashMap<Integer, String>();
+
+		Integer index = 0;
+		for (FillingEndDatesBean fillingDatesBeanObj : fillingStartEndDatesFortWeekly) {
+			fillingWindowDatesMap = new HashMap<Integer, String>();
+			startDate = fillingDatesBeanObj.getStartDate();
+			endDate = fillingDatesBeanObj.getEndDate();
+			for (Integer fillingWindowExtension : fillingWindowExtensionList) {
+//				endDateCalc = addDateForReportWeekly(endDate, DateConstants.DD_MM_YYYY.getDateConstants(), 1);
+				endDateCalc = addDate(endDate, DateConstants.DD_MM_YYYY.getDateConstants(),  1, holidayList, isIncludeHoliday, isIncludeWeekend);
+				fillingWindow = endDateCalc + GeneralConstants.FILLING_WINDOW_DATE_SEPARATOR_FOR_VIEW.getConstantVal() + addDate(endDateCalc, DateConstants.DD_MM_YYYY.getDateConstants(), fillingWindowExtension - 1, holidayList, isIncludeHoliday, isIncludeWeekend);
+				fillingWindowDatesMap.put(fillingWindowExtension, fillingWindow);
+			}
+			index++;
+			fillingWindowMap.put(index.toString(), fillingWindowDatesMap);
+		}
+
+		return fillingWindowMap;
+	}
+
+	
+
+	public String getFillingWindowTwiceDaily(String fillingWindowExtension) {
+		return null;
+	}
+
+	public String getFillingWindowDaily(String fillingWindowExtension) {
+		return null;
+	}
+
+	/**
+	 * This method is used for fetch monthly end dates
+	 * 
+	 * @author Mohd Arshil A Shaikh
+	 * @since 18-10-2014
+	 * @param month
+	 *            ,year
+	 * @return List of end dates for selected month
+	 */
+	public List<String> fetchStartEndDatesMonthly(String financialMonth, String year) {
+		List<String> fillingStartEndDatesMonthly = new ArrayList<String>();
+
+		startDate = GeneralConstants.START_DATE_VAL_FOR_MONTH.getConstantVal() + GeneralConstants.FILLING_WINDOW_DATE_SEPARATOR.getConstantVal() + financialMonth + GeneralConstants.FILLING_WINDOW_DATE_SEPARATOR.getConstantVal() + year;
+		fillingStartEndDatesMonthly.add(startDate);
+
+//		Integer endDateVal = DateManip.getNumOfDaysInMonth(Integer.parseInt(year), Integer.parseInt(financialMonth) - 1);	
+		//Sagar Change
+		Integer endDateVal = DateManip.getNumOfDaysInMonth(Integer.parseInt(year), Integer.parseInt(financialMonth));
+		endDate = endDateVal + GeneralConstants.FILLING_WINDOW_DATE_SEPARATOR.getConstantVal() + financialMonth + GeneralConstants.FILLING_WINDOW_DATE_SEPARATOR.getConstantVal() + year;
+		fillingStartEndDatesMonthly.add(endDate);
+
+		return fillingStartEndDatesMonthly;
+	}
+
+	/**
+	 * This method is used for fetch fortnightly end dates
+	 * 
+	 * @author Mohd Arshil A Shaikh
+	 * @param isIncludeWeekend 
+	 * @param isIncludeHoliday 
+	 * @since 18-10-2014
+	 * @param month
+	 *            ,year
+	 * @return List of fortnight dates for selected month
+	 */
+	public List<FillingEndDatesBean> fetchStartEndDatesFortNightly(String financialMonth, String year, boolean isIncludeHoliday, boolean isIncludeWeekend) {
+		List<FillingEndDatesBean> fillingStartEndDatesFortNightly = new ArrayList<FillingEndDatesBean>();
+
+		List<String> fortNightDatesList = new ArrayList<>();
+		try {
+//			Commented by sagar Jadhav start
+//			fortNightDatesList = DateManip.getFortNightDates(Integer.parseInt(financialMonth) - 1, Integer.parseInt(year), GeneralConstants.BASEFORTNIGHTDATE.getConstantVal(), DateConstants.DD_MM_YYYY.getDateConstants());
+//			Commented by sagar Jadhav end
+//			added by sagar Jadhav start
+			fortNightDatesList = DateManip.getFortNightDates(Integer.parseInt(financialMonth), Integer.parseInt(year), DateManip.formatDate(baseDateForFortNightly, DateConstants.DD_MM_YYYY.getDateConstants(), DateConstants.DD_MMM_YYYY.getDateConstants()), DateConstants.DD_MM_YYYY.getDateConstants());
+//			added by sagar Jadhav end
+		} catch (NumberFormatException e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_CONTROLLER.getConstantVal(), e);
+		} catch (ParseException e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_CONTROLLER.getConstantVal(), e);
+		}
+
+		for (String fortnightDates : fortNightDatesList) {
+			fillingEndDatesBeanObj = new FillingEndDatesBean();
+//			Commented by sagar Jadhav start
+//			startDate = fortnightDates;
+//			Commented by sagar Jadhav End
+//			added by sagar Jadhav start
+			startDate = addDateForReport(fortnightDates, DateConstants.DD_MM_YYYY.getDateConstants(), 1);
+//			added by sagar Jadhav end
+			endDate = addDateForReport(startDate, DateConstants.DD_MM_YYYY.getDateConstants(), 13);
+			fillingEndDatesBeanObj.setStartDate(startDate);
+			fillingEndDatesBeanObj.setEndDate(endDate);
+			fillingStartEndDatesFortNightly.add(fillingEndDatesBeanObj);
+		}
+		return fillingStartEndDatesFortNightly;
+	}
+
+	/**
+	 * This method is used for fetch weekly end dates
+	 * 
+	 * @author Mohd Arshil A Shaikh
+	 * @since 18-10-2014
+	 * @param month
+	 *            ,year
+	 * @return List of weekly end dates for selected month
+	 */
+	public List<FillingEndDatesBean> fetchStartEndDatesForWeekly(String financialMonth, String year) {
+		List<FillingEndDatesBean> fillingStartEndDatesFortWeekly = new ArrayList<FillingEndDatesBean>();
+
+		DateManip.setWEEK_END_DAY_LIST(GeneralConstants.FRIDAY.getConstantVal(),  DateConstants.LOCALE_ENG.getDateConstantsLocale());
+		List<String> weekendDatesList = DateManip.getWeekEndDatesInString(Integer.parseInt(year), Integer.parseInt(financialMonth));
+
+		for (String weekendDates : weekendDatesList) {
+			fillingEndDatesBeanObj = new FillingEndDatesBean();
+			endDate = weekendDates + GeneralConstants.FILLING_WINDOW_DATE_SEPARATOR.getConstantVal() + financialMonth + GeneralConstants.FILLING_WINDOW_DATE_SEPARATOR.getConstantVal() + year;
+			startDate = addDateForWeekly(endDate, DateConstants.DD_MM_YYYY.getDateConstants(), -6);
+			fillingEndDatesBeanObj.setStartDate(startDate);
+			fillingEndDatesBeanObj.setEndDate(endDate);
+			fillingStartEndDatesFortWeekly.add(fillingEndDatesBeanObj);
+		}
+		return fillingStartEndDatesFortWeekly;
+	}
+
+	/**
+	 * This method is used for fetch end dates
+	 * 
+	 * @author Mohd Arshil A Shaikh
+	 * @since 25-10-2014
+	 * @param list
+	 *            of financial year frequency
+	 * @return Map with frequency and type of fin year as key and dates bean obj
+	 *         as value
+	 */
+	// -- Last Date Fetching methods
+	public Map<String, FillingEndDatesBean> fetchFreqFinFormatDatesFromDb(List<FinYearFreqDates> finYrFreqDatesList) {
+		Map<String, FillingEndDatesBean> fillingEndDatesMap = null;
+		try {
+			fillingEndDatesMap = new HashMap<String, FillingEndDatesBean>();
+			for (FinYearFreqDates finYearFreqDatesObj : finYrFreqDatesList) {
+				startDate = finYearFreqDatesObj.getStartDate();
+				endDate = finYearFreqDatesObj.getEndDate();
+				fillingEndDatesBeanObj = new FillingEndDatesBean();
+				fillingEndDatesBeanObj.setStartDate(startDate);
+				fillingEndDatesBeanObj.setEndDate(endDate);
+				fillingEndDatesMap.put(finYearFreqDatesObj.getFinYrId() + GeneralConstants.FILLING_DATES_MAP_SEPARATOR.getConstantVal() + finYearFreqDatesObj.getFinYrFreqId(), fillingEndDatesBeanObj);
+			}
+		} catch (Exception e) {
+			// GlobalLogger.logApplicationErrorLog(ExceptionUtils.getFullStackTrace(e),
+			// LOGGER);
+			LOGGER.error(ErrorConstants.ERROR_MSG_CONTROLLER.getConstantVal(), e);
+			//addActionError(getText(ErrorCode.DEFAULT_ERROR.getErrorKey()));
+		}
+		return fillingEndDatesMap;
+	}
+
+	/**
+	 * This method is used to set month
+	 * 
+	 * @author Mohd Arshil A Shaikh
+	 * @since 17-10-2014
+	 * @param --
+	 * @return List of month
+	 */
+	// -- Last Date Fetching methods
+	public Map<String, Integer> getMonthNameMap() {
+		DateManip.setSET_MNTH_START_AS_ZERO(false);
+		Map<String, Integer> monthMap = DateManip.getMonthNameMap();
+		return monthMap;
+	}
+
+	/**
+	 * This method is used to set month
+	 * 
+	 * @author Mohd Arshil A Shaikh
+	 * @since 17-10-2014
+	 * @param --
+	 * @return List of month
+	 */
+	// -- Last Date Fetching methods
+	public Map<String, String> getMonthNameMapInString() {
+		DateManip.setSET_MNTH_START_AS_ZERO(false);
+		Map<String, String> monthMap = DateManip.getMonthNameMapInString();
+		return monthMap;
+	}
+
+	/**
+	 * This method is used to get current date
+	 * 
+	 * @author Mohd Arshil A Shaikh
+	 * @since 17-10-2014
+	 * @param --
+	 * @return List of month
+	 */
+	public String getCurrentDate() {
+		return DateManip.getCurrentDate(DateConstants.YYYY_MM_DD.getDateConstants());
+	}
+
+	/**
+	 * This method is used to add days to the passed date
+	 * 
+	 * @author Mohd Arshil A Shaikh
+	 * @since 27-10-2014
+	 * @param input
+	 *            date, format of date , number of days to add
+	 * @return result date
+	 */
+	public String addDate(String date, String dateFormat, int daysToAdd, List<Holiday> holidayList, boolean isIncludeHoliday, boolean isIncludeWeekend) {
+		String currentDate = null;
+		try {
+			List<String> holidayListPassed = new ArrayList<>();
+			for (Holiday holidayListObj : holidayList) {
+				holidayListPassed.add(DateManip.formatDate(holidayListObj.getHolidayDate().toString().substring(0, 10),
+						DateConstants.YYYY_MM_DD.getDateConstants(), DateConstants.DD_MM_YYYY.getDateConstants()));
+			}
+			
+			if(daysToAdd == -1) {
+				currentDate = date;
+			} else {
+				currentDate = addDate(date, dateFormat, daysToAdd, true, holidayListPassed, isIncludeHoliday, isIncludeWeekend);
+			}
+			
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_CONTROLLER.getConstantVal(), e);
+		}
+		return currentDate;
+	}
+
+	/**
+	 * This method is used to add days to the passed date
+	 * 
+	 * @author Mohd Arshil A Shaikh
+	 * @since 27-10-2014
+	 * @param input
+	 *            date, format of date , number of days to add
+	 * @return result date
+	 */
+	public String addDateForReport(String date, String dateFormat, int daysToAdd) {
+		String currentDate = null;
+		try {
+			currentDate = DateManip.addDate(date, dateFormat, daysToAdd);
+		} catch (ParseException e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_CONTROLLER.getConstantVal(), e);
+		}
+		return currentDate;
+	}
+
+	/**
+	 * This method is used to add days to the passed date
+	 * 
+	 * @author Mohd Arshil A Shaikh
+	 * @since 10-03-2015
+	 * @param input
+	 *            date, format of date , number of days to add
+	 * @return result date
+	 */
+	public String addDateForWeekly(String date, String dateFormat, int daysToAdd) {
+		String currentDate = null;
+		try {
+			currentDate = DateManip.addDate(date, dateFormat, daysToAdd);
+		} catch (ParseException e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_CONTROLLER.getConstantVal(), e);
+		}
+		return currentDate;
+	}
+
+	/**
+	 * This method is used to add days to the passed date
+	 * 
+	 * @author Mohd Arshil A Shaikh
+	 * @since 27-10-2014
+	 * @param input
+	 *            date, format of date , number of days to add
+	 * @return result date
+	 */
+	public String addDateForReportWeekly(String date, String dateFormat, int daysToAdd) {
+		String currentDate = null;
+		try {
+			currentDate = DateManip.addDate(date, dateFormat, daysToAdd, false, null, false, false);
+		} catch (ParseException e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_CONTROLLER.getConstantVal(), e);
+		}
+		return currentDate;
+	}
+
+	/**
+	 * This method would fetch formated given date as per the required format
+	 * 
+	 * @author Mohd Arshil A Shaikh
+	 * @since 08-11-2014
+	 * @param date
+	 *            The date to be formatted
+	 * @param inputFormat
+	 *            The input date format
+	 * @param outFormat
+	 *            The output date format
+	 * @return The formatted date
+	 */
+	public String formatDate(String date, String inputFormat, String outFormat) {
+		String outputDate = null;
+		try {
+			outputDate = DateManip.formatDate(date, inputFormat, outFormat);
+		} catch (Exception e) {
+			// GlobalLogger.logApplicationErrorLog(ExceptionUtils.getFullStackTrace(e),
+			// LOGGER);
+			LOGGER.error(ErrorConstants.ERROR_MSG_CONTROLLER.getConstantVal(), e);
+		}
+		return outputDate;
+	}
+
+	/**
+	 * This method would fetch the difference between two given dates
+	 * 
+	 * @author Mohd Arshil A Shaikh
+	 * @since 08-11-2014
+	 * @param startDate
+	 *            The start date
+	 * @param endDate
+	 *            The end date
+	 * @param dateFormat
+	 *            The format of the given dates
+	 * @return The difference of the given dates
+	 */
+	public long getDayDiff(String startDate, String endDate, String dateFormat) {
+		long diff = 0;
+		try {
+			diff = DateManip.getDayDiff(startDate, endDate, dateFormat);
+		} catch (Exception e) {
+			// GlobalLogger.logApplicationErrorLog(ExceptionUtils.getFullStackTrace(e),
+			// LOGGER);
+			LOGGER.error(ErrorConstants.ERROR_MSG_CONTROLLER.getConstantVal(), e);
+		}
+		return diff;
+	}
+
+
+	/**
+	 * This method would get the difference between two given dates
+	 * 
+	 * @param startDate
+	 *            The start date
+	 * @param endDate
+	 *            The end date
+	 * @param dateFormat
+	 *            The format of the given dates
+	 * @return The difference of the given dates
+	 */
+	public long getTimeDiff(String startDate, String endDate, String dateFormat) {
+		long diff = 0;
+		try {
+			diff = DateManip.getTimeDiff(startDate, endDate, dateFormat);
+		} catch (Exception e) {
+			// GlobalLogger.logApplicationErrorLog(ExceptionUtils.getFullStackTrace(e),
+			// LOGGER);
+			LOGGER.error(ErrorConstants.ERROR_MSG_CONTROLLER.getConstantVal(), e);
+		}
+		return diff;
+	}
+
+	
+	
+	/**
+	 * This method would check valid Weekly date, and valid Weekly end date
+	 * 
+	 * @param startDate
+	 *            The given date
+	 * @param endDate
+	 *            The given date
+	 * @param dateFormat
+	 *            The date value
+	 * @return true if valid Weekly and Weekly end date, else false
+	 */
+	public boolean isValidWeeklyDate(String startDate, String endDate, String dateFormat) {
+		boolean verifyDate = false;
+		if (startDate == null || endDate == null || dateFormat == null) {
+			return verifyDate;
+		}
+		try {
+
+			if (!CollectionUtils.isEmpty(DateManip.getWEEK_END_DAY_LIST())) {
+				if (DateManip.getWEEK_END_DAY_LIST().contains(DateConstants.FRIDAY.getDateConstants())) {
+					if (DateManip.isFriDate(endDate, DateConstants.DD_MM_YYYY.getDateConstants())) {
+						verifyDate = true;
+					}
+				} else if (DateManip.getWEEK_END_DAY_LIST().contains(DateConstants.SATURDAY.getDateConstants())) {
+					if (DateManip.isSatDate(endDate, DateConstants.DD_MM_YYYY.getDateConstants())) {
+						verifyDate = true;
+					}
+				}
+			}
+			
+			if (verifyDate) {
+				if (!addDateForWeekly(endDate, DateConstants.DD_MM_YYYY.getDateConstants(), -6).equals(startDate)) {
+					verifyDate = false;
+				}
+			}
+		} catch (Exception e) {
+			// GlobalLogger.logApplicationErrorLog(ExceptionUtils.getFullStackTrace(e),
+			// LOGGER);
+			LOGGER.error(ErrorConstants.ERROR_MSG_CONTROLLER.getConstantVal(), e);
+			return false;
+		}
+		return verifyDate;
+	}
+
+	public static void main(String[] args) {
+		System.out.println(DateManip.getNumOfDaysInMonth(2020, 02));
+		List<Holiday> holidayList = new ArrayList<>();
+		List<Integer> WEEKEND_LIST = Arrays.asList(DateConstants.SATURDAY.getDateConstantInt(),
+				DateConstants.SUNDAY.getDateConstantInt());
+		DateManip.setWEEKEND_LIST(WEEKEND_LIST);
+		DateValidationsController dateValidationsController = new DateValidationsController();
+		dateValidationsController.addDate("17-03-2018", DateConstants.DD_MM_YYYY.getDateConstants(), 3, holidayList,  true, false);
+
+	}
+}

@@ -1,0 +1,62 @@
+/**
+ * 
+ */
+package com.iris.sdmx.exceltohtml.bean;
+
+/**
+ * @author apagaria
+ *
+ */
+public class FusionDetailBeanHistory {
+	
+	private Long fusionProcessStartTime;
+	
+	private Long fusionProcessEndTime;
+	
+	private Long totalTimetakenInSeconds;
+
+	/**
+	 * @return the fusionProcessStartTime
+	 */
+	public Long getFusionProcessStartTime() {
+		return fusionProcessStartTime;
+	}
+
+	/**
+	 * @param fusionProcessStartTime the fusionProcessStartTime to set
+	 */
+	public void setFusionProcessStartTime(Long fusionProcessStartTime) {
+		this.fusionProcessStartTime = fusionProcessStartTime;
+	}
+
+	/**
+	 * @return the fusionProcessEndTime
+	 */
+	public Long getFusionProcessEndTime() {
+		return fusionProcessEndTime;
+	}
+
+	/**
+	 * @param fusionProcessEndTime the fusionProcessEndTime to set
+	 */
+	public void setFusionProcessEndTime(Long fusionProcessEndTime) {
+		this.fusionProcessEndTime = fusionProcessEndTime;
+	}
+
+	/**
+	 * @return the totalTimetakenInSeconds
+	 */
+	public Long getTotalTimetakenInSeconds() {
+		return totalTimetakenInSeconds;
+	}
+
+	/**
+	 * @param totalTimetakenInSeconds the totalTimetakenInSeconds to set
+	 */
+	public void setTotalTimetakenInSeconds(Long totalTimetakenInSeconds) {
+		this.totalTimetakenInSeconds = totalTimetakenInSeconds;
+	}
+	
+	
+
+}

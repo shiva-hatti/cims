@@ -1,0 +1,116 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+/**
+ * @author BHAVANA
+ *
+ */
+@Entity
+@Table(name = "TBL_NBFC_ENTITY_PROFILE_DETAILS")
+public class NbfcEntityProfileDetails implements Serializable{
+
+	private static final long serialVersionUID = 7634962452052758695L;
+	
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@Column(name = "NBFC_DETAILS_ID")
+	private Long nbfcDetailsId;
+	
+	@Column(name = "NBFC_CIN_NUMBER")
+	private String nbfcCinNumber;
+	
+	@Column(name = "DATE_IN_CORPORATION")
+	private Date dateInCorporatation;
+	
+	@Column(name = "PAN_NUMBER")
+	private String panNumber;
+	
+	@Column(name = "COR_ISSUE_DATE")
+	private Date corIssueDate;
+	
+	@Column(name = "CRAR_ASSET_RATIO")
+	private String crarAssetRatio;
+	
+	@Column(name = "COR_NUMBER")
+	private String corNumber;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "ENTITY_ID_FK")
+	private EntityBean entityBean;
+
+	public Long getNbfcDetailsId() {
+		return nbfcDetailsId;
+	}
+
+	public void setNbfcDetailsId(Long nbfcDetailsId) {
+		this.nbfcDetailsId = nbfcDetailsId;
+	}
+
+	public String getNbfcCinNumber() {
+		return nbfcCinNumber;
+	}
+
+	public void setNbfcCinNumber(String nbfcCinNumber) {
+		this.nbfcCinNumber = nbfcCinNumber;
+	}
+
+	public Date getDateInCorporatation() {
+		return dateInCorporatation;
+	}
+
+	public void setDateInCorporatation(Date dateInCorporatation) {
+		this.dateInCorporatation = dateInCorporatation;
+	}
+
+	public String getPanNumber() {
+		return panNumber;
+	}
+
+	public void setPanNumber(String panNumber) {
+		this.panNumber = panNumber;
+	}
+
+	public Date getCorIssueDate() {
+		return corIssueDate;
+	}
+
+	public void setCorIssueDate(Date corIssueDate) {
+		this.corIssueDate = corIssueDate;
+	}
+
+	public String getCrarAssetRatio() {
+		return crarAssetRatio;
+	}
+
+	public void setCrarAssetRatio(String crarAssetRatio) {
+		this.crarAssetRatio = crarAssetRatio;
+	}
+
+	public String getCorNumber() {
+		return corNumber;
+	}
+
+	public void setCorNumber(String corNumber) {
+		this.corNumber = corNumber;
+	}
+
+	public EntityBean getEntityBean() {
+		return entityBean;
+	}
+
+	public void setEntityBean(EntityBean entityBean) {
+		this.entityBean = entityBean;
+	}
+}

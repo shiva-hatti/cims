@@ -1,0 +1,186 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import com.iris.util.Validations;
+
+/**
+ * @author bthakare
+ * @date 27-08-2019
+ */
+@Entity
+@Table(name = "TBL_APPLICATION_TRACKING_SYS")
+public class ApplicationTrackingSystemBean implements Serializable {
+	private static final long serialVersionUID = 9216054752909218236L;
+
+	@Id
+	// @SequenceGenerator(name = "APPLICATION_TRACK_SYS_ID_GENERATOR", sequenceName = "TBL_APPLICATION_TRACKING_SYS_", allocationSize = 1)
+	// @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "APPLICATION_TRACK_SYS_ID_GENERATOR")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "APPLICATION_TRACK_SYS_ID")
+	private Long applTrackSysId;
+
+	@Column(name = "USER_NAME")
+	private String userName;
+
+	@Column(name = "IS_LOGED_IN_SUCCESS")
+	private boolean isLogedInSuccess;
+
+	@Column(name = "LOGEDIN_ERROR_MSG_CODE")
+	private String logedinErrorMsgCode;
+
+	@Column(name = "USER_SYS_IP_ADDRESS")
+	private String userSysIpAddress;
+
+	@Column(name = "USER_SYS_BROWSER_INFO")
+	private String userSysBroserInfo;
+
+	@Column(name = "USER_SYS_OP_SYSTEM")
+	private String userSysOPSystem;
+
+	@Column(name = "LOG_TIME")
+	private Date logedInTime;
+
+	@Transient
+	private Long logedInTimeInNumber;
+	
+	@Column(name = "LOGOUT_TIME")
+	private Date logoutTime;
+
+	@Column(name = "APPLICATION_ACCESS_ACTION")
+	private String appliAccessAction;
+
+	@Column(name = "SYSTEM_REFERRER")
+	private String sysReferrer;
+
+	@Column(name = "APPLICATION_ACCESS_URL")
+	private String appAccessURL;
+
+	@ManyToOne
+	@JoinColumn(name = "USER_MASTER_ID_FK")
+	private UserMaster userMasterIdFk;
+	
+	public Long getLogedInTimeInNumber() {
+		return logedInTimeInNumber;
+	}
+
+	public void setLogedInTimeInNumber(Long logedInTimeInNumber) {
+		this.logedInTimeInNumber = logedInTimeInNumber;
+	}
+
+	public String getAppliAccessAction() {
+		return appliAccessAction;
+	}
+
+	public void setAppliAccessAction(String appliAccessAction) {
+		this.appliAccessAction = appliAccessAction;
+	}
+
+	public Long getApplTrackSysId() {
+		return applTrackSysId;
+	}
+
+	public void setApplTrackSysId(Long applTrackSysId) {
+		this.applTrackSysId = applTrackSysId;
+	}
+
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = Validations.trimInput(userName);
+	}
+
+	public boolean isLogedInSuccess() {
+		return isLogedInSuccess;
+	}
+
+	public void setLogedInSuccess(boolean isLogedInSuccess) {
+		this.isLogedInSuccess = isLogedInSuccess;
+	}
+
+	public String getLogedinErrorMsgCode() {
+		return logedinErrorMsgCode;
+	}
+
+	public void setLogedinErrorMsgCode(String logedinErrorMsgCode) {
+		this.logedinErrorMsgCode = Validations.trimInput(logedinErrorMsgCode);
+	}
+
+	public String getUserSysIpAddress() {
+		return userSysIpAddress;
+	}
+
+	public void setUserSysIpAddress(String userSysIpAddress) {
+		this.userSysIpAddress = Validations.trimInput(userSysIpAddress);
+	}
+
+	public String getUserSysBroserInfo() {
+		return userSysBroserInfo;
+	}
+
+	public void setUserSysBroserInfo(String userSysBroserInfo) {
+		this.userSysBroserInfo = Validations.trimInput(userSysBroserInfo);
+	}
+
+	public String getUserSysOPSystem() {
+		return userSysOPSystem;
+	}
+
+	public void setUserSysOPSystem(String userSysOPSystem) {
+		this.userSysOPSystem = Validations.trimInput(userSysOPSystem);
+	}
+
+	public Date getLogedInTime() {
+		return logedInTime;
+	}
+
+	public void setLogedInTime(Date logedInTime) {
+		this.logedInTime = logedInTime;
+	}
+
+	public Date getLogoutTime() {
+		return logoutTime;
+	}
+
+	public void setLogoutTime(Date logoutTime) {
+		this.logoutTime = logoutTime;
+	}
+
+	public UserMaster getUserMasterIdFk() {
+		return userMasterIdFk;
+	}
+
+	public void setUserMasterIdFk(UserMaster userMasterIdFk) {
+		this.userMasterIdFk = userMasterIdFk;
+	}
+
+	public String getSysReferrer() {
+		return sysReferrer;
+	}
+
+	public void setSysReferrer(String sysReferrer) {
+		this.sysReferrer = Validations.trimInput(sysReferrer);
+	}
+
+	public String getAppAccessURL() {
+		return appAccessURL;
+	}
+
+	public void setAppAccessURL(String appAccessURL) {
+		this.appAccessURL = Validations.trimInput(appAccessURL);
+	}
+
+}

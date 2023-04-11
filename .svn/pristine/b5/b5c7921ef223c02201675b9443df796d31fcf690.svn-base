@@ -1,0 +1,38 @@
+/**
+ * 
+ */
+package com.iris.sdmx.element.service;
+
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.sdmx.element.bean.SdmxAddElementInputBean;
+import com.iris.sdmx.element.bean.SdmxElementBeanForTemp;
+import com.iris.sdmx.element.bean.SdmxElementTempBean;
+import com.iris.sdmx.element.helper.SdmxElementHelper;
+
+/**
+ * @author apagaria
+ *
+ */
+@Service
+public class SdmxElementControllerService {
+
+	@Autowired
+	private SdmxElementTempService sdmxElementTempService;
+
+	/**
+	 * @param sdmxAddElementInputBean
+	 * @param jobProcessId
+	 */
+	public void addElement(SdmxAddElementInputBean sdmxAddElementInputBean, String jobProcessId) {
+		SdmxElementBeanForTemp sdmxElementBeanForTemp = new SdmxElementBeanForTemp();
+		SdmxElementHelper.convertInputBeanToEntity(sdmxAddElementInputBean, jobProcessId, sdmxElementBeanForTemp);
+		SdmxElementTempBean sdmxElementTempBean = new SdmxElementTempBean();
+		BeanUtils.copyProperties(sdmxAddElementInputBean, sdmxElementTempBean);
+		sdmxElementTempBean.setSdmxElementEntity(sdmxElementBeanForTemp);
+		sdmxElementTempBean.setStatusId(1L);
+		sdmxElementTempService.addEntityByBean(sdmxElementTempBean);
+	}
+}

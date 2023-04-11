@@ -1,0 +1,49 @@
+package com.iris.dto;
+
+import java.util.List;
+import java.util.Map;
+
+public class UserRoleEmailInfoBean {
+
+	private Map<String, List<String>> emailMap;
+	private List<Long> usrRoleMastPkList;
+	private List<String> emailList;
+	/**
+	 * @return the emailMap
+	 */
+	public Map<String, List<String>> getEmailMap() {
+		return emailMap;
+	}
+	/**
+	 * @param emailMap the emailMap to set
+	 */
+	public void setEmailMap(Map<String, List<String>> emailMap) {
+		this.emailMap = emailMap;
+	}
+	/**
+	 * @return the usrRoleMastPkList
+	 */
+	public List<Long> getUsrRoleMastPkList() {
+		return usrRoleMastPkList;
+	}
+	/**
+	 * @param usrRoleMastPkList the usrRoleMastPkList to set
+	 */
+	public void setUsrRoleMastPkList(List<Long> usrRoleMastPkList) {
+		this.usrRoleMastPkList = usrRoleMastPkList;
+	}
+	/**
+	 * @return the emailList
+	 */
+	public List<String> getEmailList() {
+		return emailList;
+	}
+	/**
+	 * @param emailList the emailList to set
+	 */
+	public void setEmailList(List<String> emailList) {
+		this.emailList = emailList;
+	}
+	
+	
+}

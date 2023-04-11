@@ -1,0 +1,179 @@
+package com.iris.controller;
+
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import com.google.gson.Gson;
+import com.iris.caching.ObjectCache;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.model.Auditor;
+import com.iris.model.EntityAuditorMapping;
+import com.iris.model.EntityAuditorMappingInfo;
+import com.iris.model.EntityBean;
+import com.iris.model.ViewEntityAuditorMapDto;
+import com.iris.repository.EntityRepo;
+import com.iris.util.UtilMaster;
+import com.iris.util.constant.ErrorCode;
+
+/**
+ * @author psheke
+ * @date 02/12/2020
+ */
+@RestController
+@RequestMapping("/service/entityAuditorMapController")
+public class EntityAuditorMapController {
+
+	@Autowired
+	private EntityAuditorMapProcessor entityAuditorMapProcessor;
+	
+	@Autowired
+	private EntityRepo entityRepo;
+	
+	static final Logger LOGGER = LogManager.getLogger(EntityAuditorMapController.class);
+	@GetMapping(value = "/getAuditorList")
+	public ServiceResponse getAuditorList(@RequestHeader(name = "AppId") String jobProcessingId, @RequestHeader(name = "UUID") String uuid) {
+		try {
+			LOGGER.info("Fetching the Auditor List: getAuditorList");	
+			List<Auditor> auditorList = entityAuditorMapProcessor.getAuditorList();
+			String jsonResult = new Gson().toJson(auditorList);	
+			if (!UtilMaster.isEmpty(jsonResult)) {
+				return new ServiceResponseBuilder().setStatus(true).setResponse(jsonResult).build();
+			} else {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+			}
+	
+	} catch (Exception e) {
+		LOGGER.error(ErrorCode.EC0033.toString());
+		return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+				.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+	}
+		
+	}
+	
+	
+	  @GetMapping(value ="/getAuditorReturnMapping/{entityCode}/{langCode}/{auditorIdSelected}/{auditFirmIdSelected}") 
+	  public ServiceResponse getAuditorReturnMapping(@RequestHeader(name = "AppId") String
+	  jobProcessingId, @RequestHeader(name = "UUID") String uuid,@PathVariable String entityCode,@PathVariable String langCode,@PathVariable Long auditorIdSelected,@PathVariable Long auditFirmIdSelected) { 
+		  LOGGER.info("Fetching the Entity Auditor Mapping List: getAuditorReturnMapping");	
+		  try { 
+			  EntityBean entityBean = entityRepo.findByEntityCode(entityCode);
+	  
+			  EntityAuditorMappingInfo entityAuditorMapObj= entityAuditorMapProcessor.getEntityAuditorMapping(entityBean.getEntityId(),langCode,auditorIdSelected,auditFirmIdSelected); 
+	  String jsonResult = new Gson().toJson(entityAuditorMapObj); 
+	  if (!UtilMaster.isEmpty(jsonResult))
+	  { 
+		  return new ServiceResponseBuilder().setStatus(true).setResponse(jsonResult).build(); }
+	  else { 
+		  return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+	  .setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).
+	  build(); }
+	  
+	  } catch (Exception e) { 
+		  LOGGER.error(ErrorCode.EC0033.toString()); return new
+	  ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.
+	  toString())
+	  .setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).
+	  build(); }
+	  
+	  }
+	  
+	  @PostMapping(value ="/addEditEntityAuditorMapping/{langCode}") 
+	  public ServiceResponse addEditEntityAuditorMapping(@RequestHeader(name = "AppId") String
+	  jobProcessingId, @RequestHeader(name = "UUID") String uuid,@PathVariable String langCode,@RequestBody EntityAuditorMappingInfo entityAuditorMapInfo) { 
+	
+		  LOGGER.info("Insert/Update Entity Auditor Mapping: addEditEntityAuditorMapping");	
+		  try { 
+			  EntityBean entityBean = entityRepo.findByEntityCode(entityAuditorMapInfo.getEntityCode());
+			  entityAuditorMapProcessor.addEditEntityAuditorMapping(entityBean.getEntityId(),entityAuditorMapInfo,langCode);
+		  }catch (Exception e) { 
+			  LOGGER.error(ErrorCode.EC0033.toString()); return new
+		  ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.
+		  toString())
+		  .setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).
+		  build(); }
+		  
+		  
+		  return new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+	  }
+	  
+	  @GetMapping(value ="/getEntityAuditorMappingForApproval/{userId}/{langCode}") 
+	  public ServiceResponse getEntityAuditorMappingForApproval(@RequestHeader(name = "AppId") String
+	  jobProcessingId, @RequestHeader(name = "UUID") String uuid, @PathVariable Long userId, @PathVariable String langCode) { 
+		  LOGGER.info("Fetching the Entity Auditor Mapping List for approval/rejection: getEntityAuditorMappingForApproval");	
+		  try { 
+			 
+	  
+	  List<EntityAuditorMapping> entityAuditorMappingList = entityAuditorMapProcessor.getEntityAuditorMappingForApproval(userId,langCode); 
+	  String jsonResult = new Gson().toJson(entityAuditorMappingList); 
+	  if (!UtilMaster.isEmpty(jsonResult))
+	  { 
+		  return new ServiceResponseBuilder().setStatus(true).setResponse(jsonResult).build(); }
+	  else { 
+		  return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+	  .setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).
+	  build(); }
+	  
+	  } catch (Exception e) { 
+		  LOGGER.error(ErrorCode.EC0033.toString()); return new
+	  ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.
+	  toString())
+	  .setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).
+	  build(); }
+	  
+	  }
+	  
+	  @PostMapping(value ="/approveOrRejectEntityAuditorMapping/{approveType}") 
+	  public ServiceResponse approveOrRejectEntityAuditorMapping(@RequestHeader(name = "AppId") String
+	  jobProcessingId, @RequestHeader(name = "UUID") String uuid,@PathVariable boolean approveType ,@RequestBody EntityAuditorMapping entityAuditorMapObj) { 
+		  LOGGER.info("Processing Approval/Rejection of entity auditor mapping: approveOrRejectEntityAuditorMapping");	
+		  try { 
+ 
+	   entityAuditorMapProcessor.approveOrRejectEntityAuditorMapping(approveType,entityAuditorMapObj); 
+
+	  } catch (Exception e) { 
+		  LOGGER.error(ErrorCode.EC0033.toString()); return new
+	  ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.
+	  toString())
+	  .setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).
+	  build(); }
+	  
+	  
+	  return new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+	  
+	  }
+	  
+	  @PostMapping(value ="/getEntityAuditorMapping") 
+	  public ServiceResponse getEntityAuditorMapping(@RequestHeader(name = "AppId") String
+	  jobProcessingId, @RequestHeader(name = "UUID") String uuid,@RequestBody ViewEntityAuditorMapDto viewEntityAuditorMap) {
+		  LOGGER.info("Fetching the entity auditor mapping: getEntityAuditorMapping");	
+		  try { 
+		  entityAuditorMapProcessor.getEntityAuditorMappingData(viewEntityAuditorMap); 
+		  String jsonResult = new Gson().toJson(viewEntityAuditorMap);
+		  if (!UtilMaster.isEmpty(jsonResult))
+		  { 
+			  return new ServiceResponseBuilder().setStatus(true).setResponse(jsonResult).build(); }
+		  else { 
+			  return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+		  .setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).
+		  build();
+			  }
+		  } catch (Exception e) { 
+			  LOGGER.error(ErrorCode.EC0033.toString()); return new
+		  ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.
+		  toString())
+		  .setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).
+		  build(); }
+		  
+	  }
+}

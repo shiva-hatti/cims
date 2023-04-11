@@ -1,0 +1,110 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+import java.util.List;
+
+import com.iris.util.Validations;
+
+/**
+ * @author sikhan
+ *
+ */
+public class Options implements Serializable{
+
+	private static final long serialVersionUID = -5173737562949458719L;
+	private String dropDownTypeName;
+	private String dropDownTypeCode;
+	private String returnCode;
+	private List<Option> optionList;
+	private String concept;
+	private String typeDomain;
+	private ApiDetails apiDetails;
+	private String explicitMember;
+	private String elrTag;
+		
+	
+	/**
+	 * @return the optionList
+	 */
+	public List<Option> getOptionList() {
+		return optionList;
+	}
+
+	/**
+	 * @param optionList the optionList to set
+	 */
+	public void setOptionList(List<Option> optionList) {
+		this.optionList = optionList;
+	}
+
+	public String getDropDownTypeName() {
+		return dropDownTypeName;
+	}
+
+	public void setDropDownTypeName(String dropDownTypeName) {
+		this.dropDownTypeName = Validations.trimInput(dropDownTypeName);
+	}
+
+	public String getDropDownTypeCode() {
+		return dropDownTypeCode;
+	}
+
+	public void setDropDownTypeCode(String dropDownTypeCode) {
+		this.dropDownTypeCode = Validations.trimInput(dropDownTypeCode);
+	}
+
+	public String getReturnCode() {
+		return returnCode;
+	}
+
+	public void setReturnCode(String returnCode) {
+		this.returnCode = Validations.trimInput(returnCode);
+	}
+
+	public String getConcept() {
+		return concept;
+	}
+
+	public void setConcept(String concept) {
+		this.concept = concept;
+	}
+
+	public String getTypeDomain() {
+		return typeDomain;
+	}
+
+	public void setTypeDomain(String typeDomain) {
+		this.typeDomain = Validations.trimInput(typeDomain);
+	}
+
+	public ApiDetails getApiDetails() {
+		return apiDetails;
+	}
+
+	public void setApiDetails(ApiDetails apiDetails) {
+		this.apiDetails = apiDetails;
+	}
+
+	public String getExplicitMember() {
+		return explicitMember;
+	}
+
+	public void setExplicitMember(String explicitMember) {
+		this.explicitMember = Validations.trimInput(explicitMember);
+	}
+
+	/**
+	 * @return the elrTag
+	 */
+	public String getElrTag() {
+		return elrTag;
+	}
+
+	/**
+	 * @param elrTag the elrTag to set
+	 */
+	public void setElrTag(String elrTag) {
+		this.elrTag = elrTag;
+	}
+
+}

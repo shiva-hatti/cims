@@ -1,0 +1,296 @@
+package com.iris.sdmx.upload.entity;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.iris.model.EntityBean;
+import com.iris.model.FilingStatus;
+import com.iris.model.UploadChannel;
+import com.iris.model.UserMaster;
+
+/**
+ * @author vjadhav
+ *
+ */
+@Entity
+@Table(name = "TBL_EBR_FILE_AUDIT")
+@JsonInclude(Include.NON_NULL)
+public class EbrFileAudit implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "EBR_FILE_AUDIT_ID")
+	private int ebrFileAuditId;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "UPLOAD_CHANNEL_ID_FK")
+	private UploadChannel uploadChannelIdFk;
+	
+	@Column(name = "FILE_NAME")
+	private String fileName;
+	
+	@Column(name = "SIZE")
+	private long size;
+	
+	@Column(name = "FILE_CHECKSUM")
+	private String fileChecksum;
+	
+	@Column(name = "FILE_MIMETYPE")
+	private String fileMimeType;
+	
+	@Column(name = "FILE_TYPE")
+	private String fileType;
+	
+	@Column(name = "UPLOAD_DATE")
+	private Date uploadDate;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "ENTITY_ID_FK")
+	private EntityBean entityIdFk;
+	
+	@Column(name = "ELEMENT_COUNT")
+	private int elementCount;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "USER_ID_FK")
+	private UserMaster userIdFk;
+	
+	@Column(name = "USER_EMAIL_ID")
+	private String userEmailId;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "STATUS")
+	private FilingStatus status;
+	
+	@Column(name = "JSON_FILE_NAME")
+	private String jsonFileName;
+	
+	@OneToMany(mappedBy = "ebrFileAuditIdFk",cascade = CascadeType.ALL)
+	private List<ElementAudit> elementAuditList;
+
+	/**
+	 * @return the ebrFileAuditId
+	 */
+	public int getEbrFileAuditId() {
+		return ebrFileAuditId;
+	}
+
+	/**
+	 * @param ebrFileAuditId the ebrFileAuditId to set
+	 */
+	public void setEbrFileAuditId(int ebrFileAuditId) {
+		this.ebrFileAuditId = ebrFileAuditId;
+	}
+
+	/**
+	 * @return the uploadChannelIdFk
+	 */
+	public UploadChannel getUploadChannelIdFk() {
+		return uploadChannelIdFk;
+	}
+
+	/**
+	 * @param uploadChannelIdFk the uploadChannelIdFk to set
+	 */
+	public void setUploadChannelIdFk(UploadChannel uploadChannelIdFk) {
+		this.uploadChannelIdFk = uploadChannelIdFk;
+	}
+
+	/**
+	 * @return the fileName
+	 */
+	public String getFileName() {
+		return fileName;
+	}
+
+	/**
+	 * @param fileName the fileName to set
+	 */
+	public void setFileName(String fileName) {
+		this.fileName = fileName;
+	}
+
+	public long getSize() {
+		return size;
+	}
+
+	public void setSize(long size) {
+		this.size = size;
+	}
+
+	/**
+	 * @return the fileChecksum
+	 */
+	public String getFileChecksum() {
+		return fileChecksum;
+	}
+
+	/**
+	 * @param fileChecksum the fileChecksum to set
+	 */
+	public void setFileChecksum(String fileChecksum) {
+		this.fileChecksum = fileChecksum;
+	}
+
+	/**
+	 * @return the fileMimeType
+	 */
+	public String getFileMimeType() {
+		return fileMimeType;
+	}
+
+	/**
+	 * @param fileMimeType the fileMimeType to set
+	 */
+	public void setFileMimeType(String fileMimeType) {
+		this.fileMimeType = fileMimeType;
+	}
+
+	/**
+	 * @return the fileType
+	 */
+	public String getFileType() {
+		return fileType;
+	}
+
+	/**
+	 * @param fileType the fileType to set
+	 */
+	public void setFileType(String fileType) {
+		this.fileType = fileType;
+	}
+
+	/**
+	 * @return the uploadDate
+	 */
+	public Date getUploadDate() {
+		return uploadDate;
+	}
+
+	/**
+	 * @param uploadDate the uploadDate to set
+	 */
+	public void setUploadDate(Date uploadDate) {
+		this.uploadDate = uploadDate;
+	}
+
+	/**
+	 * @return the entityIdFk
+	 */
+	public EntityBean getEntityIdFk() {
+		return entityIdFk;
+	}
+
+	/**
+	 * @param entityIdFk the entityIdFk to set
+	 */
+	public void setEntityIdFk(EntityBean entityIdFk) {
+		this.entityIdFk = entityIdFk;
+	}
+
+	/**
+	 * @return the elementCount
+	 */
+	public int getElementCount() {
+		return elementCount;
+	}
+
+	/**
+	 * @param elementCount the elementCount to set
+	 */
+	public void setElementCount(int elementCount) {
+		this.elementCount = elementCount;
+	}
+
+	/**
+	 * @return the userIdFk
+	 */
+	public UserMaster getUserIdFk() {
+		return userIdFk;
+	}
+
+	/**
+	 * @param userIdFk the userIdFk to set
+	 */
+	public void setUserIdFk(UserMaster userIdFk) {
+		this.userIdFk = userIdFk;
+	}
+
+	/**
+	 * @return the userEmailId
+	 */
+	public String getUserEmailId() {
+		return userEmailId;
+	}
+
+	/**
+	 * @param userEmailId the userEmailId to set
+	 */
+	public void setUserEmailId(String userEmailId) {
+		this.userEmailId = userEmailId;
+	}
+
+	/**
+	 * @return the status
+	 */
+	public FilingStatus getStatus() {
+		return status;
+	}
+
+	/**
+	 * @param status the status to set
+	 */
+	public void setStatus(FilingStatus status) {
+		this.status = status;
+	}
+
+	/**
+	 * @return the jsonFileName
+	 */
+	public String getJsonFileName() {
+		return jsonFileName;
+	}
+
+	/**
+	 * @param jsonFileName the jsonFileName to set
+	 */
+	public void setJsonFileName(String jsonFileName) {
+		this.jsonFileName = jsonFileName;
+	}
+
+	/**
+	 * @return the elementAuditList
+	 */
+	public List<ElementAudit> getElementAuditList() {
+		return elementAuditList;
+	}
+
+	/**
+	 * @param elementAuditList the elementAuditList to set
+	 */
+	public void setElementAuditList(List<ElementAudit> elementAuditList) {
+		this.elementAuditList = elementAuditList;
+	}
+
+	
+}

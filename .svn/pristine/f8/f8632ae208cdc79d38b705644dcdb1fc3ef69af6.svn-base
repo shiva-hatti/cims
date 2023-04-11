@@ -1,0 +1,210 @@
+package com.iris.rbrToEbr.bean;
+
+import java.io.Serializable;
+import java.util.Date;
+
+/**
+ * @author vjadhav
+ *
+ */
+public class CtlEbrElementBean implements Serializable{
+	
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -6477980045211664576L;
+	
+	private Long controlEbrElementId;
+	
+	private Long controlFk;
+	
+	private String entityCode;
+	
+	private String elementCode;
+	
+	private int auditStatus;
+	
+	private Long createdBy;
+	
+	private String createdByUserName;
+
+	private Date createdDate;
+	
+	private Long modifiedBy;
+	
+	private String modifiedByUserName;
+
+	private Date modifiedDate;
+
+	/**
+	 * @return the controlEbrElementId
+	 */
+	public Long getControlEbrElementId() {
+		return controlEbrElementId;
+	}
+
+	/**
+	 * @param controlEbrElementId the controlEbrElementId to set
+	 */
+	public void setControlEbrElementId(Long controlEbrElementId) {
+		this.controlEbrElementId = controlEbrElementId;
+	}
+
+	/**
+	 * @return the controlFk
+	 */
+	public Long getControlFk() {
+		return controlFk;
+	}
+
+	/**
+	 * @param controlFk the controlFk to set
+	 */
+	public void setControlFk(Long controlFk) {
+		this.controlFk = controlFk;
+	}
+
+	/**
+	 * @return the entityCode
+	 */
+	public String getEntityCode() {
+		return entityCode;
+	}
+
+	/**
+	 * @param entityCode the entityCode to set
+	 */
+	public void setEntityCode(String entityCode) {
+		this.entityCode = entityCode;
+	}
+
+	/**
+	 * @return the elementCode
+	 */
+	public String getElementCode() {
+		return elementCode;
+	}
+
+	/**
+	 * @param elementCode the elementCode to set
+	 */
+	public void setElementCode(String elementCode) {
+		this.elementCode = elementCode;
+	}
+
+	/**
+	 * @return the auditStatus
+	 */
+	public int getAuditStatus() {
+		return auditStatus;
+	}
+
+	/**
+	 * @param auditStatus the auditStatus to set
+	 */
+	public void setAuditStatus(int auditStatus) {
+		this.auditStatus = auditStatus;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public Long getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(Long createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the createdByUserName
+	 */
+	public String getCreatedByUserName() {
+		return createdByUserName;
+	}
+
+	/**
+	 * @param createdByUserName the createdByUserName to set
+	 */
+	public void setCreatedByUserName(String createdByUserName) {
+		this.createdByUserName = createdByUserName;
+	}
+
+	/**
+	 * @return the createdDate
+	 */
+	public Date getCreatedDate() {
+		return createdDate;
+	}
+
+	/**
+	 * @param createdDate the createdDate to set
+	 */
+	public void setCreatedDate(Date createdDate) {
+		this.createdDate = createdDate;
+	}
+
+	/**
+	 * @return the modifiedBy
+	 */
+	public Long getModifiedBy() {
+		return modifiedBy;
+	}
+
+	/**
+	 * @param modifiedBy the modifiedBy to set
+	 */
+	public void setModifiedBy(Long modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+
+	/**
+	 * @return the modifiedByUserName
+	 */
+	public String getModifiedByUserName() {
+		return modifiedByUserName;
+	}
+
+	/**
+	 * @param modifiedByUserName the modifiedByUserName to set
+	 */
+	public void setModifiedByUserName(String modifiedByUserName) {
+		this.modifiedByUserName = modifiedByUserName;
+	}
+
+	/**
+	 * @return the modifiedDate
+	 */
+	public Date getModifiedDate() {
+		return modifiedDate;
+	}
+
+	/**
+	 * @param modifiedDate the modifiedDate to set
+	 */
+	public void setModifiedDate(Date modifiedDate) {
+		this.modifiedDate = modifiedDate;
+	}
+
+	/**
+	 *
+	 */
+	@Override
+	public String toString() {
+		return "CtlEbrElementBean [controlEbrElementId=" + controlEbrElementId + ", controlFk=" + controlFk
+				+ ", entityCode=" + entityCode + ", elementCode=" + elementCode + ", auditStatus=" + auditStatus
+				+ ", createdBy=" + createdBy + ", createdByUserName=" + createdByUserName + ", createdDate="
+				+ createdDate + ", modifiedBy=" + modifiedBy + ", modifiedByUserName=" + modifiedByUserName
+				+ ", modifiedDate=" + modifiedDate + "]";
+	}
+
+	
+
+	
+	
+}

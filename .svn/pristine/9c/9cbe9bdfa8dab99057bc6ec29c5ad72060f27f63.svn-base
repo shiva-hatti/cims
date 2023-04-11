@@ -1,0 +1,59 @@
+package com.iris.model;
+
+import java.util.List;
+
+public class EntityAuditorMappingInfo {
+	private Long auditorId;
+	private String entityCode;
+	private Long auditFirmId;
+	private String email;
+	private List<EntityAuditorMapping> entityAudMapList;
+
+	public List<EntityAuditorMapping> getEntityAudMapList() {
+		return entityAudMapList;
+	}
+
+	public void setEntityAudMapList(List<EntityAuditorMapping> entityAudMapList) {
+		this.entityAudMapList = entityAudMapList;
+	}
+
+	public Long getAuditorId() {
+		return auditorId;
+
+	}
+
+	public void setAuditorId(Long auditorId) {
+		this.auditorId = auditorId;
+	}
+
+	public Long getAuditFirmId() {
+		return auditFirmId;
+	}
+
+	public void setAuditFirmId(Long auditFirmId) {
+		this.auditFirmId = auditFirmId;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	/**
+	 * @return the entityCode
+	 */
+	public String getEntityCode() {
+		return entityCode;
+	}
+
+	/**
+	 * @param entityCode the entityCode to set
+	 */
+	public void setEntityCode(String entityCode) {
+		this.entityCode = entityCode;
+	}
+
+}

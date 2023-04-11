@@ -1,0 +1,304 @@
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Configurable;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.PanMasterTempDto;
+import com.iris.dto.ServiceResponse;
+import com.iris.util.Validations;
+import com.iris.util.constant.ErrorCode;
+
+@Component
+@Configurable(preConstruction = true)
+@Scope("prototype")
+public class PanMasterThreadController implements Callable<Map<Long, Map<Long, String>>> {
+
+	static final Logger LOGGER = LogManager.getLogger(PanMasterThreadController.class);
+
+	List<PanMasterTempDto> listOfRecords;
+	Map<Long, Map<Long, String>> panInfoValidateMap;
+	PANMasterController panMasterController;
+	private static String LANG_CODE = "en";
+	Map<String, PanMasterTempDto> panMasterMap;
+
+	public PanMasterThreadController(List<PanMasterTempDto> listPart, Map<Long, Map<Long, String>> panInfoValidateMap, PANMasterController panMasterController, Map<String, PanMasterTempDto> panMasterMap) {
+		super();
+		this.listOfRecords = listPart;
+		this.panInfoValidateMap = panInfoValidateMap;
+		this.panMasterController = panMasterController;
+		this.panMasterMap = panMasterMap;
+	}
+
+	@Override
+	public Map<Long, Map<Long, String>> call() throws Exception {
+		panInfoValidateMap = processing(this.listOfRecords, this.panInfoValidateMap, this.panMasterMap);
+		return panInfoValidateMap;
+	}
+
+	private Map<Long, Map<Long, String>> processing(List<PanMasterTempDto> listOfRecords, Map<Long, Map<Long, String>> panInfoValidateMap, Map<String, PanMasterTempDto> panMasterMap) {
+		Map<Long, Map<Long, String>> panInfoValidateOutputMap = new HashMap<>();
+		PanMasterTempDto panMasterTempDtoDbObj = null;
+		ServiceResponse serviceResponse = null;
+		Map<Long, String> panInfoValidate = null;
+		List<Map<Long, String>> sheet0List = new ArrayList<>();
+		List<Map<Long, String>> sheet1List = new ArrayList<>();
+
+		LOGGER.info("Inside pan master thread controller , processing method invoked");
+		for (PanMasterTempDto panMasterTempDto : listOfRecords) {
+			panInfoValidate = new HashMap<>();
+
+			String basicValidationStatus = validatePanMasterTempDto(panMasterTempDto, panMasterMap);
+
+			if (StringUtils.isNotBlank(basicValidationStatus)) {
+
+				panInfoValidate.put(panMasterTempDto.getRowNumber(), basicValidationStatus);
+				//	panInfoValidateOutputMap.put(panMasterTempDto.getSheetNumber(), panInfoValidate);
+				if (panMasterTempDto.getSheetNumber() == 0) {
+					sheet0List.add(panInfoValidate);
+				}
+
+				if (panMasterTempDto.getSheetNumber() == 1) {
+					sheet1List.add(panInfoValidate);
+				}
+
+				continue;
+			}
+
+			panMasterTempDtoDbObj = new PanMasterTempDto();
+
+			if (panMasterTempDtoDbObj.getEntryType() == null) {
+				panMasterTempDtoDbObj.setEntryType(panMasterTempDto.getEntryType());
+			}
+			panMasterTempDtoDbObj.setRbiGenerated(panMasterTempDto.getRbiGenerated());
+			panMasterTempDtoDbObj.setPanNumber(panMasterTempDto.getPanNumber());
+			panMasterTempDtoDbObj.setBorrowerName(panMasterTempDto.getBorrowerName());
+			panMasterTempDtoDbObj.setInstitutionType(panMasterTempDto.getInstitutionType());
+			panMasterTempDtoDbObj.setStatus(panMasterTempDto.getStatus());
+			panMasterTempDtoDbObj.setBorrowerAlternateName(panMasterTempDto.getBorrowerAlternateName());
+			panMasterTempDtoDbObj.setBorrowerTitle(panMasterTempDto.getBorrowerTitle());
+			panMasterTempDtoDbObj.setBorrowerMobile(panMasterTempDto.getBorrowerMobile());
+			panMasterTempDtoDbObj.setEntityCode(panMasterTempDto.getEntityCode());
+			panMasterTempDtoDbObj.setCreatedBy(panMasterTempDto.getCreatedBy());
+			panMasterTempDtoDbObj.setEntityBean(panMasterTempDto.getEntityBean());
+			panMasterTempDtoDbObj.setUserMaster(panMasterTempDto.getUserMaster());
+			panMasterTempDtoDbObj.setIsBulkUpload(true);
+			panMasterTempDtoDbObj.setPanId(panMasterTempDto.getPanId());
+			//			LOGGER.info("Pan data insertion called#######" + panMasterTempDto.getRowNumber());
+			serviceResponse = panMasterController.insertBorrowerDetails(panMasterTempDtoDbObj);
+			//			LOGGER.info("Pan data insertion called and response received from api########",serviceResponse.getStatusMessage());
+			if (serviceResponse.isStatus()) {
+				panInfoValidate.put(panMasterTempDto.getRowNumber(), "PASS");
+
+			} else {
+				panInfoValidate.put(panMasterTempDto.getRowNumber(), serviceResponse.getStatusCode() + ":" + ObjectCache.getLabelKeyValue("en", serviceResponse.getStatusMessage()));
+			}
+
+			if (panMasterTempDto.getSheetNumber() == 0) {
+				sheet0List.add(panInfoValidate);
+			}
+
+			if (panMasterTempDto.getSheetNumber() == 1) {
+				sheet1List.add(panInfoValidate);
+			}
+
+		}
+
+		LOGGER.info("pan master thread controller , processing method invoked, after for");
+		Map<Long, String> mapResponse = null;
+		if (!CollectionUtils.isEmpty(sheet0List)) {
+			mapResponse = new HashMap<>();
+			for (Map<Long, String> mapList : sheet0List) {
+				for (Map.Entry<Long, String> map : mapList.entrySet()) {
+					mapResponse.put(map.getKey(), map.getValue());
+				}
+			}
+			panInfoValidateOutputMap.put(0L, mapResponse);
+		}
+
+		if (!CollectionUtils.isEmpty(sheet1List)) {
+			mapResponse = new HashMap<>();
+			for (Map<Long, String> mapList : sheet1List) {
+				for (Map.Entry<Long, String> map : mapList.entrySet()) {
+					mapResponse.put(map.getKey(), map.getValue());
+				}
+			}
+			panInfoValidateOutputMap.put(1L, mapResponse);
+		}
+		LOGGER.info("pan master thread controller , processing method invoked, before return");
+		return panInfoValidateOutputMap;
+	}
+
+	private String validatePanMasterTempDto(PanMasterTempDto panMasterTempDto, Map<String, PanMasterTempDto> panMasterMap) {
+		String errorString = null;
+		List<String> basicValidation = new ArrayList<>();
+		PanMasterTempDto panMasterTempDtosResponseFromApi;
+		try {
+
+			if (panMasterTempDto.getRbiGenerated() == null) {
+				basicValidation.add("E0816" + ":" + ObjectCache.getLabelKeyValue(LANG_CODE, ObjectCache.getErrorCodeKey(ErrorCode.E0816.toString())));
+			}
+
+			if (panMasterTempDto.getRbiGenerated() != null && panMasterTempDto.getRbiGenerated()) {
+
+				panMasterTempDto.setEntryType(1);
+				if (StringUtils.isNotBlank(panMasterTempDto.getPanNumber())) {
+					basicValidation.add("E0830" + ":" + ObjectCache.getLabelKeyValue(LANG_CODE, ObjectCache.getErrorCodeKey(ErrorCode.E0830.toString())));
+
+				}
+
+				if (panMasterTempDto.getInstitutionType() != null && panMasterTempDto.getInstitutionType() == 5) {
+					basicValidation.add("E0812" + ":" + ObjectCache.getLabelKeyValue(LANG_CODE, ObjectCache.getErrorCodeKey(ErrorCode.E0812.toString())));
+				} else if (panMasterTempDto.getInstitutionType() == null || panMasterTempDto.getInstitutionType().intValue() < 0 || panMasterTempDto.getInstitutionType().intValue() > 4) {
+					basicValidation.add("E0839" + ":" + ObjectCache.getLabelKeyValue(LANG_CODE, ObjectCache.getErrorCodeKey(ErrorCode.E0839.toString())));
+				}
+
+				if (panMasterTempDto.getStatus() != null && panMasterTempDto.getStatus() == 5) {
+					basicValidation.add("E0813" + ":" + ObjectCache.getLabelKeyValue(LANG_CODE, ObjectCache.getErrorCodeKey(ErrorCode.E0813.toString())));
+
+				} else if (panMasterTempDto.getStatus() == null || panMasterTempDto.getStatus().intValue() < 0 || panMasterTempDto.getStatus().intValue() > 4) {
+					basicValidation.add("E0840" + ":" + ObjectCache.getLabelKeyValue(LANG_CODE, ObjectCache.getErrorCodeKey(ErrorCode.E0840.toString())));
+				}
+
+				if (panMasterTempDto.getBorrowerMobile() == null) {
+					basicValidation.add("E0837" + ":" + ObjectCache.getLabelKeyValue(LANG_CODE, ObjectCache.getErrorCodeKey(ErrorCode.E0837.toString())));
+				}
+
+			} else {
+
+				if (Validations.isEmpty(panMasterTempDto.getPanNumber())) {
+					basicValidation.add("E0760" + ":" + ObjectCache.getLabelKeyValue(LANG_CODE, ObjectCache.getErrorCodeKey(ErrorCode.E0760.toString())));
+				}
+
+				if (!Validations.isEmpty(panMasterTempDto.getPanNumber()) && !validatePanWithRegex(panMasterTempDto.getPanNumber())) {
+					basicValidation.add("E0764" + ":" + ObjectCache.getLabelKeyValue(LANG_CODE, ObjectCache.getErrorCodeKey(ErrorCode.E0764.toString())));
+				}
+
+				if (!Validations.isEmpty(panMasterTempDto.getPanNumber()) && validatePanWithRegex(panMasterTempDto.getPanNumber())) {
+
+					panMasterTempDtosResponseFromApi = panMasterMap.get(panMasterTempDto.getPanNumber());
+
+					if (panMasterTempDtosResponseFromApi == null) {
+						panMasterTempDto.setEntryType(1);
+					} else {
+						try {
+							if (panMasterTempDtosResponseFromApi != null && panMasterTempDtosResponseFromApi.getVerificationStatus() == 0) {
+								basicValidation.add("E0761" + ":" + ObjectCache.getLabelKeyValue(LANG_CODE, ObjectCache.getErrorCodeKey(ErrorCode.E0761.toString())));
+								basicValidation.add("E0762" + ":" + ObjectCache.getLabelKeyValue(LANG_CODE, ObjectCache.getErrorCodeKey(ErrorCode.E0762.toString())));
+							} else {
+								panMasterTempDto.setEntryType(2);
+								panMasterTempDto.setPanId(panMasterTempDtosResponseFromApi.getPanId());
+							}
+							if (panMasterTempDtosResponseFromApi != null && panMasterTempDtosResponseFromApi.getRbiGenerated()) {
+								basicValidation.add("E0824" + ":" + ObjectCache.getLabelKeyValue(LANG_CODE, ObjectCache.getErrorCodeKey(ErrorCode.E0824.toString())));
+							}
+
+						} catch (Exception e) {
+							LOGGER.error("Exception while parsing Gson received from get pan info api", e);
+						}
+					}
+				}
+
+			}
+
+			if (StringUtils.isBlank(panMasterTempDto.getBorrowerName())) {
+				basicValidation.add("E0765" + ":" + ObjectCache.getLabelKeyValue(LANG_CODE, ObjectCache.getErrorCodeKey(ErrorCode.E0765.toString())));
+			}
+
+			if (!StringUtils.isBlank(panMasterTempDto.getBorrowerName()) && panMasterTempDto.getBorrowerName().length() > 100) {
+				basicValidation.add("E0850" + ":" + ObjectCache.getLabelKeyValue(LANG_CODE, ObjectCache.getErrorCodeKey(ErrorCode.E0850.toString())));
+			}
+
+			if (!StringUtils.isBlank(panMasterTempDto.getBorrowerName()) && !checkIfAnyCharacterPresentInBorrowerName(panMasterTempDto.getBorrowerName())) {
+				basicValidation.add("E0854" + ":" + ObjectCache.getLabelKeyValue(LANG_CODE, ObjectCache.getErrorCodeKey(ErrorCode.E0854.toString())));
+			}
+
+			if (!StringUtils.isBlank(panMasterTempDto.getBorrowerName()) && checkIfRestrictedCharactersPresentInInputString(panMasterTempDto.getBorrowerName())) {
+				basicValidation.add("E0895" + ":" + ObjectCache.getLabelKeyValue(LANG_CODE, ObjectCache.getErrorCodeKey(ErrorCode.E0895.toString())));
+			}
+
+			if (!StringUtils.isBlank(panMasterTempDto.getBorrowerAlternateName()) && panMasterTempDto.getBorrowerAlternateName().length() > 100) {
+				basicValidation.add("E0851" + ":" + ObjectCache.getLabelKeyValue(LANG_CODE, ObjectCache.getErrorCodeKey(ErrorCode.E0851.toString())));
+			}
+
+			if (!StringUtils.isBlank(panMasterTempDto.getBorrowerAlternateName()) && checkIfRestrictedCharactersPresentInInputString(panMasterTempDto.getBorrowerAlternateName())) {
+				basicValidation.add("E0896" + ":" + ObjectCache.getLabelKeyValue(LANG_CODE, ObjectCache.getErrorCodeKey(ErrorCode.E0896.toString())));
+			}
+
+			if (!StringUtils.isBlank(panMasterTempDto.getBorrowerTitle()) && panMasterTempDto.getBorrowerTitle().length() > 100) {
+				basicValidation.add("E0852" + ":" + ObjectCache.getLabelKeyValue(LANG_CODE, ObjectCache.getErrorCodeKey(ErrorCode.E0852.toString())));
+			}
+
+			if (!StringUtils.isBlank(panMasterTempDto.getBorrowerTitle()) && checkIfRestrictedCharactersPresentInInputString(panMasterTempDto.getBorrowerTitle())) {
+				basicValidation.add("E0897" + ":" + ObjectCache.getLabelKeyValue(LANG_CODE, ObjectCache.getErrorCodeKey(ErrorCode.E0897.toString())));
+			}
+
+			if (panMasterTempDto.getBorrowerMobile() != null && panMasterTempDto.getBorrowerMobile() == 1l) {
+				basicValidation.add("E0844" + ":" + ObjectCache.getLabelKeyValue(LANG_CODE, ObjectCache.getErrorCodeKey(ErrorCode.E0844.toString())));
+			}
+
+			if (panMasterTempDto.getBorrowerMobile() != null && (panMasterTempDto.getBorrowerMobile().longValue() < 1000000000l || panMasterTempDto.getBorrowerMobile().longValue() > 9999999999l)) {
+				basicValidation.add("E0766" + ":" + ObjectCache.getLabelKeyValue(LANG_CODE, ObjectCache.getErrorCodeKey(ErrorCode.E0766.toString())));
+
+			}
+
+			if (Validations.isEmpty(panMasterTempDto.getEntityCode())) {
+				basicValidation.add("E0108" + ":" + ObjectCache.getLabelKeyValue(LANG_CODE, ObjectCache.getErrorCodeKey(ErrorCode.E0108.toString())));
+			}
+
+			if (!CollectionUtils.isEmpty(basicValidation)) {
+				errorString = basicValidation.stream().map(Object::toString).collect(Collectors.joining(", "));
+			}
+		} catch (Exception e) {
+			LOGGER.error("exception occoured while validte pan master dto temp", e);
+		}
+		return errorString;
+	}
+
+	private boolean checkIfRestrictedCharactersPresentInInputString(String inputString) {
+		Pattern regex = Pattern.compile("[~|&\"\"]");
+		if (regex.matcher(inputString).find()) {
+			return true;
+		}
+		return false;
+	}
+
+	private boolean validatePanWithRegex(String panNumber) {
+		if (panNumber == null || panNumber.isEmpty()) {
+			return false;
+		}
+		boolean flag = false;
+		if (panNumber.matches("[A-Z]{5}[0-9]{4}[A-Z]{1}")) {
+			flag = true;
+		} else {
+			flag = false;
+		}
+		return flag;
+	}
+
+	private boolean checkIfAnyCharacterPresentInBorrowerName(String borrowerName) {
+		try {
+			borrowerName = borrowerName.replaceAll("(\r\n|\n)", "");
+			if (borrowerName.matches(".*[a-zA-Z].*")) {
+				return true;
+			}
+		} catch (Exception e) {
+			LOGGER.error("Error in checkIfAnyCharacterPresentInBorrowerName()", e);
+		}
+		return false;
+	}
+
+}

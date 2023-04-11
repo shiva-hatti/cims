@@ -1,0 +1,349 @@
+package com.iris.service.impl;
+
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import com.iris.exception.ServiceException;
+import com.iris.model.EntityBean;
+import com.iris.model.Return;
+import com.iris.model.ReturnEntityMappingNew;
+import com.iris.repository.ReturnEntityMapRepoNew;
+import com.iris.service.GenericService;
+import com.iris.util.Validations;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.util.constant.MethodConstants;
+
+@Service
+public class ReturnEntityMapServiceNew implements GenericService<ReturnEntityMappingNew, Long> {
+
+	@Autowired
+	ReturnEntityMapRepoNew returnEntityMapRepoNew;
+
+	@Autowired
+	DataSource datasource;
+
+	@Override
+	public ReturnEntityMappingNew add(ReturnEntityMappingNew entity) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public boolean update(ReturnEntityMappingNew entity) throws ServiceException {
+		return false;
+	}
+
+	@Override
+	public List<ReturnEntityMappingNew> getDataByIds(Long[] ids) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<ReturnEntityMappingNew> getDataByColumnValue(Map<String, List<String>> columnValueMap,
+			String methodName) throws ServiceException {
+
+		return null;
+	}
+
+	@Override
+	public List<ReturnEntityMappingNew> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap,
+			String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<ReturnEntityMappingNew> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<ReturnEntityMappingNew> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public void deleteData(ReturnEntityMappingNew bean) throws ServiceException {
+
+	}
+
+	@Override
+	public ReturnEntityMappingNew getDataById(Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<ReturnEntityMappingNew> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		try {
+			Long roleId = null;
+			Long frequencyId = null;
+			Long categoryId = null;
+			Long subCategoryId = null;
+			Boolean isActive = false;
+			String langCode = null;
+			List<String> entCodeList = null;
+			Long entityId = null;
+			Long returnId = null;
+			Boolean isChanelToConsider = (Boolean) columnValueMap.get(ColumnConstants.IS_CHANNEL_TO_CONSIDER.getConstantVal());
+			Boolean uploadChannel = false;
+			Boolean webChannel = false;
+			Boolean emailChannel = false;
+			Boolean apiChannel = false;
+			Boolean stsChannel = false;
+			String entityCode = null;
+			String returnCode = null;
+			List<Long> entIdList = null;
+			List<Long> retIdList = null;
+			List<Long> subRetIdList = null;
+			List<Date> endDateList = new ArrayList<Date>();
+			for (String columnName : columnValueMap.keySet()) {
+				if (columnName.equalsIgnoreCase(ColumnConstants.ROLEID.getConstantVal())) {
+					roleId = (Long) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.CATEGORY_ID.getConstantVal())) {
+					categoryId = (Long) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.SUB_CATEGORY_ID.getConstantVal())) {
+					subCategoryId = (Long) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.IS_ACTIVE.getConstantVal())) {
+					isActive = (Boolean) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.LANG_CODE.getConstantVal())) {
+					langCode = (String) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.ENT_CODE_LIST.getConstantVal())) {
+					entCodeList = (List<String>) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.ENTITYID.getConstantVal())) {
+					entityId = (Long) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.RETURNID.getConstantVal())) {
+					returnId = (Long) columnValueMap.get(columnName);
+				}else if (columnName.equalsIgnoreCase(ColumnConstants.UPLOAD_CHANNEL.getConstantVal())) {
+					uploadChannel = (Boolean) columnValueMap.get(columnName);
+				}else if (columnName.equalsIgnoreCase(ColumnConstants.API_CHANNEL.getConstantVal())) {
+					apiChannel = (Boolean) columnValueMap.get(columnName);
+				}else if (columnName.equalsIgnoreCase(ColumnConstants.WEB_CHANNEL.getConstantVal())) {
+					webChannel = (Boolean) columnValueMap.get(columnName);
+				}else if (columnName.equalsIgnoreCase(ColumnConstants.STS_CAHNNEL.getConstantVal())) {
+					stsChannel = (Boolean) columnValueMap.get(columnName);
+				}else if (columnName.equalsIgnoreCase(ColumnConstants.EMAIL_CHANNEL.getConstantVal())) {
+					emailChannel = (Boolean) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.ENT_CODE.getConstantVal())) {
+					entityCode = (String) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.RETURN_CODE.getConstantVal())) {
+					returnCode = (String) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.ENTITY_ID_LIST.getConstantVal())) {
+					entIdList = (List<Long>) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.RETURN_ID_LIST.getConstantVal())) {
+					retIdList = (List<Long>) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.FREQUENCY_ID.getConstantVal())) {
+					frequencyId = (Long) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.SUB_RET_ID_LIST.getConstantVal())) {
+					subRetIdList = (List<Long>) columnValueMap.get(columnName);
+				}
+			}
+
+			if (methodName.equalsIgnoreCase(MethodConstants.GET_RET_ENT_MAP_BY_ROLE_CAT_SUBCAT_ID.getConstantVal())) {
+				return returnEntityMapRepoNew.getDataByRoleIdCategoryIdSubCategoryId(roleId, categoryId, subCategoryId,
+						isActive, langCode);
+			} else if (methodName
+					.equalsIgnoreCase(MethodConstants.GET_RET_ENT_MAP_BY_ROLE_ID_ENT_CODE.getConstantVal())&&(isChanelToConsider!=null && isChanelToConsider)) {
+				return returnEntityMapRepoNew.getDataByRoleIdEntCodeAndChannel(roleId, entCodeList, isActive, langCode, uploadChannel, webChannel, emailChannel, apiChannel, stsChannel);
+			} else if (methodName
+					.equalsIgnoreCase(MethodConstants.GET_RET_ENT_MAP_BY_ROLE_ID_ENT_CODE.getConstantVal())) {
+				return returnEntityMapRepoNew.getDataByRoleIdEntCode(roleId, entCodeList, isActive, langCode);
+			} else if (methodName
+					.equalsIgnoreCase(MethodConstants.GET_DATA_BY_ENTITY_ID_AND_RETURN_ID.getConstantVal())) {
+				return returnEntityMapRepoNew.getDataByEntityIdAndReturnId(entityId, returnId);
+			} else if(methodName.equalsIgnoreCase(MethodConstants.GET_ACTIVE_MAPPING_BY_ENTITY_ID.getConstantVal())) {
+				return returnEntityMapRepoNew.getDataByEntityIdAndIsActiveTrue(entityId);
+			} else if(methodName.equalsIgnoreCase(MethodConstants.GET_DATA_BY_ENTITY_CODE_AND_RETURN_CODE.getConstantVal())) {
+				return returnEntityMapRepoNew.getDataByEntityCodeAndReturnCode(entityCode, returnCode);
+			} else if(methodName.equalsIgnoreCase(MethodConstants.GET_RET_ENT_MAP_BY_ENT_RET.getConstantVal())) {
+				return returnEntityMapRepoNew.getDataByMapEntRet(entIdList, retIdList);
+			} else if(methodName.equalsIgnoreCase(MethodConstants.GET_RET_ENT_MAP_BY_ENT_RET_WITH_SUBRET.getConstantVal())) {
+				return returnEntityMapRepoNew.getDataByMapEntRetWithSubRet(entIdList, retIdList, subRetIdList);
+			}else if(methodName.equalsIgnoreCase(MethodConstants.GET_RET_ENT_MAP_BY_ENT_RET_FREQ.getConstantVal())) {
+				return returnEntityMapRepoNew.getDataByMapEntRetFreq(entIdList ,retIdList,frequencyId);
+			} else if(methodName.equalsIgnoreCase(MethodConstants.GET_RET_ENT_MAP_BY_ENT_RET_FREQ_WITH_SUBRET.getConstantVal())) {
+				return returnEntityMapRepoNew.getDataByMapEntRetFreqWithSubRet(entIdList, retIdList, frequencyId, subRetIdList);
+			}else if(methodName.equalsIgnoreCase(MethodConstants.GET_RET_ENT_MAP_BY_ENT_RET_FREQ_ALL.getConstantVal())) {
+				return returnEntityMapRepoNew.getDataByMapEntRetFreqWithSubRetAll(entIdList, retIdList, frequencyId);
+			}	
+			return null;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	public boolean addUpdateReturnEntityMap(Long userId, Long[] returnArray, Long[] entityArray, String moduleName) throws SQLException {
+		
+		try {
+			String returnArrayString = null;
+			String entitynArrayString = null;
+			if (returnArray != null) {
+				returnArrayString = Validations.convertArrayToString(returnArray);
+			}
+			
+			if (entityArray != null) {
+				entitynArrayString = Validations.convertArrayToString(entityArray);
+			}
+			
+			returnEntityMapRepoNew.insertReturnEntityMapping(userId, returnArrayString, entitynArrayString, moduleName);
+			return true;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+		
+//		try(Connection con = datasource.getConnection();
+//				CallableStatement stmt = con.prepareCall(GeneralConstants.SP_INSERT_RETURN_ENTITY_MAPPING.getConstantVal());) {
+//			
+//
+//			String returnArrayString = null;
+//			String entitynArrayString = null;
+//			if (returnArray != null) {
+//				returnArrayString = Validations.convertArrayToString(returnArray);
+//			}
+//
+//			if (entityArray != null) {
+//				entitynArrayString = Validations.convertArrayToString(entityArray);
+//			}
+//
+//			
+//			stmt.setLong(1, userId);
+//			stmt.setString(2, returnArrayString);
+//			stmt.setString(3, entitynArrayString);
+//
+//			stmt.setString(4, moduleName);
+//
+//			stmt.executeQuery();
+//
+//			return true;
+//		} catch (Exception e) {
+//			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+//		}
+	}
+
+	public boolean addUpdateReturnEntityChannel(Long userId, Long entityId, String[] array) throws SQLException {
+		try(Connection con = datasource.getConnection();
+			CallableStatement stmt = con.prepareCall(GeneralConstants.SP_RETURN_ENTITY_CHANNEL_MAP.getConstantVal());) {
+			
+
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < array.length; i++) {
+				sb.append(array[i]);
+			}
+			String str = Arrays.toString(array).replace("[", "").replace("]", "");
+
+			
+			stmt.setLong(1, entityId);
+			stmt.setString(2, str);
+			stmt.setLong(3, userId);
+			stmt.registerOutParameter(4, Types.INTEGER);
+
+			stmt.executeQuery();
+			int number = stmt.getInt(4);
+			if (number > 0) {
+				return false;
+			}
+			return true;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		} 
+	}
+
+	public boolean addUpdateReturnEntityChannelWithCategoryCode(Long cateId, Long subCatId, String[] array, Long userId)
+			throws SQLException {
+
+		try(Connection con = datasource.getConnection();
+				CallableStatement stmt = con.prepareCall(GeneralConstants.SP_CATEGORY_RETURN_CHANNEL_MAP.getConstantVal());	) {
+
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < array.length; i++) {
+				sb.append(array[i]);
+			}
+			String str = Arrays.toString(array).replace("[", "").replace("]", "");
+
+			
+			stmt.setLong(1, cateId);
+			stmt.setLong(2, subCatId);
+			stmt.setString(3, str);
+			stmt.setLong(4, userId);
+			stmt.registerOutParameter(5, Types.INTEGER);
+
+			stmt.executeQuery();
+			int number = stmt.getInt(5);
+			if (number > 0) {
+				return false;
+			}
+			return true;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	
+	public List<ReturnEntityMappingNew> getNotSubmittedEntityList(List<Long> entityBeanList, Long returnId) {
+		return returnEntityMapRepoNew.findByIsActiveAndReturnObjReturnIdAndEntityEntityIdNotIn(true,returnId,entityBeanList);
+	}
+
+	public List<ReturnEntityMappingNew> getAllNotSubmittedEntityList(Long returnId) {
+		return returnEntityMapRepoNew.findByIsActiveAndReturnObjReturnId(true,returnId);
+	}
+
+	public Map<Long, List<EntityBean>> getEntityListByReturnId(List<Long> returnIds){
+		try {
+			Map<Long, List<EntityBean>> returnEntityMap = new HashMap<>();
+			List<ReturnEntityMappingNew> returnEntityMapNewList =  returnEntityMapRepoNew.getDataByReturnId(returnIds);
+			
+			if(!CollectionUtils.isEmpty(returnEntityMapNewList)) {
+				
+				returnEntityMapNewList.forEach(f -> {
+					if(returnEntityMap.get(f.getReturnObj().getReturnId())!= null) {
+						returnEntityMap.get(f.getReturnObj().getReturnId()).add(f.getEntity());
+					}else {
+						List<EntityBean> entityList = new ArrayList<>();
+						entityList.add(f.getEntity());
+						returnEntityMap.put(f.getReturnObj().getReturnId(), entityList);
+					}
+				});
+			}
+			return returnEntityMap;
+		}catch(Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+	
+	public Map<Long, List<Return>> getReturnListByReturnId(List<Long> entityIds){
+		try {
+			Map<Long, List<Return>> returnEntityMap = new HashMap<>();
+
+			List<ReturnEntityMappingNew> returnEntityMapNewList =  returnEntityMapRepoNew.getDataByEntityId(entityIds);
+			
+			if(!CollectionUtils.isEmpty(returnEntityMapNewList)) {
+				returnEntityMapNewList.forEach(f -> {
+					if(returnEntityMap.get(f.getEntity().getEntityId())!= null) {
+						returnEntityMap.get(f.getEntity().getEntityId()).add(f.getReturnObj());
+					}else {
+						List<Return> returnList = new ArrayList<>();
+						returnList.add(f.getReturnObj());
+						returnEntityMap.put(f.getEntity().getEntityId(), returnList);
+					}
+				});
+			}
+			return returnEntityMap;
+		}catch(Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+}

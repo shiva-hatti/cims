@@ -1,0 +1,106 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+import java.util.Date;
+/**
+ * @author psheke
+ * @date 19/05/2021
+ */
+public class SchedulerLogInfo implements Serializable {
+
+private static final long serialVersionUID = 1791407852060064702L;
+private Long schedulerId;
+private Long schedulerStartTime;
+private Long schedulerStopTime;
+private int takenRecordsCount;
+private int successfullyProcessCount;
+private String jobProcessId;
+private String ipAddress;
+
+/**
+ * @return the schedulerStartTime
+ */
+public Long getSchedulerStartTime() {
+	return schedulerStartTime;
+}
+/**
+ * @param schedulerStartTime the schedulerStartTime to set
+ */
+public void setSchedulerStartTime(Long schedulerStartTime) {
+	this.schedulerStartTime = schedulerStartTime;
+}
+/**
+ * @return the schedulerStopTime
+ */
+public Long getSchedulerStopTime() {
+	return schedulerStopTime;
+}
+/**
+ * @param schedulerStopTime the schedulerStopTime to set
+ */
+public void setSchedulerStopTime(Long schedulerStopTime) {
+	this.schedulerStopTime = schedulerStopTime;
+}
+
+/**
+ * @return the jobProcessId
+ */
+public String getJobProcessId() {
+	return jobProcessId;
+}
+/**
+ * @param jobProcessId the jobProcessId to set
+ */
+public void setJobProcessId(String jobProcessId) {
+	this.jobProcessId = jobProcessId;
+}
+/**
+ * @return the schedulerId
+ */
+public Long getSchedulerId() {
+	return schedulerId;
+}
+/**
+ * @param schedulerId the schedulerId to set
+ */
+public void setSchedulerId(Long schedulerId) {
+	this.schedulerId = schedulerId;
+}
+/**
+ * @return the successfullyProcessCount
+ */
+public int getSuccessfullyProcessCount() {
+	return successfullyProcessCount;
+}
+/**
+ * @param successfullyProcessCount the successfullyProcessCount to set
+ */
+public void setSuccessfullyProcessCount(int successfullyProcessCount) {
+	this.successfullyProcessCount = successfullyProcessCount;
+}
+/**
+ * @return the takenRecordsCount
+ */
+public int getTakenRecordsCount() {
+	return takenRecordsCount;
+}
+/**
+ * @param takenRecordsCount the takenRecordsCount to set
+ */
+public void setTakenRecordsCount(int takenRecordsCount) {
+	this.takenRecordsCount = takenRecordsCount;
+}
+/**
+ * @return the ipAddress
+ */
+public String getIpAddress() {
+	return ipAddress;
+}
+/**
+ * @param ipAddress the ipAddress to set
+ */
+public void setIpAddress(String ipAddress) {
+	this.ipAddress = ipAddress;
+}
+
+}

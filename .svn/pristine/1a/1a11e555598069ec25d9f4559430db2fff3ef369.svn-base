@@ -1,0 +1,137 @@
+/**
+ * 
+ */
+package com.iris.sdmx.fusion.bean.validation;
+
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+
+import com.google.gson.annotations.SerializedName;
+
+/**
+ * @author sajadhav
+ *
+ */
+public class FusionValDataSet implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1008948505894581849L;
+
+	@SerializedName(value = "DSD")
+	private String dsd;
+	
+	@SerializedName(value = "KeysCount")
+	private int keysCount;
+	
+	@SerializedName(value = "ObsCount")
+	private int obsCount;
+	
+	@SerializedName(value = "GroupsCount")
+	private int groupsCount;
+	
+	@SerializedName(value = "Errors")
+	private boolean errors;
+	
+	@SerializedName(value = "ReportedPeriods")
+	private Map<String, Map<String, String>> reportedPeriods;
+
+	@SerializedName(value = "ValidationReport")
+	private List<FusionValReport> fusionValReports;
+	
+	/**
+	 * @return the dsd
+	 */
+	public String getDsd() {
+		return dsd;
+	}
+
+	/**
+	 * @param dsd the dsd to set
+	 */
+	public void setDsd(String dsd) {
+		this.dsd = dsd;
+	}
+
+	/**
+	 * @return the keysCount
+	 */
+	public int getKeysCount() {
+		return keysCount;
+	}
+
+	/**
+	 * @param keysCount the keysCount to set
+	 */
+	public void setKeysCount(int keysCount) {
+		this.keysCount = keysCount;
+	}
+
+	/**
+	 * @return the obsCount
+	 */
+	public int getObsCount() {
+		return obsCount;
+	}
+
+	/**
+	 * @param obsCount the obsCount to set
+	 */
+	public void setObsCount(int obsCount) {
+		this.obsCount = obsCount;
+	}
+
+	/**
+	 * @return the groupsCount
+	 */
+	public int getGroupsCount() {
+		return groupsCount;
+	}
+
+	/**
+	 * @param groupsCount the groupsCount to set
+	 */
+	public void setGroupsCount(int groupsCount) {
+		this.groupsCount = groupsCount;
+	}
+
+	/**
+	 * @return the errors
+	 */
+	public boolean isErrors() {
+		return errors;
+	}
+
+	/**
+	 * @param errors the errors to set
+	 */
+	public void setErrors(boolean errors) {
+		this.errors = errors;
+	}
+
+	/**
+	 * @return the reportedPeriods
+	 */
+	public Map<String, Map<String, String>> getReportedPeriods() {
+		return reportedPeriods;
+	}
+
+	/**
+	 * @param reportedPeriods the reportedPeriods to set
+	 */
+	public void setReportedPeriods(Map<String, Map<String, String>> reportedPeriods) {
+		this.reportedPeriods = reportedPeriods;
+	}
+
+	public List<FusionValReport> getFusionValReports() {
+		return fusionValReports;
+	}
+
+	public void setFusionValReports(List<FusionValReport> fusionValReports) {
+		this.fusionValReports = fusionValReports;
+	}
+	
+	
+}

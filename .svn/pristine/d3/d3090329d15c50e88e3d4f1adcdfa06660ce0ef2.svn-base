@@ -1,0 +1,37 @@
+package com.iris.sdmx.exceltohtml.repo;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.iris.model.ReturnTemplate;
+import com.iris.sdmx.exceltohtml.entity.SdmxReturnPreviewEntity;
+
+/**
+ * @author apagaria
+ *
+ */
+public interface SdmxReturnPreviewRepo extends JpaRepository<SdmxReturnPreviewEntity, Long> {
+
+	@Query("from SdmxReturnPreviewEntity where returnTemplateIdFk=:returnTemplate")
+	SdmxReturnPreviewEntity findByReturnTemplate(ReturnTemplate returnTemplate);
+	
+	@Query("from SdmxReturnPreviewEntity u where u.returnTemplateIdFk=:returnTemplate and u.statusId = 3 and u.isActive=1")
+	SdmxReturnPreviewEntity fetchHtmlByReturnTemplateId(ReturnTemplate returnTemplate);
+	
+	@Query("from SdmxReturnPreviewEntity u where u.statusId=:statusId and isActive=:isActive")
+	SdmxReturnPreviewEntity fetchEntityByStatusId(Integer statusId, Boolean isActive);
+	
+	@Query("from SdmxReturnPreviewEntity u where u.returnTemplateIdFk=:returnTemplate and u.isActive=:isActive")
+	List<SdmxReturnPreviewEntity> fetchActiveByReturnTemplateId(ReturnTemplate returnTemplate, Boolean isActive);
+	
+	@Query("from SdmxReturnPreviewEntity ORDER BY createdOn DESC")
+	List<SdmxReturnPreviewEntity> fetchEntitiesInDescCreateOnOrder();
+	
+	@Query("from SdmxReturnPreviewEntity u where u.returnTemplateIdFk=:returnTemplate and u.statusId IN(1,2) and u.isActive=1")
+	SdmxReturnPreviewEntity checkUploadStatus(ReturnTemplate returnTemplate);
+	
+	
+	
+}

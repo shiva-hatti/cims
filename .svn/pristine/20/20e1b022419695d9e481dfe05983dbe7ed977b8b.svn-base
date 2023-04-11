@@ -1,0 +1,185 @@
+/**
+ * 
+ */
+package com.iris.sdmx.status.bean;
+
+import java.util.Date;
+
+/**
+ * @author apagaria
+ *
+ */
+public class SdmxStatusBean {
+
+	private Long statusId;
+
+	private String statusName;
+
+	private String statusTechCode;
+
+	private String statusCode;
+
+	private Boolean isActive;
+
+	private Date lastUpdateOn;
+
+	private Long createdBy;
+
+	private Date createdOn;
+
+	private Long modifyBy;
+
+	private Date modifyOn;
+
+	/**
+	 * @return the statusId
+	 */
+	public Long getStatusId() {
+		return statusId;
+	}
+
+	/**
+	 * @param statusId the statusId to set
+	 */
+	public void setStatusId(Long statusId) {
+		this.statusId = statusId;
+	}
+
+	/**
+	 * @return the statusName
+	 */
+	public String getStatusName() {
+		return statusName;
+	}
+
+	/**
+	 * @param statusName the statusName to set
+	 */
+	public void setStatusName(String statusName) {
+		this.statusName = statusName;
+	}
+
+	/**
+	 * @return the statusTechCode
+	 */
+	public String getStatusTechCode() {
+		return statusTechCode;
+	}
+
+	/**
+	 * @param statusTechCode the statusTechCode to set
+	 */
+	public void setStatusTechCode(String statusTechCode) {
+		this.statusTechCode = statusTechCode;
+	}
+
+	/**
+	 * @return the statusCode
+	 */
+	public String getStatusCode() {
+		return statusCode;
+	}
+
+	/**
+	 * @param statusCode the statusCode to set
+	 */
+	public void setStatusCode(String statusCode) {
+		this.statusCode = statusCode;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the lastUpdateOn
+	 */
+	public Date getLastUpdateOn() {
+		return lastUpdateOn;
+	}
+
+	/**
+	 * @param lastUpdateOn the lastUpdateOn to set
+	 */
+	public void setLastUpdateOn(Date lastUpdateOn) {
+		this.lastUpdateOn = lastUpdateOn;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public Long getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(Long createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the modifyBy
+	 */
+	public Long getModifyBy() {
+		return modifyBy;
+	}
+
+	/**
+	 * @param modifyBy the modifyBy to set
+	 */
+	public void setModifyBy(Long modifyBy) {
+		this.modifyBy = modifyBy;
+	}
+
+	/**
+	 * @return the modifyOn
+	 */
+	public Date getModifyOn() {
+		return modifyOn;
+	}
+
+	/**
+	 * @param modifyOn the modifyOn to set
+	 */
+	public void setModifyOn(Date modifyOn) {
+		this.modifyOn = modifyOn;
+	}
+
+	/**
+	 *
+	 */
+	@Override
+	public String toString() {
+		return "SdmxStatusBean [statusId=" + statusId + ", statusName=" + statusName + ", statusTechCode="
+				+ statusTechCode + ", statusCode=" + statusCode + ", isActive=" + isActive + ", lastUpdateOn="
+				+ lastUpdateOn + ", createdBy=" + createdBy + ", createdOn=" + createdOn + ", modifyBy=" + modifyBy
+				+ ", modifyOn=" + modifyOn + "]";
+	}
+
+}

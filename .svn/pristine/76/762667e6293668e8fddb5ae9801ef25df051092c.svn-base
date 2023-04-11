@@ -1,0 +1,762 @@
+/**
+ * 
+ */
+package com.iris.controller;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Type;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.Map.Entry;
+
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.tomcat.util.http.fileupload.FileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.iris.caching.ObjectCache;
+import com.iris.dateutility.util.DateManip;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.TableElementMetaInfo;
+import com.iris.dto.WebFormToCsvConversionDto;
+import com.iris.dto.XmlElementsDto;
+import com.iris.formula.gen.controller.AutoCalFormulaParts;
+import com.iris.formula.gen.controller.CrossFormulaParts;
+import com.iris.formula.gen.service.FormulaGeneratorService;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.model.AutoCalculationFormula;
+import com.iris.model.ReturnTemplate;
+import com.iris.service.impl.ReturnTemplateService;
+import com.iris.util.ResourceUtil;
+import com.iris.util.constant.ErrorCode;
+
+/**
+ * @author Siddique
+ *
+ */
+
+@RestController
+@RequestMapping("/service/webFormFormulaToXMLFormulaService")
+public class WebformFormulaToXmlFormulaController {
+
+	static final Logger logger = LogManager.getLogger(WebformFormulaToXmlFormulaController.class);
+
+	@Autowired
+	private ReturnTemplateService returnTemplateService;
+
+	@Autowired
+	private FormulaGeneratorService formulaGeneratorService;
+	
+	private static final String REGEX = "regex";
+	private static final String LENGTH_CHECK = "lengthChk";
+	private static final String MENDATORY = "mandatory";
+	private static final String DATE_CHECK = "dateChk";
+	private static final String SUMMATION = "summation";
+	private static final String DATE_COMP = "dateComp";
+	private static final String CHILD_TOTAL =  "childTotal";
+	private static final String VALUE_CHECK = "valueChk";
+	public static final String UNDERSCORE = "_";
+	public static final String SLASH = "/";
+	public static final String CSV_FILE_TEXT = "CSV_FILE";
+	public static final String META_INFO_FILE_TEXT = "META_INFO_FILE";
+	public static final String TXT_EXT = ".txt";
+	public static final String XML_EXT = ".xml";
+	public static final String BUSINESS_RULE = "Business_rule";
+
+
+	@PostMapping(value = "/webFormFormulaToXMLFormulaConversion")
+	public ServiceResponse webFormFormulaToXMLFormulaConversion(
+			@RequestHeader(name = "JobProcessingId") String jobProcessId,
+			@RequestBody WebFormToCsvConversionDto webFormToCsvConversionDto) throws IOException {
+
+		logger.info("Request received to conversion web form json formula to csv xml formula, job processing id : "
+				+ jobProcessId);
+
+		if (webFormToCsvConversionDto == null || webFormToCsvConversionDto.getReturnTemplateId() == 0) {
+
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0391.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0391.toString())).build();
+		}
+
+		ReturnTemplate returnTemplate = returnTemplateService
+				.fetchEntityByReturnTemplateId(webFormToCsvConversionDto.getReturnTemplateId());
+		logger.info("conversion web form json to csv xml formula, job processing id : " + jobProcessId
+				+ " for return template id " + webFormToCsvConversionDto.getReturnTemplateId());
+
+		if (returnTemplate == null) {
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0053.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0053.toString())).build();
+		}
+
+		String returnCode = returnTemplate.getReturnObj().getReturnCode();
+		Properties prop = ResourceUtil.getResourcePropertyFile();
+
+		// QA
+		String pathToSaveFile = prop.getProperty("filepath.root") + SLASH + prop.getProperty("returnTemplate.upload.path") +SLASH + returnCode + SLASH + CSV_FILE_TEXT + SLASH + returnTemplate.getVersionNumber() + SLASH;
+		
+		File directory = new File(pathToSaveFile);
+		
+		if(!directory.exists()) {
+			FileUtils.forceMkdir(new File(pathToSaveFile));
+		}
+		String fileName = returnCode + UNDERSCORE + BUSINESS_RULE + "_V" + returnTemplate.getVersionNumber()+ XML_EXT;
+		String pathOfMetaInfoFile = pathToSaveFile +  returnCode + UNDERSCORE + META_INFO_FILE_TEXT + UNDERSCORE + returnTemplate.getVersionNumber() + TXT_EXT;
+		String pathToSaveXMLFile = pathToSaveFile + fileName;
+
+		returnTemplate.setFormulaFileName(fileName);
+		returnTemplate.setTaxonomyName("Taxonomy.zip");
+		returnTemplate.setXsdFileName(fileName);
+		// Local
+//		String pathOfMetaInfoFile = "E:/Sid/Projects/Docs/RBI/business_Validation_Local/" + "/" + returnCode + "/"
+//				+ "CSV_FILE" + "/" + returnTemplate.getVersionNumber() + "/Meta_Info.txt";
+
+		String metaInfoJsonString = readTxtFile(pathOfMetaInfoFile);
+
+		logger.info("conversion web form json to csv xml formula, job processing id : " + jobProcessId
+				+ " metaInfoJsonString :  " + metaInfoJsonString);
+		if (StringUtils.isBlank(metaInfoJsonString)) {
+			// todo error key needs to be change
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+
+		Map<String, TableElementMetaInfo> elementColumnPositionMap = new HashMap<>();
+		try {
+			
+			@SuppressWarnings("serial")
+			Type listToken = new TypeToken<Map<String, TableElementMetaInfo>>() {
+			}.getType();
+			elementColumnPositionMap = new Gson().fromJson(metaInfoJsonString, listToken);
+	
+			if (elementColumnPositionMap == null || MapUtils.isEmpty(elementColumnPositionMap)) {
+				// todo error key needs to be change
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+			}
+	
+			List<AutoCalculationFormula> autocalculationList = formulaGeneratorService
+					.getAutoCalculationFormulaList(returnTemplate.getReturnObj().getReturnId());
+	
+			if (autocalculationList == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0136.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0136.toString())).build();
+	
+			}
+	
+			Map<String, Map<String, List<XmlElementsDto>>> dataMap = new HashMap<>();
+			List<String> errorCodeList = new ArrayList<>();
+			for (AutoCalculationFormula autoCalculationFormula : autocalculationList) {
+	
+				if (StringUtils.isNotBlank(autoCalculationFormula.getFormulaJson())) {
+					dataMap = getDataMapFromJson(autoCalculationFormula.getFormulaJson(), elementColumnPositionMap, errorCodeList);
+	
+				} if(StringUtils.isNotBlank(autoCalculationFormula.getCrossElrJson())) {
+					
+					evaluateCrossElrJson(autoCalculationFormula.getCrossElrJson(), dataMap, elementColumnPositionMap, errorCodeList);
+				}
+	
+			}
+			
+			// evaluate meta json bean for single field validation like regex, length check, date check etc....
+			evaluateMetaJsonBean(dataMap, elementColumnPositionMap);
+			
+	//		System.out.println(new Gson().toJson(dataMap));
+			logger.info("Data map json job processing id" + jobProcessId
+					+ " dataMap :  " + new Gson().toJson(dataMap));
+			
+			// xml file creation code
+			if(dataMap != null) {
+				XMLBuilderFromJson.buildXmlFile(dataMap, pathToSaveXMLFile);
+			}
+			
+			
+			returnTemplateService.add(returnTemplate);
+			
+			Map<String, String> filePathToSendInResponseMap = new HashMap<>();
+			filePathToSendInResponseMap.put("xmlFilePath", pathToSaveXMLFile);
+			
+			return new ServiceResponseBuilder().setStatus(true).setResponse(filePathToSendInResponseMap).build();
+		}catch(Exception e) {
+			logger.error("Exception occoured while conversion of web form formula json to xml file: ", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+		
+	}
+
+	
+	private void evaluateCrossElrJson(String crossElrJson, Map<String, Map<String, List<XmlElementsDto>>> dataMap,
+			Map<String, TableElementMetaInfo> elementColumnPositionMap, List<String> errorCodeList) {
+		
+		TypeReference<Map<String,List<CrossFormulaParts>>> crossFormulaType = new TypeReference<Map<String,List<CrossFormulaParts>>>() {
+		};
+		
+		try {
+			
+			ObjectMapper mapper = new ObjectMapper();
+			mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+			mapper.readValue(crossElrJson, crossFormulaType);
+			Map<String,List<CrossFormulaParts>> formulaJsonJavaObject = mapper.readValue(crossElrJson,
+					crossFormulaType);
+			XmlElementsDto xmlElementsDto = null;
+
+			if (formulaJsonJavaObject != null) {
+//				Map<String, List<AutoCalFormulaParts>> inner = formulaJsonJavaObject.get("customeCalculation");
+				Set<Entry<String, List<CrossFormulaParts>>> entry = formulaJsonJavaObject.entrySet();
+				Iterator<Entry<String, List<CrossFormulaParts>>> entryIterator = entry.iterator();
+				while (entryIterator.hasNext()) {
+					Entry<String, List<CrossFormulaParts>> llt = entryIterator.next();
+					List<CrossFormulaParts> list = llt.getValue();
+					String formula = "";
+					for (CrossFormulaParts pparts : list) {
+//						if (StringUtils.isBlank(pparts.getFormulaRef())) { // if formulaRef is present then skip such
+																			// rules
+							xmlElementsDto = new XmlElementsDto();
+							if (pparts.getFormulaType().equalsIgnoreCase("EQUATION") && !errorCodeList.contains(pparts.getErrorCode())) {
+								errorCodeList.add(pparts.getErrorCode());
+								String exp = "";
+								TableElementMetaInfo tableElementMetaInfo = null;
+								
+								exp = pparts.getExp();
+								tableElementMetaInfo = elementColumnPositionMap.get(pparts.getLhs().substring(3));
+								xmlElementsDto.setTableCode(tableElementMetaInfo.getCsvTableCode());
+								formula = getFormualColumnPosition(tableElementMetaInfo, exp, pparts.getRhs(),
+											elementColumnPositionMap);
+								String formulaTagAndConditionTag =  createFormulaTagAndConditionTag(pparts.getRhs(), elementColumnPositionMap);
+									
+								if(StringUtils.isNotBlank(formulaTagAndConditionTag) && formulaTagAndConditionTag.split("~").length == 1) {
+										xmlElementsDto.setConditionTag(formulaTagAndConditionTag.split("~")[0]);
+										xmlElementsDto.setFormulaTag(formulaTagAndConditionTag.split("~")[1]);
+									}
+								
+								
+								xmlElementsDto.setFormulaType(SUMMATION);
+								xmlElementsDto.setErrCode(pparts.getErrorCode());
+								xmlElementsDto.setErrType("error");
+
+								if (StringUtils.isNotBlank(formula)) {
+									xmlElementsDto.setFormula(formula);
+									createRetMap(xmlElementsDto, dataMap);
+								}
+
+							}
+								// date compare
+								// add here summation formula of LHS and RHS
+								if ((StringUtils.isNotBlank(pparts.getFormulaType())
+										&& pparts.getFormulaType().equals("DATECHK")) && !errorCodeList.contains(pparts.getErrorCode())) {
+									errorCodeList.add(pparts.getErrorCode());
+									String exp = "";
+									TableElementMetaInfo tableElementMetaInfo = null;
+//								
+										exp = pparts.getExp();
+										tableElementMetaInfo = elementColumnPositionMap
+												.get(pparts.getLhs().substring(3));
+										
+										formula = getFormualColumnPosition(tableElementMetaInfo, exp, pparts.getRhs(),
+												elementColumnPositionMap);
+										if(tableElementMetaInfo.getCsvTableCode().contains("T001")) {
+											xmlElementsDto.setFormulaTag(tableElementMetaInfo.getCsvTableCode());
+											xmlElementsDto.setConditionTag("6");
+											xmlElementsDto.setTableCode(elementColumnPositionMap
+													.get(pparts.getRhs().substring(3)).getCsvTableCode());
+										}
+									
+									xmlElementsDto.setCondition("dd/MM/yyyy");
+									xmlElementsDto.setFormula(formula);
+									xmlElementsDto.setFormulaType(DATE_COMP);
+									xmlElementsDto.setErrCode(pparts.getErrorCode());
+									xmlElementsDto.setErrType("error");
+										createRetMap(xmlElementsDto, dataMap);
+									}
+
+								}
+
+//							}
+
+//						}
+					}
+
+				}
+			
+			
+			
+		}catch(Exception e) {
+			System.out.println(e);
+		}
+		
+	}
+
+	private String createFormulaTagAndConditionTag(String formula,
+			Map<String, TableElementMetaInfo> elementColumnPositionMap) {
+		
+		System.out.println("inside createFormulaTagAndConditionTag");
+		StringBuilder formulaWithValueForConditionTag = new StringBuilder();
+		StringBuilder formulaWithValueForFormulTag = new StringBuilder();
+		
+		StringTokenizer stringTokenizer = new StringTokenizer(formula);
+		while (stringTokenizer.hasMoreElements()) {
+
+			String tokenValForColumnForConditionTag = "";
+			String tokenValForColumnForFormulTag = "";
+			String token = (String) stringTokenizer.nextElement();
+
+			if (token.startsWith("#") && elementColumnPositionMap.get(token.substring(3)) != null) {
+				tokenValForColumnForConditionTag = elementColumnPositionMap.get(token.substring(3)).getCsvTableCode() + "_" + elementColumnPositionMap.get(token.substring(3)).getCsvRowPosition() + "_" + elementColumnPositionMap.get(token.substring(3)).getCsvColumnPosition();
+				tokenValForColumnForFormulTag = elementColumnPositionMap.get(token.substring(3)).getCsvTableCode();
+				
+				formulaWithValueForConditionTag.append(tokenValForColumnForConditionTag + ",");
+				if(!formulaWithValueForFormulTag.toString().contains(tokenValForColumnForFormulTag)) {
+				formulaWithValueForFormulTag.append(tokenValForColumnForFormulTag  + ",");
+				}
+			} 
+
+		
+		}
+		return formulaWithValueForConditionTag.toString().substring(0, formulaWithValueForConditionTag.toString().length() - 1)+"~"+formulaWithValueForFormulTag.toString().substring(0, formulaWithValueForFormulTag.toString().length() - 1);
+	}
+
+
+	private void evaluateMetaJsonBean(Map<String, Map<String, List<XmlElementsDto>>> dataMap,
+			Map<String, TableElementMetaInfo> elementColumnPositionMap) {
+		
+		XmlElementsDto xmlElementsDto = null;
+
+		for(TableElementMetaInfo map : elementColumnPositionMap.values()) {
+			
+			if(StringUtils.isNotBlank(map.getRegex())) {
+				xmlElementsDto = new XmlElementsDto();
+				xmlElementsDto.setFormulaType(REGEX);
+				xmlElementsDto.setErrType("error");
+				xmlElementsDto.setErrCode("ER000T00001");
+				xmlElementsDto.setCondition(map.getRegex());
+				xmlElementsDto.setTableCode(map.getCsvTableCode());
+				xmlElementsDto.setIsNullAllow(String.valueOf(map.isNullAllow()));
+				if(map.getCsvRowPosition().equals("0")) {
+					xmlElementsDto.setFormula(map.getCsvColumnPosition());
+					createRetMap(xmlElementsDto, dataMap);
+				}else {
+					if(!map.getCsvColumnPosition().equals("1")){
+					xmlElementsDto.setFormula(map.getCsvRowPosition() + "_" + map.getCsvColumnPosition());
+					createRetMap(xmlElementsDto, dataMap);
+					}
+				}
+				
+			} if(map.getMinLength() > 0 || map.getMaxLength() > 0) {
+				xmlElementsDto = new XmlElementsDto();
+				xmlElementsDto.setFormulaType(LENGTH_CHECK);
+				xmlElementsDto.setErrType("error");
+				xmlElementsDto.setErrCode("ER000T00002");
+				xmlElementsDto.setTableCode(map.getCsvTableCode());
+				xmlElementsDto.setMinLength(map.getMinLength());
+				xmlElementsDto.setMaxLength(map.getMaxLength());
+				xmlElementsDto.setIsNullAllow(String.valueOf(map.isNullAllow()));
+				if(map.getCsvRowPosition().equals("0")) {
+					xmlElementsDto.setFormula(map.getCsvColumnPosition());
+					createRetMap(xmlElementsDto, dataMap);
+				}else {
+					if(!map.getCsvColumnPosition().equals("1")){
+					xmlElementsDto.setFormula(map.getCsvRowPosition() + "_" + map.getCsvColumnPosition());
+					createRetMap(xmlElementsDto, dataMap);
+					}
+				}
+				
+			} if(map.getIsMandatory()) {
+				xmlElementsDto = new XmlElementsDto();
+				xmlElementsDto.setFormulaType(MENDATORY);
+				xmlElementsDto.setErrType("error");
+				xmlElementsDto.setErrCode("ER000T00003");
+				xmlElementsDto.setTableCode(map.getCsvTableCode());
+				if(map.getCsvRowPosition().equals("0")) {
+					xmlElementsDto.setFormula(map.getCsvColumnPosition());
+					createRetMap(xmlElementsDto, dataMap);
+				}else {
+					if(!map.getCsvColumnPosition().equals("1")) {
+					xmlElementsDto.setFormula(map.getCsvRowPosition() + "_" + map.getCsvColumnPosition());
+					createRetMap(xmlElementsDto, dataMap);
+					}
+				}
+			
+				
+				
+			} if(map.getFieldTypeId() == 3) {
+				xmlElementsDto = new XmlElementsDto();
+				xmlElementsDto.setFormulaType(DATE_CHECK);
+				xmlElementsDto.setErrType("error");
+				xmlElementsDto.setErrCode("ER000T00004");
+				xmlElementsDto.setIsNullAllow(String.valueOf(map.isNullAllow()));
+				xmlElementsDto.setTableCode(map.getCsvTableCode());
+				if(map.getCsvRowPosition().equals("0")) {
+					xmlElementsDto.setFormula(map.getCsvColumnPosition());
+					createRetMap(xmlElementsDto, dataMap);
+				}else {
+					if(!map.getCsvColumnPosition().equals("1")) {
+					xmlElementsDto.setFormula(map.getCsvRowPosition() + "_" + map.getCsvColumnPosition());
+					createRetMap(xmlElementsDto, dataMap);
+					}
+				}
+				xmlElementsDto.setCondition("dd/MM/yyyy");
+			} 
+			
+			if(map.getFieldTypeId() == 2 && StringUtils.isNotBlank(map.getMethodURI()) && StringUtils.isNotBlank(map.getMethodType())) {
+				xmlElementsDto = new XmlElementsDto();
+				xmlElementsDto.setFormulaType(VALUE_CHECK);
+				xmlElementsDto.setErrType("error");
+				xmlElementsDto.setErrCode("ER000T00005");
+				xmlElementsDto.setIsNullAllow(String.valueOf(map.isNullAllow()));
+				xmlElementsDto.setTableCode(map.getCsvTableCode());
+				xmlElementsDto.setMethodURI(map.getMethodURI());
+				xmlElementsDto.setMethodType(map.getMethodType());
+				xmlElementsDto.setFieldTypeId(String.valueOf(map.getFieldTypeId()));
+				if(map.getCsvRowPosition().equals("0")) {
+					xmlElementsDto.setFormula(map.getCsvColumnPosition());
+					createRetMap(xmlElementsDto, dataMap);
+				}else {
+					if(!map.getCsvColumnPosition().equals("1")) {
+					xmlElementsDto.setFormula(map.getCsvRowPosition() + "_" + map.getCsvColumnPosition());
+					createRetMap(xmlElementsDto, dataMap);
+					}
+				}
+			} 
+		}
+		
+	}
+
+
+	private Map<String, Map<String, List<XmlElementsDto>>> getDataMapFromJson(String formulaJson,
+			Map<String, TableElementMetaInfo> elementColumnPositionMap, List<String> errorCodeList) {
+
+		Map<String, Map<String, List<XmlElementsDto>>> retMap = new HashMap<>();
+
+		// conversion of formula json to java bean
+
+		@SuppressWarnings("serial")
+		TypeReference<Map<String,Map<String,Map<String,List<AutoCalFormulaParts>>>>> autoFormulaType = new TypeReference<Map<String,Map<String,Map<String,List<AutoCalFormulaParts>>>>>() {
+		};
+
+		try {
+			ObjectMapper mapper = new ObjectMapper();
+			mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+			mapper.readValue(formulaJson, autoFormulaType);
+			Map<String,Map<String,Map<String,List<AutoCalFormulaParts>>>> formulaJsonJavaObject = mapper.readValue(formulaJson, autoFormulaType);
+
+			XmlElementsDto xmlElementsDto = null;
+
+			if (formulaJsonJavaObject != null) {
+				
+				Map<String,Map<String,List<AutoCalFormulaParts>>> onBlurMap = formulaJsonJavaObject.get("customeCalculation");
+				Map<String,List<AutoCalFormulaParts>> innerd = onBlurMap.get("onblurEvent");
+				for (Entry<String, List<AutoCalFormulaParts>> item : innerd.entrySet()) {
+					ListIterator<AutoCalFormulaParts> listIterator = item.getValue().listIterator();
+				while (listIterator.hasNext()) {
+					AutoCalFormulaParts pparts = listIterator.next();
+					String formula = "";
+						if (StringUtils.isBlank(pparts.getFormulaRef()) && elementColumnPositionMap.get(pparts.getFormulaCell().substring(2)) != null) { // if formulaRef is present then skip such rules
+								
+							xmlElementsDto = new XmlElementsDto();
+							if (StringUtils.isNotBlank(pparts.getFormulaCell())
+									&& StringUtils.isNotBlank(pparts.getFormula()) && !errorCodeList.contains(pparts.getErrorCode())) {
+								errorCodeList.add(pparts.getErrorCode());
+								TableElementMetaInfo tableElementMetaInfo = elementColumnPositionMap
+										.get(pparts.getFormulaCell().substring(2));
+								xmlElementsDto.setFormulaType(SUMMATION);
+								xmlElementsDto.setErrCode(pparts.getErrorCode());
+								xmlElementsDto.setErrType(StringUtils.isBlank(pparts.getErrorType()) ? "error" : "warning");
+								xmlElementsDto.setTableCode(tableElementMetaInfo.getCsvTableCode());
+								xmlElementsDto.setGrandTotalAvailable(tableElementMetaInfo.isGrandTotalPresent());
+								
+								String exp = "";
+								if (StringUtils.isBlank(pparts.getExp())) {
+									exp = "==";
+								} else {
+									exp = pparts.getExp();
+								}
+								formula = getFormualColumnPosition(tableElementMetaInfo, exp, pparts.getFormula(),
+										elementColumnPositionMap);
+
+								if(StringUtils.contains(formula, "_")) {
+								String formulaTagAndConditionTag =  createFormulaTagAndConditionTag(pparts.getFormula(), elementColumnPositionMap);
+								
+								if(StringUtils.isNotBlank(formulaTagAndConditionTag) && formulaTagAndConditionTag.split("~").length == 2) {
+										xmlElementsDto.setConditionTag(formulaTagAndConditionTag.split("~")[0]);
+										xmlElementsDto.setFormulaTag(formulaTagAndConditionTag.split("~")[1]);
+										xmlElementsDto.setIsRowPositionCheck("true");
+										xmlElementsDto.setIsValidationOnParticularRow("true");
+									}
+								}
+								if (StringUtils.isNotBlank(formula)) {
+									if (StringUtils.isNumeric(formula)) {
+										xmlElementsDto.setFormulaType(CHILD_TOTAL);
+										xmlElementsDto.setGrandTotalAvailable(true);
+									}
+									xmlElementsDto.setFormula(formula);
+									createRetMap(xmlElementsDto, retMap);
+								}
+
+							}
+							if (StringUtils.isNotBlank(pparts.getRhs()) && StringUtils.isNotBlank(pparts.getExp())
+									&& StringUtils.isNotBlank(pparts.getLhs()) && !errorCodeList.contains(pparts.getErrorCode())) {
+								errorCodeList.add(pparts.getErrorCode());
+								// date compare
+								// add here summation formula of LHS and RHS
+								if ((StringUtils.isNotBlank(pparts.getFormulaType())
+										&& pparts.getFormulaType().equals("DATECHK"))
+										|| (pparts.getFormulaCell().equalsIgnoreCase("NA")
+												&& pparts.getFormulaType().equals("EQUATION"))) {
+
+									TableElementMetaInfo tableElementMetaInfo = elementColumnPositionMap
+											.get(pparts.getLhs().substring(3));
+									if (pparts.getFormulaType().equals("EQUATION")) {
+										xmlElementsDto.setFormulaType(SUMMATION);
+									} else {
+										xmlElementsDto.setFormulaType(DATE_COMP);
+										xmlElementsDto.setCondition("dd/MM/yyyy");
+									}
+									xmlElementsDto.setErrCode(pparts.getErrorCode());
+									xmlElementsDto.setErrType(StringUtils.isBlank(pparts.getErrorType()) ? "error" : "warning");
+									if(tableElementMetaInfo.getCsvTableCode().contains("T001")){
+										xmlElementsDto.setTableCode(tableElementMetaInfo.getCsvTableCode());
+									}else {
+										if(StringUtils.isNumeric(pparts.getRhs()) || isDate(pparts.getRhs())) {
+										xmlElementsDto.setTableCode(elementColumnPositionMap
+												.get(pparts.getLhs().substring(3)).getCsvTableCode());
+										}else {
+											xmlElementsDto.setTableCode(elementColumnPositionMap
+													.get(pparts.getRhs().substring(3)).getCsvTableCode());
+										}
+									}
+									
+									String exp = "";
+									if (StringUtils.isBlank(pparts.getExp())) {
+										exp = "==";
+									} else {
+										exp = pparts.getExp();
+									}
+									formula = getFormualColumnPosition(tableElementMetaInfo, exp, pparts.getRhs(),
+											elementColumnPositionMap);
+
+									if(StringUtils.contains(formula, "_")) {
+										String formulaTagAndConditionTag =  createFormulaTagAndConditionTag(pparts.getRhs(), elementColumnPositionMap);
+										
+										if(StringUtils.isNotBlank(formulaTagAndConditionTag) && formulaTagAndConditionTag.split("~").length == 2) {
+												xmlElementsDto.setConditionTag(formulaTagAndConditionTag.split("~")[0]);
+												xmlElementsDto.setFormulaTag(formulaTagAndConditionTag.split("~")[1]);
+												xmlElementsDto.setIsRowPositionCheck("true");
+												xmlElementsDto.setIsValidationOnParticularRow("true");
+											}
+										}
+									
+									if (StringUtils.isNotBlank(formula)) {
+										if (StringUtils.isNumeric(formula)) {
+											xmlElementsDto.setFormulaType(CHILD_TOTAL);
+											xmlElementsDto.setGrandTotalAvailable(true);
+										}
+										xmlElementsDto.setFormula(formula);
+										createRetMap(xmlElementsDto, retMap);
+									}
+
+								}
+
+							}
+						}
+						}
+				}
+			}
+		} catch (Exception e) {
+			logger.error("Exception occoured getDataMapFromJson()", e);
+		}
+
+		return retMap;
+	}
+
+
+	private boolean isDate(String rhs) {
+		
+		try {
+			DateManip.convertStringToDate(rhs, "dd/MM/YYYY");
+			return true;
+		}catch(ParseException e) {
+			logger.error("Not valid date : " +e);
+		}
+		
+		return false;
+	}
+
+
+	private void createRetMap(XmlElementsDto xmlElementsDto, Map<String, Map<String, List<XmlElementsDto>>> retMap) {
+	
+		Map<String, List<XmlElementsDto>> innerMap = new HashMap<>();
+
+		List<XmlElementsDto> elementList = new ArrayList<>();
+		
+		if (retMap.get(xmlElementsDto.getTableCode()) == null) {
+			elementList.add(xmlElementsDto);
+			innerMap.put(xmlElementsDto.getFormulaType(), elementList);
+			retMap.put(xmlElementsDto.getTableCode(), innerMap);
+
+		} else {
+			if (retMap.get(xmlElementsDto.getTableCode()).get(xmlElementsDto.getFormulaType()) != null) {
+				retMap.get(xmlElementsDto.getTableCode()).get(xmlElementsDto.getFormulaType()).add(xmlElementsDto);
+				
+			} else {
+				elementList.add(xmlElementsDto);
+//				innerMap.put(xmlElementsDto.getFormulaType(), elementList);
+				retMap.get(xmlElementsDto.getTableCode()).put(xmlElementsDto.getFormulaType(), elementList);
+			}
+		}
+		
+	}
+
+	private String getFormualColumnPosition(TableElementMetaInfo tableElementMetaInfo, String exp, String formula,
+			Map<String, TableElementMetaInfo> elementColumnPositionMap) {
+
+		
+		System.out.println(tableElementMetaInfo.getCsvTableCode());
+		Boolean isChildTotal = true;
+//		Boolean isValidationOnMultipleTables = false;
+		Boolean isRowWiseSummation = false;
+		Boolean isValidatonContainFirstTable = false;
+		Boolean isNumericRhs = false;
+		Boolean isDate = false;
+		String columnPosition = tableElementMetaInfo.getCsvColumnPosition();
+		String rowPosition = tableElementMetaInfo.getCsvRowPosition();
+		Long totalRowPresentInTable = tableElementMetaInfo.getTotalRowCount();
+		StringBuilder formulaWithValueForColumn = new StringBuilder();
+		StringBuilder formulaWithValueForRow = new StringBuilder();
+		StringTokenizer stringTokenizer = new StringTokenizer(formula);
+		String colPositionOfEachElement = StringUtils.EMPTY;
+		if(tableElementMetaInfo.getCsvTableCode().contains("T001")) {
+			isValidatonContainFirstTable = true;
+			formulaWithValueForColumn.append("#" + tableElementMetaInfo.getCsvColumnPosition()).append(" " + exp);
+		}else {
+			formulaWithValueForColumn.append("" + tableElementMetaInfo.getCsvColumnPosition()).append(" " + exp);
+		}
+		
+		int counter = 1;
+		while (stringTokenizer.hasMoreElements()) {
+
+			String tokenValForColumn = "";
+			String token = (String) stringTokenizer.nextElement();
+
+			if (token.startsWith("#") && elementColumnPositionMap.get(token.substring(3)) != null) {
+				
+				if(elementColumnPositionMap.get(token.substring(3)).getCsvTableCode().contains("T001")) {
+				tokenValForColumn = "#"+elementColumnPositionMap.get(token.substring(3)).getCsvColumnPosition();
+			}else {
+				if(isValidatonContainFirstTable || rowPosition.equals(elementColumnPositionMap.get(token.substring(3)).getCsvRowPosition())) {
+					tokenValForColumn = elementColumnPositionMap.get(token.substring(3)).getCsvColumnPosition();
+					
+				}else {
+					
+					if(isChildTotal) {
+						colPositionOfEachElement = elementColumnPositionMap.get(token.substring(3)).getCsvColumnPosition();
+					}
+					tokenValForColumn = "$" + elementColumnPositionMap.get(token.substring(3)).getCsvTableCode() + "_" + elementColumnPositionMap.get(token.substring(3)).getCsvRowPosition() + "_" + elementColumnPositionMap.get(token.substring(3)).getCsvColumnPosition();
+					isRowWiseSummation = true;
+				}
+			}
+				counter++;
+				if(isChildTotal && !columnPosition.equals(colPositionOfEachElement)) {
+					 isChildTotal = false;
+				}
+			} else {
+				System.out.println(token);
+				if(token.startsWith("*")) {
+					String val = getNewString(token, " #", 0);
+					tokenValForColumn = val;
+				}else {
+					if(token.startsWith("#0-")) {   // In R220, abstract field having autocalculation formula, web form team will remove such formulas. then no need to this condition
+						return null;
+					}
+					tokenValForColumn = token; // if value contains * means it is multiplicaion, so for xml we have to add #
+				}
+			}
+
+			if(StringUtils.isNumeric(token)) {
+				formulaWithValueForColumn.append(" " + "#" + tokenValForColumn);
+				isNumericRhs = true;
+			}else if(isDate(token)){
+				formulaWithValueForColumn.append(" " + "~" + tokenValForColumn);
+				isDate = true;
+			} else {
+				formulaWithValueForColumn.append(" " + tokenValForColumn);
+			}
+			
+		}
+		if(isChildTotal && counter == totalRowPresentInTable) {
+			return columnPosition;
+		} else if(isChildTotal && counter != totalRowPresentInTable && !isRowWiseSummation && !isNumericRhs && !isDate) {
+			return formulaWithValueForRow.toString();
+		}
+		
+		if(isRowWiseSummation) {
+			return formulaWithValueForColumn.toString().split(exp)[0].replace(formulaWithValueForColumn.toString().split(exp)[0], tableElementMetaInfo.getCsvRowPosition() +"_"+tableElementMetaInfo.getCsvColumnPosition()) +" " + exp + " " + formulaWithValueForColumn.toString().split(exp)[1];
+		}
+		else {
+			return formulaWithValueForColumn.toString();
+		}
+			
+	
+	}
+
+	private String getNewString(String word, String stringToInsert, int position) {
+		  String newString = new String(); 
+		  
+	        for (int i = 0; i < word.length(); i++) { 
+	  
+	            // Insert the original string character 
+	            // into the new string 
+	            newString += word.charAt(i); 
+	  
+	            if (i == position) { 
+	  
+	                // Insert the string to be inserted 
+	                // into the new string 
+	                newString += stringToInsert; 
+	            } 
+	        } 
+	  
+	        // return the modified String 
+	        return newString; 
+		
+	}
+	
+
+	private String readTxtFile(String pathOfMetaInfoFile) {
+
+		String data = "";
+		try {
+			File file = new File(pathOfMetaInfoFile);
+			InputStream in = new FileInputStream(file);
+			data = WebformToCsvConversionController.getReturnSupportingDoc(in);
+			return data;
+		} catch (IOException e) {
+			logger.info("exception in readTxtFile() :  " + e);
+		}
+
+		return data;
+	}
+
+}

@@ -1,0 +1,168 @@
+/**
+ * 
+ */
+package com.iris.sdmx.exceltohtml.entity;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.iris.model.UserMaster;
+
+
+/**
+ * @author apagaria
+ *
+ */
+@Entity
+@Table(name = "TBL_SDMX_RETURN_MODEL_INFO")
+@JsonInclude(Include.NON_NULL)
+public class SdmxReturnModelInfoEntity implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * 
+	 */
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "RETURN_MODEL_INFO_ID")
+	private Long returnSheetInfoId;
+
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "RETURN_SHEET_INFO_ID_FK")
+	private SdmxReturnSheetInfoEntity returnSheetInfoIdFk;
+	
+	@Column(name = "RETURN_CELL_REF")
+	private Integer returnCellRef;
+	
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "MODEL_CODES_ID_FK")
+	private SdmxModelCodesEntity modelCodesIdFk;
+	
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "CREATED_BY")
+	private UserMaster createdBy;
+
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+
+	/**
+	 * @return the returnSheetInfoId
+	 */
+	public Long getReturnSheetInfoId() {
+		return returnSheetInfoId;
+	}
+
+	/**
+	 * @param returnSheetInfoId the returnSheetInfoId to set
+	 */
+	public void setReturnSheetInfoId(Long returnSheetInfoId) {
+		this.returnSheetInfoId = returnSheetInfoId;
+	}
+
+	/**
+	 * @return the returnSheetInfoIdFk
+	 */
+	public SdmxReturnSheetInfoEntity getReturnSheetInfoIdFk() {
+		return returnSheetInfoIdFk;
+	}
+
+	/**
+	 * @param returnSheetInfoIdFk the returnSheetInfoIdFk to set
+	 */
+	public void setReturnSheetInfoIdFk(SdmxReturnSheetInfoEntity returnSheetInfoIdFk) {
+		this.returnSheetInfoIdFk = returnSheetInfoIdFk;
+	}
+
+	/**
+	 * @return the returnCellRef
+	 */
+	public Integer getReturnCellRef() {
+		return returnCellRef;
+	}
+
+	/**
+	 * @param returnCellRef the returnCellRef to set
+	 */
+	public void setReturnCellRef(Integer returnCellRef) {
+		this.returnCellRef = returnCellRef;
+	}
+
+	/**
+	 * @return the modelCodesIdFk
+	 */
+	public SdmxModelCodesEntity getModelCodesIdFk() {
+		return modelCodesIdFk;
+	}
+
+	/**
+	 * @param modelCodesIdFk the modelCodesIdFk to set
+	 */
+	public void setModelCodesIdFk(SdmxModelCodesEntity modelCodesIdFk) {
+		this.modelCodesIdFk = modelCodesIdFk;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+}

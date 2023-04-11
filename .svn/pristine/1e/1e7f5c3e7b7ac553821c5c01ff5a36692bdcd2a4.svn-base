@@ -1,0 +1,304 @@
+package com.iris.controller;
+
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.iris.caching.ObjectCache;
+import com.iris.dateutility.util.DateManip;
+import com.iris.dto.Option;
+import com.iris.dto.Options;
+import com.iris.dto.ReturnCustomDateInputDto;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.model.Holiday;
+import com.iris.model.ReturnCustomDate;
+import com.iris.repository.HolidayRepository;
+import com.iris.repository.ReturnCustomDateRepo;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.GeneralConstants;
+
+/**
+ * @author Shivabasava Hatti
+ */
+
+@RestController
+@RequestMapping("/service/webFormCustomDates")
+public class WebformCustomDatesController {
+
+	private static final Logger Logger = LogManager.getLogger(WebformCustomDatesController.class);
+
+	@Autowired
+	private XbrlWebFormController xbrlWebFormController;
+	@Autowired
+	private ReturnCustomDateRepo returnCustomDateRepo;
+	@Autowired
+	private HolidayRepository holidayRepository;
+
+	@PostMapping("/getCustomDates")
+	public ServiceResponse getCustomDates(@RequestBody ReturnCustomDateInputDto returnCustomDateInputDto) {
+		ServiceResponse response = null;
+		try {
+			if (Objects.isNull(returnCustomDateInputDto)) {
+				Logger.error("ReturnCustomDateInputDto is Null");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0660.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0660.toString())).build();
+			}
+			List<Option> listOfOption = new ArrayList<>();
+			listOfOption = getOptionData(returnCustomDateInputDto);
+			if (CollectionUtils.isEmpty(listOfOption)) {
+				Logger.error("Custom Date list is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0660.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0660.toString())).build();
+			}
+			Options options = new Options();
+			options.setOptionList(listOfOption);
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			response.setResponse(options);
+			return response;
+		} catch (Exception e) {
+			Logger.error("Exception while fetching getCustomDates");
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+		}
+	}
+
+	@PostMapping("/getPDRIII60DaysCustomDates")
+	public ServiceResponse getPDRIII60DaysCustomDates(@RequestBody ReturnCustomDateInputDto returnCustomDateInputDto) {
+		ServiceResponse response = null;
+		try {
+			List<String> dateList = getPreviousDatesExcludeWeekendsHolidays(GeneralConstants.DAYS_60.getConstantIntVal(), returnCustomDateInputDto.getReportingEndDate(), returnCustomDateInputDto.getDateFormat());
+			List<Option> listOfOption = new ArrayList<>();
+			listOfOption = getSortedOptionData(dateList, returnCustomDateInputDto.getDateFormat());
+			if (CollectionUtils.isEmpty(listOfOption)) {
+				Logger.error("PDRIII 60 Days Custom Dates list is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0660.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0660.toString())).build();
+			}
+			Options options = new Options();
+			options.setOptionList(listOfOption);
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			response.setResponse(options);
+			return response;
+		} catch (Exception e) {
+			Logger.error("Exception while fetching getPDRIII60DaysCustomDates");
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+		}
+	}
+
+	@PostMapping("/getPDRIII250DaysCustomDates")
+	public ServiceResponse getPDRIII250DaysCustomDates(@RequestBody ReturnCustomDateInputDto returnCustomDateInputDto) {
+		ServiceResponse response = null;
+		try {
+			List<String> dateList = getPreviousDatesExcludeWeekendsHolidays(GeneralConstants.DAYS_250.getConstantIntVal(), returnCustomDateInputDto.getReportingEndDate(), returnCustomDateInputDto.getDateFormat());
+			List<Option> listOfOption = new ArrayList<>();
+			listOfOption = getSortedOptionData(dateList, returnCustomDateInputDto.getDateFormat());
+			if (CollectionUtils.isEmpty(listOfOption)) {
+				Logger.error("PDRIII 250 Days Custom Dates list is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0660.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0660.toString())).build();
+			}
+			Options options = new Options();
+			options.setOptionList(listOfOption);
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			response.setResponse(options);
+			return response;
+		} catch (Exception e) {
+			Logger.error("Exception while getPDRIII250DaysCustomDates");
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+		}
+	}
+
+	public List<Option> getOptionData(ReturnCustomDateInputDto returnCustomDateInputDto) {
+		List<Option> listOfOption = new ArrayList<>();
+		try {
+			ReturnCustomDate returnCustomDate = returnCustomDateRepo.getReturnCustomDate(returnCustomDateInputDto.getReturnCode());
+			Date reportingEndDate = DateManip.convertStringToDate(returnCustomDateInputDto.getReportingEndDate(), returnCustomDateInputDto.getDateFormat());
+			Date reportingStartDate = DateManip.convertStringToDate(returnCustomDateInputDto.getReportingStartDate(), returnCustomDateInputDto.getDateFormat());
+			List<LocalDate> listOfDates = new ArrayList<LocalDate>();
+			String jsonData = null;
+			List<String> returnCodeList = Stream.of(GeneralConstants.DAYS_DIFF_14.getConstantVal().split(GeneralConstants.COMMA.getConstantVal())).collect(Collectors.toList());
+			ObjectMapper mapper = null;
+			Map<String, String> map = null;
+			long numOfDays;
+			if (returnCodeList.contains(returnCustomDateInputDto.getReturnCode())) {
+				LocalDate localDate = reportingEndDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+				LocalDate endDate = LocalDate.of(localDate.getYear(), localDate.getMonthValue(), localDate.getDayOfMonth());
+				LocalDate startDate = endDate.minusDays(returnCustomDate.getDays());
+				numOfDays = ChronoUnit.DAYS.between(startDate, endDate);
+				listOfDates = Stream.iterate(endDate, date -> date.minusDays(1)).limit(numOfDays).collect(Collectors.toList());
+			} else if (returnCustomDate.getReturnIdFk().getReturnCode().equals(GeneralConstants.R069.getConstantVal())) {
+				jsonData = xbrlWebFormController.fetchCustomJsonData(reportingStartDate, reportingEndDate, "APR_TO_MAR", returnCustomDateInputDto.getDateFormat(), returnCustomDate, null);
+				mapper = new ObjectMapper();
+				map = mapper.readValue(jsonData, Map.class);
+				Date fortNightreportingEndDate = null;
+				Date fortNightreportingStartDate = null;
+				if (map.size() > 3) {
+					fortNightreportingEndDate = DateManip.convertStringToDate(map.get(GeneralConstants.THIRD_FORTNIGHT_END_DATE.getConstantVal()), returnCustomDateInputDto.getDateFormat());
+					fortNightreportingStartDate = DateManip.convertStringToDate(map.get(GeneralConstants.LAST_MONTH_LAST_FORTNIGHT_END_DATE.getConstantVal()), returnCustomDateInputDto.getDateFormat());
+				} else {
+					fortNightreportingEndDate = DateManip.convertStringToDate(map.get(GeneralConstants.SECOND_FORTNIGHT_END_DATE.getConstantVal()), returnCustomDateInputDto.getDateFormat());
+					fortNightreportingStartDate = DateManip.convertStringToDate(map.get(GeneralConstants.LAST_MONTH_LAST_FORTNIGHT_END_DATE.getConstantVal()), returnCustomDateInputDto.getDateFormat());
+				}
+				LocalDate localDate1 = fortNightreportingEndDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+				LocalDate endDate1 = LocalDate.of(localDate1.getYear(), localDate1.getMonthValue(), localDate1.getDayOfMonth());
+				LocalDate localDate2 = fortNightreportingStartDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+				LocalDate startDate1 = LocalDate.of(localDate2.getYear(), localDate2.getMonthValue(), localDate2.getDayOfMonth());
+				numOfDays = ChronoUnit.DAYS.between(startDate1, endDate1);
+				listOfDates = Stream.iterate(endDate1, date -> date.minusDays(1)).limit(numOfDays).collect(Collectors.toList());
+			} else if (returnCustomDate.getReturnIdFk().getReturnCode().equals(GeneralConstants.R086.getConstantVal())) {
+				jsonData = xbrlWebFormController.fetchCustomJsonData(reportingStartDate, reportingEndDate, "APR_TO_MAR", returnCustomDateInputDto.getDateFormat(), returnCustomDate, null);
+				mapper = new ObjectMapper();
+				map = mapper.readValue(jsonData, Map.class);
+				LocalDate lastMonthFriday = getPreviousMonthLastFriday(reportingStartDate, returnCustomDateInputDto.getDateFormat());
+				Date currentMonthLastFriday = null;
+				if (map.size() == 3) {
+					currentMonthLastFriday = DateManip.convertStringToDate(map.get(GeneralConstants.THIRD_ALTERNATIVE_FRIDAY.getConstantVal()), returnCustomDateInputDto.getDateFormat());
+				} else {
+					currentMonthLastFriday = DateManip.convertStringToDate(map.get(GeneralConstants.SECOND_ALTERNATIVE_FRIDAY.getConstantVal()), returnCustomDateInputDto.getDateFormat());
+				}
+				LocalDate localDate1 = currentMonthLastFriday.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+				LocalDate endDate1 = LocalDate.of(localDate1.getYear(), localDate1.getMonthValue(), localDate1.getDayOfMonth());
+				numOfDays = ChronoUnit.DAYS.between(lastMonthFriday, endDate1);
+				listOfDates = Stream.iterate(endDate1, date -> date.minusDays(1)).limit(numOfDays).collect(Collectors.toList());
+			}
+
+			if (!CollectionUtils.isEmpty(listOfDates)) {
+				Comparator<LocalDate> comparator = (c1, c2) -> {
+					return c1.compareTo(c2);
+				};
+				Collections.sort(listOfDates, comparator);
+				Option option;
+				for (LocalDate listOfDatesObj : listOfDates) {
+					option = new Option();
+					String formattedDate = listOfDatesObj.format(DateTimeFormatter.ofPattern(returnCustomDateInputDto.getDateFormat()));
+					option.setKey(formattedDate);
+					option.setValue(formattedDate);
+					listOfOption.add(option);
+				}
+			}
+		} catch (Exception e) {
+			Logger.error("getOptionData : " + e);
+		}
+		return listOfOption;
+	}
+
+	public LocalDate getPreviousMonthLastFriday(Date reportingStartDate, String dateFormat) {
+		LocalDate date = null;
+		try {
+			Calendar c = Calendar.getInstance();
+			c.setTime(reportingStartDate);
+			c.add(Calendar.MONTH, -1);
+			Date bb = c.getTime();
+			LocalDate localDate1 = bb.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+			LocalDate endDate1 = LocalDate.of(localDate1.getYear(), localDate1.getMonthValue(), localDate1.getDayOfMonth());
+			LocalDate start = endDate1.withDayOfMonth(1);
+			LocalDate end = endDate1.withDayOfMonth(endDate1.lengthOfMonth());
+			Date startDate = Date.from(start.atStartOfDay(ZoneId.systemDefault()).toInstant());
+			Date endDate = Date.from(end.atStartOfDay(ZoneId.systemDefault()).toInstant());
+			List<String> dateList = xbrlWebFormController.getAlternativeFriday(startDate, endDate, dateFormat);
+			String date1 = null;
+			if (dateList.size() == 5) {
+				date1 = dateList.get(3);
+			} else {
+				date1 = dateList.get(2);
+			}
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern(dateFormat);
+			date = LocalDate.parse(date1, formatter);
+		} catch (Exception e) {
+			Logger.error("getPreviousMonthLastFriday : " + e);
+		}
+		return date;
+	}
+
+	public List<String> getPreviousDatesExcludeWeekendsHolidays(int days, String endDate, String dateFormat) {
+		List<String> responseList = new ArrayList<>();
+		try {
+			List<Date> dateList = new ArrayList<>();
+			List<LocalDate> localDateList = new ArrayList<>();
+			List<LocalDate> respHolidayListDate = new ArrayList<>();
+			int counter = 0;
+			boolean flag = false;
+			List<Holiday> holidayListDate = holidayRepository.findActiveHoliday();
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern(dateFormat);
+			dateList = holidayListDate.stream().map(Holiday::getHolidayDate).collect(Collectors.toList());
+			for (Date abc : dateList) {
+				LocalDate localDate1 = abc.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+				localDateList.add(localDate1);
+			}
+			LocalDate localDate = null;
+			LocalDate tempLocalDate = null;
+			do {
+				if (!flag) {
+					localDate = LocalDate.parse(endDate, formatter).minusDays(1);
+				} else {
+					localDate = tempLocalDate.minusDays(1);
+				}
+				if (!localDateList.contains(localDate) && localDate.getDayOfWeek() != DayOfWeek.SATURDAY && localDate.getDayOfWeek() != DayOfWeek.SUNDAY) {
+					tempLocalDate = localDate;
+					respHolidayListDate.add(localDate);
+					counter++;
+					flag = true;
+				} else {
+					tempLocalDate = localDate;
+					flag = true;
+				}
+			} while (counter != days);
+
+			for (LocalDate localDateObj : respHolidayListDate) {
+				responseList.add(localDateObj.format(formatter));
+			}
+
+		} catch (Exception e) {
+			Logger.error("getPreviousDatesExcludeWeekendsHolidays method :" + e);
+		}
+		return responseList;
+	}
+
+	public List<Option> getSortedOptionData(List<String> dateList, String dateFormat) {
+		List<Option> listOfOption = new ArrayList<>();
+		try {
+			List<LocalDate> localDateList = new ArrayList<>();
+			if (!CollectionUtils.isEmpty(dateList)) {
+				for (String dates : dateList) {
+					localDateList.add(LocalDate.parse(dates, DateTimeFormatter.ofPattern(dateFormat)));
+				}
+			}
+			if (!CollectionUtils.isEmpty(localDateList)) {
+				Comparator<LocalDate> comparator = (c1, c2) -> {
+					return c1.compareTo(c2);
+				};
+				Collections.sort(localDateList, comparator);
+				Option option;
+				for (LocalDate listOfDatesObj : localDateList) {
+					option = new Option();
+					String formattedDate = listOfDatesObj.format(DateTimeFormatter.ofPattern(dateFormat));
+					option.setKey(formattedDate);
+					option.setValue(formattedDate);
+					listOfOption.add(option);
+				}
+			}
+		} catch (Exception e) {
+			Logger.error("getSortedOptionData method :" + e);
+		}
+
+		return listOfOption;
+	}
+}

@@ -1,0 +1,25 @@
+/**
+ * 
+ */
+package com.iris.sdmx.codelist.repo;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.iris.sdmx.codelist.entity.CodeListMaster;
+import com.iris.sdmx.codelist.entity.CodeListValues;
+
+/**
+ * @author sajadhav
+ *
+ */
+public interface CodeListValueRepo extends JpaRepository<CodeListValues, Long> {
+
+	List<CodeListValues> findByIsActiveTrueAndParentCodeListValuesClValueIdOrderByClValueCodeAsc(String clValueId);
+
+	@Query("from CodeListValues obj where obj.isActive = 1 and obj.clValueCode=:clValueCode and obj.codeListMaster =:codeListMaster")
+	List<CodeListValues> checkMappedClValues(String clValueCode, CodeListMaster codeListMaster);
+
+}

@@ -1,0 +1,41 @@
+package com.iris.sdmx.exceltohtml.repo;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.iris.model.ReturnTemplate;
+import com.iris.sdmx.element.entity.SdmxElementEntity;
+import com.iris.sdmx.exceltohtml.entity.SdmxModelCodesEntity;
+
+/**
+ * @author apagaria
+ *
+ */
+public interface SdmxModelCodesRepo extends JpaRepository<SdmxModelCodesEntity, Long> {
+
+	@Query("from SdmxModelCodesEntity where elementIdFk=:elementIdFk")
+	SdmxModelCodesEntity findByElementIdFk(SdmxElementEntity elementIdFk);
+
+	@Query("from SdmxModelCodesEntity where modelCode=:modelCode")
+	SdmxModelCodesEntity findByModelCode(String modelCode);
+
+	@Query("from SdmxModelCodesEntity where modelCodesId=:modelCodesId")
+	SdmxModelCodesEntity findByModelCodesId(Long modelCodesId);
+	
+	@Query("SELECT u.modelCode FROM SdmxModelCodesEntity u where u.modelCode like %:dmModelCode% and u.isActive = true group by u.modelCode")
+	List<String> findDmModelCodes(String dmModelCode);
+	
+	@Query("FROM SdmxModelCodesEntity u where u.modelCode=:dmModelCode and isActive=true")
+	List<SdmxModelCodesEntity> findEntityByModelCode(String dmModelCode);
+	
+	@Query(value = "SELECT * FROM TBL_SDMX_MODEL_CODES u where JSON_CONTAINS(u.MODEL_DIM,?1) and u.IS_ACTIVE=true LIMIT 1", nativeQuery = true)
+	SdmxModelCodesEntity findEntityByModelDim(String modelDim);
+	
+	@Query("SELECT max(u.modelCode) from SdmxModelCodesEntity u")
+	String findMaxModelCodes();
+
+	@Query("FROM SdmxModelCodesEntity smc where smc.modelCodesId=(SELECT rmi.modelCodesIdFk FROM SdmxReturnModelInfoEntity rmi where rmi.returnCellRef =:returnCellRef and rmi.isActive=true and rmi.returnSheetInfoIdFk IN (SELECT rsi.returnSheetInfoId FROM SdmxReturnSheetInfoEntity rsi where rsi.returnTemplateIdFk =:returnTemplateId))")
+	SdmxModelCodesEntity findByReturnCellReffNReturnTemplate(Integer returnCellRef, ReturnTemplate returnTemplateId);
+}

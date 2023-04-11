@@ -1,0 +1,858 @@
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang.NullArgumentException;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.google.gson.Gson;
+import com.iris.caching.ObjectCache;
+import com.iris.dto.LabelDto;
+import com.iris.dto.Option;
+import com.iris.dto.Options;
+import com.iris.dto.PanMasterBulkDto;
+import com.iris.dto.PanMasterDetailsDto;
+import com.iris.dto.PanMasterTempDto;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.dynamicDropDown.model.DropDownValues;
+import com.iris.model.EntityBean;
+import com.iris.model.PanMaster;
+import com.iris.model.PanMasterBulk;
+import com.iris.model.PanMasterDetails;
+import com.iris.model.PanMasterTemp;
+import com.iris.model.PanStatus;
+import com.iris.model.UserMaster;
+import com.iris.repository.EntityRepo;
+import com.iris.repository.PanMasterDetailsRepo;
+import com.iris.repository.PanMasterRepo;
+import com.iris.repository.PanMasterTempRepo;
+import com.iris.repository.UserMasterRepo;
+import com.iris.service.impl.PanMasterBulkService;
+import com.iris.util.Validations;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.MethodConstants;
+
+@RestController
+@RequestMapping("/service/panMaster")
+public class PANMasterController {
+
+	private static final Logger logger = LogManager.getLogger(PANMasterController.class);
+
+	@Autowired
+	private PanMasterTempRepo panMasterTempRepo;
+
+	@Autowired
+	private UserMasterRepo userMasterRepo;
+
+	@Autowired
+	private EntityRepo entityRepo;
+	
+	@Autowired
+	private PanMasterBulkService panMasterBulkService;
+	
+	@Autowired
+	private PanMasterRepo panMasterRepo;
+	
+	private static final Object lock1 = new Object();
+	
+	@Autowired
+	private PanMasterDetailsRepo panMasterDetailsRepo;
+	
+	
+	@RequestMapping(value = "/getPANInfo/{panNumber}", method = RequestMethod.GET)
+	public ServiceResponse getPANInfo(@PathVariable("panNumber") String panNumber) {
+
+		boolean panVerify = validatePanWithRegex(panNumber);
+
+		if (!panVerify) {
+			return new ServiceResponseBuilder().setStatus(panVerify).setStatusCode(ErrorCode.E0764.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0764.toString())).setResponse(panNumber).build();
+		}
+
+		PanMasterTemp panMasterDbObj = panMasterTempRepo.findTopByPanNumberAndVerificationStatusOrderByCreatedOnDesc(panNumber, 0);
+		if (panMasterDbObj != null) {
+
+			PanMasterTempDto panDto = convertDBObjToDto(panMasterDbObj);
+
+			return new ServiceResponseBuilder().setStatus(panVerify).setResponse(new Gson().toJson(panDto)).build();
+		}
+
+		panMasterDbObj = panMasterTempRepo.findTopByPanNumberAndVerificationStatusOrderByCreatedOnDesc(panNumber, 1);
+		if (panMasterDbObj != null) {
+
+			PanMasterTempDto panDto = convertDBObjToDto(panMasterDbObj);
+
+			return new ServiceResponseBuilder().setStatus(panVerify).setResponse(new Gson().toJson(panDto)).build();
+		}
+
+		panMasterDbObj = panMasterTempRepo.findTopByPanNumberAndVerificationStatusOrderByCreatedOnDesc(panNumber, 2);
+		if (panMasterDbObj != null) {
+
+			PanMasterTempDto panDto = convertDBObjToDto(panMasterDbObj);
+
+			return new ServiceResponseBuilder().setStatus(panVerify).setResponse(new Gson().toJson(panDto)).build();
+		}
+
+		return new ServiceResponseBuilder().setStatus(true).build();
+
+	}
+
+	// checking pan format
+	private boolean validatePanWithRegex(String panNumber) {
+		if (panNumber == null || panNumber.isEmpty()) {
+			return false;
+		}
+		boolean flag = false;
+		if (panNumber.matches("[A-Z]{5}[0-9]{4}[A-Z]{1}")) {
+			flag = true;
+		} else {
+			flag = false;
+		}
+		return flag;
+	}
+
+	private PanMasterTempDto convertDBObjToDto(PanMasterTemp panTempDBObj) {
+		if (panTempDBObj == null) {
+			return null;
+		}
+
+		PanMasterTempDto panDto = new PanMasterTempDto();
+
+		panDto.setPanNumber(panTempDBObj.getPanNumber());
+		panDto.setBorrowerName(panTempDBObj.getBorrowerName());
+		panDto.setBorrowerAlternateName(panTempDBObj.getBorrowerAlternateName());
+		panDto.setBorrowerTitle(panTempDBObj.getBorrowerTitle());
+		panDto.setBorrowerMobile(panTempDBObj.getBorrowerMobile());
+		panDto.setVerificationStatus(panTempDBObj.getVerificationStatus());
+		panDto.setCreatedBy(panTempDBObj.getCreatedBy().getUserId().intValue());
+		panDto.setEntryType(panTempDBObj.getEntryType());
+		panDto.setRbiGenerated(panTempDBObj.isRbiGenerated());
+		panDto.setInstitutionType(panTempDBObj.getInstitutionType());
+		panDto.setStatus(panTempDBObj.getStatus());
+		
+		if (panTempDBObj.getApprovedByFk() != null) {
+			panDto.setApprovedByUser(panTempDBObj.getApprovedByFk().getUserName());
+			panDto.setApprovedOn(panTempDBObj.getApprovedOn().getTime());
+			panDto.setComment(panTempDBObj.getComment());
+		}
+
+		if (panTempDBObj.getIsBulkUpload() != null) {
+			panDto.setIsBulkUpload(panTempDBObj.getIsBulkUpload());
+		}
+
+		if (panTempDBObj.getPanIdFk() == null) {
+			panDto.setCreatedOn(panTempDBObj.getCreatedOn().getTime());
+			
+			panDto.setCreatedUser(panTempDBObj.getCreatedBy().getUserName());
+		} else {
+			panDto.setModifiedOn(panTempDBObj.getCreatedOn().getTime());
+			panDto.setCreatedOn(panTempDBObj.getPanIdFk().getCreatedOn().getTime());
+			
+			panDto.setCreatedUser(panTempDBObj.getPanIdFk().getCreatedBy().getUserName());
+			panDto.setModifiedUser(panTempDBObj.getCreatedBy().getUserName());
+		}
+
+		return panDto;
+	}
+
+	// insertPan into Database
+	@RequestMapping(value = "/addPan", method = RequestMethod.POST)
+	public ServiceResponse insertBorrowerDetails(@RequestBody PanMasterTempDto panMasterTempDto) {
+		if (panMasterTempDto == null) {
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0760.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0760.toString())).build();
+		}
+
+		if (panMasterTempDto.getEntryType() == null
+				|| panMasterTempDto.getEntryType().intValue() != 1 && panMasterTempDto.getEntryType().intValue() != 2) {
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0811.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0811.toString())).build();
+		}
+
+		if (panMasterTempDto.getRbiGenerated() == null) {
+			panMasterTempDto.setRbiGenerated(Boolean.FALSE);
+		}
+
+		if (Validations.isEmpty(panMasterTempDto.getBorrowerName())) {
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0765.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0765.toString())).build();
+		}
+
+		if (panMasterTempDto.getBorrowerMobile() != null
+				&& (panMasterTempDto.getBorrowerMobile().longValue() < 1000000000l
+						|| panMasterTempDto.getBorrowerMobile().longValue() > 9999999999l)) {
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0766.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0766.toString())).build();
+		}
+
+		
+		EntityBean entityBean = null;
+		UserMaster userMaster = null;
+		if (panMasterTempDto.getIsBulkUpload().equals(Boolean.TRUE)) {
+			entityBean = panMasterTempDto.getEntityBean();
+			userMaster = panMasterTempDto.getUserMaster();
+		} else {
+			if (Validations.isEmpty(panMasterTempDto.getEntityCode())) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0108.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0108.toString())).build();
+			}
+			entityBean = entityRepo.findByEntityCode(panMasterTempDto.getEntityCode());
+			userMaster = userMasterRepo.findByUserIdAndIsActiveTrue(new Long(panMasterTempDto.getCreatedBy()));
+		}
+		if (entityBean == null) {
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0108.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0108.toString())).build();
+		}
+		
+		
+		if (userMaster == null) {
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0594.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0594.toString())).build();
+		}
+
+		PanMasterTemp panMasterParent = null;
+
+		if (panMasterTempDto.getRbiGenerated()) { // This is RBI generated PAN condition
+			if (panMasterTempDto.getEntryType().intValue() == 2) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0811.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0811.toString())).build();
+			}
+			if (panMasterTempDto.getInstitutionType() == null || panMasterTempDto.getInstitutionType().intValue() < 0
+					|| panMasterTempDto.getInstitutionType().intValue() > 4) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0812.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0812.toString())).build();
+			}
+
+			if (panMasterTempDto.getStatus() == null || panMasterTempDto.getStatus().intValue() < 0
+					|| panMasterTempDto.getStatus().intValue() > 4) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0813.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0813.toString())).build();
+			}
+
+			if (panMasterTempDto.getBorrowerMobile() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0837.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0837.toString())).build();	
+			}
+			
+			char institutionTypeCharacter = ' ';
+			if (panMasterTempDto.getInstitutionType().intValue() == 1) {
+				institutionTypeCharacter = 'C';
+			}
+			if (panMasterTempDto.getInstitutionType().intValue() == 2) {
+				institutionTypeCharacter = 'F';
+			}
+			if (panMasterTempDto.getInstitutionType().intValue() == 3) {
+				institutionTypeCharacter = 'S';
+			}
+			if (panMasterTempDto.getInstitutionType().intValue() == 4) {
+				institutionTypeCharacter = 'T';
+			}
+
+			char statusCharacter = ' ';
+			if (panMasterTempDto.getStatus().intValue() == 1) {
+				statusCharacter = 'C';
+			}
+			if (panMasterTempDto.getStatus().intValue() == 2) {
+				statusCharacter = 'I';
+			}
+			if (panMasterTempDto.getStatus().intValue() == 3) {
+				statusCharacter = 'G';
+			}
+			if (panMasterTempDto.getStatus().intValue() == 4) {
+				statusCharacter = 'T';
+			}
+			
+			String rbiGeneratedPan;
+
+			String runningNum = "0001";
+			
+			String borrowerNameChar = "" + panMasterTempDto.getBorrowerName().toUpperCase().charAt(0);
+			for (int i = 0; i < panMasterTempDto.getBorrowerName().length(); i++) {
+				if ((panMasterTempDto.getBorrowerName().charAt(i) + "").matches("[A-Za-z]")) {
+					borrowerNameChar = (panMasterTempDto.getBorrowerName().charAt(i) + "").toUpperCase();
+					break;
+				}
+			}
+			
+			synchronized (lock1) {
+				rbiGeneratedPan = "RBI" + statusCharacter + borrowerNameChar + "%" + institutionTypeCharacter;
+//				logger.info("inside synchronized block, rbiGeneratedPan value "+ rbiGeneratedPan);
+				PanMasterTemp panMasterDbObj = panMasterTempRepo.findTopByPanNumberOrderByPanNumberDescContaining(rbiGeneratedPan);  // only first recird
+//				logger.info("inside synchronized block,  panMasterDbObj value"+ panMasterDbObj);
+				if (panMasterDbObj != null) {
+					
+					int currNum = Integer.parseInt(panMasterDbObj.getPanNumber().substring(5, 9));
+//					logger.info("inside synchronized block,  pan number ++"+ panMasterDbObj.getPanNumber());
+//					logger.info("inside synchronized block,  currNum"+ currNum);
+
+					currNum++;
+//					logger.info("inside synchronized block, after plus plus currNum++"+ currNum);
+
+					runningNum = "" + currNum;
+//					logger.info("inside synchronized block,  runningNum"+ runningNum);
+
+					if (runningNum.length() == 1) {
+						runningNum = "000" + runningNum;
+					} else if (runningNum.length() == 2) {
+						runningNum = "00" + runningNum;
+					} else if (runningNum.length() == 3) {
+						runningNum = "0" + runningNum;
+					}
+				}
+			
+			rbiGeneratedPan = "RBI" + statusCharacter + borrowerNameChar + runningNum + institutionTypeCharacter;
+//			logger.info("after if block, pan master controller "+ rbiGeneratedPan);
+			panMasterTempDto.setPanNumber(rbiGeneratedPan);
+			
+			PanMasterTemp panMasterTemp = new PanMasterTemp();
+			panMasterTemp.setPanNumber(panMasterTempDto.getPanNumber());
+			panMasterTemp.setBorrowerName(panMasterTempDto.getBorrowerName());
+			panMasterTemp.setBorrowerAlternateName(panMasterTempDto.getBorrowerAlternateName());
+			panMasterTemp.setBorrowerTitle(panMasterTempDto.getBorrowerTitle());
+			panMasterTemp.setBorrowerMobile(panMasterTempDto.getBorrowerMobile());
+			panMasterTemp.setVerificationStatus(0);
+			panMasterTemp.setCreatedBy(userMaster);
+			panMasterTemp.setCreatedOn(new Date());
+			panMasterTemp.setEntryType(panMasterTempDto.getEntryType());
+			panMasterTemp.setRbiGenerated(panMasterTempDto.getRbiGenerated());
+			panMasterTemp.setEntityBean(entityBean);
+			panMasterTemp.setPanIdFk(panMasterParent);
+			panMasterTemp.setIsBulkUpload(panMasterTempDto.getIsBulkUpload());
+			if (panMasterTempDto.getRbiGenerated()) {
+				panMasterTemp.setInstitutionType(panMasterTempDto.getInstitutionType());
+				panMasterTemp.setStatus(panMasterTempDto.getStatus());
+			}
+
+			try {
+				panMasterTempRepo.save(panMasterTemp);
+			} catch (Exception e) {
+				logger.error("Exception : ", e);
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+			}
+			}
+			
+//			Random random = new Random();
+//			String rbiGeneratedPan = "RBI" + statusCharacter + "" + panMasterTempDto.getBorrowerName().charAt(0) + ""
+//					+ random.nextInt(10000) + "" + institutionTypeCharacter;
+//			panMasterTempDto.setPanNumber(rbiGeneratedPan);
+		} else { // This is NSDL generated PAN condition
+			if (Validations.isEmpty(panMasterTempDto.getPanNumber())) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0760.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0760.toString())).build();
+			}
+
+			if (!validatePanWithRegex(panMasterTempDto.getPanNumber())) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0764.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0764.toString())).build();
+			}
+
+		
+			if (panMasterTempDto.getIsBulkUpload().equals(Boolean.FALSE)) {
+				PanMasterTemp panMasterDbObj = panMasterTempRepo
+						.findTopByPanNumberOrderByCreatedOnDesc(panMasterTempDto.getPanNumber());
+				if (panMasterTempDto.getEntryType().intValue() == 1) { // this is ADD condition
+					if (panMasterDbObj != null) {
+						return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0761.toString())
+								.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0761.toString())).build();
+					}
+				} else { // this is UPDATE condition
+					if (panMasterDbObj == null || panMasterDbObj.getVerificationStatus().intValue() == 0) {
+						return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0760.toString())
+								.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0760.toString())).build();
+					}
+					panMasterParent = panMasterTempRepo.findByPanNumberAndEntryType(panMasterTempDto.getPanNumber(), 1);
+				}
+			}
+			if (panMasterTempDto.getIsBulkUpload().equals(Boolean.TRUE) && panMasterTempDto.getEntryType() == 2) {
+				panMasterParent = new PanMasterTemp();
+				panMasterParent.setPanId(panMasterTempDto.getPanId());
+			}
+			
+			PanMasterTemp panMasterTemp = new PanMasterTemp();
+			panMasterTemp.setPanNumber(panMasterTempDto.getPanNumber());
+			panMasterTemp.setBorrowerName(panMasterTempDto.getBorrowerName());
+			panMasterTemp.setBorrowerAlternateName(panMasterTempDto.getBorrowerAlternateName());
+			panMasterTemp.setBorrowerTitle(panMasterTempDto.getBorrowerTitle());
+			panMasterTemp.setBorrowerMobile(panMasterTempDto.getBorrowerMobile());
+			panMasterTemp.setVerificationStatus(0);
+			panMasterTemp.setCreatedBy(userMaster);
+			panMasterTemp.setCreatedOn(new Date());
+			panMasterTemp.setEntryType(panMasterTempDto.getEntryType());
+			panMasterTemp.setRbiGenerated(panMasterTempDto.getRbiGenerated());
+			panMasterTemp.setEntityBean(entityBean);
+			panMasterTemp.setPanIdFk(panMasterParent);
+			panMasterTemp.setIsBulkUpload(panMasterTempDto.getIsBulkUpload());
+			if (panMasterTempDto.getRbiGenerated()) {
+				panMasterTemp.setInstitutionType(panMasterTempDto.getInstitutionType());
+				panMasterTemp.setStatus(panMasterTempDto.getStatus());
+			}
+
+			try {
+				panMasterTempRepo.save(panMasterTemp);
+			} catch (Exception e) {
+				logger.error("Exception : ", e);
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+			}
+			
+		}
+
+		return new ServiceResponseBuilder().setStatus(true).setResponse(panMasterTempDto.getPanNumber()).build();
+	}
+
+	// to Retrieve PAN Status
+	@RequestMapping(value = "/getNDLSPANByStatus/{entityCode}/{verificationStatus}", method = RequestMethod.GET)
+	public ServiceResponse getNDLSPANByStatus(@PathVariable("entityCode") String entityCode,
+			@PathVariable("verificationStatus") Integer verificationStatus) {
+
+		if (Validations.isEmpty(entityCode)) {
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0108.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0108.toString())).build();
+		}
+
+		if (verificationStatus == null) {
+			verificationStatus = new Integer(0);
+		}
+
+		EntityBean entityBean = entityRepo.findByEntityCode(entityCode);
+
+		if (entityBean == null) {
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0108.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0108.toString())).build();
+		}
+
+		// checking pan
+		List<PanMasterTemp> panDBList = null;
+		if (verificationStatus == 1) {
+			panDBList = panMasterTempRepo.findLatestPan(verificationStatus, entityBean.getEntityId());
+		} else {
+			panDBList = panMasterTempRepo.findByVerificationStatusAndEntityBeanOrderByCreatedOnDesc(verificationStatus, entityBean);
+		}
+		if (panDBList != null) {
+
+			List<PanMasterTempDto> latestApprovedPanListDto = new ArrayList<>();
+			PanMasterTempDto latestApprovedPanDto;
+			for (PanMasterTemp latestApprovedDbPan : panDBList) {
+
+				latestApprovedPanDto = convertDBObjToDto(latestApprovedDbPan);
+				latestApprovedPanListDto.add(latestApprovedPanDto);
+
+			}
+			return new ServiceResponseBuilder().setStatus(true).setResponse(new Gson().toJson(latestApprovedPanListDto)).build();
+
+		} else {
+			return new ServiceResponseBuilder().setStatus(true).build();
+		}
+
+	}
+	
+	@PostMapping("/addPanMasterBulkData")
+	public ServiceResponse addPanMasterBulkData(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody PanMasterBulkDto panMasterBulkDto) {
+		
+		logger.info("Request received to add pan master bulk data for jobProcessingId" + jobProcessId);
+		try {
+		if(panMasterBulkDto == null) {
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0391.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0391.toString())).build();
+		}
+		
+		UserMaster userMaster = userMasterRepo.findByUserIdAndIsActiveTrue(panMasterBulkDto.getCreatedBy());
+
+		if (userMaster == null) {
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0594.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0594.toString())).build();
+		}
+
+//		EntityBean entityBean = entityRepo.findByEntityId(new Long(panMasterBulkDto.getEntityId()));
+		EntityBean entityBean = entityRepo.findByEntityCode(panMasterBulkDto.getEntityCode());
+		PanStatus panStatus = new PanStatus();
+		panStatus.setPanStatusId(1l);
+		PanMasterBulk panMasterBulk = new PanMasterBulk();
+		panMasterBulk.setFileName(panMasterBulkDto.getFileName());
+		panMasterBulk.setOriginalFileName(panMasterBulkDto.getOriginalFileName());
+		panMasterBulk.setCreatedBy(userMaster);
+		panMasterBulk.setCreatedOn(new Date());
+		panMasterBulk.setEntityBean(entityBean);
+		panMasterBulk.setIsActive(true);
+		panMasterBulk.setIsProcessed(false);
+		panMasterBulk.setStatusId(panStatus);
+		
+		panMasterBulkService.add(panMasterBulk);
+		
+		panMasterBulkDto.setId(panMasterBulk.getId());
+		} catch(Exception e) {
+			logger.error("Exception occoured while saving data for jobProcessingId: "+jobProcessId+" Exception is "+ e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+		logger.info("Request completed to add pan master bulk data for jobProcessingId" + jobProcessId);
+		return new ServiceResponseBuilder().setStatus(true).setResponse(panMasterBulkDto).build();
+	}
+	
+	@RequestMapping(value = "/getPanMasterBulkData/{entityCode}/{langCode}", method = RequestMethod.GET)
+	public ServiceResponse getPanMasterBulkData(@RequestHeader(name = "JobProcessingId") String jobProcessId, @PathVariable("entityCode") String entityCode,
+			@PathVariable("langCode") String langCode) {
+		try {
+			if (Validations.isEmpty(entityCode)) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0108.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0108.toString())).build();
+			}
+
+			EntityBean entityBean = entityRepo.findByEntityCode(entityCode);
+
+			if (entityBean == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0108.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0108.toString())).build();
+			}
+
+			// checking pan
+			List<PanMasterBulk> panBulkDBList = null;
+
+			Map<String, Object> columnValueMap = new HashMap<>();
+			columnValueMap.put(ColumnConstants.ENT_CODE.getConstantVal(), entityCode);
+			columnValueMap.put(ColumnConstants.LANG_CODE.getConstantVal(), langCode);
+
+			panBulkDBList = panMasterBulkService.getDataByObject(columnValueMap,
+					MethodConstants.GET_DATA_BY_ENTITY_CODE_AND_LANG_CODE.getConstantVal());
+
+			if (!CollectionUtils.isEmpty(panBulkDBList)) {
+
+				List<PanMasterBulkDto> panMasterBulkDtoList = convertPanBulkDbListObject(panBulkDBList);
+
+				return new ServiceResponseBuilder().setStatus(true).setResponse(new Gson().toJson(panMasterBulkDtoList)).build();
+
+			} else {
+				return new ServiceResponseBuilder().setStatus(true).build();
+			}
+		} catch (Exception e) {
+			logger.error("Exception occoured while getting data of pan bulk upload data for jobProcessingId:Exception is " + e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+
+	private List<PanMasterBulkDto> convertPanBulkDbListObject(List<PanMasterBulk> panBulkDBList) {
+		
+		List<PanMasterBulkDto> panMasterBulkList = new ArrayList<PanMasterBulkDto>();
+		PanMasterBulkDto panMasterBulkDto = null;
+		for(PanMasterBulk panMB : panBulkDBList) {
+			panMasterBulkDto = new PanMasterBulkDto();
+			
+			panMasterBulkDto.setId(panMB.getId());
+			panMasterBulkDto.setFileName(panMB.getFileName());
+			panMasterBulkDto.setCreatedBy(panMB.getCreatedBy().getUserId());
+			panMasterBulkDto.setUserName(panMB.getCreatedBy().getUserName());
+			
+			//panMasterBulk.setCreatedOn(panMB.getCreatedOn());
+			panMasterBulkDto.setCreatedOn(panMB.getCreatedOn().getTime());
+			panMasterBulkDto.setTotalRecords(panMB.getTotalRecords());
+			panMasterBulkDto.setNumberOfSuccessfull(panMB.getNumOfSuccessfull());
+			
+			panMasterBulkDto.setStatus(panMB.getStatusId().getPanStatusId());
+			panMasterBulkDto.setStatusDesc(panMB.getStatusId().getStatus());
+			
+			panMasterBulkDto.setCreatedBy(panMB.getCreatedBy().getUserId());
+			
+			panMasterBulkDto.setEntityCode(panMB.getEntityBean().getEntityCode());
+			panMasterBulkDto.setEntityId(panMB.getEntityBean().getEntityId());
+			
+			if(panMB.getProcessStartTime() != null) {
+				panMasterBulkDto.setProcessStartTime(panMB.getProcessStartTime().getTime());
+			}
+			if(panMB.getProcessEndTime() != null) {
+				panMasterBulkDto.setProcessEndTime(panMB.getProcessEndTime().getTime());
+			}
+			panMasterBulkDto.setOriginalFileName(panMB.getOriginalFileName());
+			panMasterBulkList.add(panMasterBulkDto);
+		}
+		
+		return panMasterBulkList;
+	}
+	
+	@RequestMapping(value = "/getPanMasterData/", method = RequestMethod.GET)
+	public ServiceResponse getPanMasterData(@RequestHeader(name = "JobProcessingId") String jobProcessId) {
+		try {
+			logger.info("Request received to get pan master data");
+			List<PanMasterDetails> panMasterDetailsList = panMasterDetailsRepo.getPanMasterData();
+
+			if (!CollectionUtils.isEmpty(panMasterDetailsList)) {
+
+				List<PanMasterDetailsDto> panMasterDtoList = convertPanMasterDbListToDto(panMasterDetailsList);
+
+				return new ServiceResponseBuilder().setStatus(true).setResponse(new Gson().toJson(panMasterDtoList)).build();
+
+			} else {
+				return new ServiceResponseBuilder().setStatus(true).build();
+			}
+		} catch (Exception e) {
+			logger.error("Exception occoured while getting data of pan master  jobProcessingId:Exception is " + e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+	
+	@GetMapping(value = "/getRBIGeneratedPanList/{verificationStatus}")
+	public ServiceResponse getRBIGeneratedPanList(@PathVariable("verificationStatus") Integer verificationStatus) {
+		if (verificationStatus == null) {
+			verificationStatus = new Integer(0);
+		}
+
+		List<PanMasterTemp> panDBList = panMasterTempRepo.findByVerificationStatusAndRbiGeneratedTrueOrderByCreatedOnAsc(verificationStatus);
+
+		if (!CollectionUtils.isEmpty(panDBList)) {
+			List<PanMasterTempDto> rbiGeneratedPanListDto = new ArrayList<>();
+			PanMasterTempDto rbiGeneratedPanDto;
+			for (PanMasterTemp rbiGeneratedDbPan : panDBList) {
+				rbiGeneratedPanDto = convertDBObjToDto(rbiGeneratedDbPan);
+				rbiGeneratedPanListDto.add(rbiGeneratedPanDto);
+			}
+			return new ServiceResponseBuilder().setStatus(true).setResponse(new Gson().toJson(rbiGeneratedPanListDto))
+					.build();
+		} else {
+			return new ServiceResponseBuilder().setStatus(true).build();
+		}
+	}
+
+	@PostMapping(value = "/approveRbiGeberatedPan")
+	public ServiceResponse approveRbiGeberatedPan(@RequestBody PanMasterTempDto panMasterTempDto) {
+
+		if (panMasterTempDto == null) {
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0841.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0841.toString())).build();
+		}
+
+		if (panMasterTempDto.getPanList() == null) {
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0760.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0760.toString())).build();
+		}
+
+		if (panMasterTempDto.getVerificationStatus() == null) {
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0958.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0958.toString())).build();
+		}
+
+		if (panMasterTempDto.getVerificationStatus() != 1 && panMasterTempDto.getVerificationStatus() != 2) {
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0959.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0959.toString())).build();
+		}
+
+		if (panMasterTempDto.getVerificationStatus() == 2 && panMasterTempDto.getComment() == null) {
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0199.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0199.toString())).build();
+		}
+
+		UserMaster userMaster = userMasterRepo.findByUserIdAndIsActiveTrue(new Long(panMasterTempDto.getApprovedByFk()));
+
+		if (userMaster == null) {
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0594.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0594.toString())).build();
+		}
+
+		try {
+			List<String> panStringList = new ArrayList<>(Arrays.asList(panMasterTempDto.getPanList()));
+			System.out.println(panStringList);
+			
+			List<PanMasterTemp> panObj = panMasterTempRepo.getPanList(panStringList);
+
+			Map<Integer, List<String>> panWithStatus = new HashMap<>();
+			if (!CollectionUtils.isEmpty(panObj)) {
+				
+				List<String> panList;
+				for (PanMasterTemp panTmp : panObj) {
+					if (panWithStatus.containsKey(panTmp.getVerificationStatus())) {
+						panList = panWithStatus.get(panTmp.getVerificationStatus());
+					} else {
+						panList = new ArrayList<>();
+					}
+					if (!panList.contains(panTmp.getPanNumber())) {
+						panList.add(panTmp.getPanNumber());
+						logger.info("inside if block,approve reject rbi pan "+ panTmp.getPanNumber());
+						panStringList.remove(panTmp.getPanNumber());
+					}
+					panWithStatus.put(panTmp.getVerificationStatus(), panList);
+				}
+			}
+			if (!CollectionUtils.isEmpty(panStringList)) {
+			int dbResp = panMasterTempRepo.updateVerificationStatus(panMasterTempDto.getVerificationStatus(),
+					panMasterTempDto.getComment(),new Long(panMasterTempDto.getApprovedByFk()), panStringList);
+			System.out.println(dbResp);
+			
+			panWithStatus.put(0, panStringList);
+			
+			if(panMasterTempDto.getVerificationStatus() == 1) {
+				List<PanMasterTemp> rbiDbPanList = panMasterTempRepo.getPanNumber(panStringList);
+				if(!CollectionUtils.isEmpty(rbiDbPanList)) {
+					
+					List<PanMaster> panMasterList = new ArrayList<>();
+					PanMaster panMasterObj;
+					for(PanMasterTemp panMasterTemp : rbiDbPanList) {
+						panMasterObj = new PanMaster();
+						panMasterObj.setPanIdFk(panMasterTemp);
+						panMasterObj.setPanNumber(panMasterTemp.getPanNumber());
+						logger.info("pan Number temp id "+ panMasterTemp.getPanId());
+						logger.info("pan Number to insert in mastet table "+ panMasterObj.getPanNumber());
+						panMasterObj.setBorrowerName(panMasterTemp.getBorrowerName());
+						panMasterObj.setBorrowerTitle(panMasterTemp.getBorrowerTitle());
+						panMasterObj.setBorrowerMobile(panMasterTemp.getBorrowerMobile());
+						panMasterObj.setBorrowerAlternateName(panMasterTemp.getBorrowerAlternateName());
+						panMasterObj.setRbiGenerated(panMasterTemp.getRbiGenerated());
+						panMasterObj.setInstitutionType(panMasterTemp.getInstitutionType());
+						panMasterObj.setStatus(panMasterTemp.getStatus());
+						
+						panMasterList.add(panMasterObj);
+					 }
+					
+					try {
+						panMasterRepo.saveAll(panMasterList);
+					} catch (Exception e) {
+						logger.error("Exception : ", e);
+						return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+								.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+					}
+				
+				
+			  }
+				
+		   }
+		   
+			
+			
+			}
+
+			return new ServiceResponseBuilder().setStatus(true).setResponse(new Gson().toJson(panWithStatus)).build();
+		} catch (Exception e) {
+			logger.error("Exception : ", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+
+	}
+	
+	
+	private List<PanMasterDetailsDto> convertPanMasterDbListToDto(List<PanMasterDetails> panMasterDetailsList) {
+		List<PanMasterDetailsDto> panMasterDtoList = new ArrayList<>();
+		try {
+			PanMasterDetailsDto panMasterDetailsDto;
+			for (PanMasterDetails panMasterDetails : panMasterDetailsList) {
+				panMasterDetailsDto = new PanMasterDetailsDto();
+				panMasterDetailsDto.setId(panMasterDetails.getId());
+				panMasterDetailsDto.setFileName(panMasterDetails.getFileName());
+				panMasterDetailsDto.setCreatedOn(panMasterDetails.getCreatedOn().getTime());
+				panMasterDetailsDto.setStatus(panMasterDetails.getStatus());
+				if (panMasterDetails.getProcessStartTime() != null) {
+					panMasterDetailsDto.setProcessStartTime(panMasterDetails.getProcessStartTime().getTime());
+				}
+
+				if (panMasterDetails.getProcessEndTime() != null) {
+					panMasterDetailsDto.setProcessEndTime(panMasterDetails.getProcessEndTime().getTime());
+				}
+				
+				panMasterDetailsDto.setTotalRecords(panMasterDetails.getTotalRecords());
+				panMasterDetailsDto.setModifiedFileName(panMasterDetails.getModifiedFileName());
+				panMasterDtoList.add(panMasterDetailsDto);
+				if(panMasterDetailsDto.getStatus() == 3) {
+					return panMasterDtoList;
+				}
+				if(panMasterDtoList.size() == 2) {
+					return panMasterDtoList;
+				}
+			}
+		} catch (Exception e) {
+			logger.error("Exception occoured while convertPanMasterDbListToDto" + e);
+		}
+		return panMasterDtoList;
+	}
+	@PostMapping(value = "/getPanMasterDataWithCorporateName")
+	public ServiceResponse getPanMasterDataWithCorporateName() {
+		ServiceResponse response = null;
+		try {
+			
+			List<DropDownValues> dropDownValuesList = null;
+			Options options = new Options();
+			List<PanMaster> panMasterList = panMasterRepo.getPanMasterDataWithCorporateName();
+			if (CollectionUtils.isEmpty(panMasterList)) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0660.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0660.toString())).build();
+			}
+			Option option;
+			List<Option> listOfOption = new ArrayList<>();
+			for (PanMaster panMasterValues : panMasterList) {
+				option = new Option();
+				option.setKey(panMasterValues.getPanMasterId() +"~"+ panMasterValues.getBorrowerName());
+				option.setValue(panMasterValues.getPanNumber());
+				listOfOption.add(option);
+			}
+
+			options.setOptionList(listOfOption);
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			response.setResponse(options);
+			return response;
+
+		} catch (NullArgumentException nae) {
+			logger.error("Exception occoured while featch pan master list" + nae);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+		}
+	}
+	
+	// this method would use to fetch the pan info with the help of pan number and borrower name as a input parameter 
+	@PostMapping(value = "/getPanInfoForNonXBRLReturns")
+	public ServiceResponse getPanInfoForNonXBRLReturns(@RequestHeader(name = "JobProcessingId") String JobProcessingId,
+			@RequestBody LabelDto labelDto) {
+		logger.info("Request received to get pan info for non xbrl return: " + JobProcessingId);
+
+		try {
+		if (!CollectionUtils.isEmpty(labelDto.getLabelKeyMap())) {
+			Set<String> panNumSet = new HashSet<>();
+
+			labelDto.getLabelKeyMap().forEach((k, v) -> {
+				if (StringUtils.isNotBlank(v)) {
+					
+					String[] panNumBorrowerNameArr = v.split("~");
+					
+					PanMaster panMaster = panMasterRepo.getPanInfoByPanNumAndBorrowerName(panNumBorrowerNameArr[0], panNumBorrowerNameArr[1]);
+					
+					if(panMaster != null) {
+						panNumSet.add(panMaster.getPanNumber());
+					}
+					
+				}
+			});
+			
+
+			if (!CollectionUtils.isEmpty(panNumSet)) {
+
+					logger.info("Request completed to get pan info for non xbrl return: panMasterList" + panNumSet.size());
+					return new ServiceResponseBuilder().setStatus(Boolean.TRUE).setResponse(new Gson().toJson(panNumSet)).build();
+			}
+		}
+		}catch(Exception e) {
+			logger.info("Exception occoured while getting pan info for non xbrl return" +e);
+		}
+		logger.info("Request completed to get pan info for non xbrl return: Blank response");
+		return new ServiceResponseBuilder().setStatus(Boolean.TRUE).build();
+
+	}
+	
+	
+}

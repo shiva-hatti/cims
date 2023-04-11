@@ -1,0 +1,215 @@
+package com.iris.sdmx.menu.entity;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.iris.model.RoleType;
+
+/**
+ * @author vjadhav
+ *
+ */
+@Entity
+@Table(name = "TBL_SDMX_ROLE_TYPE_MENU_MAP")
+@JsonInclude(Include.NON_NULL)
+public class SdmxRoleTypeMenuMapping implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 4858660620225520525L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "SDMX_MENU_ROLE_TYPE_ID")
+	private Long sdmxMenuRoleTypeMapId;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "ROLE_TYPE_ID_FK")
+	private RoleType roleTypeIdFk;
+
+	@Column(name = "IS_ADMIN")
+	private Boolean isAdmin;
+
+	@Column(name = "IS_MAIN_DEPT")
+	private Boolean isMainDept;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "SDMX_MENU_ID_FK")
+	private SdmxMenu sdmxMenuIdFk;
+
+	@Column(name = "ADD_APPROVAL")
+	private Boolean addApproval;
+
+	@Column(name = "EDIT_APPROVAL")
+	private Boolean editApproval;
+
+	@Column(name = "ADD_RIGHT")
+	private Boolean addRight;
+
+	@Column(name = "EDIT_RIGHT")
+	private Boolean editRight;
+
+	@Column(name = "VIEW_RIGHT")
+	private Boolean viewRight;
+
+	/**
+	 * @return the sdmxMenuRoleTypeMapId
+	 */
+	public Long getSdmxMenuRoleTypeMapId() {
+		return sdmxMenuRoleTypeMapId;
+	}
+
+	/**
+	 * @param sdmxMenuRoleTypeMapId the sdmxMenuRoleTypeMapId to set
+	 */
+	public void setSdmxMenuRoleTypeMapId(Long sdmxMenuRoleTypeMapId) {
+		this.sdmxMenuRoleTypeMapId = sdmxMenuRoleTypeMapId;
+	}
+
+	/**
+	 * @return the roleTypeIdFk
+	 */
+	public RoleType getRoleTypeIdFk() {
+		return roleTypeIdFk;
+	}
+
+	/**
+	 * @param roleTypeIdFk the roleTypeIdFk to set
+	 */
+	public void setRoleTypeIdFk(RoleType roleTypeIdFk) {
+		this.roleTypeIdFk = roleTypeIdFk;
+	}
+
+	/**
+	 * @return the isAdmin
+	 */
+	public Boolean getIsAdmin() {
+		return isAdmin;
+	}
+
+	/**
+	 * @param isAdmin the isAdmin to set
+	 */
+	public void setIsAdmin(Boolean isAdmin) {
+		this.isAdmin = isAdmin;
+	}
+
+	/**
+	 * @return the isMainDept
+	 */
+	public Boolean getIsMainDept() {
+		return isMainDept;
+	}
+
+	/**
+	 * @param isMainDept the isMainDept to set
+	 */
+	public void setIsMainDept(Boolean isMainDept) {
+		this.isMainDept = isMainDept;
+	}
+
+	/**
+	 * @return the sdmxMenuIdFk
+	 */
+	public SdmxMenu getSdmxMenuIdFk() {
+		return sdmxMenuIdFk;
+	}
+
+	/**
+	 * @param sdmxMenuIdFk the sdmxMenuIdFk to set
+	 */
+	public void setSdmxMenuIdFk(SdmxMenu sdmxMenuIdFk) {
+		this.sdmxMenuIdFk = sdmxMenuIdFk;
+	}
+
+	/**
+	 * @return the addApproval
+	 */
+	public Boolean getAddApproval() {
+		return addApproval;
+	}
+
+	/**
+	 * @param addApproval the addApproval to set
+	 */
+	public void setAddApproval(Boolean addApproval) {
+		this.addApproval = addApproval;
+	}
+
+	/**
+	 * @return the editApproval
+	 */
+	public Boolean getEditApproval() {
+		return editApproval;
+	}
+
+	/**
+	 * @param editApproval the editApproval to set
+	 */
+	public void setEditApproval(Boolean editApproval) {
+		this.editApproval = editApproval;
+	}
+
+	/**
+	 * @return the addRight
+	 */
+	public Boolean getAddRight() {
+		return addRight;
+	}
+
+	/**
+	 * @param addRight the addRight to set
+	 */
+	public void setAddRight(Boolean addRight) {
+		this.addRight = addRight;
+	}
+
+	/**
+	 * @return the editRight
+	 */
+	public Boolean getEditRight() {
+		return editRight;
+	}
+
+	/**
+	 * @param editRight the editRight to set
+	 */
+	public void setEditRight(Boolean editRight) {
+		this.editRight = editRight;
+	}
+
+	/**
+	 * @return the viewRight
+	 */
+	public Boolean getViewRight() {
+		return viewRight;
+	}
+
+	/**
+	 * @param viewRight the viewRight to set
+	 */
+	public void setViewRight(Boolean viewRight) {
+		this.viewRight = viewRight;
+	}
+
+	SdmxRoleTypeMenuMapping() {
+	}
+
+	@Override
+	public String toString() {
+		return "SdmxRoleTypeMenuMapping [sdmxMenuRoleTypeMapId=" + sdmxMenuRoleTypeMapId + ", roleTypeIdFk=" + roleTypeIdFk + ", isAdmin=" + isAdmin + ", isMainDept=" + isMainDept + ", sdmxMenuIdFk=" + sdmxMenuIdFk + ", addApproval=" + addApproval + ", editApproval=" + editApproval + ", addRight=" + addRight + ", editRight=" + editRight + ", viewRight=" + viewRight + "]";
+	}
+
+}

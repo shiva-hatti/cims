@@ -1,0 +1,17 @@
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.iris.model.UserRoleModified;
+
+public interface UserRoleModifiedRepo extends JpaRepository<UserRoleModified, Long> {
+
+	
+	@Query("From UserRoleModified userRoleModified where adminStatusId_FK = 1 order by userRoleModified.userRoleModifiedId asc")
+	List<UserRoleModified> getDataByLangIdAndRegId();
+	
+	
+}

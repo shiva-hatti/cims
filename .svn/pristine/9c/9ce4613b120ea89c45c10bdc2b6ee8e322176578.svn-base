@@ -1,0 +1,85 @@
+package com.iris.crossvalidation.service;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.persistence.Tuple;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.crossvalidation.service.dto.CrossValidationDto;
+
+@Service
+public class CrossValidationStatusService {
+	@Autowired
+	private EntityManager em;
+
+
+	public String generateReport(CrossValidationDto input, String source) throws Exception {
+		JasperReportExporter exporter = new JasperReportExporter();
+		String outputLocation = "E:\\feature\\microServices\\CIMSCusomizationServices\\src\\main\\resources\\abc.html";
+		exporter.prepareAndExportReport(null, outputLocation, getDataForScreen(input));
+		return outputLocation;
+
+	}
+
+	private List<CrossValidationDto> getDataForScreen(CrossValidationDto input){
+
+		StringBuilder sb = new StringBuilder();
+		sb.append(" select REF_RETURN_UPLOAD_ID,REF_RETURN_CODE,REF_RETURN_TMP_SHEET_NAME,REF_RETURN_ITEM_NAME,REF_VALUE, VALIDATION_RULE ")
+		.append(" ,CMP_RETURN_UPLOAD_ID ,  CMP_RETURN_CODE,CMP_RETURN_TMP_SHEET_NAME,CMP_RETURN_ITEM_NAME,CMP_VALUE ")
+		.append(" from TBL_CROSS_VALIDATION_STATUS where  ")
+		.append(" GROUP_NAME =:groupName ");
+		if(StringUtils.isNotBlank(input.getUploadIds())) {
+			sb.append(" and REF_RETURN_UPLOAD_ID in (:uploadIds)")
+			.append(" and CMP_RETURN_UPLOAD_ID in (:uploadIds)");
+		}
+		//	.append(" and REF_RETURN_UPLOAD_ID in (:uploadIds)")
+		//.append(" and CMP_RETURN_UPLOAD_ID in (:uploadIds)");
+		Query query = em.createNativeQuery(sb.toString(), Tuple.class).setParameter("groupName", input.getSetName());
+		if(StringUtils.isNotBlank(input.getUploadIds())) {
+			List<String> uploadIDs = Arrays.asList(input.getUploadIds().split(","));
+			query.setParameter("uploadIds", uploadIDs);
+		}
+		
+				List<Tuple> list = query.getResultList();
+		Integer previousRefReturn = 0;
+		Integer previousCmpReturn = 0;
+		List<CrossValidationDto> result = new ArrayList<>();
+		//CrossValidationDto inner = new CrossValidationDto();
+		boolean firstTime = true;
+		for(Tuple item : list) {
+			CrossValidationDto dto = new CrossValidationDto();
+			if(previousRefReturn.compareTo((Integer) item.get("REF_RETURN_UPLOAD_ID"))!=0 || previousCmpReturn.compareTo((Integer) item.get("CMP_RETURN_UPLOAD_ID"))!=0 ) {
+				previousRefReturn = (Integer) item.get("REF_RETURN_UPLOAD_ID");
+				previousCmpReturn = (Integer) item.get("CMP_RETURN_UPLOAD_ID");
+				//inner = new CrossValidationDto();
+				//result.add(inner);
+				if(firstTime) {
+					firstTime = false;
+				}else {
+					dto.setPageBreak("pageBreak");
+				}
+			}
+			
+			dto.setRefElementName((String) item.get("REF_RETURN_ITEM_NAME"));
+			dto.setRefTemplateName((String) item.get("REF_RETURN_TMP_SHEET_NAME"));
+			dto.setRefValue(((BigDecimal) item.get("REF_VALUE")).toPlainString());
+			dto.setCompElementName((String) item.get("CMP_RETURN_ITEM_NAME"));
+			dto.setCompTemplateName((String) item.get("CMP_RETURN_TMP_SHEET_NAME"));
+			dto.setCompValue(((BigDecimal) item.get("CMP_VALUE")).toPlainString());
+			dto.setValidationRule((String) item.get("VALIDATION_RULE"));
+			result.add(dto);
+		}
+
+		return result;
+
+	}
+
+}

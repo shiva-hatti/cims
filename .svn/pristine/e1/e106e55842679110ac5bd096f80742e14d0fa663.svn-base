@@ -1,0 +1,85 @@
+package com.iris.nbfc.service;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.exception.ServiceException;
+import com.iris.nbfc.model.NbfcPageMaster;
+import com.iris.nbfc.repository.NbfcPageMasterRepo;
+import com.iris.service.GenericService;
+
+@Service
+public class NbfcPageMasterService implements GenericService<NbfcPageMaster, Long> {
+	
+	@Autowired
+	NbfcPageMasterRepo nbfcPageMasterRepo;
+
+	@Override
+	public NbfcPageMaster add(NbfcPageMaster entity) throws ServiceException {
+		
+		return null;
+	}
+
+	@Override
+	public boolean update(NbfcPageMaster entity) throws ServiceException {
+		
+		return false;
+	}
+
+	@Override
+	public List<NbfcPageMaster> getDataByIds(Long[] ids) throws ServiceException {
+		
+		return Collections.emptyList();
+	}
+
+	@Override
+	public NbfcPageMaster getDataById(Long id) throws ServiceException {
+	
+		return null;
+	}
+
+	@Override
+	public List<NbfcPageMaster> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+	
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcPageMaster> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName)
+			throws ServiceException {
+		
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcPageMaster> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcPageMaster> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcPageMaster> getAllDataFor(Class bean, Long id) throws ServiceException {
+		if(bean.equals(NbfcPageMaster.class) && Objects.isNull(id)) {
+			return nbfcPageMasterRepo.findAll();
+		}
+		return Collections.emptyList();
+	}
+
+	@Override
+	public void deleteData(NbfcPageMaster bean) throws ServiceException {
+		
+		
+	}
+
+}

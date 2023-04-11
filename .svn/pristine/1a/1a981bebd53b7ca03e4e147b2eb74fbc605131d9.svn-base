@@ -1,0 +1,172 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+@JsonInclude(Include.NON_DEFAULT)
+public class EntityDto implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2322268070025314651L;
+
+	@JsonInclude(Include.NON_NULL)
+	private Long entityId;
+
+	@JsonInclude(Include.NON_NULL)
+	private String entityName;
+
+	@JsonInclude(Include.NON_NULL)
+	private String entityCode;
+
+	@JsonInclude(Include.NON_NULL)
+	private String ifscCode;
+
+	@JsonInclude(Include.NON_NULL)
+	private CategoryDto categoryDto;
+
+	@JsonInclude(Include.NON_NULL)
+	private SubCategoryDto subCategoryDto;
+
+	@JsonInclude(Include.NON_NULL)
+	private String entityNameAndCode;
+
+	@JsonInclude(Include.NON_NULL)
+	private List<Long> mappedUserIds;
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) {
+			return Boolean.FALSE;
+		} else {
+			if (this.getClass() != obj.getClass()) {
+				return Boolean.FALSE;
+			} else {
+				EntityDto entityDto = (EntityDto) obj;
+				return this.entityCode.equals((entityDto.getEntityCode()));
+			}
+		}
+	}
+
+	@Override
+	public int hashCode() {
+		return this.entityCode.hashCode();
+	}
+
+	/**
+	 * @return the mappedUserIds
+	 */
+	public List<Long> getMappedUserIds() {
+		return mappedUserIds;
+	}
+
+	/**
+	 * @param mappedUserIds the mappedUserIds to set
+	 */
+	public void setMappedUserIds(List<Long> mappedUserIds) {
+		this.mappedUserIds = mappedUserIds;
+	}
+
+	/**
+	 * @return the entityId
+	 */
+	public Long getEntityId() {
+		return entityId;
+	}
+
+	/**
+	 * @param entityId the entityId to set
+	 */
+	public void setEntityId(Long entityId) {
+		this.entityId = entityId;
+	}
+
+	/**
+	 * @return the entityName
+	 */
+	public String getEntityName() {
+		return entityName;
+	}
+
+	/**
+	 * @param entityName the entityName to set
+	 */
+	public void setEntityName(String entityName) {
+		this.entityName = entityName;
+	}
+
+	/**
+	 * @return the entityCode
+	 */
+	public String getEntityCode() {
+		return entityCode;
+	}
+
+	/**
+	 * @param entityCode the entityCode to set
+	 */
+	public void setEntityCode(String entityCode) {
+		this.entityCode = entityCode;
+	}
+
+	/**
+	 * @return the ifscCode
+	 */
+	public String getIfscCode() {
+		return ifscCode;
+	}
+
+	/**
+	 * @param ifscCode the ifscCode to set
+	 */
+	public void setIfscCode(String ifscCode) {
+		this.ifscCode = ifscCode;
+	}
+
+	/**
+	 * @return the categoryDto
+	 */
+	public CategoryDto getCategoryDto() {
+		return categoryDto;
+	}
+
+	/**
+	 * @param categoryDto the categoryDto to set
+	 */
+	public void setCategoryDto(CategoryDto categoryDto) {
+		this.categoryDto = categoryDto;
+	}
+
+	/**
+	 * @return the subCategoryDto
+	 */
+	public SubCategoryDto getSubCategoryDto() {
+		return subCategoryDto;
+	}
+
+	/**
+	 * @param subCategoryDto the subCategoryDto to set
+	 */
+	public void setSubCategoryDto(SubCategoryDto subCategoryDto) {
+		this.subCategoryDto = subCategoryDto;
+	}
+
+	/**
+	 * @return the entityNameAndCode
+	 */
+	public String getEntityNameAndCode() {
+		return entityNameAndCode;
+	}
+
+	/**
+	 * @param entityNameAndCode the entityNameAndCode to set
+	 */
+	public void setEntityNameAndCode(String entityNameAndCode) {
+		this.entityNameAndCode = entityNameAndCode;
+	}
+
+}

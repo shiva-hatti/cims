@@ -1,0 +1,201 @@
+/**
+ * 
+ */
+package com.iris.sdmx.lockrecord.service;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.iris.exception.ServiceException;
+import com.iris.sdmx.lockrecord.bean.SdmxLockRecordBean;
+import com.iris.sdmx.lockrecord.bean.SdmxLockRecordSetBean;
+import com.iris.sdmx.lockrecord.entity.SdmxLockRecordEntity;
+import com.iris.sdmx.lockrecord.helper.SdmxLockRecordHelper;
+import com.iris.sdmx.lockrecord.repo.SdmxLockRecordRepo;
+import com.iris.service.GenericService;
+
+/**
+ * @author apagaria
+ *
+ */
+@Service
+@Transactional(readOnly = true)
+public class SdmxLockRecordService implements GenericService<SdmxLockRecordEntity, Long> {
+
+	private static final Logger LOGGER = LogManager.getLogger(SdmxLockRecordService.class);
+
+	@Autowired
+	private SdmxLockRecordRepo sdmxLockRecordRepo;
+
+	@Autowired
+	private SdmxLockRecordHelper sdmxLockRecordHelper;
+
+	@Override
+	public SdmxLockRecordEntity add(SdmxLockRecordEntity sdmxLockRecordEntity) throws ServiceException {
+		return sdmxLockRecordRepo.save(sdmxLockRecordEntity);
+	}
+
+	@Override
+	public boolean update(SdmxLockRecordEntity entity) throws ServiceException {
+
+		return false;
+	}
+
+	@Override
+	public List<SdmxLockRecordEntity> getDataByIds(Long[] ids) throws ServiceException {
+
+		return null;
+	}
+
+	@Override
+	public SdmxLockRecordEntity getDataById(Long id) throws ServiceException {
+
+		return null;
+	}
+
+	@Override
+	public List<SdmxLockRecordEntity> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+
+		return null;
+	}
+
+	@Override
+	public List<SdmxLockRecordEntity> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap,
+			String methodName) throws ServiceException {
+
+		return null;
+	}
+
+	@Override
+	public List<SdmxLockRecordEntity> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<SdmxLockRecordEntity> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<SdmxLockRecordEntity> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public void deleteData(SdmxLockRecordEntity bean) throws ServiceException {
+
+	}
+
+	/**
+	 * @param sdmxLockRecordSetBean
+	 * @param jobProcessingId
+	 * @param userId
+	 */
+	@Transactional(readOnly = false)
+	public void setLockOnRecord(SdmxLockRecordSetBean sdmxLockRecordSetBean, String jobProcessingId, Long userId,
+			Long lockRecordId, String recordDetailEncodedStr) {
+		LOGGER.info("Job Processing id - " + jobProcessingId + ", @setLockOnRecord START");
+		SdmxLockRecordEntity sdmxLockRecordEntity = new SdmxLockRecordEntity();
+		sdmxLockRecordHelper.convertSetBeanToEntity(sdmxLockRecordSetBean, sdmxLockRecordEntity, userId,
+				jobProcessingId, lockRecordId, recordDetailEncodedStr);
+		add(sdmxLockRecordEntity);
+		LOGGER.info("Job Processing id - " + jobProcessingId + ", @setLockOnRecord END");
+	}
+
+	/**
+	 * @param recordDetailEncode
+	 * @param isActive
+	 * @param jobProcessingId
+	 * @return
+	 */
+	public SdmxLockRecordBean findByRecordDetailEncodeNActive(String recordDetailEncode, Boolean isActive,
+			String jobProcessingId) {
+		LOGGER.info("Job Processing id - " + jobProcessingId + ", @findByRecordDetailEncodeNActive START");
+		LOGGER.debug("Job Processing id - " + jobProcessingId
+				+ ", @findByRecordDetailEncodeNActive recordDetailEncode - " + recordDetailEncode);
+		SdmxLockRecordBean sdmxLockRecordBean = null;
+		SdmxLockRecordEntity sdmxLockRecordEntity = sdmxLockRecordRepo
+				.findByRecordDetailEncodeNActive(recordDetailEncode, isActive);
+		if (sdmxLockRecordEntity != null) {
+			sdmxLockRecordBean = new SdmxLockRecordBean();
+			SdmxLockRecordHelper.fetchBeanFromEntity(sdmxLockRecordEntity, sdmxLockRecordBean, jobProcessingId);
+		} else {
+			LOGGER.debug(
+					"Job Processing id - " + jobProcessingId + ", @findByRecordDetailEncodeNActive no entity found");
+		}
+		LOGGER.info("Job Processing id - " + jobProcessingId + ", @findByRecordDetailEncodeNActive END");
+		return sdmxLockRecordBean;
+	}
+
+	/**
+	 * @param recordDetailEncode
+	 * @param isActive
+	 * @param jobProcessingId
+	 * @return
+	 */
+	public SdmxLockRecordBean findByRecordDetailEncode(String recordDetailEncode, String jobProcessingId) {
+		LOGGER.info("Job Processing id - " + jobProcessingId + ", @findByRecordDetailEncode START");
+		LOGGER.debug("Job Processing id - " + jobProcessingId + ", @findByRecordDetailEncode recordDetailEncode - "
+				+ recordDetailEncode);
+		SdmxLockRecordBean sdmxLockRecordBean = null;
+		SdmxLockRecordEntity sdmxLockRecordEntity = sdmxLockRecordRepo.findByRecordDetailEncode(recordDetailEncode);
+		if (sdmxLockRecordEntity != null) {
+			sdmxLockRecordBean = new SdmxLockRecordBean();
+			SdmxLockRecordHelper.fetchBeanFromEntity(sdmxLockRecordEntity, sdmxLockRecordBean, jobProcessingId);
+		} else {
+			LOGGER.debug("Job Processing id - " + jobProcessingId + ", @findByRecordDetailEncode no entity found");
+		}
+		LOGGER.info("Job Processing id - " + jobProcessingId + ", @findByRecordDetailEncode END");
+		return sdmxLockRecordBean;
+	}
+
+	/**
+	 * @param recordDetailEncode
+	 * @param isActive
+	 * @param jobProcessingId
+	 */
+	@Transactional(readOnly = false)
+	public void findNSaveByRecordDetailEncodeNActive(String recordDetailEncode, Boolean isActive,
+			String jobProcessingId) {
+		LOGGER.info("Job Processing id - " + jobProcessingId + ", @findNSaveByRecordDetailEncodeNActive START");
+		LOGGER.debug("Job Processing id - " + jobProcessingId
+				+ ", @findNSaveByRecordDetailEncodeNActive recordDetailEncode - " + recordDetailEncode);
+		SdmxLockRecordEntity sdmxLockRecordEntity = sdmxLockRecordRepo
+				.findByRecordDetailEncodeNActive(recordDetailEncode, isActive);
+		if (sdmxLockRecordEntity != null) {
+			sdmxLockRecordEntity.setIsActive(Boolean.FALSE);
+			add(sdmxLockRecordEntity);
+		} else {
+			LOGGER.debug("Job Processing id - " + jobProcessingId
+					+ ", @findNSaveByRecordDetailEncodeNActive no entity found");
+		}
+		LOGGER.info("Job Processing id - " + jobProcessingId + ", @findNSaveByRecordDetailEncodeNActive END");
+	}
+
+	/**
+	 * @param moduleId
+	 * @param returnTemplateIdFk
+	 * @return
+	 */
+	public Boolean isReturnTemplateLocked(Long moduleId, Long returnTemplateIdFk) {
+		Boolean isReturnLocked = true;
+		List<SdmxLockRecordEntity> sdmxLockRecordEntities = sdmxLockRecordRepo.findEntityByModelDimNElementId(moduleId,
+				returnTemplateIdFk);
+		if(CollectionUtils.isEmpty(sdmxLockRecordEntities)) {
+			isReturnLocked = false;
+		}
+		return isReturnLocked;
+	}
+}

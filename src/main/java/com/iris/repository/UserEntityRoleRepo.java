@@ -1,0 +1,44 @@
+
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.UserEntityRole;
+
+/**
+ * @author sajadhav
+ *
+ */
+public interface UserEntityRoleRepo extends JpaRepository<UserEntityRole, Long> {
+
+	@Query(value = "SELECT a FROM UserEntityRole a, UserRoleMaster b where a.userRoleMaster.userRoleMasterId = b.userRoleMasterId and b.isActive = 1 and b.userMaster.isActive = 1 and b.userMaster.userId =:userId ")
+	UserEntityRole getDataByUserId(@Param("userId") Long userId);
+
+	@Query(value = "select * FROM TBL_USER_ENTITY_ROLE where IS_ACTIVE = 1 and USER_ROLE_MASTER_ID_FK=:userRoleMasterId order by USER_ENTITY_ROLE_ID desc", nativeQuery = true)
+	List<UserEntityRole> getUserEntityRoleByUserRoleMasterId(@Param("userRoleMasterId") Long userRoleMasterId);
+
+	//	@Query(value = "FROM UserEntityRole userEntityRole, UserRoleMaster userRoleMaster, UserRoleReturnMapping userRoleReturnMapping, UserMaster userMaster, UserRole userRole where "
+	//			+ " userEntityRole.userRoleMaster.userRoleMasterId = userRoleMaster.userRoleMasterId and userRoleMaster.userRole.userRoleId = userRole.userRoleId "
+	//			+ " and userRoleReturnMapping.roleIdFk.userRoleId = userRole.userRoleId and userRoleMaster.userMaster.userId = userMaster.userId and  userMaster.isActive = 1 and userEntityRole.isActive = 1"
+	//			+ " and userRoleMaster.isActive = 1 and userRoleReturnMapping.isActive = 1 and userRole.isActive = 1 and userEntityRole.entityBean.entityCode in :entityCode and userRoleReturnMapping.returnIdFk.returnCode in :returnCode")
+	//	List<UserEntityRole> getEmailIdsForAppRejUnlockReqUsers(@Param("entityCode") String entityCode, @Param("returnCode") String returnCode);
+
+	@Query(value = "FROM UserEntityRole where isActive = 1 and userRoleMaster.isActive = 1 and userRoleMaster.userMaster.isActive = 1 and entityBean.entityId IN :activeEntityBeanList")
+	List<UserEntityRole> getActiveEntities(@Param("activeEntityBeanList") List<Long> activeEntityBeanList);
+
+	@Query(value = "select new com.iris.model.UserEntityRole(userMaster.userId, userRole.userRoleId, userEntityRole.companyEmail) FROM UserEntityRole userEntityRole, UserRoleMaster userRoleMaster, UserMaster userMaster, UserRole userRole where " + " userEntityRole.userRoleMaster.userRoleMasterId = userRoleMaster.userRoleMasterId and userRoleMaster.userRole.userRoleId = userRole.userRoleId " + " and userRoleMaster.userMaster.userId = userMaster.userId and  userMaster.isActive = 1 and userEntityRole.isActive = 1" + " and userRoleMaster.isActive = 1 and userRole.isActive = 1 and userEntityRole.entityBean.entityCode in :entityCode ")
+	List<UserEntityRole> getEntityByEntityCode(@Param("entityCode") String entityCode);
+
+	@Query(value = "select new com.iris.model.UserEntityRole(userMaster.userId, userRole.userRoleId, userEntityRole.companyEmail) FROM UserEntityRole userEntityRole, UserRoleMaster userRoleMaster, UserMaster userMaster, UserRole userRole where " + " userEntityRole.userRoleMaster.userRoleMasterId = userRoleMaster.userRoleMasterId and userRoleMaster.userRole.userRoleId = userRole.userRoleId " + " and userRoleMaster.userMaster.userId = userMaster.userId and  userMaster.isActive = 1 and userEntityRole.isActive = 1" + " and userRoleMaster.isActive = 1 and userRole.isActive = 1 and userEntityRole.entityBean.entityId =:entityId and userEntityRole.userRoleMaster.userRoleMasterId =:roleMasterId ")
+	List<UserEntityRole> getEntityByEntityIdAndUserRoleMasterId(@Param("entityId") Long entityId, @Param("roleMasterId") Long roleMasterId);
+
+	@Query(value = "From  UserEntityRole userEntityRole, EntityBean eb where userEntityRole.companyEmail in(:emailIds) and eb.entityId = userEntityRole.entityBean.entityId and eb.entityCode in (:entityCodeList) and userEntityRole.isActive = 1")
+	List<UserEntityRole> getDataByPrimaryEmailInAndIsActiveTrue(@Param("emailIds") List<String> emailIds, @Param("entityCodeList") List<String> entityCodeList);
+
+	@Query(value = "FROM UserEntityRole where isActive = 1 and userRoleMaster.isActive = 1 and userRoleMaster.userMaster.isActive = 1 and entityBean.entityCode= :entityCode")
+	List<UserEntityRole> getActiveUserByEntityCode(@Param("entityCode") String entityCode);
+}

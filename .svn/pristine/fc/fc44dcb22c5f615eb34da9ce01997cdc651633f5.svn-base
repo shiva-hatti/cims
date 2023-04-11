@@ -1,0 +1,43 @@
+
+package com.iris.repository;
+
+import java.util.Date;
+import java.util.List;
+
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.iris.model.ReturnRegulatorMapping;
+
+/**
+ * @author pmohite
+ *
+ */
+public interface ReturnRegulatorMappingRepo extends JpaRepository<ReturnRegulatorMapping, Long> {
+	
+	@Query(value = "from ReturnRegulatorMapping reg, UserRoleReturnMapping retMap, Return ret where retMap.roleIdFk.userRoleId =:roleId and retMap.isActive = :isActive and retMap.returnIdFk.returnId = ret.returnId and retMap.returnIdFk.isActive = :isActive and reg.returnIdFk.returnId = ret.returnId  and reg.isActive = :isActive and reg.regulatorIdFk.regulatorId =:reguLatorId")
+	List<ReturnRegulatorMapping> getMappedReturnListByRegulatorIdAndIsActiveStatus(@Param("roleId") Long roleId,@Param("reguLatorId") Long reguLatorId, @Param("isActive") boolean isActive);
+	
+	@Query(value = "from ReturnRegulatorMapping reg, UserRoleReturnMapping retMap, Return ret where retMap.roleIdFk.userRoleId =:roleId and retMap.returnIdFk.returnId = ret.returnId  and reg.returnIdFk.returnId = ret.returnId and reg.regulatorIdFk.regulatorId =:reguLatorId")
+	List<ReturnRegulatorMapping> getMappedReturnListByRegulatorId(@Param("roleId") Long roleId,@Param("reguLatorId") Long reguLatorId);
+	
+	List<ReturnRegulatorMapping> findByReturnIdFkReturnIdAndIsActiveTrue(Long returnId);
+	
+	@Query(value = "FROM ReturnRegulatorMapping returnRegulatorMapping, Return returns where returnRegulatorMapping.returnIdFk.returnId = returns.returnId and returns.isActive = 1 and returnRegulatorMapping.isActive = 1 and returns.returnCode in :returnCode")
+	List<ReturnRegulatorMapping> getMappedDataByReturnCode(@Param("returnCode") String returnCode);
+	
+	@Transactional
+	@Modifying
+	@Query(value = "Update ReturnRegulatorMapping SET isActive = '0' ,emailIds = null, updatedOn = :date, updatedBy.userId = :userId where regulatorIdFk.regulatorId =:reguLatorId and returnIdFk.returnId NOT IN(:returnIds)")
+	void updateReturnRegulatorMappingByRegulatoIdAndReturnIds(@Param("reguLatorId") Long reguLatorId, @Param("returnIds") List<Long> returnIds, @Param("date") Date date, @Param("userId") Long userId);
+	
+	@Transactional
+	@Modifying
+	@Query(value = "Update ReturnRegulatorMapping SET isActive = '0' ,emailIds = null, updatedOn = :date, updatedBy.userId = :userId where regulatorIdFk.regulatorId =:reguLatorId")
+	void updateReturnRegulatorMappingByRegulatoId(@Param("reguLatorId") Long reguLatorId, @Param("date") Date date, @Param("userId") Long userId);
+}
+

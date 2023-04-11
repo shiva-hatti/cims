@@ -1,0 +1,18 @@
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.UserRoleLabel;
+
+public interface UserRoleLabelRepo extends JpaRepository<UserRoleLabel, Long> {
+
+	@Query("from UserRoleLabel WHERE userRoleIdFk.roleType.roleTypeId=:roleTypeId AND langIdFk.languageId=:langId AND userRoleIdFk.createdByRole.user.userId IN " + "(SELECT userId FROM UserMaster WHERE departmentIdFk.regulatorId=:loggedInUserDeptId)")
+	List<UserRoleLabel> getAllUserRoleForLoggedInUser(@Param("roleTypeId") Long roleTypeId, @Param("loggedInUserDeptId") Long loggedInUserDeptId, @Param("langId") Long langId);
+
+	@Query("from UserRoleLabel WHERE userRoleIdFk.roleType.roleTypeId=:roleTypeId AND langIdFk.languageId=:langId AND userRoleIdFk.isActive=1 AND userRoleIdFk.user.userId IN " + "(SELECT userId FROM UserMaster WHERE departmentIdFk.regulatorId=:loggedInUserDeptId) order by userRoleLabel")
+	List<UserRoleLabel> getAllUserRoleForLoggedInUserIsActive(@Param("roleTypeId") Long roleTypeId, @Param("loggedInUserDeptId") Long loggedInUserDeptId, @Param("langId") Long langId);
+}

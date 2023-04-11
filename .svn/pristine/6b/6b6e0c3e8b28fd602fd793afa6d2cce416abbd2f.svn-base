@@ -1,0 +1,365 @@
+/**
+ * 
+ */
+package com.iris.dto;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+
+import com.iris.model.EntityBean;
+import com.iris.model.FrequencyDescription;
+import com.iris.model.Return;
+import com.iris.model.ReturnPropertyValue;
+import com.iris.model.ReturnsUploadDetails;
+import com.iris.model.UserMaster;
+
+/**
+ * @author Siddique
+ *
+ */
+public class RevisionRequestBean implements Serializable {
+
+	private static final long serialVersionUID = 6857059849079290479L;
+
+	private Long revisionRequestId;
+
+	private Return returns;
+
+	private EntityBean entity;
+
+	private FrequencyDescription frequencyDesc;
+
+	private Long year;
+
+	private Integer month;
+
+	private Date reportingDate;
+
+	private Date startDate;
+
+	private Date endDate;
+
+	private Integer adminStatusIdFk;
+
+	private Integer actionIdFk;
+
+	private String reasonForRequest;
+
+	private String reasonForRejection;
+
+	private UserMaster createdBy;
+
+	private Date createdOn;
+
+	private UserMaster approvedByFk;
+
+	private Date approvedOn;
+
+	private String isClose;
+
+	private String revisionStatus;
+
+	private Date maxRevisionReqDate;
+
+	private ReturnPropertyValue returnPropertyVal;
+
+	private List<ReturnsUploadDetails> returnsUploadDetailsList;
+
+	private String entCode;
+
+	private String retCode;
+
+	private String retName;
+
+	private String finYrFreqDesc;
+
+	private String maxRevisionReqDateString;
+
+	private String reportingDateString;
+
+	private String startDateString;
+
+	private String endDateString;
+
+	private String createdOnString;
+
+	private String approvedOnString;
+
+	private String sessionDateFormat;
+
+	private String sessionTimeFormat;
+
+	public Long getRevisionRequestId() {
+		return revisionRequestId;
+	}
+
+	public void setRevisionRequestId(Long revisionRequestId) {
+		this.revisionRequestId = revisionRequestId;
+	}
+
+	public Return getReturns() {
+		return returns;
+	}
+
+	public void setReturns(Return returns) {
+		this.returns = returns;
+	}
+
+	public EntityBean getEntity() {
+		return entity;
+	}
+
+	public void setEntity(EntityBean entity) {
+		this.entity = entity;
+	}
+
+	public FrequencyDescription getFrequencyDesc() {
+		return frequencyDesc;
+	}
+
+	public void setFrequencyDesc(FrequencyDescription frequencyDesc) {
+		this.frequencyDesc = frequencyDesc;
+	}
+
+	public Long getYear() {
+		return year;
+	}
+
+	public void setYear(Long year) {
+		this.year = year;
+	}
+
+	public Integer getMonth() {
+		return month;
+	}
+
+	public void setMonth(Integer month) {
+		this.month = month;
+	}
+
+	public Date getReportingDate() {
+		return reportingDate;
+	}
+
+	public void setReportingDate(Date reportingDate) {
+		this.reportingDate = reportingDate;
+	}
+
+	public Date getStartDate() {
+		return startDate;
+	}
+
+	public void setStartDate(Date startDate) {
+		this.startDate = startDate;
+	}
+
+	public Date getEndDate() {
+		return endDate;
+	}
+
+	public void setEndDate(Date endDate) {
+		this.endDate = endDate;
+	}
+
+	public Integer getAdminStatusIdFk() {
+		return adminStatusIdFk;
+	}
+
+	public void setAdminStatusIdFk(Integer adminStatusIdFk) {
+		this.adminStatusIdFk = adminStatusIdFk;
+	}
+
+	public Integer getActionIdFk() {
+		return actionIdFk;
+	}
+
+	public void setActionIdFk(Integer actionIdFk) {
+		this.actionIdFk = actionIdFk;
+	}
+
+	public String getReasonForRequest() {
+		return reasonForRequest;
+	}
+
+	public void setReasonForRequest(String reasonForRequest) {
+		this.reasonForRequest = reasonForRequest;
+	}
+
+	public String getReasonForRejection() {
+		return reasonForRejection;
+	}
+
+	public void setReasonForRejection(String reasonForRejection) {
+		this.reasonForRejection = reasonForRejection;
+	}
+
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	public UserMaster getApprovedByFk() {
+		return approvedByFk;
+	}
+
+	public void setApprovedByFk(UserMaster approvedByFk) {
+		this.approvedByFk = approvedByFk;
+	}
+
+	public Date getApprovedOn() {
+		return approvedOn;
+	}
+
+	public void setApprovedOn(Date approvedOn) {
+		this.approvedOn = approvedOn;
+	}
+
+	public String getIsClose() {
+		return isClose;
+	}
+
+	public void setIsClose(String isClose) {
+		this.isClose = isClose;
+	}
+
+	public String getRevisionStatus() {
+		return revisionStatus;
+	}
+
+	public void setRevisionStatus(String revisionStatus) {
+		this.revisionStatus = revisionStatus;
+	}
+
+	public Date getMaxRevisionReqDate() {
+		return maxRevisionReqDate;
+	}
+
+	public void setMaxRevisionReqDate(Date maxRevisionReqDate) {
+		this.maxRevisionReqDate = maxRevisionReqDate;
+	}
+
+	public ReturnPropertyValue getReturnPropertyVal() {
+		return returnPropertyVal;
+	}
+
+	public void setReturnPropertyVal(ReturnPropertyValue returnPropertyVal) {
+		this.returnPropertyVal = returnPropertyVal;
+	}
+
+	public List<ReturnsUploadDetails> getReturnsUploadDetailsList() {
+		return returnsUploadDetailsList;
+	}
+
+	public void setReturnsUploadDetailsList(List<ReturnsUploadDetails> returnsUploadDetailsList) {
+		this.returnsUploadDetailsList = returnsUploadDetailsList;
+	}
+
+	public String getEntCode() {
+		return entCode;
+	}
+
+	public void setEntCode(String entCode) {
+		this.entCode = entCode;
+	}
+
+	public String getRetCode() {
+		return retCode;
+	}
+
+	public void setRetCode(String retCode) {
+		this.retCode = retCode;
+	}
+
+	public String getRetName() {
+		return retName;
+	}
+
+	public void setRetName(String retName) {
+		this.retName = retName;
+	}
+
+	public String getFinYrFreqDesc() {
+		return finYrFreqDesc;
+	}
+
+	public void setFinYrFreqDesc(String finYrFreqDesc) {
+		this.finYrFreqDesc = finYrFreqDesc;
+	}
+
+	public String getMaxRevisionReqDateString() {
+		return maxRevisionReqDateString;
+	}
+
+	public void setMaxRevisionReqDateString(String maxRevisionReqDateString) {
+		this.maxRevisionReqDateString = maxRevisionReqDateString;
+	}
+
+	public String getReportingDateString() {
+		return reportingDateString;
+	}
+
+	public void setReportingDateString(String reportingDateString) {
+		this.reportingDateString = reportingDateString;
+	}
+
+	public String getStartDateString() {
+		return startDateString;
+	}
+
+	public void setStartDateString(String startDateString) {
+		this.startDateString = startDateString;
+	}
+
+	public String getEndDateString() {
+		return endDateString;
+	}
+
+	public void setEndDateString(String endDateString) {
+		this.endDateString = endDateString;
+	}
+
+	public String getCreatedOnString() {
+		return createdOnString;
+	}
+
+	public void setCreatedOnString(String createdOnString) {
+		this.createdOnString = createdOnString;
+	}
+
+	public String getApprovedOnString() {
+		return approvedOnString;
+	}
+
+	public void setApprovedOnString(String approvedOnString) {
+		this.approvedOnString = approvedOnString;
+	}
+
+	public String getSessionDateFormat() {
+		return sessionDateFormat;
+	}
+
+	public void setSessionDateFormat(String sessionDateFormat) {
+		this.sessionDateFormat = sessionDateFormat;
+	}
+
+	public String getSessionTimeFormat() {
+		return sessionTimeFormat;
+	}
+
+	public void setSessionTimeFormat(String sessionTimeFormat) {
+		this.sessionTimeFormat = sessionTimeFormat;
+	}
+
+}

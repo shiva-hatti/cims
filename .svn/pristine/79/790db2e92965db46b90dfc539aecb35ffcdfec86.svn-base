@@ -1,0 +1,708 @@
+/**
+ * 
+ */
+package com.iris.sdmx.fusion.service;
+
+import java.io.StringReader;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import javax.sql.DataSource;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Unmarshaller;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.google.gson.Gson;
+import com.iris.caching.ObjectCache;
+import com.iris.dto.SdmxWebserviceUrlDto;
+import com.iris.dto.ServiceResponse;
+import com.iris.sdmx.exceltohtml.bean.DimensionCodeListValueBean;
+import com.iris.sdmx.exceltohtml.bean.DimensionDetailCategories;
+import com.iris.sdmx.fusion.bean.Constraintattachment;
+import com.iris.sdmx.fusion.bean.Contentconstraints;
+import com.iris.sdmx.fusion.bean.Data;
+import com.iris.sdmx.fusion.bean.Datakeysets;
+import com.iris.sdmx.fusion.bean.FusionConstraintsBean;
+import com.iris.sdmx.fusion.bean.Keys;
+import com.iris.sdmx.fusion.bean.Keyvalues;
+import com.iris.sdmx.fusion.bean.Links;
+import com.iris.sdmx.fusion.bean.Meta;
+import com.iris.sdmx.fusion.bean.Names;
+import com.iris.sdmx.fusion.bean.RegistryInterface;
+import com.iris.sdmx.fusion.bean.Sender;
+import com.iris.sdmx.fusion.entity.FusionProperties;
+import com.iris.sdmx.fusion.util.FusionPropertiesConstant;
+import com.iris.sdmx.util.RestClientResponse;
+import com.iris.sdmx.util.SDMXConstants;
+import com.iris.sdmx.util.SDMXWebServiceConstant;
+import com.iris.service.GenericService;
+import com.iris.util.JsonUtility;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.webservices.client.CIMSRestWebserviceClient;
+
+/**
+ * @author apagaria
+ *
+ */
+@Service
+public class FusionConstraintsApiService {
+
+	/**
+	 * 
+	 */
+	private static final Logger LOGGER = LogManager.getLogger(FusionConstraintsApiService.class);
+
+	private static final String ERROR_TAG = "mes:ErrorMessage";
+	private static final String SUCCESS = "Success";
+	private static final String ELEMENT_KEY_LABLE = "@KEY#$";
+	private static final String ELEMENT_VERSION_AGENCY_KEY_LABLE = "@AKEY#$";
+	private static final String DATA_NAME_PREFIX = "DMID Validity ";
+	private static final String DATA_ID_PREFIX = "DMIDValidity_";
+	private static final String N_A_VALUE = "*";
+	private static final String EQUAL_CONSTANT_STRING = "=";
+	private static final String COLON_CONSTANT_STRING = ":";
+	private static final String START_BRACKET_STRING = "(";
+	private static final String CLOSE_BRACKET_STRING = ")";
+	private static final String START_AGENCY_BRACKET_STRING = "{";
+	private static final String END_AGENCY_BRACKET_STRING = "}";
+
+	/**
+	 * 
+	 */
+	@Autowired
+	private DataSource dataSource;
+
+	/**
+	 * 
+	 */
+	@Autowired
+	private GenericService<FusionProperties, Long> fusionPropertiesService;
+
+	@SuppressWarnings("unchecked")
+	public Boolean processFusionConstraintsByReturnPreviewId(Long returnPreviewId, String jobProcessingId,
+			Map<String, Boolean> elementStatusMap) throws SQLException {
+		Boolean processStatus = true;
+		ServiceResponse serviceResponse = getFusionProperties();
+		if (serviceResponse.isStatus()) {
+			// Fetching static properties
+			List<FusionProperties> fusionProperties = (List<FusionProperties>) serviceResponse.getResponse();
+			if (CollectionUtils.isEmpty(fusionProperties)) {
+				return false;
+			}
+			// Static properties Map
+			Map<String, String> fusionPropertiesMap = fusionProperties.stream()
+					.collect(Collectors.toMap(FusionProperties::getKey, FusionProperties::getValue));
+
+			// Creating Bean
+			FusionConstraintsBean fusionConstraintsBean = new FusionConstraintsBean();
+			createInputBean(fusionConstraintsBean, fusionPropertiesMap);
+
+			elementStatusMap = fetchElementSpecificJsonFromReturnTemplate(returnPreviewId, fusionPropertiesMap,
+					fusionConstraintsBean, jobProcessingId, elementStatusMap);
+			if (elementStatusMap.values().contains(false)) {
+				processStatus = false;
+			}
+		}
+		return processStatus;
+	}
+
+	public ServiceResponse getFusionProperties() {
+		try {
+			List<FusionProperties> fusionProperties = fusionPropertiesService.getAllDataFor(null, null);
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(fusionProperties).build();
+		} catch (Exception e) {
+			LOGGER.error("Exception", e);
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+		}
+	}
+
+	/**
+	 * @param returnPreviewId
+	 * @throws SQLException
+	 */
+	public Map<String, Boolean> fetchElementSpecificJsonFromReturnTemplate(Long returnPreviewId,
+			Map<String, String> fusionPropertiesMap, FusionConstraintsBean fusionConstraintsBean,
+			String jobProcessingId, Map<String, Boolean> elementStatusMap) throws SQLException {
+		List<String> elementKeyList = fetchElementListFromReturnPreviewId(returnPreviewId);
+		Map<String, Boolean> elementStatusList = processElementConstraints(fusionPropertiesMap, fusionConstraintsBean,
+				jobProcessingId, elementKeyList, elementStatusMap);
+		LOGGER.debug(GeneralConstants.JOB_PROCESSING_ID.getConstantVal() + " " + jobProcessingId
+				+ ", elementStatusList " + elementStatusList);
+		return elementStatusList;
+	}
+
+	public void fetchAllElement(Map<String, String> fusionPropertiesMap, FusionConstraintsBean fusionConstraintsBean,
+			String jobProcessingId, Map<String, Boolean> elementStatusMap) throws SQLException {
+		List<String> elementKeyList = fetchAllElementList();
+		Map<String, Boolean> elementStatusList = processElementConstraints(fusionPropertiesMap, fusionConstraintsBean,
+				jobProcessingId, elementKeyList, elementStatusMap);
+		LOGGER.debug(GeneralConstants.JOB_PROCESSING_ID.getConstantVal() + " " + jobProcessingId
+				+ ", fetchAllElement -> elementStatusList " + elementStatusList);
+	}
+
+	public Map<String, Boolean> processElementConstraints(Map<String, String> fusionPropertiesMap,
+			FusionConstraintsBean fusionConstraintsBean, String jobProcessingId, List<String> elementKeyList,
+			Map<String, Boolean> elementStatusMap) throws SQLException {
+		Gson gson = new Gson();
+		Data data = null;
+		List<Contentconstraints> contentConstraintList = null;
+		for (String elementKey : elementKeyList) {
+			data = new Data();
+			contentConstraintList = new ArrayList<>();
+			elementKey = elementKey.replace("\"", "");
+			String[] elementArray = elementKey.split(Pattern.quote(ELEMENT_KEY_LABLE));
+			String elementCode = elementArray[0];
+			String[] elementVerAgencyArray = elementArray[1].split(Pattern.quote(ELEMENT_VERSION_AGENCY_KEY_LABLE));
+			String elementVersion = elementVerAgencyArray[0];
+			String agencyName = elementVerAgencyArray[1];
+			List<String> modelDimList = fetchModelCodeListFromElementNVersion(elementCode, elementVersion);
+			// contentconstraints
+			Contentconstraints contentconstraints = new Contentconstraints();
+			contentconstraints.setName(DATA_NAME_PREFIX + elementCode);
+			Names names = new Names();
+			names.setEn(DATA_NAME_PREFIX + elementCode);
+			contentconstraints.setNames(names);
+			contentconstraints.setId(DATA_ID_PREFIX + elementCode);
+			contentconstraints.setVersion(elementVersion);
+			contentconstraints.setAgencyID(agencyName);
+			contentconstraints.setIsExternalReference(false);
+			contentconstraints.setIsFinal(false);
+			contentconstraints.setType(
+					fusionPropertiesMap.get(FusionPropertiesConstant.FUSION_CONSTRAINTS_CONTENT_TYPE.getConstant()));
+			List<String> dataStructures = new ArrayList<>();
+			dataStructures.add(fusionPropertiesMap
+					.get(FusionPropertiesConstant.FUSION_CONSTRAINTS_DATA_STRUCTURE_STRING.getConstant())
+					+ EQUAL_CONSTANT_STRING + agencyName + COLON_CONSTANT_STRING + elementCode.toUpperCase()
+					+ START_BRACKET_STRING + elementVersion + CLOSE_BRACKET_STRING);
+			Constraintattachment constraintattachment = new Constraintattachment();
+			constraintattachment.setDataStructures(dataStructures);
+			contentconstraints.setConstraintAttachment(constraintattachment);
+			List<Datakeysets> dataKeySetList = new ArrayList<>();
+			Datakeysets datakeysets = new Datakeysets();
+			datakeysets.setIsIncluded(true);
+			List<Keys> keyList = new ArrayList<>();
+
+			for (String modelDim : modelDimList) {
+				Keys keys = new Keys();
+				DimensionDetailCategories dimensionDetailCategories = gson.fromJson(modelDim,
+						DimensionDetailCategories.class);
+				List<Keyvalues> keyValuesList = new ArrayList<>();
+
+				// Close Dim
+				if (!CollectionUtils.isEmpty(dimensionDetailCategories.getClosedDim())) {
+					for (DimensionCodeListValueBean dimensionCodeListValueBean : dimensionDetailCategories
+							.getClosedDim()) {
+						if (!StringUtils.isBlank(dimensionCodeListValueBean.getDimConceptId())) {
+							Keyvalues keyvalues = new Keyvalues();
+							keyvalues.setId(dimensionCodeListValueBean.getDimConceptId());
+							if (StringUtils.isEmpty(dimensionCodeListValueBean.getClValueCode())) {
+								keyvalues.setValue(N_A_VALUE);
+							} else {
+								if (!(dimensionCodeListValueBean.getClValueCode()
+										.equalsIgnoreCase(SDMXConstants.ITEM_FREE_TEXT)
+										|| dimensionCodeListValueBean.getClValueCode()
+												.equalsIgnoreCase(SDMXConstants.FILER_TO_SELECT))) {
+									keyvalues.setValue(dimensionCodeListValueBean.getClValueCode());
+								} else {
+									keyvalues.setValue(N_A_VALUE);
+								}
+							}
+							keyValuesList.add(keyvalues);
+						}
+					}
+				}
+
+				// Common Dim
+				if (!CollectionUtils.isEmpty(dimensionDetailCategories.getCommonDimension())) {
+					for (DimensionCodeListValueBean dimensionCodeListValueBean : dimensionDetailCategories
+							.getCommonDimension()) {
+						if (!StringUtils.isBlank(dimensionCodeListValueBean.getDimConceptId())) {
+							Keyvalues keyvalues = new Keyvalues();
+							keyvalues.setId(dimensionCodeListValueBean.getDimConceptId());
+							if (StringUtils.isEmpty(dimensionCodeListValueBean.getClValueCode())) {
+								keyvalues.setValue(N_A_VALUE);
+							} else {
+								if (!(dimensionCodeListValueBean.getClValueCode()
+										.equalsIgnoreCase(SDMXConstants.ITEM_FREE_TEXT)
+										|| dimensionCodeListValueBean.getClValueCode()
+												.equalsIgnoreCase(SDMXConstants.FILER_TO_SELECT))) {
+									keyvalues.setValue(dimensionCodeListValueBean.getClValueCode());
+								} else {
+									keyvalues.setValue(N_A_VALUE);
+								}
+							}
+							keyValuesList.add(keyvalues);
+
+						}
+					}
+				}
+
+				// Open Dim
+				if (!CollectionUtils.isEmpty(dimensionDetailCategories.getOpenDimension())) {
+					for (DimensionCodeListValueBean dimensionCodeListValueBean : dimensionDetailCategories
+							.getOpenDimension()) {
+						if (!StringUtils.isBlank(dimensionCodeListValueBean.getDimConceptId())) {
+							Keyvalues keyvalues = new Keyvalues();
+							keyvalues.setId(dimensionCodeListValueBean.getDimConceptId());
+							if (StringUtils.isEmpty(dimensionCodeListValueBean.getClValueCode())) {
+								keyvalues.setValue(N_A_VALUE);
+							} else {
+								if (!(dimensionCodeListValueBean.getClValueCode()
+										.equalsIgnoreCase(SDMXConstants.ITEM_FREE_TEXT)
+										|| dimensionCodeListValueBean.getClValueCode()
+												.equalsIgnoreCase(SDMXConstants.FILER_TO_SELECT))) {
+									keyvalues.setValue(dimensionCodeListValueBean.getClValueCode());
+								} else {
+									keyvalues.setValue(N_A_VALUE);
+								}
+							}
+							keyValuesList.add(keyvalues);
+						}
+					}
+				}
+				keys.setKeyValues(keyValuesList);
+				keyList.add(keys);
+			}
+
+			datakeysets.setKeys(keyList);
+			dataKeySetList.add(datakeysets);
+			contentconstraints.setDataKeySets(dataKeySetList);
+
+			// Link
+			Links links = new Links();
+			links.setRel(fusionPropertiesMap.get(FusionPropertiesConstant.FUSION_CONSTRAINTS_REL_STRING.getConstant()));
+			links.setUrn(
+					fusionPropertiesMap.get(FusionPropertiesConstant.FUSION_CONSTRAINTS_CONTENT_STRING.getConstant())
+							+ EQUAL_CONSTANT_STRING + agencyName + COLON_CONSTANT_STRING
+							+ (DATA_ID_PREFIX + elementCode).toUpperCase() + START_BRACKET_STRING + elementVersion
+							+ CLOSE_BRACKET_STRING);
+			links.setUri(fusionPropertiesMap.get(FusionPropertiesConstant.FUSION_CONSTRAINTS_URI.getConstant()));
+			links.setType(fusionPropertiesMap.get(FusionPropertiesConstant.FUSION_CONSTRAINTS_LINK_TYPE.getConstant()));
+			links.setHreflang(
+					fusionPropertiesMap.get(FusionPropertiesConstant.FUSION_CONSTRAINTS_LINK_HREF_LANG.getConstant()));
+			List<Links> linkList = new ArrayList<>();
+			linkList.add(links);
+			contentconstraints.setLinks(linkList);
+			contentConstraintList.add(contentconstraints);
+			data.setContentConstraints(contentConstraintList);
+			fusionConstraintsBean.setData(data);
+			LOGGER.debug(GeneralConstants.JOB_PROCESSING_ID.getConstantVal() + " " + jobProcessingId
+					+ ", fusionConstraintsBean " + gson.toJson(fusionConstraintsBean));
+			// Save data in fusion
+			elementStatusMap.put(
+					elementCode.toUpperCase() + START_BRACKET_STRING + elementVersion + CLOSE_BRACKET_STRING
+							+ START_AGENCY_BRACKET_STRING + agencyName + END_AGENCY_BRACKET_STRING,
+					saveDataInFusion(fusionConstraintsBean, 3L, jobProcessingId, agencyName));
+		}
+		return elementStatusMap;
+	}
+
+	/**
+	 * @param fusionConstraintsBean
+	 * @param userId
+	 * @param jobProcessingId
+	 * @return
+	 */
+	public Boolean saveDataInFusion(FusionConstraintsBean fusionConstraintsBean, Long userId, String jobProcessingId,
+			String agencyName) {
+		CIMSRestWebserviceClient restServiceClient = new CIMSRestWebserviceClient();
+		Map<String, String> headerMap = new HashMap<>();
+		headerMap.put(GeneralConstants.ACTION.getConstantVal(), GeneralConstants.REPLACE.getConstantVal());
+		headerMap.put(GeneralConstants.FUSION_AUTHORIZATION_KEY.getConstantVal(),
+				GeneralConstants.FUSION_AUTHORIZATION_VALUE.getConstantVal());
+
+		SdmxWebserviceUrlDto sdmxWeSerUrlDto = (SdmxWebserviceUrlDto) ObjectCache.getSdmxServiceMap()
+				.get(SDMXWebServiceConstant.SUBMIT_FUSION_DATA.getConstantVal() + "~"
+						+ CIMSRestWebserviceClient.HTTP_METHOD_TYPE_POST);
+
+		sdmxWeSerUrlDto.setComponentUrlPath(sdmxWeSerUrlDto.getComponentUrlPath() + "/contentconstraint/" + agencyName);
+		try {
+			Date dateBeforeCalling = new Date();
+			RestClientResponse restClientResponse = restServiceClient
+					.callRestWebServiceWithMultipleHeaderAndGetResponse(sdmxWeSerUrlDto, fusionConstraintsBean, null,
+							headerMap);
+			Date dateAfterCalling = new Date();
+			insertDataIntoSDMXAPILogDetails(sdmxWeSerUrlDto, fusionConstraintsBean, headerMap, null, dateBeforeCalling,
+					dateAfterCalling, restClientResponse.getRestClientResponse(), userId);
+			if (restClientResponse.getRestClientResponse() != null) {
+				StringReader reader = new StringReader(restClientResponse.getRestClientResponse());
+				if (restClientResponse.getRestClientResponse().contains(ERROR_TAG)) {
+					if (restClientResponse.getRestClientResponse().contains("304")) {
+						return true;
+					}
+					/*
+					 * JAXBContext jaxbContext = JAXBContext.newInstance(Error.class); Unmarshaller
+					 * jaxbUnMarshaller = jaxbContext.createUnmarshaller(); Error unMarshError =
+					 * (Error) jaxbUnMarshaller.unmarshal(reader);
+					 */
+					// System.out.println(unMarshError);
+					return false;
+				} else {
+					JAXBContext jaxbContext = JAXBContext.newInstance(RegistryInterface.class);
+					Unmarshaller jaxbUnMarshaller = jaxbContext.createUnmarshaller();
+					RegistryInterface unMarshRegistryInterface = (RegistryInterface) jaxbUnMarshaller.unmarshal(reader);
+
+					if (unMarshRegistryInterface.getSubmitStructureResponse() != null
+							&& unMarshRegistryInterface.getSubmitStructureResponse().getSubmissionResult() != null
+							&& unMarshRegistryInterface.getSubmitStructureResponse().getSubmissionResult()
+									.getStatusMessage() != null
+							&& unMarshRegistryInterface.getSubmitStructureResponse().getSubmissionResult()
+									.getStatusMessage().getStatus().equals(SUCCESS)) {
+						return true;
+					} else {
+						return false;
+					}
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error(GeneralConstants.JOB_PROCESSING_ID.getConstantVal() + " " + jobProcessingId
+					+ ", Exception In Method submitCodeListDataToFusion :  ", e);
+		}
+
+		return false;
+	}
+
+	/**
+	 * @param userId
+	 * @param jobProcessingId
+	 * @param agencyName
+	 * @return
+	 */
+	public Boolean deleteDataForFusionConstraints(Long userId, String jobProcessingId, String agencyName) {
+		CIMSRestWebserviceClient restServiceClient = new CIMSRestWebserviceClient();
+		Map<String, String> headerMap = new HashMap<>();
+		headerMap.put(GeneralConstants.FUSION_AUTHORIZATION_KEY.getConstantVal(),
+				GeneralConstants.FUSION_AUTHORIZATION_VALUE.getConstantVal());
+
+		SdmxWebserviceUrlDto sdmxWeSerUrlDto = (SdmxWebserviceUrlDto) ObjectCache.getSdmxServiceMap()
+				.get(SDMXWebServiceConstant.SUBMIT_FUSION_DATA.getConstantVal() + "~"
+						+ CIMSRestWebserviceClient.HTTP_METHOD_TYPE_POST);
+		// contentconstraint/CIMS_RETURN/all
+		sdmxWeSerUrlDto.setUrlHttpMethodType(CIMSRestWebserviceClient.HTTP_METHOD_TYPE_DELETE);
+		sdmxWeSerUrlDto.setComponentUrlPath(
+				sdmxWeSerUrlDto.getComponentUrlPath() + "/contentconstraint/" + agencyName + "/all");
+		try {
+			Date dateBeforeCalling = new Date();
+			RestClientResponse restClientResponse = restServiceClient
+					.callRestWebServiceWithMultipleHeaderAndGetResponse(sdmxWeSerUrlDto, null, null, headerMap);
+			Date dateAfterCalling = new Date();
+			insertDataIntoSDMXAPILogDetails(sdmxWeSerUrlDto, null, headerMap, null, dateBeforeCalling, dateAfterCalling,
+					restClientResponse.getRestClientResponse(), userId);
+			if (restClientResponse.getRestClientResponse() != null) {
+				StringReader reader = new StringReader(restClientResponse.getRestClientResponse());
+				if (restClientResponse.getRestClientResponse().contains(ERROR_TAG)) {
+					if (restClientResponse.getRestClientResponse().contains("304")) {
+						return true;
+					}
+					return false;
+				} else {
+					return true;
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error(GeneralConstants.JOB_PROCESSING_ID.getConstantVal() + " " + jobProcessingId
+					+ ", Exception In Method deleteDataForFusionConstraints :  ", e);
+		}
+
+		return false;
+	}
+
+	/**
+	 * @param fusionConstraintsBean
+	 * @param fusionPropertiesMap
+	 */
+	public void createInputBean(FusionConstraintsBean fusionConstraintsBean, Map<String, String> fusionPropertiesMap) {
+		// Meta Node
+		setFusionConstraintsBeanWithMetaInfo(fusionConstraintsBean, fusionPropertiesMap);
+
+		// Data Node
+		// setFusionConstraintsBeanWithDataInfo(fusionConstraintsBean,
+		// fusionPropertiesMap);
+	}
+
+	/**
+	 * @param fusionConstraintsBean
+	 * @param fusionPropertiesMap
+	 * 
+	 *                              Setting meta properties
+	 */
+	public void setFusionConstraintsBeanWithMetaInfo(FusionConstraintsBean fusionConstraintsBean,
+			Map<String, String> fusionPropertiesMap) {
+		Meta meta = new Meta();
+		meta.setId(fusionPropertiesMap.get(FusionPropertiesConstant.FUSION_CONSTRAINTS_META_ID.getConstant()));
+		meta.setTest(Boolean
+				.valueOf(fusionPropertiesMap.get(FusionPropertiesConstant.FUSION_CONSTRAINTS_META_TEST.getConstant())));
+		meta.setSchema(fusionPropertiesMap.get(FusionPropertiesConstant.FUSION_CONSTRAINTS_META_SCHEMA.getConstant()));
+		meta.setPrepared(new Date());
+		String languages = fusionPropertiesMap
+				.get(FusionPropertiesConstant.FUSION_CONSTRAINTS_META_CONTENT_LANGUAGES.getConstant());
+		String[] languageArray = languages.split(",");
+		meta.setContentLanguages(Arrays.asList(languageArray));
+		Sender sender = new Sender();
+		sender.setId(fusionPropertiesMap.get(FusionPropertiesConstant.FUSION_CONSTRAINTS_META_SENDER_ID.getConstant()));
+		meta.setSender(sender);
+		fusionConstraintsBean.setMeta(meta);
+	}
+
+	/**
+	 * @param sdmxWeSerUrlDto
+	 * @param object
+	 * @param headerMap
+	 * @param pathParameters
+	 * @param dateBeforeCalling
+	 * @param dateAfterCalling
+	 * @param response
+	 * @param userId
+	 * @return
+	 */
+	private Boolean insertDataIntoSDMXAPILogDetails(SdmxWebserviceUrlDto sdmxWeSerUrlDto, Object object,
+			Map<String, String> headerMap, List<String> pathParameters, Date dateBeforeCalling, Date dateAfterCalling,
+			String response, Long userId) {
+
+		try (Connection connection = dataSource.getConnection();
+				PreparedStatement pstmt = connection.prepareStatement("INSERT INTO TBL_SDMX_API_LOG_DETAILS"
+						+ " (USER_ID_FK,COMPONENT_URL_ID_FK,REQUEST_JSON, PATH_VARIABLE, REQUEST_RECEIVED_TIME,"
+						+ " RESPONSE_SENDING_TIME, HEADER, CREATED_TIME, RESPONSE_JSON) "
+						+ " VALUES (?,?,?,?,?,?,?,?,?)")) {
+			if (userId != null) {
+				pstmt.setLong(1, userId);
+			} else {
+				pstmt.setString(1, null);
+			}
+			pstmt.setLong(2, sdmxWeSerUrlDto.getSdmxWebserviceUrlID());
+			if (object != null) {
+				pstmt.setString(3, JsonUtility.getGsonObject().toJson(object));
+			} else {
+				pstmt.setString(3, null);
+			}
+
+			if (pathParameters != null) {
+				pstmt.setString(4, JsonUtility.getGsonObject().toJson(pathParameters));
+			} else {
+				pstmt.setString(4, null);
+			}
+
+			pstmt.setTimestamp(5, new java.sql.Timestamp(dateBeforeCalling.getTime()));
+			pstmt.setTimestamp(6, new java.sql.Timestamp(dateAfterCalling.getTime()));
+
+			if (headerMap != null) {
+				pstmt.setString(7, JsonUtility.getGsonObject().toJson(headerMap));
+			} else {
+				pstmt.setString(7, null);
+			}
+
+			pstmt.setTimestamp(8, new java.sql.Timestamp(new Date().getTime()));
+
+			pstmt.setString(9, response);
+
+			pstmt.executeUpdate();
+
+			return true;
+		} catch (Exception e) {
+			LOGGER.error("Exception : ", e);
+			return false;
+		}
+	}
+
+	/**
+	 * @param returnPreviewId
+	 * @return
+	 * @throws SQLException
+	 */
+	public List<String> fetchElementListFromReturnPreviewId(Long returnPreviewId) throws SQLException {
+		List<String> elementKeyList = null;
+		int counter = 0;
+		PreparedStatement pstmt = null;
+		try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement()) {
+
+			pstmt = connection.prepareStatement(
+					"SELECT DSD_CODE,ELEMENT_VER,am.AGENCY_FUSION_NAME FROM TBL_SDMX_ELEMENT, TBL_SDMX_AGENCY_MASTER am WHERE ELEMENT_ID IN (SELECT DISTINCT ELEMENT_ID_FK\r\n"
+							+ "FROM TBL_SDMX_MODEL_CODES WHERE MODEL_CODES_ID IN ( \r\n"
+							+ "SELECT DISTINCT MODEL_CODES_ID_FK FROM TBL_SDMX_RETURN_MODEL_INFO WHERE RETURN_SHEET_INFO_ID_FK IN \r\n"
+							+ "(SELECT RETURN_SHEET_INFO_ID FROM TBL_SDMX_RETURN_SHEET_INFO srsi where srsi.RETURN_PREVIEW_ID_FK = ?"
+							+ "))) and am.SDMX_AGENCY_MASTER_ID = AGENCY_MASTER_ID_FK");
+			pstmt.setString(1, returnPreviewId.toString());
+			try (ResultSet rs = pstmt.executeQuery();) {
+				while (rs.next()) {
+					if (counter == 0) {
+						elementKeyList = new ArrayList<>();
+					}
+					elementKeyList.add(rs.getString(1) + ELEMENT_KEY_LABLE + rs.getString(2)
+							+ ELEMENT_VERSION_AGENCY_KEY_LABLE + rs.getString(3));
+					counter++;
+				}
+			} catch (Exception ex) {
+				LOGGER.error("Exception occured - ", ex);
+			}
+		} catch (Exception ex) {
+			LOGGER.error("Exception occured - ", ex);
+		} finally {
+			if (pstmt != null) {
+				pstmt.close();
+			}
+
+		}
+		LOGGER.debug("elementKeyList " + elementKeyList + " and elementKeyList counter - " + counter);
+		return elementKeyList;
+	}
+
+	/**
+	 * @param returnPreviewId
+	 * @return
+	 * @throws SQLException
+	 */
+	public List<String> fetchAllElementList() throws SQLException {
+		List<String> elementKeyList = null;
+		int counter = 0;
+		PreparedStatement pstmt = null;
+		try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement()) {
+
+			pstmt = connection.prepareStatement(
+					"SELECT DSD_CODE,ELEMENT_VER,am.AGENCY_FUSION_NAME FROM TBL_SDMX_ELEMENT, TBL_SDMX_AGENCY_MASTER am WHERE ELEMENT_ID IN (SELECT DISTINCT ELEMENT_ID_FK\r\n"
+							+ "FROM TBL_SDMX_MODEL_CODES WHERE MODEL_CODES_ID IN ( \r\n"
+							+ "SELECT DISTINCT MODEL_CODES_ID_FK FROM TBL_SDMX_RETURN_MODEL_INFO WHERE RETURN_SHEET_INFO_ID_FK IN \r\n"
+							+ "(SELECT RETURN_SHEET_INFO_ID FROM TBL_SDMX_RETURN_SHEET_INFO srsi"
+							+ "))) and am.SDMX_AGENCY_MASTER_ID = AGENCY_MASTER_ID_FK");
+			// pstmt.setString(1, returnPreviewId.toString());
+			try (ResultSet rs = pstmt.executeQuery();) {
+				while (rs.next()) {
+					if (counter == 0) {
+						elementKeyList = new ArrayList<>();
+					}
+					elementKeyList.add(rs.getString(1) + ELEMENT_KEY_LABLE + rs.getString(2)
+							+ ELEMENT_VERSION_AGENCY_KEY_LABLE + rs.getString(3));
+					counter++;
+				}
+			} catch (Exception ex) {
+				LOGGER.error("Exception occured - ", ex);
+			}
+		} catch (Exception ex) {
+			LOGGER.error("Exception occured - ", ex);
+		} finally {
+			if (pstmt != null) {
+				pstmt.close();
+			}
+
+		}
+		LOGGER.debug("elementKeyList " + elementKeyList + " and elementKeyList counter - " + counter);
+		return elementKeyList;
+	}
+
+	/**
+	 * @param dsdId
+	 * @param elementVersion
+	 * @return
+	 * @throws SQLException
+	 */
+	public List<String> fetchModelCodeListFromElementNVersion(String dsdId, String elementVersion) throws SQLException {
+		/*
+		 * String sqlQuery = "SELECT smc.MODEL_DIM FROM TBL_SDMX_MODEL_CODES smc \r\n" +
+		 * "WHERE smc.MODEL_DIM->'$.dsdId' = \"" + dsdId +
+		 * "\" and smc.MODEL_DIM->'$.elementVersion'= \"" + elementVersion + "\"";
+		 */
+		int counter = 0;
+		List<String> modelDimList = null;
+		PreparedStatement pstmt = null;
+		try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement()) {
+
+			pstmt = connection.prepareStatement("SELECT smc.MODEL_DIM FROM TBL_SDMX_MODEL_CODES smc \r\n"
+					+ "WHERE smc.MODEL_DIM->'$.dsdId' = ? and smc.MODEL_DIM->'$.elementVersion'= ?");
+
+			/*
+			 * pstmt = connection.
+			 * prepareStatement("SELECT smc.MODEL_DIM FROM TBL_SDMX_MODEL_CODES smc \r\n" +
+			 * "WHERE smc.MODEL_DIM->'$.dsdId' = \"?\" and smc.MODEL_DIM->'$.elementVersion'= \"?\""
+			 * );
+			 */
+			pstmt.setString(1, dsdId);
+			pstmt.setString(2, elementVersion);
+			try (ResultSet rs = pstmt.executeQuery();) {
+				while (rs.next()) {
+					if (counter == 0) {
+						modelDimList = new ArrayList<>();
+					}
+					modelDimList.add(rs.getString(1));
+					counter++;
+				}
+			} catch (Exception ex) {
+				LOGGER.error("Exception occured - ", ex);
+			}
+		} catch (Exception ex) {
+			LOGGER.error("Exception occured - ", ex);
+		} finally {
+			if (pstmt != null) {
+				pstmt.close();
+			}
+
+		}
+		LOGGER.debug("modelDimList " + modelDimList + " and modelDimList counter - " + counter);
+		return modelDimList;
+	}
+
+	/**
+	 * @param fusionConstraintsBean
+	 * @param fusionPropertiesMap
+	 * 
+	 *                              Setting data properties
+	 * 
+	 */
+	public void setFusionConstraintsBeanWithDataInfo(FusionConstraintsBean fusionConstraintsBean,
+			Map<String, String> fusionPropertiesMap) {
+		String jsonString = "{\n" + "    \"contentConstraints\": [\n" + "      {\n"
+				+ "        \"name\": \"DMID Validity Borrowings\",\n" + "        \"names\": {\n"
+				+ "          \"en\": \"DMID Validity Borrowings\"\n" + "        },\n"
+				+ "        \"id\": \"DMIDvalidity_BORROWINGS\",\n" + "        \"version\": \"1.0\",\n"
+				+ "        \"agencyID\": \"TEST_DEV_TEAM\",\n" + "        \"isExternalReference\": false,\n"
+				+ "        \"isFinal\": false,\n" + "        \"type\": \"allowed\",\n"
+				+ "        \"constraintAttachment\": {\n" + "          \"dataStructures\": [\n"
+				+ "            \"urn:sdmx:org.sdmx.infomodel.datastructure.DataStructure=TEST_DEV_TEAM:BORROWINGS(1.0)\"\n"
+				+ "          ]\n" + "        },\n" + "        \"dataKeySets\": [\n" + "          {\n"
+				+ "            \"isIncluded\": true,\n" + "            \"keys\": [\n" + "              {\n"
+				+ "                \"keyValues\": [\n" + "                  {\n"
+				+ "                    \"id\": \"DEPENDENCY_TYPE\",\n"
+				+ "                    \"value\": \"INDEPENDENT\"\n" + "                  },\n"
+				+ "                  {\n" + "                    \"id\": \"Area_Operation\",\n"
+				+ "                    \"value\": \"DOM_OP\"\n" + "                  },\n" + "                  {\n"
+				+ "                    \"id\": \"Borrowing_Type\",\n"
+				+ "                    \"value\": \"BOR_CI_MONEYMARKET\"\n" + "                  },\n"
+				+ "                  {\n" + "                    \"id\": \"Measure_Type\",\n"
+				+ "                    \"value\": \"TOTAL\"\n" + "                  },\n" + "                  {\n"
+				+ "                    \"id\": \"INPUT\",\n" + "                    \"value\": \"N_A\"\n"
+				+ "                  },\n" + "                  {\n" + "                    \"id\": \"DATE\",\n"
+				+ "                    \"value\": \"N_A\"\n" + "                  },\n" + "                  {\n"
+				+ "                    \"id\": \"SECUNSEC\",\n" + "                    \"value\": \"N_A\"\n"
+				+ "                  },\n" + "                  {\n" + "                    \"id\": \"TIME_SPAN\",\n"
+				+ "                    \"value\": \"N_A\"\n" + "                  },\n" + "                  {\n"
+				+ "                    \"id\": \"Listed\",\n" + "                    \"value\": \"N_A\"\n"
+				+ "                  },\n" + "                  {\n" + "                    \"id\": \"Currency\",\n"
+				+ "                    \"value\": \"INR\"\n" + "                  }\n" + "                ]\n"
+				+ "              }\n" + "            ]\n" + "          }\n" + "        ],\n" + "        \"links\": [\n"
+				+ "          {\n" + "            \"rel\": \"self\",\n"
+				+ "            \"urn\": \"urn:sdmx:org.sdmx.infomodel.registry.ContentConstraint=TEST_DEV_TEAM:DMIDvalidity_BORROWINGS(1.0)\",\n"
+				+ "            \"uri\": \"https://raw.githubusercontent.com/sdmx-twg/sdmx-json/develop/structure-message/tools/schemas/1.0/sdmx-json-structure-schema.json\",\n"
+				+ "            \"type\": \"contentconstraint\",\n" + "            \"hreflang\": \"en\"\n"
+				+ "          }\n" + "        ]\n" + "      }\n" + "    ]\n" + "  }\n";
+
+		Gson gson = new Gson();
+		Data data = gson.fromJson(jsonString, Data.class);
+		fusionConstraintsBean.setData(data);
+	}
+
+}

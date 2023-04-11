@@ -1,0 +1,23 @@
+/**
+ * 
+ */
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.RegionMaster;
+
+/**
+ * @author sikhan
+ *
+ */
+public interface RegionMasterRepo extends JpaRepository<RegionMaster, Long> {
+
+	@Query(value = "FROM RegionMaster where isActive = 1")
+	List<RegionMaster> findAllActiveData();
+
+}

@@ -1,0 +1,175 @@
+/**
+ * 
+ */
+package com.iris.sdmx.codelist.service;
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.google.gson.reflect.TypeToken;
+import com.iris.dto.UserDto;
+import com.iris.exception.ServiceException;
+import com.iris.sdmx.codelist.bean.CodeListMasterBean;
+import com.iris.sdmx.codelist.bean.CodeListValuesBean;
+import com.iris.sdmx.codelist.entity.CodeListMasterMod;
+import com.iris.sdmx.codelist.repo.CodeListMasterModRepo;
+import com.iris.service.GenericService;
+import com.iris.util.JsonUtility;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.MethodConstants;
+
+/**
+ * @author sajadhav
+ *
+ */
+@Service
+public class CodeListMasterModService implements GenericService<CodeListMasterMod, Long>{
+
+	private static final Logger LOGGER = LogManager.getLogger(CodeListMasterModService.class);
+
+	@Autowired
+	private CodeListMasterModRepo codeListMasterModRepo;
+	
+	
+	@Override
+	public CodeListMasterMod add(CodeListMasterMod entity) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public boolean update(CodeListMasterMod entity) throws ServiceException {
+		return false;
+	}
+
+	@Override
+	public List<CodeListMasterMod> getDataByIds(Long[] ids) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public CodeListMasterMod getDataById(Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<CodeListMasterMod> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<CodeListMasterMod> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName)
+			throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<CodeListMasterMod> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		
+		try {
+			int adminStatusId = 0;
+			
+			for (String columnName : columnValueMap.keySet()) {
+				if (columnValueMap.get(columnName) != null && columnName.equalsIgnoreCase(ColumnConstants.ADMIN_STATUS.getConstantVal())) {
+						adminStatusId = (int) columnValueMap.get(columnName);
+				}
+			}
+			
+			if (methodName.equalsIgnoreCase(MethodConstants.GET_CODE_LIST_PENDING_RECORD_BY_ADMIN_STATUS_ID.getConstantVal())) {
+				return codeListMasterModRepo.findByAdminStatusId(adminStatusId);
+			}
+		} catch (Exception e) {
+			throw new ServiceException("Exception : ", e);
+		}
+		return null;
+	}
+
+	@Override
+	public List<CodeListMasterMod> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<CodeListMasterMod> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public void deleteData(CodeListMasterMod bean) throws ServiceException {
+		
+	}
+
+	public List<CodeListMasterBean> prepareCodeListMasterResponseList(List<CodeListMasterMod> codeListMasterModList){
+		
+		List<CodeListMasterBean> codeListMasterBeanReponseList = new ArrayList<>();
+
+		Type listToken = new TypeToken<CodeListMasterBean>() {
+		}.getType();
+		
+		
+		codeListMasterModList.forEach(f -> {
+			CodeListMasterBean jsonCodeListMasterBean = JsonUtility.getGsonObject().fromJson(f.getClMasterJson(), listToken);
+			
+			CodeListMasterBean codeListMasterBean = new CodeListMasterBean();
+			BeanUtils.copyProperties(jsonCodeListMasterBean, codeListMasterBean);
+			codeListMasterBean.setActionId(f.getActionId());
+			if (f.getCreatedBy() != null) {
+				UserDto userDto = new UserDto();
+				userDto.setUserId(f.getCreatedBy().getUserId());
+				userDto.setUserName(f.getCreatedBy().getUserName());
+				codeListMasterBean.setCreatedBy(userDto);
+			}
+
+			if(f.getCreatedOn()!= null) {
+				codeListMasterBean.setCreatedOnInLong(f.getCreatedOn().getTime());
+			}
+
+			if(jsonCodeListMasterBean.getCodeListValues()!= null) {
+				List<CodeListValuesBean> codeListValuesBeanList = new ArrayList<>();
+				jsonCodeListMasterBean.getCodeListValues().forEach(k -> {
+					CodeListValuesBean codeListValuesBean = new CodeListValuesBean();
+					BeanUtils.copyProperties(k, codeListValuesBean);
+
+					if (f.getCreatedBy() != null) {
+						UserDto userDto = new UserDto();
+						userDto.setUserId(f.getCreatedBy().getUserId());
+						userDto.setUserName(f.getCreatedBy().getUserName());
+						codeListValuesBean.setCreatedBy(userDto);
+					}
+					
+					if(f.getCreatedOn()!= null) {
+						codeListValuesBean.setCreatedOnInLong(f.getCreatedOn().getTime());
+					}
+					
+					if (k.getParentCodeListValues() != null) {
+						CodeListValuesBean parentCodelistValues = new CodeListValuesBean();
+						parentCodelistValues.setClValueId(k.getParentCodeListValues().getClValueId());
+						parentCodelistValues.setClValueCode(k.getParentCodeListValues().getClValueCode());
+						parentCodelistValues.setClValueLable(k.getParentCodeListValues().getClValueLable());
+						parentCodelistValues.setIsActive(k.getParentCodeListValues().getIsActive());
+						codeListValuesBean.setParentCodeListValues(parentCodelistValues);
+					} else {
+						codeListValuesBean.setParentCodeListValues(null);
+					}
+					codeListValuesBeanList.add(codeListValuesBean);
+				});
+
+				codeListMasterBean.setCodeListValues(codeListValuesBeanList);
+			}
+	
+			codeListMasterBeanReponseList.add(codeListMasterBean);
+		});
+
+		return codeListMasterBeanReponseList;
+	}
+
+}

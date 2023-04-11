@@ -1,0 +1,433 @@
+package com.iris.service.impl;
+
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.sql.DataSource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import com.google.gson.Gson;
+import com.iris.caching.ObjectCache;
+import com.iris.dto.EntityDto;
+import com.iris.dto.RegulatorDto;
+import com.iris.dto.ReturnByRoleInputDto;
+import com.iris.dto.ReturnByRoleOutputDto;
+import com.iris.dto.ReturnDto;
+import com.iris.dto.ReturnEntityOutputDto;
+import com.iris.dto.ReturnGroupMappingDto;
+import com.iris.dto.UserDetailsDto;
+import com.iris.dto.UserDto;
+import com.iris.dto.UserRoleDto;
+import com.iris.exception.ApplicationException;
+import com.iris.exception.ServiceException;
+import com.iris.model.Frequency;
+import com.iris.model.Return;
+import com.iris.model.ReturnGroupMapping;
+import com.iris.model.ReturnGroupMod;
+import com.iris.repository.ReturnGroupMappingRepo;
+import com.iris.repository.ReturnGroupModRepo;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.util.constant.MethodConstants;
+
+@Service
+public class ReturnGroupServiceV2 implements GenericService<ReturnGroupMapping, Long> {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ReturnGroupServiceV2.class);
+
+	@Autowired
+	private UserRoleReturnMappingService userRoleReturnMappingService;
+
+	@Autowired
+	private UserMasterServiceV2 userMasterServiceV2;
+
+	@Autowired
+	private ReturnEntityMapServiceNew returnEntityMapServiceNew;
+
+	@Autowired
+	private ReturnGroupMappingRepo returnGroupMappingRepo;
+
+	@Autowired
+	private ReturnServiceV2 returnServiceV2;
+
+	@Autowired
+	DataSource datasource;
+
+	@Autowired
+	private ReturnGroupModRepo returnGroupModRepo;
+
+	@Autowired
+	private ReturnGroupLabelServiceV2 returnGroupLabelServiceV2;
+
+	@Override
+	public ReturnGroupMapping add(ReturnGroupMapping returnGroupMapping) throws ServiceException {
+		try (Connection con = datasource.getConnection(); CallableStatement stmt1 = con.prepareCall(GeneralConstants.RETURN_GROUP_MAP_LABEL_PROCEDURE.getConstantVal()); CallableStatement stmt2 = con.prepareCall(GeneralConstants.SP_UPDATE_RETURNGROUP.getConstantVal());) {
+			returnGroupMapping = returnGroupMappingRepo.save(returnGroupMapping);
+			LOGGER.debug("Request served to add returnGroupMappingBean.");
+			stmt1.setLong(1, returnGroupMapping.getReturnGroupMapId());
+			stmt1.executeQuery();
+			LOGGER.debug(GeneralConstants.RETURN_GROUP_MAP_LABEL_PROCEDURE.getConstantVal(), "Procedure executed successfully.");
+			callProcedureToMapReturnGroupToReturn(returnGroupMapping);
+			//			stmt2.setLong(1, returnGroupMapping.getReturnGroupMapId());
+			//			stmt2.setString(2, returnGroupMapping.getAllottedReturns());
+			//			stmt2.registerOutParameter(3, Types.INTEGER);
+			//			stmt2.executeQuery();
+			//			int number = stmt2.getInt(3);
+			//			if (number > 0) {
+			//				throw new ServiceException(ErrorCode.E0771.toString());
+			//			}
+			//			LOGGER.debug(GeneralConstants.SP_UPDATE_RETURNGROUP.getConstantVal() , " Procedure executed successfully.");
+		} catch (ServiceException e) {
+			throw e;
+		} catch (SQLException e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.toString(), e);
+		}
+		return returnGroupMapping;
+	}
+
+	@Override
+	public boolean update(ReturnGroupMapping returnGroupMappingBean) throws ServiceException {
+		boolean flag = false;
+		try {
+			ReturnGroupMapping oldRtnGroup = returnGroupMappingRepo.getDataById(returnGroupMappingBean.getReturnGroupMapId());
+			if (oldRtnGroup == null) {
+				return false;
+			}
+			Map<String, Object> columneMap = new HashMap<>();
+			columneMap.put(ColumnConstants.IS_ACTIVE.getConstantVal(), true);
+			columneMap.put(ColumnConstants.LANG_CODE.getConstantVal(), GeneralConstants.ENG_LANG.getConstantVal());
+			columneMap.put(ColumnConstants.RETURN_GROUP_ID.getConstantVal(), returnGroupMappingBean.getReturnGroupMapId());
+			List<Return> returnList = returnServiceV2.getDataByObject(columneMap, MethodConstants.GET_RETURN_LIST_MAPPED_TO_RETURN_GROUP.getConstantVal());
+			ReturnGroupMod returnGroupMod = new ReturnGroupMod();
+			returnGroupMod.setReturnGroupMap(oldRtnGroup);
+			returnGroupMod.setReturnGroupName(oldRtnGroup.getDefaultGroupName());
+			returnGroupMod.setIsActive(oldRtnGroup.getIsActive());
+			returnGroupMod.setReturnsMapped(new Gson().toJson(returnList));
+			//			returnGroupMod.setActionIdFK(GeneralConstants.STATUS_COMPLETED.getConstantIntVal());
+			if (oldRtnGroup.getLastModifiedOn() == null) {
+				returnGroupMod.setActionIdFK(GeneralConstants.ACTIONID_ADDITION.getConstantIntVal());
+				returnGroupMod.setUserModify(oldRtnGroup.getCreatedBy());
+				returnGroupMod.setModifiedOn(oldRtnGroup.getCreatedOn());
+			} else {
+				returnGroupMod.setActionIdFK(GeneralConstants.ACTIONID_EDITION.getConstantIntVal());
+				returnGroupMod.setUserModify(oldRtnGroup.getUserModify());
+				returnGroupMod.setModifiedOn(oldRtnGroup.getLastModifiedOn());
+			}
+			returnGroupModRepo.save(returnGroupMod);
+			LOGGER.debug("Request served to add returnGroup Mod");
+			oldRtnGroup.setLastModifiedOn(returnGroupMappingBean.getLastModifiedOn());
+			oldRtnGroup.setLastUpdateOn(returnGroupMappingBean.getLastUpdateOn());
+			oldRtnGroup.setIsActive(returnGroupMappingBean.getIsActive());
+			oldRtnGroup.setUserModify(returnGroupMappingBean.getUserModify());
+			returnGroupMappingRepo.save(oldRtnGroup);
+			flag = true;
+			LOGGER.debug("Request served to update returnGroupMappingBean.");
+			callProcedureToMapReturnGroupToReturn(returnGroupMappingBean);
+			LOGGER.debug("returnGroupMap Return Procedure executed successfully.");
+		} catch (ServiceException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+		return flag;
+	}
+
+	private void callProcedureToMapReturnGroupToReturn(ReturnGroupMapping returnGroupMappingBean) throws SQLException {
+		try (Connection con = datasource.getConnection(); CallableStatement stmt = con.prepareCall(GeneralConstants.SP_UPDATE_RETURNGROUP.getConstantVal());) {
+			stmt.setLong(1, returnGroupMappingBean.getReturnGroupMapId());
+			stmt.setString(2, returnGroupMappingBean.getAllottedReturns());
+			stmt.registerOutParameter(3, Types.INTEGER);
+			stmt.executeQuery();
+			int number = stmt.getInt(3);
+			if (number > 0) {
+				throw new ServiceException(ErrorConstants.UPDATE_RETURN_WITH_RET_GRP_ERROR.getConstantVal());
+			}
+			LOGGER.debug(GeneralConstants.SP_UPDATE_RETURNGROUP.getConstantVal(), " Procedure executed successfully.");
+		} catch (ServiceException e) {
+			throw new ServiceException(ErrorConstants.UPDATE_RETURN_WITH_RET_GRP_ERROR.getConstantVal(), e);
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<ReturnGroupMapping> getDataByIds(Long[] ids) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public ReturnGroupMapping getDataById(Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<ReturnGroupMapping> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<ReturnGroupMapping> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<ReturnGroupMapping> getDataByObject(Map<String, Object> columnValueMap, String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<ReturnGroupMapping> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<ReturnGroupMapping> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public void deleteData(ReturnGroupMapping bean) throws ServiceException {
+
+	}
+
+	public List<ReturnGroupMappingDto> transposeObject(List<ReturnEntityOutputDto> returnEntityOutputDtoList) {
+		if (!CollectionUtils.isEmpty(returnEntityOutputDtoList)) {
+			List<ReturnGroupMappingDto> returnGroupMappingDtos = new ArrayList<>();
+
+			returnEntityOutputDtoList.forEach(f -> {
+				ReturnGroupMappingDto returnGroupMappingDto = new ReturnGroupMappingDto();
+				returnGroupMappingDto.setReturnGroupMapId(f.getReturnEntityGroupDto().getGroupId());
+				returnGroupMappingDto.setDefaultGroupName(f.getReturnEntityGroupDto().getGroupName());
+
+				ReturnDto returnDto = new ReturnDto();
+				returnDto.setReturnId(f.getReturnId());
+				returnDto.setReturnCode(f.getReturnCode());
+				returnDto.setReturnName(f.getReturnName());
+
+				if (returnGroupMappingDtos.indexOf(returnGroupMappingDto) != -1) {
+					returnGroupMappingDto = returnGroupMappingDtos.get(returnGroupMappingDtos.indexOf(returnGroupMappingDto));
+					returnGroupMappingDto.getReturnList().add(returnDto);
+					if (!CollectionUtils.isEmpty(returnGroupMappingDto.getReturnList())) {
+						returnGroupMappingDto.setReturnCount(returnGroupMappingDto.getReturnList().size());
+					}
+				} else {
+					List<ReturnDto> returnDtoList = new ArrayList<>();
+					returnDtoList.add(returnDto);
+					returnGroupMappingDto.setReturnList(returnDtoList);
+					if (!CollectionUtils.isEmpty(returnGroupMappingDto.getReturnList())) {
+						returnGroupMappingDto.setReturnCount(returnGroupMappingDto.getReturnList().size());
+					}
+					returnGroupMappingDtos.add(returnGroupMappingDto);
+				}
+			});
+
+			if (!CollectionUtils.isEmpty(returnGroupMappingDtos)) {
+				returnGroupMappingDtos.sort((g1, g2) -> g1.getDefaultGroupName().compareTo(g2.getDefaultGroupName()));
+			}
+			return returnGroupMappingDtos;
+		}
+		return null;
+	}
+
+	public List<ReturnGroupMappingDto> transposeReturnByRoleOutputDtoObject(List<ReturnByRoleOutputDto> returnEntityOutputDtoList) {
+		if (!CollectionUtils.isEmpty(returnEntityOutputDtoList)) {
+			List<ReturnGroupMappingDto> returnGroupMappingDtos = new ArrayList<>();
+
+			returnEntityOutputDtoList.forEach(f -> {
+				ReturnGroupMappingDto returnGroupMappingDto = new ReturnGroupMappingDto();
+				returnGroupMappingDto.setReturnGroupMapId(f.getGroupId());
+				returnGroupMappingDto.setDefaultGroupName(f.getGroupName());
+
+				ReturnDto returnDto = new ReturnDto();
+				returnDto.setReturnCode(f.getReturnCode());
+				returnDto.setReturnName(f.getReturnName());
+
+				if (returnGroupMappingDtos.indexOf(returnGroupMappingDto) != -1) {
+					returnGroupMappingDto = returnGroupMappingDtos.get(returnGroupMappingDtos.indexOf(returnGroupMappingDto));
+					returnGroupMappingDto.getReturnList().add(returnDto);
+					if (!CollectionUtils.isEmpty(returnGroupMappingDto.getReturnList())) {
+						returnGroupMappingDto.setReturnCount(returnGroupMappingDto.getReturnList().size());
+					}
+				} else {
+					List<ReturnDto> returnDtoList = new ArrayList<>();
+					returnDtoList.add(returnDto);
+					returnGroupMappingDto.setReturnList(returnDtoList);
+					if (!CollectionUtils.isEmpty(returnGroupMappingDto.getReturnList())) {
+						returnGroupMappingDto.setReturnCount(returnGroupMappingDto.getReturnList().size());
+					}
+					returnGroupMappingDtos.add(returnGroupMappingDto);
+				}
+			});
+
+			if (!CollectionUtils.isEmpty(returnGroupMappingDtos)) {
+				returnGroupMappingDtos.sort((g1, g2) -> g1.getDefaultGroupName().compareTo(g2.getDefaultGroupName()));
+			}
+			return returnGroupMappingDtos;
+		}
+		return null;
+	}
+
+	public List<RegulatorDto> transposeDtoToRegulatoReturnDto(List<ReturnByRoleOutputDto> returnEntityOutputDtoList) {
+		if (!CollectionUtils.isEmpty(returnEntityOutputDtoList)) {
+			List<RegulatorDto> regulatorDtos = new ArrayList<>();
+
+			returnEntityOutputDtoList.forEach(f -> {
+				RegulatorDto regulatorDto = new RegulatorDto();
+				regulatorDto.setRegulatorCode(f.getRegulatorCode());
+				regulatorDto.setRegulatorName(f.getRegulatorName());
+
+				ReturnDto returnDto = new ReturnDto();
+				returnDto.setReturnCode(f.getReturnCode());
+				returnDto.setReturnName(f.getReturnName());
+
+				Frequency frequency = new Frequency();
+				frequency.setFrequencyCode(f.getFreqCode());
+				frequency.setFrequencyName(f.getFrequencyLabel());
+
+				returnDto.setFrequency(frequency);
+
+				if (regulatorDtos.indexOf(regulatorDto) != -1) {
+					regulatorDto = regulatorDtos.get(regulatorDtos.indexOf(regulatorDto));
+					regulatorDto.getReturnList().add(returnDto);
+					if (!CollectionUtils.isEmpty(regulatorDto.getReturnList())) {
+						regulatorDto.setReturnCount(regulatorDto.getReturnList().size());
+					}
+				} else {
+					List<ReturnDto> returnDtoList = new ArrayList<>();
+					returnDtoList.add(returnDto);
+					regulatorDto.setReturnList(returnDtoList);
+					if (!CollectionUtils.isEmpty(regulatorDto.getReturnList())) {
+						regulatorDto.setReturnCount(regulatorDto.getReturnList().size());
+					}
+					regulatorDtos.add(regulatorDto);
+				}
+			});
+
+			if (!CollectionUtils.isEmpty(regulatorDtos)) {
+				regulatorDtos.sort((g1, g2) -> g1.getRegulatorName().compareTo(g2.getRegulatorName()));
+			}
+			return regulatorDtos;
+		}
+		return null;
+	}
+
+	public List<ReturnByRoleOutputDto> fetchReturnListByRole(String jobProcessId, ReturnByRoleInputDto returnByRoleInputDto) throws ApplicationException {
+		List<ReturnByRoleOutputDto> returnByRoleOutputDtoList = null;
+		// Fetch user detail from user id
+		UserDto userDto = createUserDto(returnByRoleInputDto);
+		UserDetailsDto userDetailsDto = userMasterServiceV2.getUserWithEntityDetails(userDto);
+		if (userDetailsDto != null) {
+			List<Long> roleIdList = validateRoles(returnByRoleInputDto, userDetailsDto);
+			if (!CollectionUtils.isEmpty(roleIdList)) {
+				// UserRoleReturnMapping
+				Instant roleQueryTimeStart = Instant.now();
+				returnByRoleOutputDtoList = userRoleReturnMappingService.fetchReturnByRoleId(roleIdList, returnByRoleInputDto);
+				Instant roleQueryTimeEnd = Instant.now();
+				LOGGER.info(jobProcessId + " fetchReturnListByRole Time taken in seconds for role Query - " + Duration.between(roleQueryTimeStart, roleQueryTimeEnd).getSeconds());
+				if (CollectionUtils.isEmpty(returnByRoleOutputDtoList) && GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().intValue() == userDetailsDto.getRoleTypeId()) {
+					List<String> entityCodeList = new ArrayList<>();
+					setEntityCodeList(entityCodeList, userDetailsDto);
+					if (CollectionUtils.isEmpty(entityCodeList)) {
+						throw new ApplicationException(ErrorCode.E0646.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E0646.toString()));
+					}
+					Instant entityQueryTimeStart = Instant.now();
+					returnByRoleOutputDtoList = returnEntityMapServiceNew.fetchReturnListByEntityCode(returnByRoleInputDto, entityCodeList);
+					Instant entityQueryTimeEnd = Instant.now();
+					LOGGER.info(jobProcessId + " fetchReturnListByRole Time taken in seconds for entity Query - " + Duration.between(entityQueryTimeStart, entityQueryTimeEnd).getSeconds());
+				}
+			} else {
+				throw new ApplicationException(ErrorCode.E1555.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E1555.toString()));
+			}
+		} else {
+			throw new ApplicationException(ErrorCode.E0638.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString()));
+		}
+		return returnByRoleOutputDtoList;
+	}
+
+	private void setEntityCodeList(List<String> entityCodeList, UserDetailsDto userDetailsDto) throws ApplicationException {
+		List<EntityDto> entityDtoList = userDetailsDto.getEntityDtos();
+		if (!CollectionUtils.isEmpty(entityDtoList)) {
+			for (EntityDto entityDto : entityDtoList) {
+				entityCodeList.add(entityDto.getEntityCode());
+			}
+		} else {
+			throw new ApplicationException(ErrorCode.E0639.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E0639.toString()));
+		}
+	}
+
+	/**
+	 * @param returnChannelMapReqDto
+	 * @return
+	 */
+	private UserDto createUserDto(ReturnByRoleInputDto returnByRoleInputDto) {
+		UserDto userDto = new UserDto();
+		userDto.setUserId(returnByRoleInputDto.getUserId());
+		userDto.setIsActive(returnByRoleInputDto.getIsActive());
+		userDto.setLangCode(returnByRoleInputDto.getLangCode());
+		return userDto;
+	}
+
+	/**
+	 * @param returnChannelMapReqDto
+	 * @param userDetailsDto
+	 * @throws ApplicationException
+	 */
+	private List<Long> validateRoles(ReturnByRoleInputDto returnByRoleInputDto, UserDetailsDto userDetailsDto) throws ApplicationException {
+		Long roleId = returnByRoleInputDto.getRoleId();
+		List<Long> roleIdList = new ArrayList<>();
+		if (roleId != null) {
+			List<UserRoleDto> userRoleDtoList = userDetailsDto.getUserRoleDtos();
+			Boolean isValidRoleId = false;
+			for (UserRoleDto userRoleDto : userRoleDtoList) {
+				if (userRoleDto.getUserRoleId().equals(roleId)) {
+					isValidRoleId = true;
+					break;
+				}
+			}
+			if (!isValidRoleId.equals(Boolean.TRUE)) {
+				throw new ApplicationException(ErrorCode.E0481.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString()));
+			} else {
+				roleIdList.add(roleId);
+			}
+		} else {
+			List<UserRoleDto> userRoleDtoList = userDetailsDto.getUserRoleDtos();
+			if (!CollectionUtils.isEmpty(userRoleDtoList)) {
+				for (UserRoleDto userRoleDto : userRoleDtoList) {
+					roleIdList.add(userRoleDto.getUserRoleId());
+				}
+			} else {
+				throw new ApplicationException(ErrorCode.E0481.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString()));
+			}
+		}
+		return roleIdList;
+	}
+
+	public List<ReturnGroupMapping> getReturnGroupMappingList(String languageCode) {
+		return returnGroupMappingRepo.getReturnGroupList(languageCode);
+	}
+
+	public List<Return> getReturnsListForReturnGroupMapping(Map<String, Object> columnValueMap, String methodName) {
+		return returnServiceV2.getDataByObject(columnValueMap, methodName);
+	}
+
+	public Boolean checkReturnGroupNameExist(String returnGroupName) {
+		return returnGroupLabelServiceV2.checkRetrunGroupLabelExist(returnGroupName, null, MethodConstants.CHECK_RETURN_GROUP_NAME_EXIST.getConstantVal());
+	}
+
+}

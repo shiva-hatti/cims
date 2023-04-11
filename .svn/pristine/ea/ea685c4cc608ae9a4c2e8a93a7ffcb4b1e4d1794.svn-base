@@ -1,0 +1,121 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.List;
+
+import com.iris.dto.SchedulerLogInfo;
+
+/**
+ * @author psheke
+ * @date 19/05/2021
+ */
+public class SchedulerInfo implements Serializable {
+
+	private static final long serialVersionUID = 7459277441933543453L;
+	private Integer schedulerId;
+	private String schedulerName;
+	private Boolean isRunning;
+	private Integer recordsTobeProcessed;
+	private Boolean isActive;
+	private String schedulerCode;
+	private List<SchedulerLogInfo> schedulerLoglist;
+
+	/**
+	 * @return the schedulerName
+	 */
+	public String getSchedulerName() {
+		return schedulerName;
+	}
+
+	/**
+	 * @param schedulerName the schedulerName to set
+	 */
+	public void setSchedulerName(String schedulerName) {
+		this.schedulerName = schedulerName;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public boolean isActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setActive(boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the schedulerCode
+	 */
+	public String getSchedulerCode() {
+		return schedulerCode;
+	}
+
+	/**
+	 * @param schedulerCode the schedulerCode to set
+	 */
+	public void setSchedulerCode(String schedulerCode) {
+		this.schedulerCode = schedulerCode;
+	}
+
+	/**
+	 * @return the schedulerLoglist
+	 */
+	public List<SchedulerLogInfo> getSchedulerLoglist() {
+		return schedulerLoglist;
+	}
+
+	/**
+	 * @param schedulerLoglist the schedulerLoglist to set
+	 */
+	public void setSchedulerLoglist(List<SchedulerLogInfo> schedulerLoglist) {
+		this.schedulerLoglist = schedulerLoglist;
+	}
+
+	/**
+	 * @return the schedulerId
+	 */
+	public Integer getSchedulerId() {
+		return schedulerId;
+	}
+
+	/**
+	 * @param schedulerId the schedulerId to set
+	 */
+	public void setSchedulerId(Integer schedulerId) {
+		this.schedulerId = schedulerId;
+	}
+
+	/**
+	 * @return the isRunning
+	 */
+	public Boolean getIsRunning() {
+		return isRunning;
+	}
+
+	/**
+	 * @param isRunning the isRunning to set
+	 */
+	public void setIsRunning(Boolean isRunning) {
+		this.isRunning = isRunning;
+	}
+
+	/**
+	 * @return the recordsTobeProcessed
+	 */
+	public Integer getRecordsTobeProcessed() {
+		return recordsTobeProcessed;
+	}
+
+	/**
+	 * @param recordsTobeProcessed the recordsTobeProcessed to set
+	 */
+	public void setRecordsTobeProcessed(Integer recordsTobeProcessed) {
+		this.recordsTobeProcessed = recordsTobeProcessed;
+	}
+
+}

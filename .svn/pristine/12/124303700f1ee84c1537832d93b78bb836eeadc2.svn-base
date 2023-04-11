@@ -1,0 +1,57 @@
+/**
+ * 
+ */
+package com.iris.sdmx.exceltohtml.bean;
+
+/**
+ * @author apagaria
+ *
+ */
+public class SdmxReturnModelMappingBean {
+	
+	
+	private Long returnTemplateId;
+	
+	private Integer returnCellRef;
+	
+	
+
+	/**
+	 * @param returnTemplateId
+	 * @param returnCellRef
+	 */
+	public SdmxReturnModelMappingBean(Long returnTemplateId, Integer returnCellRef) {
+		this.returnTemplateId = returnTemplateId;
+		this.returnCellRef = returnCellRef;
+	}
+
+	/**
+	 * @return the returnTemplateId
+	 */
+	public Long getReturnTemplateId() {
+		return returnTemplateId;
+	}
+
+	/**
+	 * @param returnTemplateId the returnTemplateId to set
+	 */
+	public void setReturnTemplateId(Long returnTemplateId) {
+		this.returnTemplateId = returnTemplateId;
+	}
+
+	/**
+	 * @return the returnCellRef
+	 */
+	public Integer getReturnCellRef() {
+		return returnCellRef;
+	}
+
+	/**
+	 * @param returnCellRef the returnCellRef to set
+	 */
+	public void setReturnCellRef(Integer returnCellRef) {
+		this.returnCellRef = returnCellRef;
+	}
+
+	
+}

@@ -1,0 +1,63 @@
+package com.iris.repository;
+
+import java.util.Date;
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.iris.model.FilingCalendar;
+
+public interface FilingCalendarRepository extends JpaRepository<FilingCalendar, Long> {
+
+	@Query("FROM FilingCalendar where returnId=:returnId and finYearId=:finYearId and returnPropertyVal.returnProprtyValId is null and isActive = 1 Order by filingCalendarId DESC")
+	FilingCalendar findFilingCalendarByReturnIdAndFinYearId(@Param("returnId") Long returnId, @Param("finYearId") Long finYearId);
+
+	@Query("FROM FilingCalendar where returnFrequencyId=:returnFrequencyId and returnId=:returnId and finYearId=:finYearId and calDate=:calDate " + " Order by filingCalendarId DESC")
+	FilingCalendar findFilingCalendarByReturnIdAndFinYearIdAndcalDate(@Param("returnId") Long returnId, @Param("finYearId") Long finYearId, @Param("calDate") Date calDate);
+
+	FilingCalendar findByFilingCalendarId(@Param("filingCalendarId") int filingCalendarId);
+
+	@Query("FROM FilingCalendar where returnId=:returnId and finYearId=:finYearId and returnPropertyVal.returnProprtyValId=:retPropValId and isActive = 1 Order by filingCalendarId DESC")
+	FilingCalendar findFilingCalendarByReturnIdAndFinYearIdAndRetProValId(@Param("returnId") Long returnId, @Param("finYearId") Long finYearId, @Param("retPropValId") Integer returnPropertyValId);
+
+	@Query("FROM FilingCalendar where returnFrequencyId=:returnFrequencyId and returnId=:returnId and returnPropertyVal.returnProprtyValId=:returnPropertyValId and isActive=1 Order by filingCalendarId DESC")
+	List<FilingCalendar> getFillingCalendarInfo(@Param("returnFrequencyId") Long returnFrequencyId, @Param("returnId") Long returnId, @Param("returnPropertyValId") Integer returnPropertyValId);
+
+	@Query("FROM FilingCalendar where returnFrequencyId=:formFreqId and returnId=:returnIdAjax and returnPropertyVal.returnProprtyValId=:propertyId and isActive=1")
+	FilingCalendar viewFilingData(Long formFreqId, Long returnIdAjax, Integer propertyId);
+
+	@Query("FROM FilingCalendar where returnId=:returnId and returnPropertyVal.returnProprtyValId=:returnProprtyValId")
+	FilingCalendar checkFilingInfo(@Param("returnId") Long returnId, @Param("returnProprtyValId") Integer returnProperty);
+
+	@Transactional
+	@Modifying
+	@Query(value = "update TBL_FILING_CALENDER set FILING_WINDOW_EXTENSION= ?5,EMAIL_NOTIFICATION_DAYS=?4,INCLUDE_HOLIDAY=?6,INCLUDE_WEEKEND=?7,SEND_EMAIL=?8,RETURN_FREQUENCY_ID_FK= ?1,LAST_MODIFIED_ON=?9,LAST_MODIFIED_BY_FK=?10,IS_ACTIVE= ?11,GRACE_DAYS= ?12,IS_FILING_APPLICABLE= ?13 where RETURN_ID_FK= ?2 AND RET_PROPERTY_VAL_ID_FK = ?3", nativeQuery = true)
+	void updateFilingInfo(@Param("returnFrequencyId") Long returnFrequencyId, @Param("returnId") Long returnId, @Param("returnProperty") Integer returnProperty, @Param("emailNotificationDays") Long emailNotificationDays, @Param("filingWindowExtensionStart") Integer filingWindowExtensionStart, @Param("includeHoliday") Boolean includeHoliday, @Param("includeWeekend") Boolean includeWeekend, @Param("sendMail") String sendMail, @Param("lastUpdated") Date lastUpdated, @Param("lastUpdatedBy") Long lastUpdatedBy, @Param("isActive") Boolean isActive, @Param("graceDays") Integer graceDays, @Param("isApplicable") Boolean isApplicable);
+
+	@Query("FROM FilingCalendar where returnFrequencyId=:returnFrequencyId and returnId=:returnId and isActive=1 and returnPropertyVal.returnProprtyValId IS NULL Order by filingCalendarId DESC")
+	List<FilingCalendar> getFillingCalendarInfoWithOutPropVal(@Param("returnFrequencyId") Long returnFrequencyId, @Param("returnId") Long returnId);
+
+	@Query("FROM FilingCalendar where returnId=:returnId and returnPropertyVal.returnProprtyValId is null")
+	FilingCalendar checkFilingInfoWithoutRetPropVal(Long returnId);
+
+	@Transactional
+	@Modifying
+	@Query(value = "update TBL_FILING_CALENDER set FILING_WINDOW_EXTENSION= ?4,EMAIL_NOTIFICATION_DAYS=?3,INCLUDE_HOLIDAY=?5,INCLUDE_WEEKEND=?6,SEND_EMAIL=?7,RETURN_FREQUENCY_ID_FK=?1,LAST_MODIFIED_ON=?8,LAST_MODIFIED_BY_FK=?9,IS_ACTIVE= ?10,GRACE_DAYS= ?11,IS_FILING_APPLICABLE= ?12 where RETURN_ID_FK= ?2 AND RET_PROPERTY_VAL_ID_FK IS NULL", nativeQuery = true)
+	void updateFilingInfoWithoutPropVal(@Param("returnFrequencyId") Long returnFrequencyId, @Param("returnId") Long returnId, @Param("emailNotificationDays") Long emailNotificationDays, @Param("filingWindowExtensionStart") Integer filingWindowExtensionStart, @Param("includeHoliday") Boolean includeHoliday, @Param("includeWeekend") Boolean includeWeekend, @Param("sendMail") String sendMail, @Param("lastUpdated") Date lastUpdated, @Param("lastUpdatedBy") Long lastUpdatedBy, @Param("isActive") Boolean isActive, @Param("graceDays") Integer graceDays, @Param("isApplicable") Boolean isApplicable);
+
+	@Query("FROM FilingCalendar where returnFrequencyId=:formFreqId and returnId=:returnIdAjax and isActive=1 and returnPropertyVal.returnProprtyValId is null")
+	FilingCalendar viewFilingDataWithoutRetPropVal(Long formFreqId, Long returnIdAjax);
+
+	@Transactional
+	@Modifying
+	@Query(value = "update TBL_FILING_CALENDER set IS_ACTIVE=0 where RETURN_ID_FK= :returnId ", nativeQuery = true)
+	void updateFilingCalenderFromReturn(@Param("returnId") Long returnId);
+
+	@Query("FROM FilingCalendar where returnId=:returnId and isActive=1")
+	List<FilingCalendar> getFilingCalDataByReturnId(Long returnId);
+
+}

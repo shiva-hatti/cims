@@ -1,0 +1,348 @@
+/**
+ * 
+ */
+package com.iris.controller;
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.iris.dateutility.enums.DateConstants;
+import com.iris.dateutility.util.DateManip;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.model.ApplicationTrackingSystemBean;
+import com.iris.model.AuditLog;
+import com.iris.model.AuditLogMsgDetails;
+import com.iris.model.Menu;
+import com.iris.model.MenuRoleMap;
+import com.iris.model.Regulator;
+import com.iris.model.RoleType;
+import com.iris.model.UserEntityRole;
+import com.iris.model.UserMaster;
+import com.iris.model.UserRole;
+import com.iris.model.UserRoleMaster;
+import com.iris.repository.MenuRoleMapRepo;
+import com.iris.repository.UserEntityRoleRepo;
+import com.iris.repository.UserMasterRepo;
+import com.iris.repository.UserRoleRepo;
+import com.iris.service.impl.AuditLogService;
+import com.iris.util.AESV2;
+
+/**
+ * @author Shivabasava Hatti
+ *
+ */
+@RestController
+@RequestMapping("/service/auditLog")
+public class AuditLogController {
+
+	static final Logger logger = LogManager.getLogger(AuditLogController.class);
+	
+	@Autowired
+	private AuditLogService auditLogService;
+	@Autowired
+	private MenuRoleMapRepo menuRoleMapRepo;
+	@Autowired
+	private UserRoleRepo userRoleRepo;
+	@Autowired
+	private UserMasterRepo userMasterRepo;
+	@Autowired
+	private UserEntityRoleRepo userEntityRoleRepo;
+	 
+	@PostMapping(value =  "/fetchDeptList")
+	public ServiceResponse fetchDeptList(@RequestHeader(name = "JobProcessingId")  String jobProcessId,@RequestBody UserRole userRole){
+		logger.info("Requesting fetchDeptList "+jobProcessId);
+		try {
+			List<UserRole> userRoleList = new ArrayList<>();
+			List<UserRole> respUserRoleList = new ArrayList<>();
+			if(!Objects.isNull(userRole.getUserRoleId())) {
+				userRoleList = userRoleRepo.fetchDeptList(userRole.getUserRoleId());
+			}
+			UserRole userRoleObj = new UserRole();
+			for (UserRole userRoleDto : userRoleList) {
+				if(userRoleDto.getRoleDesc() != null && !userRoleDto.getRoleDesc().isEmpty()) {
+					userRoleObj = new UserRole();
+					userRoleObj.setUserRoleId(userRoleDto.getUserRoleId());
+					userRoleObj.setRoleDesc(userRoleDto.getRoleDesc());
+					respUserRoleList.add(userRoleObj);
+				}
+			}
+			if(CollectionUtils.isEmpty(respUserRoleList)) {
+				 return new ServiceResponseBuilder().setStatus(false).setStatusMessage("There is no Dept List").build();
+			}
+			return new ServiceResponseBuilder().setStatus(true).setResponse(respUserRoleList).build();
+		} catch(Exception e) {
+			logger.error("Exception occoured while fetchDeptList for processing id",jobProcessId +"Exception is "+e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusMessage("Exception occoured while fetchDeptList").build();
+		}
+	}
+	
+	@PostMapping(value =  "/getUserListByRoleId")
+	public ServiceResponse getUserListByRoleId(@RequestHeader(name = "JobProcessingId")  String jobProcessId,@RequestBody UserMaster userMaster){
+		logger.info("Requesting getUserListByRoleId "+jobProcessId);
+		try {
+			List<UserMaster> userMasterList = new ArrayList<>();
+			List<UserMaster> respUserMasterList = new ArrayList<>();
+			List<UserEntityRole> userEntityRoleList = new ArrayList<>();
+			if(!Objects.isNull(userMaster.getRoleType())) {
+				if(userMaster.getRoleType().getRoleTypeId() == 1L) {
+					userMasterList = userMasterRepo.fetchUserListByRoleAndDeptId(userMaster.getRoleType().getRoleTypeId(),userMaster.getDepartmentIdFk().getRegulatorId());
+				} else if(userMaster.getRoleType().getRoleTypeId() == 2L) {
+					userEntityRoleList = userEntityRoleRepo.getActiveUserByEntityCode(userMaster.getUserInfo().getEntityCode());
+				}else if(userMaster.getRoleType().getRoleTypeId() == 3L || userMaster.getRoleType().getRoleTypeId() == 4L) {
+					userMasterList = userMasterRepo.getUserListByRoleId(userMaster.getRoleType().getRoleTypeId());
+				}
+			}
+			UserMaster userMasterObj = new UserMaster();
+			if(userMaster.getRoleType().getRoleTypeId() == 2L) {
+				for(UserEntityRole userEntityRole : userEntityRoleList) {
+					userMasterObj = new UserMaster();
+					userMasterObj.setUserId(userEntityRole.getUserRoleMaster().getUserMaster().getUserId());
+					userMasterObj.setUserName(userEntityRole.getUserRoleMaster().getUserMaster().getUserName());
+					respUserMasterList.add(userMasterObj);
+				}
+			} else {
+				for (UserMaster userMasterDto : userMasterList) {
+					userMasterObj = new UserMaster();
+					userMasterObj.setUserId(userMasterDto.getUserId());
+					userMasterObj.setUserName(userMasterDto.getUserName());
+					respUserMasterList.add(userMasterObj);
+				}
+			}
+			if(CollectionUtils.isEmpty(respUserMasterList)) {
+				 return new ServiceResponseBuilder().setStatus(false).setStatusMessage("There is no User List").build();
+			} else {
+				respUserMasterList.sort((UserMaster u1, UserMaster u2) -> u1.getUserName().toUpperCase().compareTo(u2.getUserName().toUpperCase()));
+			}
+			return new ServiceResponseBuilder().setStatus(true).setResponse(respUserMasterList).build();
+		} catch(Exception e) {
+			logger.error("Exception occoured while getUserListByRoleId for processing id",jobProcessId +"Exception is "+e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusMessage("Exception occoured while getUserListByRoleId").build();
+		}
+	}
+	
+	@PostMapping(value =  "/getMenuListByRoleId")
+	public ServiceResponse getMenuListByRoleId(@RequestHeader(name = "JobProcessingId")  String jobProcessId,@RequestBody MenuRoleMap menuRoleMap){
+		logger.info("Requesting getMenuListByRoleId "+jobProcessId);
+		try {
+			List<Menu> menuList = new ArrayList<>();
+			List<Menu> menuTempList = new ArrayList<>();
+			if(!Objects.isNull(menuRoleMap.getUserRoleIdFk())) {
+			//	if(menuRoleMap.getUserRoleIdFk().getRoleIdKey() == Long.parseLong(GeneralConstants.REGULATOR_ROLE_TYPE_ID.getConstantVal())) {
+				if(menuRoleMap.getUserRoleIdFk().getRoleIdKey() == 1L) {
+					menuTempList = menuRoleMapRepo.getMenuForDept();
+			//	} else if(menuRoleMap.getUserRoleIdFk().getRoleIdKey() == Long.parseLong(GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantVal())){
+				} else if(menuRoleMap.getUserRoleIdFk().getRoleIdKey() == 2L){
+					menuTempList = menuRoleMapRepo.getMenuForEntity();
+			//	} else if(menuRoleMap.getUserRoleIdFk().getRoleIdKey() == Long.parseLong(GeneralConstants.AUDITOR_ROLE_TYPE_ID.getConstantVal())){
+				} else if(menuRoleMap.getUserRoleIdFk().getRoleIdKey() == 3L){
+					menuTempList = menuRoleMapRepo.getMenuForAuditor();
+			//	} else if(menuRoleMap.getUserRoleIdFk().getRoleIdKey() == Long.parseLong(GeneralConstants.NBFC_ROLE_TYPE_ID.getConstantVal())){
+				} else if(menuRoleMap.getUserRoleIdFk().getRoleIdKey() == 4L){
+					menuTempList = menuRoleMapRepo.getMenuForAuditor();
+				}
+					Menu menu = new Menu();
+					for(Menu menuDto : menuTempList) {
+						menu = new Menu();
+						menu.setMenuId(menuDto.getMenuId());
+						menu.setDefaultMenu(menuDto.getDefaultMenu());
+						menuList.add(menu);
+					}
+			}
+			if(CollectionUtils.isEmpty(menuList)) {
+				 return new ServiceResponseBuilder().setStatus(false).setStatusMessage("There is no Menu List").build();
+			} else {
+				menuList.sort((Menu m1, Menu m2) -> m1.getDefaultMenu().compareToIgnoreCase(m2.getDefaultMenu()));
+			}
+			return new ServiceResponseBuilder().setStatus(true).setResponse(menuList).build();
+		} catch(Exception e) {
+			logger.error("Exception occoured while getMenuListByRoleId for processing id",jobProcessId +"Exception is "+e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusMessage("Exception occoured while getMenuListByRoleId").build();
+		}
+	}
+	
+	
+	@PostMapping(value =  "/showAuditLogData")
+	public ServiceResponse showAuditLogData(@RequestHeader(name = "JobProcessingId")  String jobProcessId,@RequestBody AuditLog auditLog) {
+		logger.info("Requesting showAuditLogData "+jobProcessId);
+		try {
+			List<AuditLog> auditLogList = new ArrayList<>();
+			List<AuditLog> respAuditLogList = new ArrayList<>();
+			List<ApplicationTrackingSystemBean> applicationTrackingSystemList = new ArrayList<>();
+			String sesDateFormat = auditLog.getSessionDateFormat()+" "+DateConstants.HH_MM_SS.getDateConstants()+" "+DateConstants.AM_PM.getDateConstants();
+			if(!Objects.isNull(auditLog)) {
+				List<String> activityLogList = Stream.of(auditLog.getActivityIds().split(",")).collect(Collectors.toList());
+				if(auditLog.getMenuIds() != null) {
+					auditLogList = auditLogService.getAuditLogData(auditLog);
+				}
+				if(activityLogList.contains("4")) {
+					applicationTrackingSystemList = auditLogService.getApplicationTrackingSystem(auditLog);
+				}
+					AuditLog auditLogObj = new AuditLog();
+					Menu menu = new Menu();
+					UserMaster userMaster = new UserMaster();
+					RoleType roleType = new RoleType();
+					AuditLogMsgDetails auditLogMsgDetails = new AuditLogMsgDetails();
+					Regulator regulator = new Regulator();
+					Type listToken = new TypeToken<AuditLogMsgDetails>() {
+					}.getType();
+					
+					for(AuditLog auditLogDto : auditLogList) {
+						auditLogMsgDetails = new AuditLogMsgDetails();
+						listToken = new TypeToken<AuditLogMsgDetails>() {
+						}.getType();
+						auditLogObj = new AuditLog();
+						menu = new Menu();
+						userMaster = new UserMaster();
+						roleType = new RoleType();
+						auditLogMsgDetails = new Gson().fromJson(auditLogDto.getLogMessage(), listToken);
+						
+						if(activityLogList.contains(auditLogMsgDetails.getType().toString())) {
+							auditLogObj.setAuditLogIdPk(auditLogDto.getAuditLogIdPk());
+							menu.setMenuDesc(auditLogDto.getMenuIdFk().getDefaultMenu());
+							auditLogObj.setMenuIdFk(menu);
+							roleType.setRoleTypeDesc(auditLogDto.getUserIdFk().getRoleType().getRoleTypeDesc());
+							roleType.setRoleTypeId(auditLogDto.getUserIdFk().getRoleType().getRoleTypeId());
+						//	if(auditLog.getRoleId().equals(GeneralConstants.REGULATOR_ROLE_TYPE_ID.getConstantVal())) {
+							if(auditLog.getRoleId() == 1L) {
+								regulator = new Regulator();
+								regulator.setRegulatorName(auditLogDto.getUserIdFk().getDepartmentIdFk().getRegulatorName());
+								userMaster.setDepartmentIdFk(regulator);
+						//	} else if(auditLog.getRoleId().equals(GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantVal())) {
+							} else if(auditLog.getRoleId() == 2L) {
+								List<UserRoleMaster> userRoleMasterList = auditLogDto.getUserIdFk().getUsrRoleMstrSet().stream().collect(Collectors.toList());
+								List<UserEntityRole> userEntityRoleList = userRoleMasterList.get(0).getUserEntityRole().stream().collect(Collectors.toList());
+								auditLogObj.setEntityCode(userEntityRoleList.get(0).getEntityBean().getEntityName());
+							}
+							userMaster.setUserName(auditLogDto.getUserIdFk().getUserName());
+							userMaster.setRoleType(roleType);
+							auditLogObj.setUserIdFk(userMaster);
+							auditLogObj.setLogTimeStamp(auditLogDto.getLogTimeStamp());
+							auditLogObj.setActivityTypeId(auditLogMsgDetails.getType());
+							auditLogObj.setAuditLogMsgDetails(auditLogMsgDetails);
+							respAuditLogList.add(auditLogObj);
+						}
+					}
+					if(!CollectionUtils.isEmpty(applicationTrackingSystemList)) {
+						if(Boolean.TRUE.equals(auditLog.getSelectSpecificFlag())) {
+							UserMaster userMasterObj = userMasterRepo.findByUserIdAndIsActiveTrue(auditLog.getUserIdFk().getUserId());
+							for(ApplicationTrackingSystemBean applicationTrackingSystemDto : applicationTrackingSystemList) {
+								auditLogObj = new AuditLog();
+								auditLogMsgDetails = new AuditLogMsgDetails();
+								menu = new Menu();
+								userMaster = new UserMaster();
+								roleType = new RoleType();
+								auditLogObj.setAuditLogIdPk(applicationTrackingSystemDto.getApplTrackSysId());
+								menu.setMenuDesc("Log");
+								auditLogObj.setMenuIdFk(menu);
+								roleType.setRoleTypeDesc(userMasterObj.getRoleType().getRoleTypeDesc());
+								roleType.setRoleTypeId(userMasterObj.getRoleType().getRoleTypeId());
+								//if(auditLog.getRoleId().equals(GeneralConstants.REGULATOR_ROLE_TYPE_ID.getConstantVal())) {
+								if(auditLog.getRoleId() == 1L) {
+									regulator = new Regulator();
+									regulator.setRegulatorName(userMasterObj.getDepartmentIdFk().getRegulatorName());
+									userMaster.setDepartmentIdFk(regulator);
+							//	} else if(auditLog.getRoleId().equals(GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantVal())) {
+								} else if(auditLog.getRoleId() == 2L) {
+									List<UserRoleMaster> userRoleMasterList = userMasterObj.getUsrRoleMstrSet().stream().collect(Collectors.toList());
+									List<UserEntityRole> userEntityRoleList = userRoleMasterList.get(0).getUserEntityRole().stream().collect(Collectors.toList());
+									auditLogObj.setEntityCode(userEntityRoleList.get(0).getEntityBean().getEntityName());
+								}
+								userMaster.setUserName(userMasterObj.getUserName());
+								userMaster.setRoleType(roleType);
+								auditLogObj.setUserIdFk(userMaster);
+								auditLogObj.setLogTimeStamp(applicationTrackingSystemDto.getLogedInTime());
+								auditLogObj.setActivityTypeId(4);
+								auditLogMsgDetails.setErrorMessage(applicationTrackingSystemDto.getLogedinErrorMsgCode());
+								auditLogMsgDetails.setBrowserName(applicationTrackingSystemDto.getUserSysBroserInfo());
+								auditLogMsgDetails.setOperatingSystem(applicationTrackingSystemDto.getUserSysOPSystem());
+								auditLogMsgDetails.setIsLogedInSuccess(applicationTrackingSystemDto.isLogedInSuccess());
+								auditLogMsgDetails.setLoginTime(DateManip.convertDateToString(applicationTrackingSystemDto.getLogedInTime(), sesDateFormat));
+								if(!Objects.isNull(applicationTrackingSystemDto.getLogoutTime())) {
+									auditLogMsgDetails.setLogoutTime(DateManip.convertDateToString(applicationTrackingSystemDto.getLogoutTime(), sesDateFormat));
+								}
+								auditLogObj.setAuditLogMsgDetails(auditLogMsgDetails);
+								respAuditLogList.add(auditLogObj);
+							}
+						} else {
+							List<String> userNameList = new ArrayList<>();
+							userNameList = applicationTrackingSystemList.stream().map(ApplicationTrackingSystemBean::getUserName).collect(Collectors.toList());
+							List<UserMaster> userMasterList = userMasterRepo.getDataByUserNameInAndIsActiveTrue(userNameList);
+							for(UserMaster userMasterObj : userMasterList) {
+								for(ApplicationTrackingSystemBean applicationTrackingSystemDto : applicationTrackingSystemList) {
+									if(AESV2.getInstance().encrypt(userMasterObj.getUserName()).trim().equals(applicationTrackingSystemDto.getUserName().trim()) && userMasterObj.getRoleType().getRoleTypeId() == auditLog.getRoleId()) {
+										auditLogObj = new AuditLog();
+										auditLogMsgDetails = new AuditLogMsgDetails();
+										menu = new Menu();
+										userMaster = new UserMaster();
+										roleType = new RoleType();
+										auditLogObj.setAuditLogIdPk(applicationTrackingSystemDto.getApplTrackSysId());
+										menu.setMenuDesc("Log");
+										auditLogObj.setMenuIdFk(menu);
+										roleType.setRoleTypeDesc(userMasterObj.getRoleType().getRoleTypeDesc());
+										roleType.setRoleTypeId(userMasterObj.getRoleType().getRoleTypeId());
+										//if(auditLog.getRoleId().equals(GeneralConstants.REGULATOR_ROLE_TYPE_ID.getConstantVal())) {
+										if(auditLog.getRoleId() == 1L) {
+											regulator = new Regulator();
+											if(userMasterObj.getDepartmentIdFk() != null) {
+												regulator.setRegulatorName(userMasterObj.getDepartmentIdFk().getRegulatorName());
+											} else {
+												regulator.setRegulatorName("-");
+											}
+											userMaster.setDepartmentIdFk(regulator);
+									//	} else if(auditLog.getRoleId().equals(GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantVal())) {
+										} else if(auditLog.getRoleId() == 2L) {
+											List<UserRoleMaster> userRoleMasterList = userMasterObj.getUsrRoleMstrSet().stream().collect(Collectors.toList());
+											List<UserEntityRole> userEntityRoleList = userRoleMasterList.get(0).getUserEntityRole().stream().collect(Collectors.toList());
+											auditLogObj.setEntityCode(userEntityRoleList.get(0).getEntityBean().getEntityName());
+										}
+										userMaster.setUserName(userMasterObj.getUserName());
+										userMaster.setRoleType(roleType);
+										auditLogObj.setUserIdFk(userMaster);
+										auditLogObj.setLogTimeStamp(applicationTrackingSystemDto.getLogedInTime());
+										auditLogObj.setActivityTypeId(4);
+										auditLogMsgDetails.setErrorMessage(applicationTrackingSystemDto.getLogedinErrorMsgCode());
+										auditLogMsgDetails.setBrowserName(applicationTrackingSystemDto.getUserSysBroserInfo());
+										auditLogMsgDetails.setOperatingSystem(applicationTrackingSystemDto.getUserSysOPSystem());
+										auditLogMsgDetails.setIsLogedInSuccess(applicationTrackingSystemDto.isLogedInSuccess());
+										auditLogMsgDetails.setLoginTime(DateManip.convertDateToString(applicationTrackingSystemDto.getLogedInTime(), sesDateFormat));
+										if(!Objects.isNull(applicationTrackingSystemDto.getLogoutTime())) {
+											auditLogMsgDetails.setLogoutTime(DateManip.convertDateToString(applicationTrackingSystemDto.getLogoutTime(), sesDateFormat));
+										}
+										auditLogObj.setAuditLogMsgDetails(auditLogMsgDetails);
+										respAuditLogList.add(auditLogObj);
+									}
+								}
+							}
+						}
+						
+					}
+			}
+			if(!CollectionUtils.isEmpty(respAuditLogList)) {
+				respAuditLogList.sort((AuditLog a1, AuditLog a2) -> a1.getLogTimeStamp().compareTo(a2.getLogTimeStamp()));
+				Collections.reverse(respAuditLogList);
+			}
+			return new ServiceResponseBuilder().setStatus(true).setResponse(respAuditLogList).build();
+		} catch(Exception e) {
+			logger.error("Exception occoured while Audit Log Data for processing id",jobProcessId +"Exception is "+e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusMessage("Exception occoured while Audit Log Data").build();
+		}
+	}
+}

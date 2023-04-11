@@ -1,0 +1,76 @@
+package com.iris.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.model.UserRoleReturnMapping;
+import com.iris.model.WorkflowReturnMapping;
+import com.iris.service.GenericService;
+import com.iris.service.impl.WorkflowService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.MethodConstants;
+
+/**
+ * @author psawant
+ * @version 1.0
+ * @date 06/05/2020
+ */
+@RestController
+@RequestMapping("/service/emailConfigure")
+public class EmailConfigureController {
+
+	private static final Logger LOGGER = LogManager.getLogger(EmailConfigureController.class);
+
+	@Autowired
+	private GenericService<UserRoleReturnMapping, Long> userRoleReturnMappingService;
+
+	@Autowired
+	WorkflowService workflowService;
+
+	@PostMapping("/getRolesOnReturnId/{returnId}")
+	public ServiceResponse getRolesOnReturnId(@RequestHeader(name = "JobProcessingId") String jobProcessId, @PathVariable("returnId") Long returnId) {
+		try {
+			if (returnId == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0814.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0814.toString())).build();
+			}
+			Map<String, Object> columnValueMap = new HashMap<>();
+			columnValueMap.put(ColumnConstants.RETURNID.getConstantVal(), returnId);
+			List<UserRoleReturnMapping> UserRoleReturnMapList = userRoleReturnMappingService.getDataByObject(columnValueMap, MethodConstants.GET_USER_ROLE_RETURN_MAPPING_BY_RETURN_ID.getConstantVal());
+
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(UserRoleReturnMapList).build();
+		} catch (Exception e) {
+			LOGGER.error(ErrorCode.EC0033.toString());
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0814.toString())).build();
+		}
+	}
+
+	@PostMapping("/getWorkflowListOnReturnId/{returnId}")
+	public ServiceResponse getWorkflowListOnReturnId(@RequestHeader(name = "JobProcessingId") String jobProcessId, @PathVariable("returnId") Long returnId) {
+		try {
+			if (returnId == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0814.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0814.toString())).build();
+			}
+			List<WorkflowReturnMapping> workflowList = workflowService.getActiveDataFor(WorkflowReturnMapping.class, returnId);
+
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(workflowList).build();
+		} catch (Exception e) {
+			LOGGER.error(ErrorCode.EC0033.toString());
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0814.toString())).build();
+		}
+	}
+
+}

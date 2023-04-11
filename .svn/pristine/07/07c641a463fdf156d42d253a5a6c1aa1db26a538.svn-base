@@ -1,0 +1,125 @@
+package com.iris.controller;
+
+import java.io.File;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.dateutility.enums.DateConstants;
+import com.iris.dateutility.util.DateManip;
+import com.iris.dto.ReturnUploadNBusinessResult;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.model.FilingStatus;
+import com.iris.model.ReturnUploadNBusinessData;
+import com.iris.model.ReturnsUploadDetails;
+import com.iris.model.XBRLWebFormPartialData;
+import com.iris.service.impl.ReturnUploadDetailsService;
+import com.iris.service.impl.XbrlWebFormService;
+import com.iris.util.FileManager;
+import com.iris.util.ResourceUtil;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.util.constant.ServiceConstants;
+
+/**
+ * @author apagaria
+ *
+ */
+@RestController
+@RequestMapping("/service/returnUploadResultParser")
+public class ReturnUploadResultProcessorController {
+
+	@Autowired
+	private ReturnUploadDetailsService returnsUploadDetailsService;
+
+	@Autowired
+	private XbrlWebFormService xbrlWebFormService;
+
+	static final Logger LOGGER = LogManager.getLogger(ReturnUploadResultProcessorController.class);
+
+	@PostMapping(value = "/updateReturnUploadNBusinessResultData")
+	public ServiceResponse updateReturnUploadNBusinessResultData(@RequestHeader(name = "AppId") String appId, @RequestHeader(name = "JobProcessingId") String jobProcessingId, @RequestBody List<ReturnUploadNBusinessData> returnUploadResultDetails) {
+		LOGGER.info(ServiceConstants.JOB_PROCESSING_ID_TXT + jobProcessingId + ", updateReturnUploadNBusinessResultData - START");
+
+		try {
+			List<ReturnsUploadDetails> returnUploadDetailList = returnsUploadDetailsService.getDataByIds(ArrayUtils.toObject(returnUploadResultDetails.stream().mapToLong(f -> f.getUploadId()).toArray()));
+			Map<Long, ReturnsUploadDetails> returnUploadDetailsMap = null;
+
+			if (!CollectionUtils.isEmpty(returnUploadDetailList)) {
+				returnUploadDetailsMap = returnUploadDetailList.stream().collect(Collectors.toMap(ReturnsUploadDetails::getUploadId, returnUploadDetail -> returnUploadDetail));
+			}
+
+			ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+			serviceResponseBuilder.setStatus(true);
+			List<ReturnUploadNBusinessResult> returnUploadResultBeans = new LinkedList<>();
+
+			for (ReturnUploadNBusinessData returnUploadNBusinessData : returnUploadResultDetails) {
+				ReturnUploadNBusinessResult returnUploadNBusinessResult = new ReturnUploadNBusinessResult();
+				LOGGER.info(ServiceConstants.JOB_PROCESSING_ID_TXT + jobProcessingId + ", updateReturnUploadNBusinessResultData - Return application processing id - " + returnUploadNBusinessData.getApplicationProcessId() + " START");
+				try {
+					returnsUploadDetailsService.updateValidationStatus(returnUploadNBusinessData, returnUploadNBusinessResult, returnUploadDetailsMap);
+					updateXbrlPartialDataFilingStatus(returnUploadNBusinessData, returnUploadNBusinessResult, jobProcessingId);
+				} catch (Exception e) {
+					LOGGER.error("Exception occured for upload Id : " + returnUploadNBusinessData.getUploadId(), e);
+					serviceResponseBuilder.setStatus(false);
+					returnUploadNBusinessResult.setStatus(false);
+				}
+				LOGGER.info(ServiceConstants.JOB_PROCESSING_ID_TXT + jobProcessingId + ", updateReturnUploadNBusinessResultData - Return application process Id - " + returnUploadNBusinessData.getApplicationProcessId() + " END");
+				returnUploadResultBeans.add(returnUploadNBusinessResult);
+			}
+			serviceResponseBuilder.setResponse(returnUploadResultBeans);
+			ServiceResponse serviceResponse = serviceResponseBuilder.build();
+			LOGGER.info(ServiceConstants.JOB_PROCESSING_ID_TXT + jobProcessingId + ", updateReturnUploadNBusinessResultData - START");
+			return serviceResponse;
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorConstants.DEFAULT_ERROR.getConstantVal()).build();
+		}
+	}
+
+	private void updateXbrlPartialDataFilingStatus(ReturnUploadNBusinessData returnUploadNBusinessData, ReturnUploadNBusinessResult returnUploadNBusinessResult, String requestTxnId) throws Exception {
+		Long uploadedID = returnUploadNBusinessData.getUploadId();
+		FilingStatus filingStatus = new FilingStatus();
+		XBRLWebFormPartialData xbrlWebFormData = xbrlWebFormService.getDataByUploadId(uploadedID);
+		ReturnsUploadDetails returnUploadDetails = returnsUploadDetailsService.getReturnUploadDetailsByUploadIdNActive(uploadedID);
+		if (xbrlWebFormData != null) {
+			if (returnUploadNBusinessData.getFillingStatusId() == GeneralConstants.BUSINESS_VALIDATION_FAIL.getConstantIntVal()) {
+				filingStatus.setFilingStatusId(GeneralConstants.BUSINESS_VALIDATION_FAIL.getConstantIntVal());
+				String financialYear = DateManip.formatDate(DateManip.convertDateToString(returnUploadDetails.getEndDate(), DateConstants.DD_MM_YYYY.getDateConstants()), DateConstants.DD_MM_YYYY.getDateConstants(), DateConstants.YYYY.getDateConstants());
+				String uploadInstanceFilePath = ResourceUtil.getKeyValue("filepath.root") + ResourceUtil.getKeyValue("filepath.instanceZip") + returnUploadDetails.getEntity().getEntityCode().trim() + File.separator + financialYear + File.separator + returnUploadDetails.getInstanceFile().replace(GeneralConstants.XML_EXTENSION.getConstantVal(), "");
+				String destFolder = ResourceUtil.getKeyValue("filepath.xbrl.webform.instance") + File.separator + xbrlWebFormData.getTaxonomyId().getXsdFileName() + File.separator + xbrlWebFormData.getTaxonomyId().getVersionNumber() + File.separator + xbrlWebFormData.getGuid();
+				File[] filesInDirectory = new File(uploadInstanceFilePath).listFiles();
+				for (File csvFile : filesInDirectory) {
+					String filePath = csvFile.getAbsolutePath();
+					String fileExtenstion = filePath.substring(filePath.lastIndexOf(".") + 1, filePath.length());
+					//if (FileManager.checkDirExistence(new File(destFolder))) {
+					if ("csv".equals(fileExtenstion)) {
+						FileManager.copyFileToDirectory(csvFile, new File(destFolder));
+					}
+					//}
+
+				}
+			} else if (returnUploadNBusinessData.getFillingStatusId() == GeneralConstants.BUSINESS_VALIDATION_SUCCESS.getConstantIntVal()) {
+				filingStatus.setFilingStatusId(GeneralConstants.BUSINESS_VALIDATION_SUCCESS.getConstantIntVal());
+			} else {
+				filingStatus.setFilingStatusId(returnUploadNBusinessData.getFillingStatusId());
+			}
+			xbrlWebFormData.setFilingStatus(filingStatus);
+			xbrlWebFormService.add(xbrlWebFormData);
+		}
+	}
+
+}

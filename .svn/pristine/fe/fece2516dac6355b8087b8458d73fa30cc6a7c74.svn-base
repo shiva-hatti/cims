@@ -1,0 +1,101 @@
+package com.iris.service.impl;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.exception.ServiceException;
+import com.iris.model.ReturnSectionMap;
+import com.iris.repository.ReturnSectionMapRepo;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.MethodConstants;
+
+@Service
+public class ReturnSectionMapService implements GenericService<ReturnSectionMap, Long> {
+
+	@Autowired
+	private ReturnSectionMapRepo returnSectionMapRepo;
+
+	@Override
+	public List<ReturnSectionMap> getDataByObject(Map<String, Object> columnValueMap, String methodName) throws ServiceException {
+		try {
+			Long returnId = null;
+			for (String columnName : columnValueMap.keySet()) {
+				if (columnName.equalsIgnoreCase(ColumnConstants.RETURNID.getConstantVal())) {
+					returnId = Long.parseLong(columnValueMap.get(columnName).toString());
+				}
+			}
+			if (methodName.equalsIgnoreCase(MethodConstants.GET_RETURN_TABLE_DATA.getConstantVal())) {
+				return returnSectionMapRepo.findByReturnIdFkReturnIdAndIsActiveTrue(returnId);
+			}
+			return null;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public ReturnSectionMap add(ReturnSectionMap entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean update(ReturnSectionMap entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public List<ReturnSectionMap> getDataByIds(Long[] ids) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ReturnSectionMap getDataById(Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		Optional<ReturnSectionMap> returnSectionMap = returnSectionMapRepo.findById(id);
+		if (returnSectionMap.isPresent()) {
+			return returnSectionMap.get();
+		} else {
+			return null;
+		}
+	}
+
+	@Override
+	public List<ReturnSectionMap> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<ReturnSectionMap> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<ReturnSectionMap> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<ReturnSectionMap> getAllDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void deleteData(ReturnSectionMap bean) throws ServiceException {
+		// TODO Auto-generated method stub
+
+	}
+
+}

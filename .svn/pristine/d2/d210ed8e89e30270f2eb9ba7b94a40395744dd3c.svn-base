@@ -1,0 +1,335 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import com.iris.util.Validations;
+
+
+/**
+ * This is the Grid Form Key Label bean class with Hibernate mapping.
+ * @author pippar
+ * @date 16/06/2015
+ *
+ */
+
+@Entity
+@Table(name="TBL_GRID_FORM_KEY_LABEL")
+public class GridFormKeyLabel implements Serializable {
+
+	private static final long serialVersionUID = -7149980516624638801L;
+
+	@Id
+	@Column(name="GRID_FORM_KEY_LABEL_ID")
+	private Long gridFormKeyLabelId;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="GRID_FORM_ID_FK")
+	private GridFormKey gridFormIdFk;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name="LANGUAGE_ID_FK")
+	private LanguageMaster languageIdFk;
+	
+	@Column(name="GRID_FORM_KEY_LABEL")
+	private String gridFormKeyLable;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="CREATED_BY_FK")
+	private UserMaster createdBy;
+	
+	@Column(name="CREATED_ON")
+	private Date createdOn;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="MODIFIED_BY_FK")
+	private UserMaster modifiedBy;
+	
+	@Column(name="MODIFIED_ON")
+	private Date modifiedOn;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="LAST_APPROVED_BY_FK")
+	private UserMaster approvedBy;
+	
+	@Column(name="LAST_APPROVED_ON")
+	private Date approvedOn;
+
+	@Column(name="LAST_UPDATE_ON")
+	private Date lastUpdatedOn;
+	
+	@Column(name="IS_BULK_UPLOAD")
+	private Boolean isBulkUpload;
+	
+	@Transient
+	private Long roleIdKey;
+	
+	@Transient
+	private String languageCode;
+	
+	@Transient
+	private String gridFromKey;
+	
+	@Transient
+	private String errorCode;
+	
+	@Transient
+	private String type;
+	
+	public GridFormKeyLabel() {
+
+	}
+	
+	public GridFormKeyLabel(String gridFromKey, String gridFormKeyLable, String languaCode, String erroCode, String type) {
+		this.gridFromKey = gridFromKey;
+		this.gridFormKeyLable = gridFormKeyLable;
+		this.languageCode = languaCode;
+		this.errorCode = erroCode;
+		this.type = type;
+	}
+	
+	
+	public GridFormKeyLabel(String gridFromKey, String gridFormKeyLable, String languaCode) {
+		this.gridFromKey = gridFromKey;
+		this.gridFormKeyLable = gridFormKeyLable;
+		this.languageCode = languaCode;
+		
+	}
+	
+
+	public String getGridFromKey() {
+		return gridFromKey;
+	}
+
+	public void setGridFromKey(String gridFromKey) {
+		this.gridFromKey = gridFromKey;
+	}
+
+	public String getLanguageCode() {
+		return languageCode;
+	}
+
+	public void setLanguageCode(String languageCode) {
+		this.languageCode = languageCode;
+	}
+
+	/**
+	 * @return the modifiedBy
+	 */
+	public UserMaster getModifiedBy() {
+		return modifiedBy;
+	}
+
+	/**
+	 * @param modifiedBy the modifiedBy to set
+	 */
+	public void setModifiedBy(UserMaster modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+
+	/**
+	 * @return the modifiedOn
+	 */
+	public Date getModifiedOn() {
+		return modifiedOn;
+	}
+
+	/**
+	 * @param modifiedOn the modifiedOn to set
+	 */
+	public void setModifiedOn(Date modifiedOn) {
+		this.modifiedOn = modifiedOn;
+	}
+
+	/**
+	 * @return the gridFormKeyLabelId
+	 */
+	public Long getGridFormKeyLabelId() {
+		return gridFormKeyLabelId;
+	}
+
+	/**
+	 * @param gridFormKeyLabelId the gridFormKeyLabelId to set
+	 */
+	public void setGridFormKeyLabelId(Long gridFormKeyLabelId) {
+		this.gridFormKeyLabelId = gridFormKeyLabelId;
+	}
+
+	/**
+	 * @return the gridFormIdFk
+	 */
+	public GridFormKey getGridFormIdFk() {
+		return gridFormIdFk;
+	}
+
+	/**
+	 * @param gridFormIdFk the gridFormIdFk to set
+	 */
+	public void setGridFormIdFk(GridFormKey gridFormIdFk) {
+		this.gridFormIdFk = gridFormIdFk;
+	}
+
+	/**
+	 * @return the languageIdFk
+	 */
+	public LanguageMaster getLanguageIdFk() {
+		return languageIdFk;
+	}
+
+	/**
+	 * @param languageIdFk the languageIdFk to set
+	 */
+	public void setLanguageIdFk(LanguageMaster languageIdFk) {
+		this.languageIdFk = languageIdFk;
+	}
+
+	/**
+	 * @return the gridFormKeyLable
+	 */
+	public String getGridFormKeyLable() {
+		return gridFormKeyLable;
+	}
+
+	/**
+	 * @param gridFormKeyLable the gridFormKeyLable to set
+	 */
+	public void setGridFormKeyLable(String gridFormKeyLable) {
+		this.gridFormKeyLable = gridFormKeyLable;
+	}
+
+	/**
+	 * @return the approvedBy
+	 */
+	public UserMaster getApprovedBy() {
+		return approvedBy;
+	}
+
+	/**
+	 * @param approvedBy the approvedBy to set
+	 */
+	public void setApprovedBy(UserMaster approvedBy) {
+		this.approvedBy = approvedBy;
+	}
+
+	/**
+	 * @return the approvedOn
+	 */
+	public Date getApprovedOn() {
+		return approvedOn;
+	}
+
+	/**
+	 * @param approvedOn the approvedOn to set
+	 */
+	public void setApprovedOn(Date approvedOn) {
+		this.approvedOn = approvedOn;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the lastUpdatedOn
+	 */
+	public Date getLastUpdatedOn() {
+		return lastUpdatedOn;
+	}
+
+	/**
+	 * @param lastUpdatedOn the lastUpdatedOn to set
+	 */
+	public void setLastUpdatedOn(Date lastUpdatedOn) {
+		this.lastUpdatedOn = lastUpdatedOn;
+	}
+
+	/**
+	 * @return the roleIdKey
+	 */
+	public Long getRoleIdKey() {
+		return roleIdKey;
+	}
+
+	/**
+	 * @param roleIdKey the roleIdKey to set
+	 */
+	public void setRoleIdKey(Long roleIdKey) {
+		this.roleIdKey = roleIdKey;
+	}
+
+	/**
+	 * @return the isBulkUpload
+	 */
+	public Boolean getIsBulkUpload() {
+		return isBulkUpload;
+	}
+
+	/**
+	 * @param isBulkUpload the isBulkUpload to set
+	 */
+	public void setIsBulkUpload(Boolean isBulkUpload) {
+		this.isBulkUpload = isBulkUpload;
+	}
+
+	/**
+	 * @return the errorCode
+	 */
+	public String getErrorCode() {
+		return errorCode;
+	}
+
+	/**
+	 * @param errorCode the errorCode to set
+	 */
+	public void setErrorCode(String errorCode) {
+		this.errorCode = errorCode;
+	}
+
+	/**
+	 * @return the type
+	 */
+	public String getType() {
+		return type;
+	}
+
+	/**
+	 * @param type the type to set
+	 */
+	public void setType(String type) {
+		this.type = type;
+	}
+	
+}

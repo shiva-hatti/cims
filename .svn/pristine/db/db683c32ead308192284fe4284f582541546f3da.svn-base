@@ -1,0 +1,20 @@
+package com.iris.sdmx.exceltohtml.repo;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.iris.model.ReturnTemplate;
+import com.iris.sdmx.exceltohtml.entity.SdmxReturnPreviewEntity;
+
+/**
+ * @author apagaria
+ *
+ */
+public interface SdmxReturnPreviewRepo extends JpaRepository<SdmxReturnPreviewEntity, Long> {
+
+	@Query("from SdmxReturnPreviewEntity where returnTemplateIdFk=:returnTemplate")
+	SdmxReturnPreviewEntity findByReturnTemplate(ReturnTemplate returnTemplate);
+	
+	@Query("SELECT u.htmlFilePath from SdmxReturnPreviewEntity u where u.returnTemplateIdFk=:returnTemplate")
+	String fetchHtmlByReturnTemplateId(ReturnTemplate returnTemplate);
+}

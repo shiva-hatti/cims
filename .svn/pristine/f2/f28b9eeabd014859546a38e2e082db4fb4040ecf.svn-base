@@ -1,0 +1,16 @@
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.LeadBankMaster;
+
+public interface LeadBankMasterRepo extends JpaRepository<LeadBankMaster, Long> {
+
+	@Query("FROM LeadBankMaster where categoryFk.categoryCode =:categoryCode order by entityFk.entityName asc")
+	List<LeadBankMaster> findLeadBankDetailsByLeadBankNameAndCategoryCode(@Param("categoryCode") String categoryCode);
+
+}

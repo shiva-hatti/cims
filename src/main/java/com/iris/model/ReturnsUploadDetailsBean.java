@@ -1,0 +1,640 @@
+package com.iris.model;
+
+import java.io.File;
+import java.util.Date;
+import javax.xml.bind.annotation.XmlRootElement;
+import com.iris.util.Validations;
+
+@XmlRootElement(name = "ReturnsUploadDetailsBean")
+public class ReturnsUploadDetailsBean {
+
+	private Long uploadId;
+	private Return returnObj;
+	private FilingStatus filingStatus;
+	private Long prevUploadId;
+	private String instanceFileOfUpload;
+	private String validtaionFailReportFile;
+	private String startDate;
+	private String endDate;
+	private String uploadedDate;
+	private UserMaster uploadedBy;
+	private FrequencyDescription finYrFreqDesc;
+	private String active;
+	private boolean nillable;
+	private String nillableComment;
+	private String entityNameLabel;
+	private String categoryNameLabel;
+	private String subCateNameLbl;
+	private String returnNameLbl;
+	private String entityCode;
+	private String returnCode;
+	private String dateFormat;
+	private String timeFormat;
+	private String dateTimeFormat;
+	private Long revisionRequestLong;
+	private Long unlockingReqIdLong;
+	private EntityBean entity;
+	private File instanceFileForUpload;
+	private String approvalRoleFk;
+	private Integer currentWFStep;
+	private WorkflowReturnMapping workFlowId;
+	private String approvalResult;
+	private Long assignedTo;
+	private String assignedOn;
+	private Long assignToUsrRole;
+	private String entityShortName;
+	private String uploadRoleName;
+	private String attachedFileName;
+	private Long entityId;
+	private Frequency frequency;
+	private UserRole uploadUsrRole;
+	private ReturnTemplate taxonomy;
+	private UploadChannel uploadChannelId;
+	private Date startDate_DateFrmt;
+	private Date endDate_DateFrmt;
+	private String uploadInstanceFileName;
+	private Date uploadDate;
+
+	private String fileType;
+
+	public Long getUploadId() {
+		return uploadId;
+	}
+
+	public void setUploadId(Long uploadId) {
+		this.uploadId = uploadId;
+	}
+
+	public Return getReturnObj() {
+		return returnObj;
+	}
+
+	public void setReturnObj(Return returnObj) {
+		this.returnObj = returnObj;
+	}
+
+	public FilingStatus getFilingStatus() {
+		return filingStatus;
+	}
+
+	public void setFilingStatus(FilingStatus filingStatus) {
+		this.filingStatus = filingStatus;
+	}
+
+	public Long getPrevUploadId() {
+		return prevUploadId;
+	}
+
+	public void setPrevUploadId(Long prevUploadId) {
+		this.prevUploadId = prevUploadId;
+	}
+
+	public String getInstanceFileOfUpload() {
+		return instanceFileOfUpload;
+	}
+
+	public void setInstanceFileOfUpload(String instanceFileOfUpload) {
+		this.instanceFileOfUpload = Validations.trimInput(instanceFileOfUpload);
+	}
+
+	public String getValidtaionFailReportFile() {
+		return validtaionFailReportFile;
+	}
+
+	public void setValidtaionFailReportFile(String validtaionFailReportFile) {
+		this.validtaionFailReportFile = Validations.trimInput(validtaionFailReportFile);
+	}
+
+	public String getStartDate() {
+		return startDate;
+	}
+
+	public void setStartDate(String startDate) {
+		this.startDate = Validations.trimInput(startDate);
+	}
+
+	public String getEndDate() {
+		return endDate;
+	}
+
+	public void setEndDate(String endDate) {
+		this.endDate = Validations.trimInput(endDate);
+	}
+
+	public String getUploadedDate() {
+		return uploadedDate;
+	}
+
+	public void setUploadedDate(String uploadedDate) {
+		this.uploadedDate = Validations.trimInput(uploadedDate);
+	}
+
+	public UserMaster getUploadedBy() {
+		return uploadedBy;
+	}
+
+	public void setUploadedBy(UserMaster uploadedBy) {
+		this.uploadedBy = uploadedBy;
+	}
+
+	public FrequencyDescription getFinYrFreqDesc() {
+		return finYrFreqDesc;
+	}
+
+	public void setFinYrFreqDesc(FrequencyDescription finYrFreqDesc) {
+		this.finYrFreqDesc = finYrFreqDesc;
+	}
+
+	public String getActive() {
+		return active;
+	}
+
+	public void setActive(String active) {
+		this.active = Validations.trimInput(active);
+	}
+
+	/**
+	 * @return the nillable
+	 */
+	public boolean isNillable() {
+		return nillable;
+	}
+
+	/**
+	 * @param nillable the nillable to set
+	 */
+	public void setNillable(boolean nillable) {
+		this.nillable = nillable;
+	}
+
+	/**
+	 * @return the entityNameLabel
+	 */
+	public String getEntityNameLabel() {
+		return entityNameLabel;
+	}
+
+	/**
+	 * @param entityNameLabel the entityNameLabel to set
+	 */
+	public void setEntityNameLabel(String entityNameLabel) {
+		this.entityNameLabel = Validations.trimInput(entityNameLabel);
+	}
+
+	/**
+	 * @return the categoryNameLabel
+	 */
+	public String getCategoryNameLabel() {
+		return categoryNameLabel;
+	}
+
+	/**
+	 * @param categoryNameLabel the categoryNameLabel to set
+	 */
+	public void setCategoryNameLabel(String categoryNameLabel) {
+		this.categoryNameLabel = Validations.trimInput(categoryNameLabel);
+	}
+
+	/**
+	 * @return the subCateNameLbl
+	 */
+	public String getSubCateNameLbl() {
+		return subCateNameLbl;
+	}
+
+	/**
+	 * @param subCateNameLbl the subCateNameLbl to set
+	 */
+	public void setSubCateNameLbl(String subCateNameLbl) {
+		this.subCateNameLbl = Validations.trimInput(subCateNameLbl);
+	}
+
+	/**
+	 * @return the returnNameLbl
+	 */
+	public String getReturnNameLbl() {
+		return returnNameLbl;
+	}
+
+	/**
+	 * @param returnNameLbl the returnNameLbl to set
+	 */
+	public void setReturnNameLbl(String returnNameLbl) {
+		this.returnNameLbl = Validations.trimInput(returnNameLbl);
+	}
+
+	/**
+	 * @return the dateFormat
+	 */
+	public String getDateFormat() {
+		return dateFormat;
+	}
+
+	/**
+	 * @param dateFormat the dateFormat to set
+	 */
+	public void setDateFormat(String dateFormat) {
+		this.dateFormat = Validations.trimInput(dateFormat);
+	}
+
+	/**
+	 * @return the timeFormat
+	 */
+	public String getTimeFormat() {
+		return timeFormat;
+	}
+
+	/**
+	 * @param timeFormat the timeFormat to set
+	 */
+	public void setTimeFormat(String timeFormat) {
+		this.timeFormat = Validations.trimInput(timeFormat);
+	}
+
+	/**
+	 * @return the dateTimeFormat
+	 */
+	public String getDateTimeFormat() {
+		return dateTimeFormat;
+	}
+
+	/**
+	 * @param dateTimeFormat the dateTimeFormat to set
+	 */
+	public void setDateTimeFormat(String dateTimeFormat) {
+		this.dateTimeFormat = Validations.trimInput(dateTimeFormat);
+	}
+
+	/**
+	 * @return the entityCode
+	 */
+	public String getEntityCode() {
+		return entityCode;
+	}
+
+	/**
+	 * @param entityCode the entityCode to set
+	 */
+	public void setEntityCode(String entityCode) {
+		this.entityCode = Validations.trimInput(entityCode);
+	}
+
+	/**
+	 * @return the returnCode
+	 */
+	public String getReturnCode() {
+		return returnCode;
+	}
+
+	/**
+	 * @param returnCode the returnCode to set
+	 */
+	public void setReturnCode(String returnCode) {
+		this.returnCode = Validations.trimInput(returnCode);
+	}
+
+	/**
+	 * @return the revisionRequestLong
+	 */
+	public Long getRevisionRequestLong() {
+		return revisionRequestLong;
+	}
+
+	/**
+	 * @param revisionRequestLong the revisionRequestLong to set
+	 */
+	public void setRevisionRequestLong(Long revisionRequestLong) {
+		this.revisionRequestLong = revisionRequestLong;
+	}
+
+	/**
+	 * @return the unlockingReqIdLong
+	 */
+	public Long getUnlockingReqIdLong() {
+		return unlockingReqIdLong;
+	}
+
+	/**
+	 * @param unlockingReqIdLong the unlockingReqIdLong to set
+	 */
+	public void setUnlockingReqIdLong(Long unlockingReqIdLong) {
+		this.unlockingReqIdLong = unlockingReqIdLong;
+	}
+
+	/**
+	 * @return the approvalRoleFk
+	 */
+	public String getApprovalRoleFk() {
+		return approvalRoleFk;
+	}
+
+	/**
+	 * @param approvalRoleFk the approvalRoleFk to set
+	 */
+	public void setApprovalRoleFk(String approvalRoleFk) {
+		this.approvalRoleFk = Validations.trimInput(approvalRoleFk);
+	}
+
+	/**
+	 * @return the currentWFStep
+	 */
+	public Integer getCurrentWFStep() {
+		return currentWFStep;
+	}
+
+	/**
+	 * @param currentWFStep the currentWFStep to set
+	 */
+	public void setCurrentWFStep(Integer currentWFStep) {
+		this.currentWFStep = currentWFStep;
+	}
+
+	/**
+	 * @return the workFlowId
+	 */
+	public WorkflowReturnMapping getWorkFlowId() {
+		return workFlowId;
+	}
+
+	/**
+	 * @param workFlowId the workFlowId to set
+	 */
+	public void setWorkFlowId(WorkflowReturnMapping workFlowId) {
+		this.workFlowId = workFlowId;
+	}
+
+	/**
+	 * @return the approvalResult
+	 */
+	public String getApprovalResult() {
+		return approvalResult;
+	}
+
+	/**
+	 * @param approvalResult the approvalResult to set
+	 */
+	public void setApprovalResult(String approvalResult) {
+		this.approvalResult = Validations.trimInput(approvalResult);
+	}
+
+	/**
+	 * @return the assignedTo
+	 */
+	public Long getAssignedTo() {
+		return assignedTo;
+	}
+
+	/**
+	 * @param assignedTo the assignedTo to set
+	 */
+	public void setAssignedTo(Long assignedTo) {
+		this.assignedTo = assignedTo;
+	}
+
+	/**
+	 * @return the assignedOn
+	 */
+	public String getAssignedOn() {
+		return assignedOn;
+	}
+
+	/**
+	 * @param assignedOn the assignedOn to set
+	 */
+	public void setAssignedOn(String assignedOn) {
+		this.assignedOn = Validations.trimInput(assignedOn);
+	}
+
+	/**
+	 * @return the entityShortName
+	 */
+	public String getEntityShortName() {
+		return entityShortName;
+	}
+
+	/**
+	 * @param entityShortName the entityShortName to set
+	 */
+	public void setEntityShortName(String entityShortName) {
+		this.entityShortName = Validations.trimInput(entityShortName);
+	}
+
+	/**
+	 * @return the nillableComment
+	 */
+	public String getNillableComment() {
+		return nillableComment;
+	}
+
+	/**
+	 * @param nillableComment the nillableComment to set
+	 */
+	public void setNillableComment(String nillableComment) {
+		this.nillableComment = Validations.trimInput(nillableComment);
+	}
+
+	/**
+	 * @return the assignToUsrRole
+	 */
+	public Long getAssignToUsrRole() {
+		return assignToUsrRole;
+	}
+
+	/**
+	 * @param assignToUsrRole the assignToUsrRole to set
+	 */
+	public void setAssignToUsrRole(Long assignToUsrRole) {
+		this.assignToUsrRole = assignToUsrRole;
+	}
+
+	/**
+	 * @return the uploadRoleName
+	 */
+	public String getUploadRoleName() {
+		return uploadRoleName;
+	}
+
+	/**
+	 * @param uploadRoleName the uploadRoleName to set
+	 */
+	public void setUploadRoleName(String uploadRoleName) {
+		this.uploadRoleName = Validations.trimInput(uploadRoleName);
+	}
+
+	/**
+	 * @return the attachedFileName
+	 */
+	public String getAttachedFileName() {
+		return attachedFileName;
+	}
+
+	/**
+	 * @param attachedFileName the attachedFileName to set
+	 */
+	public void setAttachedFileName(String attachedFileName) {
+		this.attachedFileName = Validations.trimInput(attachedFileName);
+	}
+
+	/**
+	 * @return the entityId
+	 */
+	public Long getEntityId() {
+		return entityId;
+	}
+
+	/**
+	 * @param entityId the entityId to set
+	 */
+	public void setEntityId(Long entityId) {
+		this.entityId = entityId;
+	}
+
+	/**
+	 * @return the entity
+	 */
+	public EntityBean getEntity() {
+		return entity;
+	}
+
+	/**
+	 * @param entity the entity to set
+	 */
+	public void setEntity(EntityBean entity) {
+		this.entity = entity;
+	}
+
+	/**
+	 * @return the instanceFileForUpload
+	 */
+	public File getInstanceFileForUpload() {
+		return instanceFileForUpload;
+	}
+
+	/**
+	 * @param instanceFileForUpload the instanceFileForUpload to set
+	 */
+	public void setInstanceFileForUpload(File instanceFileForUpload) {
+		this.instanceFileForUpload = instanceFileForUpload;
+	}
+
+	/**
+	 * @return the frequency
+	 */
+	public Frequency getFrequency() {
+		return frequency;
+	}
+
+	/**
+	 * @param frequency the frequency to set
+	 */
+	public void setFrequency(Frequency frequency) {
+		this.frequency = frequency;
+	}
+
+	/**
+	 * @return the uploadUserRole
+	 */
+	public UserRole getUploadUsrRole() {
+		return uploadUsrRole;
+	}
+
+	/**
+	 * @param uploadUserRole the uploadUserRole to set
+	 */
+	public void setUploadUsrRole(UserRole uploadUsrRole) {
+		this.uploadUsrRole = uploadUsrRole;
+	}
+
+	/**
+	 * @return the endDate_DateFrmt
+	 */
+	public Date getEndDate_DateFrmt() {
+		return endDate_DateFrmt;
+	}
+
+	/**
+	 * @param endDate_DateFrmt the endDate_DateFrmt to set
+	 */
+	public void setEndDate_DateFrmt(Date endDate_DateFrmt) {
+		this.endDate_DateFrmt = endDate_DateFrmt;
+	}
+
+	/**
+	 * @return the startDate_DateFrmt
+	 */
+	public Date getStartDate_DateFrmt() {
+		return startDate_DateFrmt;
+	}
+
+	/**
+	 * @param startDate_DateFrmt the startDate_DateFrmt to set
+	 */
+	public void setStartDate_DateFrmt(Date startDate_DateFrmt) {
+		this.startDate_DateFrmt = startDate_DateFrmt;
+	}
+
+	/**
+	 * @return the taxonomy
+	 */
+	public ReturnTemplate getTaxonomy() {
+		return taxonomy;
+	}
+
+	/**
+	 * @param taxonomy the taxonomy to set
+	 */
+	public void setTaxonomy(ReturnTemplate taxonomy) {
+		this.taxonomy = taxonomy;
+	}
+
+	/**
+	 * @return the uploadChannelId
+	 */
+	public UploadChannel getUploadChannelId() {
+		return uploadChannelId;
+	}
+
+	/**
+	 * @param uploadChannelId the uploadChannelId to set
+	 */
+	public void setUploadChannelId(UploadChannel uploadChannelId) {
+		this.uploadChannelId = uploadChannelId;
+	}
+
+	/**
+	 * @return the uploadInstanceFileName
+	 */
+	public String getUploadInstanceFileName() {
+		return uploadInstanceFileName;
+	}
+
+	/**
+	 * @param uploadInstanceFileName the uploadInstanceFileName to set
+	 */
+	public void setUploadInstanceFileName(String uploadInstanceFileName) {
+		this.uploadInstanceFileName = uploadInstanceFileName;
+	}
+
+	/**
+	 * @return the fileType
+	 */
+	public String getFileType() {
+		return fileType;
+	}
+
+	/**
+	 * @param fileType the fileType to set
+	 */
+	public void setFileType(String fileType) {
+		this.fileType = fileType;
+	}
+
+	public Date getUploadDate() {
+		return uploadDate;
+	}
+
+	public void setUploadDate(Date uploadDate) {
+		this.uploadDate = uploadDate;
+	}
+
+}

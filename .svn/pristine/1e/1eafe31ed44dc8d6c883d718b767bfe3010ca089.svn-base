@@ -1,0 +1,475 @@
+/**
+ * 
+ */
+package com.iris.sdmx.exceltohtml.entity;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.persistence.Transient;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.iris.model.ReturnTemplate;
+import com.iris.model.UserMaster;
+import com.iris.sdmx.status.entity.SdmxModuleStatus;
+
+/**
+ * @author apagaria
+ *
+ */
+@Entity
+@Table(name = "TBL_SDMX_RETURN_PREVIEW")
+@JsonInclude(Include.NON_NULL)
+public class SdmxReturnPreviewEntity implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "RETURN_PREVIEW_TYPE_ID")
+	private Long returnPreviewTypeId;
+
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "RETURN_TEMPLATE_ID_FK")
+	private ReturnTemplate returnTemplateIdFk;
+
+	@Column(name = "HTML_FILE_PATH")
+	private String htmlFilePath;
+
+	@Column(name = "XLSX_FILE_PATH")
+	private String xlsxFilePath;
+
+	@Column(name = "OTHER_DETAIL_JSON")
+	private String otherDetailJson;
+
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "LAST_UPDATED_ON")
+	private Date lastUpdatedOn;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "CREATED_BY")
+	private UserMaster createdBy;
+
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "MODIFY_BY")
+	private UserMaster modifyBy;
+
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "MODIFY_ON")
+	private Date modifyOn;
+
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name = "MODULE_STATUS_ID_FK")
+	private SdmxModuleStatus moduleStatusIdFk;
+	
+	@Column(name = "VALID_FROM_DATE")
+	private Date validFromDate;
+	
+	@Column(name = "EBR_VERSION")
+	private String ebrVersion;
+	
+	@Column(name = "DESCRIPTION")
+	private String description;
+	
+	@Column(name = "IS_PUBLISHED")
+	private Boolean isPublished;
+	
+	@Column(name = "USER_SPECIFIC_FILE_NAME")
+	private String userSpecificFileName;
+	
+	@Column(name = "FORMULA_JSON")
+	private String formulaJson;
+	
+	@Transient
+	private Long returnId;
+
+	/**
+	 * 
+	 */
+	public SdmxReturnPreviewEntity() {
+
+	}
+
+	/**
+	 * @param returnPreviewTypeId
+	 * @param returnTemplateIdFk
+	 * @param lastUpdatedOn
+	 * @param createdBy
+	 * @param modifyBy
+	 * @param moduleStatusIdFk
+	 */
+	public SdmxReturnPreviewEntity(Long returnPreviewTypeId, ReturnTemplate returnTemplateIdFk, Date lastUpdatedOn,
+			Long userId, String userName, SdmxModuleStatus moduleStatusIdFk, String ebrVersion, Boolean isPublished, Date validFromDate,String description,
+			String userSpecificFileName, String xlsxFilePath) {
+
+		this.returnPreviewTypeId = returnPreviewTypeId;
+		this.returnTemplateIdFk = returnTemplateIdFk;
+		this.lastUpdatedOn = lastUpdatedOn;
+		this.createdBy = new UserMaster(userId, userName);
+		this.moduleStatusIdFk = moduleStatusIdFk;
+		this.ebrVersion = ebrVersion;
+		this.isPublished = isPublished;
+		this.validFromDate = validFromDate;
+		this.description = description;
+		this.userSpecificFileName = userSpecificFileName;
+		this.xlsxFilePath = xlsxFilePath;
+	} 
+	
+	/**
+	 * @param returnPreviewTypeId
+	 * @param returnTemplateIdFk
+	 * @param lastUpdatedOn
+	 * @param userId
+	 * @param userName
+	 * @param moduleStatusIdFk
+	 * @param ebrVersion
+	 * @param isPublished
+	 * @param validFromDate
+	 * @param description
+	 * @param userSpecificFileName
+	 * @param xlsxFilePath
+	 * @param isActive
+	 */
+	public SdmxReturnPreviewEntity(Long returnPreviewTypeId, ReturnTemplate returnTemplateIdFk, Date lastUpdatedOn,
+			Long userId, String userName, SdmxModuleStatus moduleStatusIdFk, String ebrVersion, Boolean isPublished, Date validFromDate,String description,
+			String userSpecificFileName, String xlsxFilePath, Boolean isActive) {
+
+		this.returnPreviewTypeId = returnPreviewTypeId;
+		this.returnTemplateIdFk = returnTemplateIdFk;
+		this.lastUpdatedOn = lastUpdatedOn;
+		this.createdBy = new UserMaster(userId, userName);
+		this.moduleStatusIdFk = moduleStatusIdFk;
+		this.ebrVersion = ebrVersion;
+		this.isPublished = isPublished;
+		this.validFromDate = validFromDate;
+		this.description = description;
+		this.userSpecificFileName = userSpecificFileName;
+		this.xlsxFilePath = xlsxFilePath;
+		this.isActive = isActive;
+	} 
+	
+	
+	public SdmxReturnPreviewEntity(Long userIdMod, String userNameMod,Long moduleStatusId, String moduleStatusCode, String moduleStatusLabel) {
+		this.modifyBy = new UserMaster(userIdMod, userNameMod);
+		this.moduleStatusIdFk = new SdmxModuleStatus( moduleStatusId,moduleStatusCode,moduleStatusLabel) ;
+	}
+	
+	public SdmxReturnPreviewEntity(Long returnPreviewTypeId,ReturnTemplate returnTemplateIdFk,String ebrVersion ) {
+		this.returnPreviewTypeId = returnPreviewTypeId;
+		this.returnTemplateIdFk = returnTemplateIdFk;
+		this.ebrVersion = ebrVersion;
+	}
+
+
+	
+	public SdmxReturnPreviewEntity(String ebrVersion) {
+		super();
+		this.ebrVersion = ebrVersion;
+	}
+
+	public SdmxReturnPreviewEntity(Date validFromDate) {
+		super();
+		this.validFromDate = validFromDate;
+	}
+	
+	public SdmxReturnPreviewEntity(Long returnPreviewTypeId, Long returnId, Date validFromDate) {
+		this.returnPreviewTypeId = returnPreviewTypeId;
+		this.returnId = returnId;
+		this.validFromDate = validFromDate;
+	}
+
+	public SdmxReturnPreviewEntity(Long returnPreviewTypeId) {
+		super();
+		this.returnPreviewTypeId = returnPreviewTypeId;
+	}
+
+	/**
+	 * @return the returnPreviewTypeId
+	 */
+	public Long getReturnPreviewTypeId() {
+		return returnPreviewTypeId;
+	}
+
+	/**
+	 * @param returnPreviewTypeId the returnPreviewTypeId to set
+	 */
+	public void setReturnPreviewTypeId(Long returnPreviewTypeId) {
+		this.returnPreviewTypeId = returnPreviewTypeId;
+	}
+
+	/**
+	 * @return the returnTemplateIdFk
+	 */
+	public ReturnTemplate getReturnTemplateIdFk() {
+		return returnTemplateIdFk;
+	}
+
+	/**
+	 * @param returnTemplateIdFk the returnTemplateIdFk to set
+	 */
+	public void setReturnTemplateIdFk(ReturnTemplate returnTemplateIdFk) {
+		this.returnTemplateIdFk = returnTemplateIdFk;
+	}
+
+	/**
+	 * @return the htmlFilePath
+	 */
+	public String getHtmlFilePath() {
+		return htmlFilePath;
+	}
+
+	/**
+	 * @param htmlFilePath the htmlFilePath to set
+	 */
+	public void setHtmlFilePath(String htmlFilePath) {
+		this.htmlFilePath = htmlFilePath;
+	}
+
+	/**
+	 * @return the xlsxFilePath
+	 */
+	public String getXlsxFilePath() {
+		return xlsxFilePath;
+	}
+
+	/**
+	 * @param xlsxFilePath the xlsxFilePath to set
+	 */
+	public void setXlsxFilePath(String xlsxFilePath) {
+		this.xlsxFilePath = xlsxFilePath;
+	}
+
+	/**
+	 * @return the otherDetailJson
+	 */
+	public String getOtherDetailJson() {
+		return otherDetailJson;
+	}
+
+	/**
+	 * @param otherDetailJson the otherDetailJson to set
+	 */
+	public void setOtherDetailJson(String otherDetailJson) {
+		this.otherDetailJson = otherDetailJson;
+	}
+
+	/**
+	 * @return the lastUpdatedOn
+	 */
+	public Date getLastUpdatedOn() {
+		return lastUpdatedOn;
+	}
+
+	/**
+	 * @param lastUpdatedOn the lastUpdatedOn to set
+	 */
+	public void setLastUpdatedOn(Date lastUpdatedOn) {
+		this.lastUpdatedOn = lastUpdatedOn;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the modifyBy
+	 */
+	public UserMaster getModifyBy() {
+		return modifyBy;
+	}
+
+	/**
+	 * @param modifyBy the modifyBy to set
+	 */
+	public void setModifyBy(UserMaster modifyBy) {
+		this.modifyBy = modifyBy;
+	}
+
+	/**
+	 * @return the modifyOn
+	 */
+	public Date getModifyOn() {
+		return modifyOn;
+	}
+
+	/**
+	 * @param modifyOn the modifyOn to set
+	 */
+	public void setModifyOn(Date modifyOn) {
+		this.modifyOn = modifyOn;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the moduleStatusIdFk
+	 */
+	public SdmxModuleStatus getModuleStatusIdFk() {
+		return moduleStatusIdFk;
+	}
+
+	/**
+	 * @param moduleStatusIdFk the moduleStatusIdFk to set
+	 */
+	public void setModuleStatusIdFk(SdmxModuleStatus moduleStatusIdFk) {
+		this.moduleStatusIdFk = moduleStatusIdFk;
+	}
+
+	/**
+	 * @return the validFromDate
+	 */
+	public Date getValidFromDate() {
+		return validFromDate;
+	}
+
+	/**
+	 * @param validFromDate the validFromDate to set
+	 */
+	public void setValidFromDate(Date validFromDate) {
+		this.validFromDate = validFromDate;
+	}
+
+	/**
+	 * @return the ebrVersion
+	 */
+	public String getEbrVersion() {
+		return ebrVersion;
+	}
+
+	/**
+	 * @param ebrVersion the ebrVersion to set
+	 */
+	public void setEbrVersion(String ebrVersion) {
+		this.ebrVersion = ebrVersion;
+	}
+
+	/**
+	 * @return the description
+	 */
+	public String getDescription() {
+		return description;
+	}
+
+	/**
+	 * @param description the description to set
+	 */
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	/**
+	 * @return the isPublished
+	 */
+	public Boolean getIsPublished() {
+		return isPublished;
+	}
+
+	/**
+	 * @param isPublished the isPublished to set
+	 */
+	public void setIsPublished(Boolean isPublished) {
+		this.isPublished = isPublished;
+	}
+
+	/**
+	 * @return the returnId
+	 */
+	public Long getReturnId() {
+		return returnId;
+	}
+
+	/**
+	 * @param returnId the returnId to set
+	 */
+	public void setReturnId(Long returnId) {
+		this.returnId = returnId;
+	}
+
+	/**
+	 * @return the userSpecificFileName
+	 */
+	public String getUserSpecificFileName() {
+		return userSpecificFileName;
+	}
+
+	/**
+	 * @param userSpecificFileName the userSpecificFileName to set
+	 */
+	public void setUserSpecificFileName(String userSpecificFileName) {
+		this.userSpecificFileName = userSpecificFileName;
+	}
+
+	/**
+	 * @return the formulaJson
+	 */
+	public String getFormulaJson() {
+		return formulaJson;
+	}
+
+	/**
+	 * @param formulaJson the formulaJson to set
+	 */
+	public void setFormulaJson(String formulaJson) {
+		this.formulaJson = formulaJson;
+	}
+	
+}

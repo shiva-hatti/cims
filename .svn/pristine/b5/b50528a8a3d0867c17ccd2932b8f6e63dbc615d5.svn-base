@@ -1,0 +1,152 @@
+/**
+ * 
+ */
+package com.iris.sdmx.elementdimensionmapping.bean;
+
+import java.io.Serializable;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+/**
+ * @author sajadhav
+ *
+ */
+@JsonInclude(Include.NON_DEFAULT)
+public class ElementDimensionStoredJson implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 5540263941623331507L;
+
+	private String dsdId;
+
+	private String elementVersion;
+
+	private String elementlabel;
+
+	private String elementDesc;
+
+	private String ownerDeptCode;
+
+	private List<DimCombination> dimCombination;
+
+	private Boolean isActive;
+
+	private String agencyCode;
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the dsdId
+	 */
+	public String getDsdId() {
+		return dsdId;
+	}
+
+	/**
+	 * @param dsdId the dsdId to set
+	 */
+	public void setDsdId(String dsdId) {
+		this.dsdId = dsdId;
+	}
+
+	/**
+	 * @return the dimCombination
+	 */
+	public List<DimCombination> getDimCombination() {
+		return dimCombination;
+	}
+
+	/**
+	 * @param dimCombination the dimCombination to set
+	 */
+	public void setDimCombination(List<DimCombination> dimCombination) {
+		this.dimCombination = dimCombination;
+	}
+
+	/**
+	 * @return the elementVersion
+	 */
+	public String getElementVersion() {
+		return elementVersion;
+	}
+
+	/**
+	 * @param elementVersion the elementVersion to set
+	 */
+	public void setElementVersion(String elementVersion) {
+		this.elementVersion = elementVersion;
+	}
+
+	/**
+	 * @return the elementlabel
+	 */
+	public String getElementlabel() {
+		return elementlabel;
+	}
+
+	/**
+	 * @param elementlabel the elementlabel to set
+	 */
+	public void setElementlabel(String elementlabel) {
+		this.elementlabel = elementlabel;
+	}
+
+	/**
+	 * @return the elementDesc
+	 */
+	public String getElementDesc() {
+		return elementDesc;
+	}
+
+	/**
+	 * @param elementDesc the elementDesc to set
+	 */
+	public void setElementDesc(String elementDesc) {
+		this.elementDesc = elementDesc;
+	}
+
+	/**
+	 * @return the ownerDeptCode
+	 */
+	public String getOwnerDeptCode() {
+		return ownerDeptCode;
+	}
+
+	/**
+	 * @param ownerDeptCode the ownerDeptCode to set
+	 */
+	public void setOwnerDeptCode(String ownerDeptCode) {
+		this.ownerDeptCode = ownerDeptCode;
+	}
+
+	/**
+	 * @return the agencyCode
+	 */
+	public String getAgencyCode() {
+		return agencyCode;
+	}
+
+	/**
+	 * @param agencyCode the agencyCode to set
+	 */
+	public void setAgencyCode(String agencyCode) {
+		this.agencyCode = agencyCode;
+	}
+
+}

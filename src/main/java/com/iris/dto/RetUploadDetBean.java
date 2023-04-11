@@ -1,0 +1,933 @@
+package com.iris.dto;
+
+import java.io.File;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.iris.util.Validations;
+
+/**
+ * This bean represents information of uploaded returns. This bean is use to show data fetch from 'TBL_RETURNS_UPLOAD_DETAILS'
+ * 
+ * @version 1.0
+ * @author Sagar Jadhav
+ */
+public class RetUploadDetBean implements Serializable {
+	private static final long serialVersionUID = 6350485910404811475L;
+
+	@JsonInclude(Include.NON_NULL)
+	private Boolean nillable;
+
+	@JsonInclude(Include.NON_NULL)
+	private String entityCode;
+
+	@JsonInclude(Include.NON_NULL)
+	private Long entityId;
+
+	@JsonInclude(Include.NON_NULL)
+	private Long returnId;
+
+	@JsonInclude(Include.NON_NULL)
+	private String returnName;
+
+	@JsonInclude(Include.NON_NULL)
+	private String returnCode;
+
+	@JsonInclude(Include.NON_NULL)
+	private LogedInUser logedInUser;
+
+	@JsonInclude(Include.NON_NULL)
+	private Long uploadedByUserId;
+
+	@JsonInclude(Include.NON_NULL)
+	private Long frequencyId;
+
+	@JsonInclude(Include.NON_NULL)
+	private Long uploadedUserRoleId;
+
+	@JsonInclude(Include.NON_NULL)
+	private String startDate;
+
+	@JsonInclude(Include.NON_NULL)
+	private String endDate;
+
+	@JsonInclude(Include.NON_NULL)
+	private Long startDateInLong;
+
+	@JsonInclude(Include.NON_NULL)
+	private Long endDateInLong;
+
+	@JsonInclude(Include.NON_NULL)
+	private Long workFlowId;
+
+	@JsonInclude(Include.NON_NULL)
+	private String approvalIdFk;
+
+	@JsonInclude(Include.NON_NULL)
+	private Integer currentWFStep;
+
+	@JsonInclude(Include.NON_NULL)
+	private File instanceFileForUpload;
+
+	@JsonInclude(Include.NON_NULL)
+	private String financialYear;
+
+	@JsonInclude(Include.NON_NULL)
+	private String financialMonth;
+
+	@JsonInclude(Include.NON_NULL)
+	private Long finYearFormatId;
+
+	@JsonInclude(Include.NON_NULL)
+	private String formFreqName;
+
+	@JsonInclude(Include.NON_NULL)
+	private String finYrFreqDescName;
+
+	@JsonInclude(Include.NON_NULL)
+	private Long finYearFreqDescId;
+
+	@JsonInclude(Include.NON_NULL)
+	private Long unlockReqId;
+
+	@JsonInclude(Include.NON_NULL)
+	private Long revisionReqId;
+
+	@JsonInclude(Include.NON_NULL)
+	private Long prevUploadId;
+
+	//	@JsonInclude(Include.NON_NULL)
+	//	private String instanceFile;
+
+	@JsonInclude(Include.NON_NULL)
+	private String uploadInstanceFilePath;
+
+	@JsonInclude(Include.NON_NULL)
+	private String instanceFilePath;
+
+	@JsonInclude(Include.NON_NULL)
+	private String supportiveDocFilePath;
+
+	@JsonInclude(Include.NON_NULL)
+	private String nillableComments;
+
+	@JsonInclude(Include.NON_NULL)
+	private String supportiveDocFileName;
+
+	@JsonInclude(Include.NON_NULL)
+	private String modifiedSupportiveDocFileName;
+
+	@JsonInclude(Include.NON_NULL)
+	private String supportiveDocFileType;
+
+	@JsonInclude(Include.NON_NULL)
+	private String modifiedInstanceFileName;
+
+	@JsonInclude(Include.NON_NULL)
+	private Long calendarId;
+
+	@JsonInclude(Include.NON_NULL)
+	private String instanceFileType;
+
+	@JsonInclude(Include.NON_NULL)
+	private List<String> fileTypeList;
+
+	@JsonInclude(Include.NON_NULL)
+	private Date endDate_DateFrmt;
+
+	@JsonInclude(Include.NON_NULL)
+	private Long uploadId;
+
+	@JsonInclude(Include.NON_NULL)
+	@JsonProperty(value = "returnObj")
+	private ReturnDto returnDto;
+
+	@JsonInclude(Include.NON_NULL)
+	@JsonProperty(value = "entity")
+	private EntityDto entityDto;
+
+	@JsonInclude(Include.NON_NULL)
+	private UserDto uploadedBy;
+
+	@JsonInclude(Include.NON_NULL)
+	private Long uploadedOnInLong;
+
+	@JsonInclude(Include.NON_NULL)
+	private Integer fillingStatus;
+
+	@JsonInclude(Include.NON_NULL)
+	private Integer fillingStatusToBeChanged;
+
+	@JsonInclude(Include.NON_NULL)
+	private Integer recordCountToBeFetched;
+
+	@JsonInclude(Include.NON_NULL)
+	private String langCode;
+
+	@JsonInclude(Include.NON_NULL)
+	private Integer returnPropertyValId;
+
+	@JsonInclude(Include.NON_NULL)
+	private List<String> returnIdList;
+
+	@JsonInclude(Include.NON_NULL)
+	private String entityName;
+
+	@JsonInclude(Include.NON_NULL)
+	private String categoryNameLabel;
+
+	@JsonInclude(Include.NON_NULL)
+	private String subCateNameLbl;
+
+	@JsonInclude(Include.NON_NULL)
+	private String sessionDateFormat;
+
+	@JsonInclude(Include.NON_NULL)
+	private List<String> entityIdList;
+
+	@JsonInclude(Include.NON_NULL)
+	private List<String> endDateList;
+
+	@JsonInclude(Include.NON_NULL)
+	private Map<Long, List<String>> returnIdEndDateListMap;
+
+	@JsonInclude(Include.NON_NULL)
+	private List<String> includeReturnCodeList;
+
+	@JsonInclude(Include.NON_NULL)
+	private Long taxonomyId;
+
+	@JsonInclude(Include.NON_NULL)
+	private List<String> subCategoryIdList;
+
+	@JsonInclude(Include.NON_NULL)
+	private Long langId;
+
+	public RetUploadDetBean() {
+
+	}
+
+	/**
+	 * @return the taxonomyId
+	 */
+	public Long getTaxonomyId() {
+		return taxonomyId;
+	}
+
+	/**
+	 * @param taxonomyId the taxonomyId to set
+	 */
+	public void setTaxonomyId(Long taxonomyId) {
+		this.taxonomyId = taxonomyId;
+	}
+
+	/**
+	 * @return the reprtPropertyValId
+	 */
+	public Integer getReturnPropertyValId() {
+		return returnPropertyValId;
+	}
+
+	/**
+	 * @param returnPropertyValId the reprtPropertyValId to set
+	 */
+	public void setReturnPropertyValId(Integer returnPropertyValId) {
+		this.returnPropertyValId = returnPropertyValId;
+	}
+
+	public String getLangCode() {
+		return langCode;
+	}
+
+	public void setLangCode(String langCode) {
+		this.langCode = langCode;
+	}
+
+	public Integer getRecordCountToBeFetched() {
+		return recordCountToBeFetched;
+	}
+
+	public void setRecordCountToBeFetched(Integer recordCountToBeFetched) {
+		this.recordCountToBeFetched = recordCountToBeFetched;
+	}
+
+	public Boolean getNillable() {
+		return nillable;
+	}
+
+	public void setNillable(Boolean nillable) {
+		this.nillable = nillable;
+	}
+
+	public Integer getFillingStatus() {
+		return fillingStatus;
+	}
+
+	public void setFillingStatus(Integer fillingStatus) {
+		this.fillingStatus = fillingStatus;
+	}
+
+	public Integer getFillingStatusToBeChanged() {
+		return fillingStatusToBeChanged;
+	}
+
+	public void setFillingStatusToBeChanged(Integer fillingStatusToBeChanged) {
+		this.fillingStatusToBeChanged = fillingStatusToBeChanged;
+	}
+
+	public UserDto getUploadedBy() {
+		return uploadedBy;
+	}
+
+	public void setUploadedBy(UserDto uploadedBy) {
+		this.uploadedBy = uploadedBy;
+	}
+
+	public Long getUploadedOnInLong() {
+		return uploadedOnInLong;
+	}
+
+	public void setUploadedOnInLong(Long uploadedOnInLong) {
+		this.uploadedOnInLong = uploadedOnInLong;
+	}
+
+	public ReturnDto getReturnDto() {
+		return returnDto;
+	}
+
+	public void setReturnDto(ReturnDto returnDto) {
+		this.returnDto = returnDto;
+	}
+
+	public EntityDto getEntityDto() {
+		return entityDto;
+	}
+
+	public void setEntityDto(EntityDto entityDto) {
+		this.entityDto = entityDto;
+	}
+
+	public void setStartDateInLong(Long startDateInLong) {
+		this.startDateInLong = startDateInLong;
+	}
+
+	public Long getStartDateInLong() {
+		return startDateInLong;
+	}
+
+	public Long getEndDateInLong() {
+		return endDateInLong;
+	}
+
+	public void setEndDateInLong(Long endDateInLong) {
+		this.endDateInLong = endDateInLong;
+	}
+
+	public Long getUploadId() {
+		return uploadId;
+	}
+
+	public void setUploadId(Long uploadId) {
+		this.uploadId = uploadId;
+	}
+
+	/**
+	 * @return the startDate
+	 */
+	public String getStartDate() {
+		return startDate;
+	}
+
+	/**
+	 * @param startDate the startDate to set
+	 */
+	public void setStartDate(String startDate) {
+		this.startDate = startDate;
+	}
+
+	/**
+	 * @return the endDate
+	 */
+	public String getEndDate() {
+		return endDate;
+	}
+
+	/**
+	 * @param endDate the endDate to set
+	 */
+	public void setEndDate(String endDate) {
+		this.endDate = endDate;
+	}
+
+	/**
+	 * @return the entityCode
+	 */
+	public String getEntityCode() {
+		return entityCode;
+	}
+
+	/**
+	 * @param entityCode the entityCode to set
+	 */
+	public void setEntityCode(String entityCode) {
+		this.entityCode = Validations.trimInput(entityCode);
+	}
+
+	/**
+	 * @return the entityId
+	 */
+	public Long getEntityId() {
+		return entityId;
+	}
+
+	/**
+	 * @param entityId the entityId to set
+	 */
+	public void setEntityId(Long entityId) {
+		this.entityId = entityId;
+	}
+
+	/**
+	 * @return the returnName
+	 */
+	public String getReturnName() {
+		return returnName;
+	}
+
+	/**
+	 * @param returnName the returnName to set
+	 */
+	public void setReturnName(String returnName) {
+		this.returnName = Validations.trimInput(returnName);
+	}
+
+	/**
+	 * @return the returnCode
+	 */
+	public String getReturnCode() {
+		return returnCode;
+	}
+
+	/**
+	 * @param returnCode the returnCode to set
+	 */
+	public void setReturnCode(String returnCode) {
+		this.returnCode = Validations.trimInput(returnCode);
+	}
+
+	/**
+	 * @return the logedInUser
+	 */
+	public LogedInUser getLogedInUser() {
+		return logedInUser;
+	}
+
+	/**
+	 * @param logedInUser the logedInUser to set
+	 */
+	public void setLogedInUser(LogedInUser logedInUser) {
+		this.logedInUser = logedInUser;
+	}
+
+	/**
+	 * @return the uploadedByUserId
+	 */
+	public Long getUploadedByUserId() {
+		return uploadedByUserId;
+	}
+
+	/**
+	 * @param uploadedByUserId the uploadedByUserId to set
+	 */
+	public void setUploadedByUserId(Long uploadedByUserId) {
+		this.uploadedByUserId = uploadedByUserId;
+	}
+
+	/**
+	 * @return the frequencyId
+	 */
+	public Long getFrequencyId() {
+		return frequencyId;
+	}
+
+	/**
+	 * @param frequencyId the frequencyId to set
+	 */
+	public void setFrequencyId(Long frequencyId) {
+		this.frequencyId = frequencyId;
+	}
+
+	/**
+	 * @return the uploadedUserRoleId
+	 */
+	public Long getUploadedUserRoleId() {
+		return uploadedUserRoleId;
+	}
+
+	/**
+	 * @param uploadedUserRoleId the uploadedUserRoleId to set
+	 */
+	public void setUploadedUserRoleId(Long uploadedUserRoleId) {
+		this.uploadedUserRoleId = uploadedUserRoleId;
+	}
+
+	/**
+	 * @return the workFlowId
+	 */
+	public Long getWorkFlowId() {
+		return workFlowId;
+	}
+
+	/**
+	 * @param workFlowId the workFlowId to set
+	 */
+	public void setWorkFlowId(Long workFlowId) {
+		this.workFlowId = workFlowId;
+	}
+
+	/**
+	 * @return the approvalIdFk
+	 */
+	public String getApprovalIdFk() {
+		return approvalIdFk;
+	}
+
+	/**
+	 * @param approvalIdFk the approvalIdFk to set
+	 */
+	public void setApprovalIdFk(String approvalIdFk) {
+		this.approvalIdFk = Validations.trimInput(approvalIdFk);
+	}
+
+	/**
+	 * @return the currentWFStep
+	 */
+	public Integer getCurrentWFStep() {
+		return currentWFStep;
+	}
+
+	/**
+	 * @param currentWFStep the currentWFStep to set
+	 */
+	public void setCurrentWFStep(Integer currentWFStep) {
+		this.currentWFStep = currentWFStep;
+	}
+
+	/**
+	 * @return the instanceFileForUpload
+	 */
+	public File getInstanceFileForUpload() {
+		return instanceFileForUpload;
+	}
+
+	/**
+	 * @param instanceFileForUpload the instanceFileForUpload to set
+	 */
+	public void setInstanceFileForUpload(File instanceFileForUpload) {
+		this.instanceFileForUpload = instanceFileForUpload;
+	}
+
+	/**
+	 * @return the financialYear
+	 */
+	public String getFinancialYear() {
+		return financialYear;
+	}
+
+	/**
+	 * @param financialYear the financialYear to set
+	 */
+	public void setFinancialYear(String financialYear) {
+		this.financialYear = Validations.trimInput(financialYear);
+	}
+
+	/**
+	 * @return the financialMonth
+	 */
+	public String getFinancialMonth() {
+		return financialMonth;
+	}
+
+	/**
+	 * @param financialMonth the financialMonth to set
+	 */
+	public void setFinancialMonth(String financialMonth) {
+		this.financialMonth = Validations.trimInput(financialMonth);
+	}
+
+	/**
+	 * @return the finYearFormatId
+	 */
+	public Long getFinYearFormatId() {
+		return finYearFormatId;
+	}
+
+	/**
+	 * @param finYearFormatId the finYearFormatId to set
+	 */
+	public void setFinYearFormatId(Long finYearFormatId) {
+		this.finYearFormatId = finYearFormatId;
+	}
+
+	/**
+	 * @return the formFreqName
+	 */
+	public String getFormFreqName() {
+		return formFreqName;
+	}
+
+	/**
+	 * @param formFreqName the formFreqName to set
+	 */
+	public void setFormFreqName(String formFreqName) {
+		this.formFreqName = Validations.trimInput(formFreqName);
+	}
+
+	/**
+	 * @return the finYrFreqDescName
+	 */
+	public String getFinYrFreqDescName() {
+		return finYrFreqDescName;
+	}
+
+	/**
+	 * @param finYrFreqDescName the finYrFreqDescName to set
+	 */
+	public void setFinYrFreqDescName(String finYrFreqDescName) {
+		this.finYrFreqDescName = Validations.trimInput(finYrFreqDescName);
+	}
+
+	/**
+	 * @return the returnId
+	 */
+	public Long getReturnId() {
+		return returnId;
+	}
+
+	/**
+	 * @param returnId the returnId to set
+	 */
+	public void setReturnId(Long returnId) {
+		this.returnId = returnId;
+	}
+
+	/**
+	 * @return the finYearFreqDescId
+	 */
+	public Long getFinYearFreqDescId() {
+		return finYearFreqDescId;
+	}
+
+	/**
+	 * @param finYearFreqDescId the finYearFreqDescId to set
+	 */
+	public void setFinYearFreqDescId(Long finYearFreqDescId) {
+		this.finYearFreqDescId = finYearFreqDescId;
+	}
+
+	/**
+	 * @return the unlockReqId
+	 */
+	public Long getUnlockReqId() {
+		return unlockReqId;
+	}
+
+	/**
+	 * @param unlockReqId the unlockReqId to set
+	 */
+	public void setUnlockReqId(Long unlockReqId) {
+		this.unlockReqId = unlockReqId;
+	}
+
+	/**
+	 * @return the revisionReqId
+	 */
+	public Long getRevisionReqId() {
+		return revisionReqId;
+	}
+
+	/**
+	 * @param revisionReqId the revisionReqId to set
+	 */
+	public void setRevisionReqId(Long revisionReqId) {
+		this.revisionReqId = revisionReqId;
+	}
+
+	/**
+	 * @return the prevUploadId
+	 */
+	public Long getPrevUploadId() {
+		return prevUploadId;
+	}
+
+	/**
+	 * @param prevUploadId the prevUploadId to set
+	 */
+	public void setPrevUploadId(Long prevUploadId) {
+		this.prevUploadId = prevUploadId;
+	}
+
+	//	/**
+	//	 * @return the instanceFile
+	//	 */
+	//	public String getInstanceFile() {
+	//		return instanceFile;
+	//	}
+	//
+	//	/**
+	//	 * @param instanceFile the instanceFile to set
+	//	 */
+	//	public void setInstanceFile(String instanceFile) {
+	//		this.instanceFile = Validations.trimInput(instanceFile);
+	//	}
+
+	/**
+	 * @return the uploadInstanceFilePath
+	 */
+	public String getUploadInstanceFilePath() {
+		return uploadInstanceFilePath;
+	}
+
+	/**
+	 * @param uploadInstanceFilePath the uploadInstanceFilePath to set
+	 */
+	public void setUploadInstanceFilePath(String uploadInstanceFilePath) {
+		this.uploadInstanceFilePath = Validations.trimInput(uploadInstanceFilePath);
+	}
+
+	/**
+	 * @return the nillableComments
+	 */
+	public String getNillableComments() {
+		return nillableComments;
+	}
+
+	/**
+	 * @param nillableComments the nillableComments to set
+	 */
+	public void setNillableComments(String nillableComments) {
+		this.nillableComments = Validations.trimInput(nillableComments);
+	}
+
+	/**
+	 * @return the attachedFileFileName
+	 */
+	public String getSupportiveDocFileName() {
+		return supportiveDocFileName;
+	}
+
+	/**
+	 * @param attachedFileFileName the attachedFileFileName to set
+	 */
+	public void setSupportiveDocFileName(String attachedFileFileName) {
+		this.supportiveDocFileName = Validations.trimInput(attachedFileFileName);
+	}
+
+	/**
+	 * @return the attachedFile
+	 */
+	public String getModifiedSupportiveDocFileName() {
+		return modifiedSupportiveDocFileName;
+	}
+
+	/**
+	 * @param modifiedSupportiveFileName the attachedFile to set
+	 */
+	public void setModifiedSupportiveDocFileName(String modifiedSupportiveFileName) {
+		this.modifiedSupportiveDocFileName = Validations.trimInput(modifiedSupportiveFileName);
+	}
+
+	/**
+	 * @return the extensionAttached
+	 */
+	public String getSupportiveDocFileType() {
+		return supportiveDocFileType;
+	}
+
+	/**
+	 * @param extensionAttached the extensionAttached to set
+	 */
+	public void setSupportiveDocFileType(String extensionAttached) {
+		this.supportiveDocFileType = Validations.trimInput(extensionAttached);
+	}
+
+	/**
+	 * @return the uploadInstanceFileName
+	 */
+	public String getModifiedInstanceFileName() {
+		return modifiedInstanceFileName;
+	}
+
+	/**
+	 * @param modifiedInstanceFileName the uploadInstanceFileName to set
+	 */
+	public void setModifiedInstanceFileName(String modifiedInstanceFileName) {
+		this.modifiedInstanceFileName = Validations.trimInput(modifiedInstanceFileName);
+	}
+
+	/**
+	 * @return the tempUploadInstanceFilePath
+	 */
+	public String getInstanceFilePath() {
+		return instanceFilePath;
+	}
+
+	/**
+	 * @param instanceFilePath the tempUploadInstanceFilePath to set
+	 */
+	public void setInstanceFilePath(String instanceFilePath) {
+		this.instanceFilePath = Validations.trimInput(instanceFilePath);
+	}
+
+	public String getSessionDateFormat() {
+		return sessionDateFormat;
+	}
+
+	public void setSessionDateFormat(String sessionDateFormat) {
+		this.sessionDateFormat = Validations.trimInput(sessionDateFormat);
+	}
+
+	/**
+	 * @return the tempUploadAttachmentFilePath
+	 */
+	public String getSupportiveDocFilePath() {
+		return supportiveDocFilePath;
+	}
+
+	/**
+	 * @param tempUploadAttachmentFilePath the tempUploadAttachmentFilePath to set
+	 */
+	public void setSupportiveDocFilePath(String tempUploadAttachmentFilePath) {
+		this.supportiveDocFilePath = Validations.trimInput(tempUploadAttachmentFilePath);
+	}
+
+	public Long getCalendarId() {
+		return calendarId;
+	}
+
+	public void setCalendarId(Long calendarId) {
+		this.calendarId = calendarId;
+	}
+
+	public List<String> getFileTypeList() {
+		return fileTypeList;
+	}
+
+	public void setFileTypeList(List<String> fileTypeList) {
+		this.fileTypeList = fileTypeList;
+	}
+
+	public String getInstanceFileType() {
+		return instanceFileType;
+	}
+
+	public void setInstanceFileType(String instanceFileType) {
+		this.instanceFileType = instanceFileType;
+	}
+
+	/**
+	 * @return the endDate_DateFrmt
+	 */
+	public Date getEndDate_DateFrmt() {
+		return endDate_DateFrmt;
+	}
+
+	/**
+	 * @param endDate_DateFrmt the endDate_DateFrmt to set
+	 */
+	public void setEndDate_DateFrmt(Date endDate_DateFrmt) {
+		this.endDate_DateFrmt = endDate_DateFrmt;
+	}
+
+	public List<String> getReturnIdList() {
+		return returnIdList;
+	}
+
+	public void setReturnIdList(List<String> returnIdList) {
+		this.returnIdList = returnIdList;
+	}
+
+	public String getEntityName() {
+		return entityName;
+	}
+
+	public void setEntityName(String entityName) {
+		this.entityName = entityName;
+	}
+
+	public String getCategoryNameLabel() {
+		return categoryNameLabel;
+	}
+
+	public void setCategoryNameLabel(String categoryNameLabel) {
+		this.categoryNameLabel = Validations.trimInput(categoryNameLabel);
+	}
+
+	public String getSubCateNameLbl() {
+		return subCateNameLbl;
+	}
+
+	public void setSubCateNameLbl(String subCateNameLbl) {
+		this.subCateNameLbl = Validations.trimInput(subCateNameLbl);
+	}
+
+	public List<String> getEntityIdList() {
+		return entityIdList;
+	}
+
+	public void setEntityIdList(List<String> entityIdList) {
+		this.entityIdList = entityIdList;
+	}
+
+	/**
+	 * @return the skipReturnCodeList
+	 */
+	public List<String> getIncludeReturnCodeList() {
+		return includeReturnCodeList;
+	}
+
+	/**
+	 * @param skipReturnCodeList the skipReturnCodeList to set
+	 */
+	public void setIncludeReturnCodeList(List<String> includeReturnCodeList) {
+		this.includeReturnCodeList = includeReturnCodeList;
+	}
+
+	public List<String> getEndDateList() {
+		return endDateList;
+	}
+
+	public void setEndDateList(List<String> endDateList) {
+		this.endDateList = endDateList;
+	}
+
+	public Map<Long, List<String>> getReturnIdEndDateListMap() {
+		return returnIdEndDateListMap;
+	}
+
+	public void setReturnIdEndDateListMap(Map<Long, List<String>> returnIdEndDateListMap) {
+		this.returnIdEndDateListMap = returnIdEndDateListMap;
+	}
+
+	public List<String> getSubCategoryIdList() {
+		return subCategoryIdList;
+	}
+
+	public void setSubCategoryIdList(List<String> subCategoryIdList) {
+		this.subCategoryIdList = subCategoryIdList;
+	}
+
+	public Long getLangId() {
+		return langId;
+	}
+
+	public void setLangId(Long langId) {
+		this.langId = langId;
+	}
+
+}

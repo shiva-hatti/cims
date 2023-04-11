@@ -1,0 +1,9 @@
+package com.iris.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.iris.model.RoleEntityMappingMod;
+
+public interface RoleEntityMapModRepo extends JpaRepository<RoleEntityMappingMod, Long> {
+
+}

@@ -1,0 +1,51 @@
+package com.iris.model;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "TBL_BANK_TYPE")
+public class BankTypeBean implements Serializable {
+
+	private static final long serialVersionUID = -4120715218151313437L;
+	@Id
+	@Column(name = "BANK_TYPE_ID")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+
+	@Column(name = "BANK_TYPE_NAME")
+	private String bankTypeName;
+
+	@Column(name = "BANK_TYPE_CODE")
+	private String bankTypeCode;
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String getBankTypeName() {
+		return bankTypeName;
+	}
+
+	public void setBankTypeName(String bankTypeName) {
+		this.bankTypeName = bankTypeName;
+	}
+
+	public String getBankTypeCode() {
+		return bankTypeCode;
+	}
+
+	public void setBankTypeCode(String bankTypeCode) {
+		this.bankTypeCode = bankTypeCode;
+	}
+}

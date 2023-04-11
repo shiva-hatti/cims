@@ -1,0 +1,40 @@
+package com.iris.sdmx.exceltohtml.repo;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.iris.model.ReturnTemplate;
+import com.iris.sdmx.exceltohtml.entity.SdmxReturnSheetInfoEntity;
+
+/**
+ * @author apagaria
+ *
+ */
+public interface SdmxReturnSheetInfoRepo extends JpaRepository<SdmxReturnSheetInfoEntity, Long> {
+
+	/**
+	 * @param returnTemplate
+	 * @return
+	 */
+	@Query("from SdmxReturnSheetInfoEntity where returnTemplateIdFk=:returnTemplate")
+	List<SdmxReturnSheetInfoEntity> findByReturnTemplate(ReturnTemplate returnTemplate);
+
+	/**
+	 * @param sheetCode
+	 * @param sheetName
+	 * @param sectionCode
+	 * @param sectionName
+	 * @return
+	 */
+	@Query("from SdmxReturnSheetInfoEntity where sheetCode=:sheetCode and sheetName=:sheetName and sectionCode=:sectionCode and sectionName=:sectionName and returnTemplateIdFk=:returnTemplateIdFk and returnPreviewIdFk=:returnPreviewId")
+	SdmxReturnSheetInfoEntity findByOtherDetail(String sheetCode, String sheetName, String sectionCode, String sectionName, ReturnTemplate returnTemplateIdFk, Long returnPreviewId);
+
+	@Query("select new com.iris.sdmx.exceltohtml.entity.SdmxReturnSheetInfoEntity(srs.returnTemplateIdFk.returnTemplateId, sum(srs.noOfDataPoints), srs.returnPreviewIdFk) from SdmxReturnSheetInfoEntity srs where" + " srs.returnPreviewIdFk=:returnPreviewId group by srs.returnTemplateIdFk.returnTemplateId, srs.returnPreviewIdFk")
+	SdmxReturnSheetInfoEntity getTotalCellCount(Long returnPreviewId);
+
+	@Query("select new com.iris.sdmx.exceltohtml.entity.SdmxReturnSheetInfoEntity(srs.returnTemplateIdFk.returnTemplateId, count(srm.returnModelInfoId), srs.returnPreviewIdFk) from SdmxReturnSheetInfoEntity srs," + " SdmxReturnModelInfoEntity srm where" + " srs.returnPreviewIdFk=:returnPreviewId" + " and srs.returnSheetInfoId = srm.returnSheetInfoIdFk.returnSheetInfoId" + " and srm.isActive = true group by srs.returnTemplateIdFk.returnTemplateId,srs.returnPreviewIdFk")
+	SdmxReturnSheetInfoEntity getMappedCellCount(Long returnPreviewId);
+
+}

@@ -1,0 +1,25 @@
+/**
+ * 
+ */
+package com.iris.sdmx.codelist.repo;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.iris.sdmx.codelist.entity.CodeListMaster;
+import com.iris.sdmx.codelist.entity.CodeListMasterMod;
+
+/**
+ * @author sajadhav
+ *
+ */
+public interface CodeListMasterModRepo extends JpaRepository<CodeListMasterMod, Long>{
+
+	CodeListMasterMod findByClCodeAndClVersionAndAdminStatusId(String clCode, String clVersion, int adminStatus);
+	
+	List<CodeListMasterMod> findByClCodeInAndAdminStatusId(List<String> clCode, int adminStatus);
+
+	List<CodeListMasterMod> findByAdminStatusId(int adminStatusId);
+	
+}

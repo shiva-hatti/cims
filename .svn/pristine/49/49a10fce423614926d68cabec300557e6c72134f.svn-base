@@ -1,0 +1,85 @@
+package com.iris.nbfc.service;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.exception.ServiceException;
+import com.iris.nbfc.model.NbfcPanMasterBean;
+import com.iris.nbfc.repository.NbfcPanMasterRepo;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.MethodConstants;
+
+/**
+ * @author Shivabasava Hatti
+ */
+@Service
+public class NbfcPanMasterService implements GenericService<NbfcPanMasterBean, Long> {
+
+	@Autowired
+	NbfcPanMasterRepo nbfcPanMasterRepo;
+
+	@Override
+	public NbfcPanMasterBean add(NbfcPanMasterBean entity) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public boolean update(NbfcPanMasterBean entity) throws ServiceException {
+		return false;
+	}
+
+	@Override
+	public List<NbfcPanMasterBean> getDataByIds(Long[] ids) throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public NbfcPanMasterBean getDataById(Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<NbfcPanMasterBean> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName) throws ServiceException {
+		try {
+			List<String> panNumber = null;
+			if (methodName.equalsIgnoreCase(MethodConstants.GET_BORROWER_NAME_BY_PAN_NUMBER.getConstantVal())) {
+				panNumber = columnValueMap.get(ColumnConstants.PAN_NUMBER.getConstantVal());
+				return nbfcPanMasterRepo.fetchBorrowerNameData(panNumber.get(0));
+			}
+			return Collections.emptyList();
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<NbfcPanMasterBean> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName) throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcPanMasterBean> getDataByObject(Map<String, Object> columnValueMap, String methodName) throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcPanMasterBean> getActiveDataFor(Class bean, Long id) throws ServiceException {
+
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcPanMasterBean> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public void deleteData(NbfcPanMasterBean bean) throws ServiceException {
+	}
+}

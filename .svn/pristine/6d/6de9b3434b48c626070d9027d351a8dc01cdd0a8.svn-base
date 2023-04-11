@@ -1,0 +1,194 @@
+
+package com.iris.dynamicDropDown.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.json.simple.JSONObject;
+
+import com.iris.util.Validations;
+
+/**
+ * @author BHAVANA
+ *
+ */
+@Entity
+@Table(name = "TBL_DROP_DOWN_TYPE_VALUES")
+public class DropDownValues implements Serializable {
+	private static final long serialVersionUID = 6532438437725520190L;
+	
+	@Id
+	@Column(name = "DROP_DOWN_TYPE_VALUE_ID")
+	private Long dropDownValueId;
+
+	@Column(name = "DROP_DOWN_LABEL_EN")
+	private String dropDownValueEn;
+	
+	@Column(name = "DROP_DOWN_LABEL_HI")
+	private String dropDownValueHi;
+	
+	@Column(name = "DROP_DOWN_VAL_CODE")
+	private String dropDownValueCode;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "DROP_DOWN_TYPE_ID_FK")
+	private DropDownType dropDownTypeIdFk;
+	
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "DROP_DOWN_TYPE_VALUE_ID_FK")
+	private DropDownValues dropDownTypeValueIdFk;
+	
+	
+	@Column(name = "EFFECTIVE_FROM")
+	private Date effectiveFromDate;
+	
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+	
+	@Column(name = "DETAILS")
+	private String details;
+	
+	@Transient
+	private Long rowNum;
+	
+	@Transient
+	private Long dropDownTypeValIdFk;
+	
+	@Transient
+	private String effectiveDate;
+	
+	@Transient
+	private JSONObject jsonDetailsDetails;
+
+	public String getDetails() {
+		return details;
+	}
+
+	public void setDetails(String details) {
+		this.details = details;
+	}
+
+	public Long getDropDownValueId() {
+		return dropDownValueId;
+	}
+
+	public void setDropDownValueId(Long dropDownValueId) {
+		this.dropDownValueId = dropDownValueId;
+	}
+
+	public String getDropDownValueEn() {
+		return dropDownValueEn;
+	}
+
+	public void setDropDownValueEn(String dropDownValueEn) {
+		this.dropDownValueEn = Validations.trimInput(dropDownValueEn);
+	}
+
+	public String getDropDownValueHi() {
+		return dropDownValueHi;
+	}
+
+	public void setDropDownValueHi(String dropDownValueHi) {
+		this.dropDownValueHi = Validations.trimInput(dropDownValueHi);
+	}
+
+	public String getDropDownValueCode() {
+		return dropDownValueCode;
+	}
+
+	public void setDropDownValueCode(String dropDownValueCode) {
+		this.dropDownValueCode = Validations.trimInput(dropDownValueCode);
+	}
+
+	public DropDownType getDropDownTypeIdFk() {
+		return dropDownTypeIdFk;
+	}
+
+	public void setDropDownTypeIdFk(DropDownType dropDownTypeIdFk) {
+		this.dropDownTypeIdFk = dropDownTypeIdFk;
+	}
+
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	public DropDownValues getDropDownTypeValueIdFk() {
+		return dropDownTypeValueIdFk;
+	}
+
+	public void setDropDownTypeValueIdFk(DropDownValues dropDownTypeValueIdFk) {
+		this.dropDownTypeValueIdFk = dropDownTypeValueIdFk;
+	}
+
+	public Date getEffectiveFromDate() {
+		return effectiveFromDate;
+	}
+
+	public void setEffectiveFromDate(Date effectiveFromDate) {
+		this.effectiveFromDate = effectiveFromDate;
+	}
+
+	/**
+	 * @return the rowNum
+	 */
+	public Long getRowNum() {
+		return rowNum;
+	}
+
+	/**
+	 * @param rowNum the rowNum to set
+	 */
+	public void setRowNum(Long rowNum) {
+		this.rowNum = rowNum;
+	}
+
+	/**
+	 * @return the dropDownTypeValIdFk
+	 */
+	public Long getDropDownTypeValIdFk() {
+		return dropDownTypeValIdFk;
+	}
+
+	/**
+	 * @param dropDownTypeValIdFk the dropDownTypeValIdFk to set
+	 */
+	public void setDropDownTypeValIdFk(Long dropDownTypeValIdFk) {
+		this.dropDownTypeValIdFk = dropDownTypeValIdFk;
+	}
+
+	/**
+	 * @return the effectiveDate
+	 */
+	public String getEffectiveDate() {
+		return effectiveDate;
+	}
+
+	/**
+	 * @param effectiveDate the effectiveDate to set
+	 */
+	public void setEffectiveDate(String effectiveDate) {
+		this.effectiveDate = effectiveDate;
+	}
+
+	public JSONObject getJsonDetailsDetails() {
+		return jsonDetailsDetails;
+	}
+
+	public void setJsonDetailsDetails(JSONObject jsonDetailsDetails) {
+		this.jsonDetailsDetails = jsonDetailsDetails;
+	}
+}

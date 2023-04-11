@@ -1,0 +1,480 @@
+package com.iris.rbrToEbr.bean;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+/**
+ * @author vjadhav
+ *
+ */
+@JsonInclude(Include.NON_DEFAULT)
+public class EbrRbrFlowBean implements Serializable, Comparable<EbrRbrFlowBean> {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -4998681942559955995L;
+
+	private int controlId;
+
+	private String jobId;
+
+	private String entityCode;
+
+	private String entityName;
+
+	private String returnCode;
+
+	private String returnName;
+
+	private Long returnIdFk;
+
+	private int auditStatus;
+
+	private String auditStatuslabel;
+
+	private String frequency;
+
+	private Integer uploadId;
+
+	private Date reportingPeriod;
+
+	private int flowIdfk;
+
+	private String flowName;
+
+	private String taskName;
+
+	private int sequence;
+
+	private int priority;
+
+	private String priorityLabel;
+
+	private int status;
+
+	private String statusLabel;
+
+	private String createdBy;
+
+	private Date createdDate;
+
+	private String createdByName;
+
+	private Long modifiedBy;
+
+	private Date modifiedDate;
+
+	private String modifiedByName;
+
+	private Long reportingPeriodLong;
+
+	private Long createdDateLong;
+
+	/**
+	 * @return the controlId
+	 */
+	public int getControlId() {
+		return controlId;
+	}
+
+	/**
+	 * @param controlId the controlId to set
+	 */
+	public void setControlId(int controlId) {
+		this.controlId = controlId;
+	}
+
+	/**
+	 * @return the jobId
+	 */
+	public String getJobId() {
+		return jobId;
+	}
+
+	/**
+	 * @param jobId the jobId to set
+	 */
+	public void setJobId(String jobId) {
+		this.jobId = jobId;
+	}
+
+	/**
+	 * @return the entityCode
+	 */
+	public String getEntityCode() {
+		return entityCode;
+	}
+
+	/**
+	 * @param entityCode the entityCode to set
+	 */
+	public void setEntityCode(String entityCode) {
+		this.entityCode = entityCode;
+	}
+
+	/**
+	 * @return the returnCode
+	 */
+	public String getReturnCode() {
+		return returnCode;
+	}
+
+	/**
+	 * @param returnCode the returnCode to set
+	 */
+	public void setReturnCode(String returnCode) {
+		this.returnCode = returnCode;
+	}
+
+	/**
+	 * @return the auditStatus
+	 */
+	public int getAuditStatus() {
+		return auditStatus;
+	}
+
+	/**
+	 * @param auditStatus the auditStatus to set
+	 */
+	public void setAuditStatus(int auditStatus) {
+		this.auditStatus = auditStatus;
+	}
+
+	/**
+	 * @return the frequency
+	 */
+	public String getFrequency() {
+		return frequency;
+	}
+
+	/**
+	 * @param frequency the frequency to set
+	 */
+	public void setFrequency(String frequency) {
+		this.frequency = frequency;
+	}
+
+	/**
+	 * @return the uploadId
+	 */
+	public Integer getUploadId() {
+		return uploadId;
+	}
+
+	/**
+	 * @param uploadId the uploadId to set
+	 */
+	public void setUploadId(Integer uploadId) {
+		this.uploadId = uploadId;
+	}
+
+	/**
+	 * @return the reportingPeriod
+	 */
+	public Date getReportingPeriod() {
+		return reportingPeriod;
+	}
+
+	/**
+	 * @param reportingPeriod the reportingPeriod to set
+	 */
+	public void setReportingPeriod(Date reportingPeriod) {
+		this.reportingPeriod = reportingPeriod;
+	}
+
+	/**
+	 * @return the flowIdfk
+	 */
+	public int getFlowIdfk() {
+		return flowIdfk;
+	}
+
+	/**
+	 * @param flowIdfk the flowIdfk to set
+	 */
+	public void setFlowIdfk(int flowIdfk) {
+		this.flowIdfk = flowIdfk;
+	}
+
+	/**
+	 * @return the flowName
+	 */
+	public String getFlowName() {
+		return flowName;
+	}
+
+	/**
+	 * @param flowName the flowName to set
+	 */
+	public void setFlowName(String flowName) {
+		this.flowName = flowName;
+	}
+
+	/**
+	 * @return the taskName
+	 */
+	public String getTaskName() {
+		return taskName;
+	}
+
+	/**
+	 * @param taskName the taskName to set
+	 */
+	public void setTaskName(String taskName) {
+		this.taskName = taskName;
+	}
+
+	/**
+	 * @return the sequence
+	 */
+	public int getSequence() {
+		return sequence;
+	}
+
+	/**
+	 * @param sequence the sequence to set
+	 */
+	public void setSequence(int sequence) {
+		this.sequence = sequence;
+	}
+
+	/**
+	 * @return the priority
+	 */
+	public int getPriority() {
+		return priority;
+	}
+
+	/**
+	 * @param priority the priority to set
+	 */
+	public void setPriority(int priority) {
+		this.priority = priority;
+	}
+
+	/**
+	 * @return the status
+	 */
+	public int getStatus() {
+		return status;
+	}
+
+	/**
+	 * @param status the status to set
+	 */
+	public void setStatus(int status) {
+		this.status = status;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public String getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(String createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the createdDate
+	 */
+	public Date getCreatedDate() {
+		return createdDate;
+	}
+
+	/**
+	 * @param createdDate the createdDate to set
+	 */
+	public void setCreatedDate(Date createdDate) {
+		this.createdDate = createdDate;
+	}
+
+	/**
+	 * @return the modifiedBy
+	 */
+	public Long getModifiedBy() {
+		return modifiedBy;
+	}
+
+	/**
+	 * @param modifiedBy the modifiedBy to set
+	 */
+	public void setModifiedBy(Long modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+
+	/**
+	 * @return the modifiedDate
+	 */
+	public Date getModifiedDate() {
+		return modifiedDate;
+	}
+
+	/**
+	 * @param modifiedDate the modifiedDate to set
+	 */
+	public void setModifiedDate(Date modifiedDate) {
+		this.modifiedDate = modifiedDate;
+	}
+
+	/**
+	 * @return the createdByName
+	 */
+	public String getCreatedByName() {
+		return createdByName;
+	}
+
+	/**
+	 * @param createdByName the createdByName to set
+	 */
+	public void setCreatedByName(String createdByName) {
+		this.createdByName = createdByName;
+	}
+
+	/**
+	 * @return the modifiedByName
+	 */
+	public String getModifiedByName() {
+		return modifiedByName;
+	}
+
+	/**
+	 * @param modifiedByName the modifiedByName to set
+	 */
+	public void setModifiedByName(String modifiedByName) {
+		this.modifiedByName = modifiedByName;
+	}
+
+	/**
+	 * @return the returnIdFk
+	 */
+	public Long getReturnIdFk() {
+		return returnIdFk;
+	}
+
+	/**
+	 * @param returnIdFk the returnIdFk to set
+	 */
+	public void setReturnIdFk(Long returnIdFk) {
+		this.returnIdFk = returnIdFk;
+	}
+
+	/**
+	 * @return the reportingPeriodLong
+	 */
+	public Long getReportingPeriodLong() {
+		return reportingPeriodLong;
+	}
+
+	/**
+	 * @param reportingPeriodLong the reportingPeriodLong to set
+	 */
+	public void setReportingPeriodLong(Long reportingPeriodLong) {
+		this.reportingPeriodLong = reportingPeriodLong;
+	}
+
+	/**
+	 * @return the createdDateLong
+	 */
+	public Long getCreatedDateLong() {
+		return createdDateLong;
+	}
+
+	/**
+	 * @param createdDateLong the createdDateLong to set
+	 */
+	public void setCreatedDateLong(Long createdDateLong) {
+		this.createdDateLong = createdDateLong;
+	}
+
+	/**
+	 * @return the auditStatuslabel
+	 */
+	public String getAuditStatuslabel() {
+		return auditStatuslabel;
+	}
+
+	/**
+	 * @param auditStatuslabel the auditStatuslabel to set
+	 */
+	public void setAuditStatuslabel(String auditStatuslabel) {
+		this.auditStatuslabel = auditStatuslabel;
+	}
+
+	/**
+	 * @return the priorityLabel
+	 */
+	public String getPriorityLabel() {
+		return priorityLabel;
+	}
+
+	/**
+	 * @param priorityLabel the priorityLabel to set
+	 */
+	public void setPriorityLabel(String priorityLabel) {
+		this.priorityLabel = priorityLabel;
+	}
+
+	/**
+	 * @return the entityName
+	 */
+	public String getEntityName() {
+		return entityName;
+	}
+
+	/**
+	 * @param entityName the entityName to set
+	 */
+	public void setEntityName(String entityName) {
+		this.entityName = entityName;
+	}
+
+	/**
+	 * @return the returnName
+	 */
+	public String getReturnName() {
+		return returnName;
+	}
+
+	/**
+	 * @param returnName the returnName to set
+	 */
+	public void setReturnName(String returnName) {
+		this.returnName = returnName;
+	}
+
+	/**
+	 * @return the statusLabel
+	 */
+	public String getStatusLabel() {
+		return statusLabel;
+	}
+
+	/**
+	 * @param statusLabel the statusLabel to set
+	 */
+	public void setStatusLabel(String statusLabel) {
+		this.statusLabel = statusLabel;
+	}
+
+	@Override
+	public int compareTo(EbrRbrFlowBean obj) {
+		// TODO Auto-generated method stub
+		if (this.sequence == obj.sequence)
+			return 0;
+		else if (this.sequence > obj.sequence)
+			return 1;
+		else
+			return -1;
+	}
+
+}

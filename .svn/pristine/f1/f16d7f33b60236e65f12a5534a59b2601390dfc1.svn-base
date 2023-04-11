@@ -1,0 +1,31 @@
+/**
+ * 
+ */
+package com.iris.repository;
+
+import java.util.Date;
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.ETLAuditLog;
+
+/**
+ * @author akhandagale
+ *
+ */
+public interface ETLAuditLogRepo extends JpaRepository<ETLAuditLog, Long> {
+
+	List<ETLAuditLog> findByReturnUploadDetailsUploadIdOrderByAuditIdDesc(Long uploadId);
+
+	List<ETLAuditLog> findByAuditId(Long uploadId);
+
+	@Modifying
+	@Query("update ETLAuditLog auditlog set auditlog.status =:status, auditlog.targetJobEndTime =:endTimeDate where auditlog.auditId = :auditId ")
+	int updateAuditLogStatus(@Param("auditId") long auditId, @Param("status") long status, @Param("endTimeDate") Date endTimeDate);
+
+	ETLAuditLog findByReturnUploadDetailsUploadIdAndStatus(Long uploadId, Long status);
+}

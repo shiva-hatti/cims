@@ -1,0 +1,224 @@
+package com.iris.sdmx.upload.entity;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+/**
+ * @author vjadhav
+ *
+ */
+@Entity
+@Table(name = "TBL_ELEMENT_AUDIT")
+@JsonInclude(Include.NON_NULL)
+public class ElementAudit implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "ELEMENT_AUDIT_ID")
+	private int elementAuditId;
+	
+	@ManyToOne
+	@JoinColumn(name = "EBR_FILE_AUDIT_ID_FK")
+	private EbrFileAudit ebrFileAuditIdFk;
+	
+	@Column(name = "ELEMENT_CODE")
+	private String elementCode;
+	
+	@Column(name = "ELEMENT_VERSION")
+	private String elementVersion;
+	
+	@Column(name = "ROW_COUNT")
+	private int rowCount;
+	
+	@Column(name = "IS_PUSHED_TO_LND")
+	private String isPushedToLnd;
+	
+	@Column(name = "ELE_RETURN_REF")
+	private String eleReturnRef;
+	
+	@Column(name = "IS_REVISED")
+	private String isRevised;
+	
+	@Column(name = "VALIDATION_STATUS")
+	private int valStatus;
+	
+	@Column(name = "VALIDATION_RESULT")
+	private String valResult;
+	
+	@Column(name = "CONVERTED_FILE_NAME")
+	private String convertedFileName;
+
+	/**
+	 * @return the elementAuditId
+	 */
+	public int getElementAuditId() {
+		return elementAuditId;
+	}
+
+	/**
+	 * @param elementAuditId the elementAuditId to set
+	 */
+	public void setElementAuditId(int elementAuditId) {
+		this.elementAuditId = elementAuditId;
+	}
+
+	/**
+	 * @return the ebrFileAuditIdFk
+	 */
+	public EbrFileAudit getEbrFileAuditIdFk() {
+		return ebrFileAuditIdFk;
+	}
+
+	/**
+	 * @param ebrFileAuditIdFk the ebrFileAuditIdFk to set
+	 */
+	public void setEbrFileAuditIdFk(EbrFileAudit ebrFileAuditIdFk) {
+		this.ebrFileAuditIdFk = ebrFileAuditIdFk;
+	}
+
+	/**
+	 * @return the elementCode
+	 */
+	public String getElementCode() {
+		return elementCode;
+	}
+
+	/**
+	 * @param elementCode the elementCode to set
+	 */
+	public void setElementCode(String elementCode) {
+		this.elementCode = elementCode;
+	}
+
+	/**
+	 * @return the elementVersion
+	 */
+	public String getElementVersion() {
+		return elementVersion;
+	}
+
+	/**
+	 * @param elementVersion the elementVersion to set
+	 */
+	public void setElementVersion(String elementVersion) {
+		this.elementVersion = elementVersion;
+	}
+
+	/**
+	 * @return the rowCount
+	 */
+	public int getRowCount() {
+		return rowCount;
+	}
+
+	/**
+	 * @param rowCount the rowCount to set
+	 */
+	public void setRowCount(int rowCount) {
+		this.rowCount = rowCount;
+	}
+
+	
+
+	/**
+	 * @return the isPushedToLnd
+	 */
+	public String getIsPushedToLnd() {
+		return isPushedToLnd;
+	}
+
+	/**
+	 * @param isPushedToLnd the isPushedToLnd to set
+	 */
+	public void setIsPushedToLnd(String isPushedToLnd) {
+		this.isPushedToLnd = isPushedToLnd;
+	}
+
+	/**
+	 * @return the eleReturnRef
+	 */
+	public String getEleReturnRef() {
+		return eleReturnRef;
+	}
+
+	/**
+	 * @param eleReturnRef the eleReturnRef to set
+	 */
+	public void setEleReturnRef(String eleReturnRef) {
+		this.eleReturnRef = eleReturnRef;
+	}
+
+	/**
+	 * @return the isRevised
+	 */
+	public String getIsRevised() {
+		return isRevised;
+	}
+
+	/**
+	 * @param isRevised the isRevised to set
+	 */
+	public void setIsRevised(String isRevised) {
+		this.isRevised = isRevised;
+	}
+
+	/**
+	 * @return the valStatus
+	 */
+	public int getValStatus() {
+		return valStatus;
+	}
+
+	/**
+	 * @param valStatus the valStatus to set
+	 */
+	public void setValStatus(int valStatus) {
+		this.valStatus = valStatus;
+	}
+
+	/**
+	 * @return the valResult
+	 */
+	public String getValResult() {
+		return valResult;
+	}
+
+	/**
+	 * @param valResult the valResult to set
+	 */
+	public void setValResult(String valResult) {
+		this.valResult = valResult;
+	}
+
+	/**
+	 * @return the convertedFileName
+	 */
+	public String getConvertedFileName() {
+		return convertedFileName;
+	}
+
+	/**
+	 * @param convertedFileName the convertedFileName to set
+	 */
+	public void setConvertedFileName(String convertedFileName) {
+		this.convertedFileName = convertedFileName;
+	}
+
+	
+}

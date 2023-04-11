@@ -1,0 +1,45 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+
+import javax.persistence.Transient;
+
+import com.iris.model.FieldKey;
+import com.iris.model.LanguageMaster;
+
+public class FieldLableDto implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -7842790204790504976L;
+
+	private String languageCode;
+	private String fieldKey;
+	private String fieldDispLable;
+
+	public String getFieldKey() {
+		return fieldKey;
+	}
+
+	public void setFieldKey(String fieldKey) {
+		this.fieldKey = fieldKey;
+	}
+
+	public String getLanguageCode() {
+		return languageCode;
+	}
+
+	public void setLanguageCode(String languageCode) {
+		this.languageCode = languageCode;
+	}
+
+	public String getFieldDispLable() {
+		return fieldDispLable;
+	}
+
+	public void setFieldDispLable(String fieldDispLable) {
+		this.fieldDispLable = fieldDispLable;
+	}
+
+}

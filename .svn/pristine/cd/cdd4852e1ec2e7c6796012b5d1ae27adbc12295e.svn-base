@@ -1,0 +1,42 @@
+/**
+ * 
+ */
+package com.iris.sdmx.dimesnsion.repo;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+
+import com.iris.sdmx.dimesnsion.entity.DimensionMaster;
+
+/**
+ * @author sajadhav
+ *
+ */
+@Repository
+public interface DimensionRepo extends JpaRepository<DimensionMaster, Long>{
+	
+	@Query("FROM DimensionMaster dm where dm.dimensionCode =:dimCode and  dm.isActive = 1 ")
+	public List<DimensionMaster> getSdmxDimensionMasterUsingDimCode(String dimCode);
+
+	List<DimensionMaster> findByIsActiveAndParentDimensionMasterDimesnsionMasterId(boolean isActive, Long parentDimensionMasterId);
+
+	DimensionMaster findByDimensionCodeIgnoreCaseAndIsActive(String dimensionCode, boolean isActive);
+	
+	List<DimensionMaster> findByDimensionCodeInAndIsActive(List<String> dmCodeList,boolean isActive);
+	
+	List<DimensionMaster> findByIsActiveTrue();
+	
+	@Query("FROM DimensionMaster dm where dm.isActive = 1 and (dm.isCommon = 1 or dm.isMandatory = 1)")
+	List<DimensionMaster> getCommonOrMandatoryDimension();
+	
+	@Query("FROM DimensionMaster dm where dm.dimensionCode =:dimCode and  dm.isActive = 1 ")
+	public DimensionMaster getEntityUsingDimCode(String dimCode);
+	
+    List<DimensionMaster> findByIsActive(boolean isActive);
+	
+	List<DimensionMaster> findByDimesnsionMasterIdIn(List<Long> longList);
+
+}

@@ -1,0 +1,466 @@
+package com.iris.rbrToEbr.bean;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.iris.model.EntityBean;
+import com.iris.model.Return;
+import com.iris.model.ReturnPropertyValue;
+import com.iris.model.UserMaster;
+
+/**
+ * @author vjadhav
+ *
+ */
+@JsonInclude(Include.NON_DEFAULT)
+public class EbrDataConversionLogBean implements Serializable{
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private Long auditLogId;
+	private Long returnIdFk;
+	private String returnCode;
+	private String returnName;
+	private Long entityIdFk;
+	private String entityCode;
+	private String entityName;
+	private Date endDate;
+	private Long endDateLong;
+	private String returnProValue;
+
+	private String finalToStageJobName;
+	private Date finalToStageStartTime;
+	private Date finalToStageEndTime;
+	private String finalToStageErrorlog;
+	
+	private String stageRbrEbrJobName;
+	private Date stageRbrEbrStartTime;
+	private Date stageRbrEbrEndTime;
+	private String stageRbrEbrErrorlog;
+	
+	private String stageEbrRbrJobName;
+	private Date stageEbrRbrStartTime;
+	private Date stageEbrRbrEndTime;
+	private String stageEbrRbrErrorlog;
+	
+	private String stageToFinalJobName;
+	private Date stageToFinalStartTime;
+	private Date stageToFinalEndTime;
+	private String stageToFinalErrorlog;
+	
+	private Long status;
+	private String statusName;
+	private Long userId;
+	private String userName;
+	private Date createdOn;
+	private Long createdOnLong;
+	
+	private List<EbrDataConversionLogBean> ebrDataConversionLogBeanList;
+	
+	/**
+	 * @return the returnIdFk
+	 */
+	public Long getReturnIdFk() {
+		return returnIdFk;
+	}
+	/**
+	 * @param returnIdFk the returnIdFk to set
+	 */
+	public void setReturnIdFk(Long returnIdFk) {
+		this.returnIdFk = returnIdFk;
+	}
+	/**
+	 * @return the entityIdFk
+	 */
+	public Long getEntityIdFk() {
+		return entityIdFk;
+	}
+	/**
+	 * @param entityIdFk the entityIdFk to set
+	 */
+	public void setEntityIdFk(Long entityIdFk) {
+		this.entityIdFk = entityIdFk;
+	}
+	
+	/**
+	 * @return the endDate
+	 */
+	public Date getEndDate() {
+		return endDate;
+	}
+	/**
+	 * @param endDate the endDate to set
+	 */
+	public void setEndDate(Date endDate) {
+		this.endDate = endDate;
+	}
+	
+	/**
+	 * @return the finalToStageJobName
+	 */
+	public String getFinalToStageJobName() {
+		return finalToStageJobName;
+	}
+	/**
+	 * @param finalToStageJobName the finalToStageJobName to set
+	 */
+	public void setFinalToStageJobName(String finalToStageJobName) {
+		this.finalToStageJobName = finalToStageJobName;
+	}
+	/**
+	 * @return the finalToStageStartTime
+	 */
+	public Date getFinalToStageStartTime() {
+		return finalToStageStartTime;
+	}
+	/**
+	 * @param finalToStageStartTime the finalToStageStartTime to set
+	 */
+	public void setFinalToStageStartTime(Date finalToStageStartTime) {
+		this.finalToStageStartTime = finalToStageStartTime;
+	}
+	/**
+	 * @return the finalToStageEndTime
+	 */
+	public Date getFinalToStageEndTime() {
+		return finalToStageEndTime;
+	}
+	/**
+	 * @param finalToStageEndTime the finalToStageEndTime to set
+	 */
+	public void setFinalToStageEndTime(Date finalToStageEndTime) {
+		this.finalToStageEndTime = finalToStageEndTime;
+	}
+	/**
+	 * @return the finalToStageErrorlog
+	 */
+	public String getFinalToStageErrorlog() {
+		return finalToStageErrorlog;
+	}
+	/**
+	 * @param finalToStageErrorlog the finalToStageErrorlog to set
+	 */
+	public void setFinalToStageErrorlog(String finalToStageErrorlog) {
+		this.finalToStageErrorlog = finalToStageErrorlog;
+	}
+	/**
+	 * @return the stageRbrEbrJobName
+	 */
+	public String getStageRbrEbrJobName() {
+		return stageRbrEbrJobName;
+	}
+	/**
+	 * @param stageRbrEbrJobName the stageRbrEbrJobName to set
+	 */
+	public void setStageRbrEbrJobName(String stageRbrEbrJobName) {
+		this.stageRbrEbrJobName = stageRbrEbrJobName;
+	}
+	/**
+	 * @return the stageRbrEbrStartTime
+	 */
+	public Date getStageRbrEbrStartTime() {
+		return stageRbrEbrStartTime;
+	}
+	/**
+	 * @param stageRbrEbrStartTime the stageRbrEbrStartTime to set
+	 */
+	public void setStageRbrEbrStartTime(Date stageRbrEbrStartTime) {
+		this.stageRbrEbrStartTime = stageRbrEbrStartTime;
+	}
+	/**
+	 * @return the stageRbrEbrEndTime
+	 */
+	public Date getStageRbrEbrEndTime() {
+		return stageRbrEbrEndTime;
+	}
+	/**
+	 * @param stageRbrEbrEndTime the stageRbrEbrEndTime to set
+	 */
+	public void setStageRbrEbrEndTime(Date stageRbrEbrEndTime) {
+		this.stageRbrEbrEndTime = stageRbrEbrEndTime;
+	}
+	/**
+	 * @return the stageRbrEbrErrorlog
+	 */
+	public String getStageRbrEbrErrorlog() {
+		return stageRbrEbrErrorlog;
+	}
+	/**
+	 * @param stageRbrEbrErrorlog the stageRbrEbrErrorlog to set
+	 */
+	public void setStageRbrEbrErrorlog(String stageRbrEbrErrorlog) {
+		this.stageRbrEbrErrorlog = stageRbrEbrErrorlog;
+	}
+	/**
+	 * @return the stageEbrRbrJobName
+	 */
+	public String getStageEbrRbrJobName() {
+		return stageEbrRbrJobName;
+	}
+	/**
+	 * @param stageEbrRbrJobName the stageEbrRbrJobName to set
+	 */
+	public void setStageEbrRbrJobName(String stageEbrRbrJobName) {
+		this.stageEbrRbrJobName = stageEbrRbrJobName;
+	}
+	/**
+	 * @return the stageEbrRbrStartTime
+	 */
+	public Date getStageEbrRbrStartTime() {
+		return stageEbrRbrStartTime;
+	}
+	/**
+	 * @param stageEbrRbrStartTime the stageEbrRbrStartTime to set
+	 */
+	public void setStageEbrRbrStartTime(Date stageEbrRbrStartTime) {
+		this.stageEbrRbrStartTime = stageEbrRbrStartTime;
+	}
+	/**
+	 * @return the stageEbrRbrEndTime
+	 */
+	public Date getStageEbrRbrEndTime() {
+		return stageEbrRbrEndTime;
+	}
+	/**
+	 * @param stageEbrRbrEndTime the stageEbrRbrEndTime to set
+	 */
+	public void setStageEbrRbrEndTime(Date stageEbrRbrEndTime) {
+		this.stageEbrRbrEndTime = stageEbrRbrEndTime;
+	}
+	/**
+	 * @return the stageEbrRbrErrorlog
+	 */
+	public String getStageEbrRbrErrorlog() {
+		return stageEbrRbrErrorlog;
+	}
+	/**
+	 * @param stageEbrRbrErrorlog the stageEbrRbrErrorlog to set
+	 */
+	public void setStageEbrRbrErrorlog(String stageEbrRbrErrorlog) {
+		this.stageEbrRbrErrorlog = stageEbrRbrErrorlog;
+	}
+	/**
+	 * @return the stageToFinalJobName
+	 */
+	public String getStageToFinalJobName() {
+		return stageToFinalJobName;
+	}
+	/**
+	 * @param stageToFinalJobName the stageToFinalJobName to set
+	 */
+	public void setStageToFinalJobName(String stageToFinalJobName) {
+		this.stageToFinalJobName = stageToFinalJobName;
+	}
+	/**
+	 * @return the stageToFinalStartTime
+	 */
+	public Date getStageToFinalStartTime() {
+		return stageToFinalStartTime;
+	}
+	/**
+	 * @param stageToFinalStartTime the stageToFinalStartTime to set
+	 */
+	public void setStageToFinalStartTime(Date stageToFinalStartTime) {
+		this.stageToFinalStartTime = stageToFinalStartTime;
+	}
+	/**
+	 * @return the stageToFinalEndTime
+	 */
+	public Date getStageToFinalEndTime() {
+		return stageToFinalEndTime;
+	}
+	/**
+	 * @param stageToFinalEndTime the stageToFinalEndTime to set
+	 */
+	public void setStageToFinalEndTime(Date stageToFinalEndTime) {
+		this.stageToFinalEndTime = stageToFinalEndTime;
+	}
+	/**
+	 * @return the stageToFinalErrorlog
+	 */
+	public String getStageToFinalErrorlog() {
+		return stageToFinalErrorlog;
+	}
+	/**
+	 * @param stageToFinalErrorlog the stageToFinalErrorlog to set
+	 */
+	public void setStageToFinalErrorlog(String stageToFinalErrorlog) {
+		this.stageToFinalErrorlog = stageToFinalErrorlog;
+	}
+	
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+	/**
+	 * @return the userId
+	 */
+	public Long getUserId() {
+		return userId;
+	}
+	/**
+	 * @param userId the userId to set
+	 */
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+	/**
+	 * @return the returnCode
+	 */
+	public String getReturnCode() {
+		return returnCode;
+	}
+	/**
+	 * @param returnCode the returnCode to set
+	 */
+	public void setReturnCode(String returnCode) {
+		this.returnCode = returnCode;
+	}
+	/**
+	 * @return the entityCode
+	 */
+	public String getEntityCode() {
+		return entityCode;
+	}
+	/**
+	 * @param entityCode the entityCode to set
+	 */
+	public void setEntityCode(String entityCode) {
+		this.entityCode = entityCode;
+	}
+	/**
+	 * @return the returnProValue
+	 */
+	public String getReturnProValue() {
+		return returnProValue;
+	}
+	/**
+	 * @param returnProValue the returnProValue to set
+	 */
+	public void setReturnProValue(String returnProValue) {
+		this.returnProValue = returnProValue;
+	}
+	/**
+	 * @return the userName
+	 */
+	public String getUserName() {
+		return userName;
+	}
+	/**
+	 * @param userName the userName to set
+	 */
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+	/**
+	 * @return the auditLogId
+	 */
+	public Long getAuditLogId() {
+		return auditLogId;
+	}
+	/**
+	 * @param auditLogId the auditLogId to set
+	 */
+	public void setAuditLogId(Long auditLogId) {
+		this.auditLogId = auditLogId;
+	}
+	/**
+	 * @return the ebrDataConversionLogBeanList
+	 */
+	public List<EbrDataConversionLogBean> getEbrDataConversionLogBeanList() {
+		return ebrDataConversionLogBeanList;
+	}
+	/**
+	 * @param ebrDataConversionLogBeanList the ebrDataConversionLogBeanList to set
+	 */
+	public void setEbrDataConversionLogBeanList(List<EbrDataConversionLogBean> ebrDataConversionLogBeanList) {
+		this.ebrDataConversionLogBeanList = ebrDataConversionLogBeanList;
+	}
+	/**
+	 * @return the entityName
+	 */
+	public String getEntityName() {
+		return entityName;
+	}
+	/**
+	 * @param entityName the entityName to set
+	 */
+	public void setEntityName(String entityName) {
+		this.entityName = entityName;
+	}
+	/**
+	 * @return the status
+	 */
+	public Long getStatus() {
+		return status;
+	}
+	/**
+	 * @param status the status to set
+	 */
+	public void setStatus(Long status) {
+		this.status = status;
+	}
+	/**
+	 * @return the statusName
+	 */
+	public String getStatusName() {
+		return statusName;
+	}
+	/**
+	 * @param statusName the statusName to set
+	 */
+	public void setStatusName(String statusName) {
+		this.statusName = statusName;
+	}
+	/**
+	 * @return the createdOnLong
+	 */
+	public Long getCreatedOnLong() {
+		return createdOnLong;
+	}
+	/**
+	 * @param createdOnLong the createdOnLong to set
+	 */
+	public void setCreatedOnLong(Long createdOnLong) {
+		this.createdOnLong = createdOnLong;
+	}
+	/**
+	 * @return the endDateLong
+	 */
+	public Long getEndDateLong() {
+		return endDateLong;
+	}
+	/**
+	 * @param endDateLong the endDateLong to set
+	 */
+	public void setEndDateLong(Long endDateLong) {
+		this.endDateLong = endDateLong;
+	}
+	/**
+	 * @return the returnName
+	 */
+	public String getReturnName() {
+		return returnName;
+	}
+	/**
+	 * @param returnName the returnName to set
+	 */
+	public void setReturnName(String returnName) {
+		this.returnName = returnName;
+	}
+	
+	
+}

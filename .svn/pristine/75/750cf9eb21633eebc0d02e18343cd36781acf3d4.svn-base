@@ -1,0 +1,23 @@
+package com.iris.util;
+
+
+public class AttributeName {
+	public static enum SessionAttribute {
+		LOGEDIN_USER("logedInUser"), MENU("menu"), AUTHORIZED_URL_LIST("authorizedUrlList"), THEME(
+				"portalTheme"), JSESSIONID("jSessionId");
+
+		private String name;
+
+		SessionAttribute(String name) {
+			this.name = Validations.trimInput(name);
+		}
+
+		/**
+		 * @return the attributeName
+		 */
+		public String getName() {
+			return name;
+		}
+
+	}
+}

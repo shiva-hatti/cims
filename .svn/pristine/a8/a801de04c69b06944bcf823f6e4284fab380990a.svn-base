@@ -1,0 +1,125 @@
+package com.iris.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.exception.ServiceException;
+import com.iris.model.Category;
+import com.iris.model.SubCategory;
+import com.iris.model.UploadChannel;
+import com.iris.repository.ChannelRepo;
+import com.iris.repository.SubCategoryRepo;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.MethodConstants;
+
+@Service
+public class SubCategoryService implements GenericService<SubCategory, Long> {
+
+	@Autowired
+	private SubCategoryRepo subCategoryRepo;
+
+	@Override
+	public SubCategory add(SubCategory entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean update(SubCategory entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public List<SubCategory> getDataByIds(Long[] ids) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public SubCategory getDataById(Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<SubCategory> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<SubCategory> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<SubCategory> getDataByObject(Map<String, Object> columnValueMap, String methodName) throws ServiceException {
+		try {
+			boolean isActive = false;
+			String langCode = null;
+			Long roleId = null;
+			Long userId = null;
+			String categoryName = null;
+			if (columnValueMap != null) {
+				for (String columnName : columnValueMap.keySet()) {
+					if (columnValueMap.get(columnName) != null) {
+						if (columnName.equalsIgnoreCase(ColumnConstants.IS_ACTIVE.getConstantVal())) {
+							isActive = (boolean) columnValueMap.get(columnName);
+						} else if (columnName.equalsIgnoreCase(ColumnConstants.LANG_CODE.getConstantVal())) {
+							langCode = (String) columnValueMap.get(columnName);
+						} else if (columnName.equalsIgnoreCase(ColumnConstants.ROLEID.getConstantVal())) {
+							roleId = (Long) columnValueMap.get(columnName);
+						} else if (columnName.equalsIgnoreCase(ColumnConstants.USER_ID.getConstantVal())) {
+							userId = (Long) columnValueMap.get(columnName);
+						} else if (columnName.equalsIgnoreCase(ColumnConstants.CATEGORY_NAME.getConstantVal())) {
+							categoryName = (String) columnValueMap.get(columnName);
+						}
+					}
+				}
+			}
+			if (methodName.equalsIgnoreCase(MethodConstants.GET_SUB_CATEGORY_FOR_MASTER_DEPT_USER.getConstantVal())) {
+				return subCategoryRepo.loadSubCategoryForMainDeptUser(isActive, langCode, userId);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_SUB_CATEGORY_FOR_NON_MASTER_DEPT_USER.getConstantVal())) {
+				return subCategoryRepo.loadSubCategoryForNonMainDeptUser(roleId, isActive, langCode);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_ACTIVE_SUB_CATEGORY.getConstantVal())) {
+				return subCategoryRepo.getAllActiveSubCatByLangCode(langCode, isActive);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_SUB_CATEGORY_LIST_BY_CATEGORY_NAME.getConstantVal())) {
+				return subCategoryRepo.getSubCatListByCatName(langCode, isActive, categoryName);
+			}
+			/*
+				 * else if(methodName.equalsIgnoreCase(MethodConstants.
+				 * GET_SUBCATEGORY_WISE_ACTIVE_ENTITY_COUNT.getConstantVal())) { return
+				 * subCategoryRepo.getActiveEntityCountBySubCategoryWise(isActive); }
+				 */
+			return null;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<SubCategory> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<SubCategory> getAllDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void deleteData(SubCategory bean) throws ServiceException {
+		// TODO Auto-generated method stub
+
+	}
+
+}

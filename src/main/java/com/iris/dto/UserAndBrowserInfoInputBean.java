@@ -1,0 +1,103 @@
+/**
+ * 
+ */
+package com.iris.dto;
+
+/**
+ * @author Siddique
+ *
+ */
+public class UserAndBrowserInfoInputBean {
+
+	private String userName;
+	private String password;
+	private String userSysIpAddress;
+	private String userSysBroserInfo;
+	private HTTPRequestDetails httpReqDetails;
+	private String bankWorkingCode;
+
+	/**
+	 * @return the bankWorkingCode
+	 */
+	public String getBankWorkingCode() {
+		return bankWorkingCode;
+	}
+
+	/**
+	 * @param bankWorkingCode the bankWorkingCode to set
+	 */
+	public void setBankWorkingCode(String bankWorkingCode) {
+		this.bankWorkingCode = bankWorkingCode;
+	}
+
+	/**
+	 * @return the httpReqDetails
+	 */
+	public HTTPRequestDetails getHttpReqDetails() {
+		return httpReqDetails;
+	}
+
+	/**
+	 * @param httpReqDetails the httpReqDetails to set
+	 */
+	public void setHttpReqDetails(HTTPRequestDetails httpReqDetails) {
+		this.httpReqDetails = httpReqDetails;
+	}
+
+	/**
+	 * @return the userName
+	 */
+	public String getUserName() {
+		return userName;
+	}
+
+	/**
+	 * @param userName the userName to set
+	 */
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	/**
+	 * @return the password
+	 */
+	public String getPassword() {
+		return password;
+	}
+
+	/**
+	 * @param password the password to set
+	 */
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	/**
+	 * @return the userSysIpAddress
+	 */
+	public String getUserSysIpAddress() {
+		return userSysIpAddress;
+	}
+
+	/**
+	 * @param userSysIpAddress the userSysIpAddress to set
+	 */
+	public void setUserSysIpAddress(String userSysIpAddress) {
+		this.userSysIpAddress = userSysIpAddress;
+	}
+
+	/**
+	 * @return the userSysBroserInfo
+	 */
+	public String getUserSysBroserInfo() {
+		return userSysBroserInfo;
+	}
+
+	/**
+	 * @param userSysBroserInfo the userSysBroserInfo to set
+	 */
+	public void setUserSysBroserInfo(String userSysBroserInfo) {
+		this.userSysBroserInfo = userSysBroserInfo;
+	}
+
+}

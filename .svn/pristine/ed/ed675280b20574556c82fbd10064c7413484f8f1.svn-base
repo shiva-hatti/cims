@@ -1,0 +1,84 @@
+package com.iris.controller;
+
+import java.util.List;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.google.gson.Gson;
+import com.iris.caching.ObjectCache;
+import com.iris.dto.SapBoDeatilsBean;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.model.EntityBean;
+import com.iris.model.EntityLabelBean;
+import com.iris.model.Return;
+import com.iris.model.SapBoDetails;
+import com.iris.repository.EntityRepo;
+import com.iris.repository.ReturnRepo;
+import com.iris.service.impl.SapBoReportService;
+import com.iris.util.UtilMaster;
+import com.iris.util.Validations;
+import com.iris.util.constant.ErrorCode;
+
+/**
+ * @author psawant
+ * @version 1.0
+ * @date 10/09/2020
+ */
+@RestController
+@RequestMapping("/service/sapBoReport")
+public class SapBoReportController {
+
+	static final Logger logger = LogManager.getLogger(SapBoReportController.class);
+
+	@Autowired
+	private SapBoReportService sapBoReportService;
+
+	@Autowired
+	private ReturnRepo returnRepo;
+
+	@Autowired
+	private EntityRepo entityRepo;
+
+	@PostMapping(value = "/getSapBoReportDetails/{returnCode}/{entityCode}/{langCode}")
+	public ServiceResponse getSapBoReportDetails(@PathVariable String returnCode, @PathVariable String entityCode, @PathVariable String langCode) {
+		logger.info("fetch SAP BO Report Details controller started " + returnCode);
+
+		if (UtilMaster.isEmpty(returnCode)) {
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0784.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0784.toString())).build();
+		}
+		List<SapBoDetails> sapBoDeatilsList = sapBoReportService.getAllDataFor(null, null);
+
+		SapBoDeatilsBean sapBoDeatilsBean = new SapBoDeatilsBean();
+		if (!CollectionUtils.isEmpty(sapBoDeatilsList)) {
+			sapBoDeatilsBean.setUsername(sapBoDeatilsList.get(0).getUsername());
+			sapBoDeatilsBean.setPwd(sapBoDeatilsList.get(0).getPassword());
+			sapBoDeatilsBean.setCms(sapBoDeatilsList.get(0).getCms());
+			sapBoDeatilsBean.setPort(sapBoDeatilsList.get(0).getPort());
+		}
+
+		Return returnObj = returnRepo.findByReturnCode(returnCode);
+		if (!Validations.isEmpty(returnObj.getReturnDocId())) {
+			sapBoDeatilsBean.setReturnDocId(returnObj.getReturnDocId());
+		}
+		EntityBean entityBean = entityRepo.findByEntityCode(entityCode);
+		for (EntityLabelBean entLblObj : entityBean.getEntityLabelSet()) {
+			if (entLblObj.getLanguageMaster().getLanguageCode().equals(langCode)) {
+				sapBoDeatilsBean.setEntityName(entLblObj.getEntityNameLabel());
+				break;
+			}
+		}
+		sapBoDeatilsBean.setEntityCode(entityCode);
+		sapBoDeatilsBean.setReturnCode(returnCode);
+
+		return new ServiceResponseBuilder().setStatus(true).setResponse(new Gson().toJson(sapBoDeatilsBean)).build();
+	}
+
+}

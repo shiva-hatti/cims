@@ -1,0 +1,170 @@
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.NullArgumentException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.google.gson.Gson;
+import com.iris.caching.ObjectCache;
+import com.iris.dto.Option;
+import com.iris.dto.Options;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.model.CityMaster;
+import com.iris.model.PincodeMaster;
+import com.iris.service.impl.CityMasterService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.util.constant.MethodConstants;
+
+/**
+ * @author Pradnya Mhatre
+ *
+ */
+
+@RestController
+@RequestMapping("/service/allCityData")
+public class CityMasterController {
+	static final Logger logger = LogManager.getLogger(CityMasterController.class);
+
+	@Autowired
+	CityMasterService cityMasterService;
+
+	@GetMapping(value = "/fetchActiveCityData/{languageCode}")
+	public ServiceResponse fetchActiveCityList(@PathVariable String languageCode) {
+		logger.info("fetch city data controller started " + languageCode);
+		ServiceResponse serviceResponse = null;
+		List<CityMaster> listOfActiveCityData = null;
+
+		if (languageCode != null) {
+			listOfActiveCityData = cityMasterService.getActiveDataFor(CityMaster.class, null);
+
+			if (!CollectionUtils.isEmpty(listOfActiveCityData)) {
+				List<CityMaster> finalCityObject = prepareCityObject(listOfActiveCityData);
+				return new ServiceResponseBuilder().setStatus(true).setResponse(new Gson().toJson(finalCityObject)).build();
+			}
+		}
+		return serviceResponse;
+	}
+
+	@GetMapping("/fetchActiveCityListByState/{stateCode}/{languageCode}")
+	public ServiceResponse fetchActiveCityListByState(@PathVariable("stateCode") String stateCode, @PathVariable String languageCode) {
+
+		Map<String, List<String>> columnValueMap = new HashMap<>();
+		List<String> stateList = new ArrayList<>();
+		stateList.add(stateCode);
+		columnValueMap.put(ColumnConstants.STATE_CODE.getConstantVal(), stateList);
+		List<CityMaster> listOfActiveCityData = cityMasterService.getDataByColumnValue(columnValueMap, MethodConstants.GET_CITY_LIST_BY_STATE_CODE.getConstantVal());
+		if (!CollectionUtils.isEmpty(listOfActiveCityData)) {
+			List<CityMaster> finalCityObject = prepareCityObject(listOfActiveCityData);
+			return new ServiceResponseBuilder().setStatus(true).setResponse(new Gson().toJson(finalCityObject)).build();
+		}
+		return new ServiceResponseBuilder().setStatus(true).setResponse(listOfActiveCityData).build();
+	}
+
+	private List<CityMaster> prepareCityObject(List<CityMaster> listOfActiveCityData) {
+		List<CityMaster> cityMasterListNew = new ArrayList<>();
+		for (CityMaster cityMaster : listOfActiveCityData) {
+			List<PincodeMaster> listOfPincodeDataNew = new ArrayList<>();
+			List<PincodeMaster> listOfPincodeDataTemp = cityMaster.getPincode();
+			for (PincodeMaster pincodeMaster : listOfPincodeDataTemp) {
+				PincodeMaster pincodeMasterTemp = new PincodeMaster();
+				pincodeMasterTemp.setId(pincodeMaster.getId());
+				pincodeMasterTemp.setPincode(pincodeMaster.getPincode());
+				pincodeMasterTemp.setIsActive(pincodeMaster.getIsActive());
+				listOfPincodeDataNew.add(pincodeMasterTemp);
+			}
+			cityMaster.setPincode(listOfPincodeDataNew);
+			cityMasterListNew.add(cityMaster);
+		}
+		return cityMasterListNew;
+	}
+
+	@GetMapping(value = "/fetchActiveCity/{languageCode}")
+	public ServiceResponse fetchActiveCityListData(@PathVariable String languageCode) {
+		logger.info("fetch City data controller started " + languageCode);
+		ServiceResponse serviceResponse = null;
+		Option option = null;
+		Options options = null;
+		List<Option> optionList = null;
+		List<CityMaster> listOfActiveCityData = null;
+		if (languageCode != null) {
+
+			optionList = new ArrayList<>();
+			options = new Options();
+			listOfActiveCityData = cityMasterService.getActiveDataFor(CityMaster.class, null);
+
+			for (CityMaster cityMaster : listOfActiveCityData) {
+				option = new Option();
+				if (cityMaster.getDistrictIdFk() != null && cityMaster.getDistrictIdFk().getStateIdFk() != null) {
+					if (languageCode.equals(GeneralConstants.ENG_LANG.getConstantVal())) {
+						option.setKey(cityMaster.getCityCode());
+						option.setValue(cityMaster.getDistrictIdFk().getStateIdFk().getStateName() + "~" + cityMaster.getCityName().toUpperCase());
+					} else if (languageCode.equals(GeneralConstants.HIN_LANG.getConstantVal())) {
+						option.setKey(cityMaster.getCityCode());
+						option.setValue(cityMaster.getDistrictIdFk().getStateIdFk().getStateNameBil() + "~" + cityMaster.getCityNameBil().toUpperCase());
+					}
+				}
+				optionList.add(option);
+			}
+
+			options.setOptionList(optionList);
+			return new ServiceResponseBuilder().setStatus(true).setResponse(new Gson().toJson(options)).build();
+		}
+		return serviceResponse;
+	}
+
+	@GetMapping("/fetchActiveCityListByStateName/{stateName}/{languageCode}")
+	public ServiceResponse fetchActiveCityListByStateName(@PathVariable("stateName") String stateName, @PathVariable("languageCode") String languageCode) {
+		logger.info("fetch city data upon state controller started " + languageCode);
+		ServiceResponse response = null;
+		try {
+			Map<String, List<String>> columnValueMap = new HashMap<>();
+			List<String> stateList = new ArrayList<>();
+			stateList.add(stateName);
+			columnValueMap.put(ColumnConstants.STATE_NAME.getConstantVal(), stateList);
+			List<CityMaster> listOfActiveCityData = cityMasterService.getDataByColumnValue(columnValueMap, MethodConstants.GET_CITY_LIST_BY_STATE_NAME.getConstantVal());
+			if (CollectionUtils.isEmpty(listOfActiveCityData)) {
+				logger.error("Exception while fetching City Dynamic drop down With lang code and state is empty ");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+			}
+			Option option;
+			Options options = new Options();
+
+			List<Option> listOfOption = new ArrayList<>();
+			for (CityMaster cityMasterdropDownValues : listOfActiveCityData) {
+				option = new Option();
+				if (languageCode.equals(GeneralConstants.ENG_LANG.getConstantVal())) {
+					option.setKey(cityMasterdropDownValues.getCityName().toUpperCase());
+					option.setValue(cityMasterdropDownValues.getCityName().toUpperCase());
+				} else if (languageCode.equals(GeneralConstants.HIN_LANG.getConstantVal())) {
+					option.setKey(cityMasterdropDownValues.getCityNameBil());
+					option.setValue(cityMasterdropDownValues.getCityNameBil());
+				}
+				listOfOption.add(option);
+			}
+
+			options.setOptionList(listOfOption);
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			response.setResponse(options);
+			return response;
+
+		} catch (NullArgumentException nae) {
+			logger.error("Exception while fetching Dynamic drop down With lang code dropdownType");
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+
+		}
+	}
+}

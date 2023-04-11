@@ -1,0 +1,17 @@
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import com.iris.model.ReturnDistrictMapping;
+
+public interface ReturnDistrictMappingRepo extends JpaRepository<ReturnDistrictMapping, Long> {
+
+	@Query("FROM ReturnDistrictMapping rdm where rdm.returnCode=:returnCode order by rdm.districtIdFk.stateIdFk.stateName")
+	List<ReturnDistrictMapping> getStateDistictUponReturnCode(@Param("returnCode") String returnCode);
+
+	@Query("FROM ReturnDistrictMapping rdm where rdm.districtIdFk.stateIdFk.stateCode=:stateCode order by rdm.districtIdFk.districtNameBil")
+	List<ReturnDistrictMapping> getDistictUponStateAndReturnCode(@Param("stateCode") String stateCode);
+}

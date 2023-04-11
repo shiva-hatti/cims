@@ -1,0 +1,37 @@
+/**
+ * 
+ */
+package com.iris.sdmx.codelist.repo;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+
+import com.iris.sdmx.codelist.entity.CodeListMaster;
+import com.iris.sdmx.codelist.entity.CodeListMasterMod;
+
+/**
+ * @author sajadhav
+ *
+ */
+public interface CodeListMasterModRepo extends JpaRepository<CodeListMasterMod, Long> {
+
+	CodeListMasterMod findByClCodeAndClVersionAndAdminStatusId(String clCode, String clVersion, int adminStatus);
+
+	List<CodeListMasterMod> findByClCodeInAndAdminStatusId(List<String> clCode, int adminStatus);
+
+	List<CodeListMasterMod> findByAdminStatusId(int adminStatusId);
+
+	CodeListMasterMod findByClMasterModId(Long clMasterModId);
+
+	@Modifying(clearAutomatically = true)
+	@Query("update CodeListMasterMod c set c.adminStatusId =:adminStatusId, c.comments =:comments where c.clMasterModId =:clMasterModId")
+	int approveRejectRequest(int adminStatusId, String comments, Long clMasterModId);
+
+	@Modifying(clearAutomatically = true)
+	@Query("update CodeListMasterMod c set c.codeListMaster.clId =:clIdFk where c.clMasterModId =:clMasterModId")
+	void updateClIdFk(Long clMasterModId, Long clIdFk);
+
+}

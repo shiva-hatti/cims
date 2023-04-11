@@ -1,0 +1,535 @@
+/**
+ * 
+ */
+package com.iris.sdmx.fusion.controller;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.ServiceResponse;
+import com.iris.exception.ApplicationException;
+import com.iris.sdmx.agency.master.entity.AgencyMaster;
+import com.iris.sdmx.agency.master.repo.SdmxAgencyMasterRepo;
+import com.iris.sdmx.codelist.bean.CodeListMasterBean;
+import com.iris.sdmx.dimesnsion.bean.DimensionMasterBean;
+import com.iris.sdmx.dimesnsion.entity.DimensionMaster;
+import com.iris.sdmx.dimesnsion.entity.Regex;
+import com.iris.sdmx.dimesnsion.repo.RegexRepo;
+import com.iris.sdmx.dimesnsion.service.DimensionService;
+import com.iris.sdmx.ebrvalidation.bean.ValidateEbrDocInputRequest;
+import com.iris.sdmx.elementdimensionmapping.bean.ElementDimensionBean;
+import com.iris.sdmx.fusion.bean.Attribute;
+import com.iris.sdmx.fusion.bean.AttributeWrapper;
+import com.iris.sdmx.fusion.bean.CodeListFusion;
+import com.iris.sdmx.fusion.bean.CodeListFusionWrapper;
+import com.iris.sdmx.fusion.bean.ConceptScheme;
+import com.iris.sdmx.fusion.bean.ConceptSchemeWrapper;
+import com.iris.sdmx.fusion.bean.DataStructure;
+import com.iris.sdmx.fusion.bean.DataStructureWrapper;
+import com.iris.sdmx.fusion.bean.Dimension;
+import com.iris.sdmx.fusion.bean.DimensionWrapper;
+import com.iris.sdmx.fusion.bean.FusionDecription;
+import com.iris.sdmx.fusion.bean.PrimaryMeasure;
+import com.iris.sdmx.fusion.bean.Representation;
+import com.iris.sdmx.fusion.bean.TextFormat;
+import com.iris.sdmx.fusion.entity.FusionProperties;
+import com.iris.sdmx.fusion.service.FusionApiService;
+import com.iris.sdmx.fusion.util.FusionPropertiesConstant;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.util.constant.MethodConstants;
+
+/**
+ * @author sajadhav
+ *
+ */
+@RestController
+@RequestMapping(value = "/service/fusionApi")
+public class FusionApiController {
+
+	private static final Logger LOGGER = LogManager.getLogger(FusionApiController.class);
+
+	@Autowired
+	private GenericService<FusionProperties, Long> fusionPropertiesService;
+
+	@Autowired
+	private FusionApiService fusionApiService;
+
+	@Autowired
+	private DimensionService dimensionService;
+
+	@Autowired
+	private RegexRepo regExRepo;
+
+	@Autowired
+	private SdmxAgencyMasterRepo sdmxAgencyMasterRepo;
+
+	@GetMapping(value = "/getFusionProperties")
+	public ServiceResponse getFusionProperties() {
+		try {
+			List<FusionProperties> fusionProperties = fusionPropertiesService.getAllDataFor(null, null);
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(fusionProperties).build();
+		} catch (Exception e) {
+			LOGGER.error("Exception", e);
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+		}
+	}
+
+	@GetMapping(value = "/generateDsd")
+	public ServiceResponse generateDsd() {
+		try {
+			boolean success = fusionApiService.generateDsdCallToFusion();
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(success).build();
+		} catch (Exception e) {
+			LOGGER.error("Exception", e);
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+		}
+	}
+
+	@PostMapping(value = "/submitCodeListData")
+	public ServiceResponse submitCodeListData(@RequestBody CodeListMasterBean codeListMasterBean) {
+		try {
+			boolean success = fusionApiService.submitCodeListData(codeListMasterBean);
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(success).build();
+		} catch (Exception e) {
+			LOGGER.error("Exception", e);
+		}
+		return new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+	}
+
+	@DeleteMapping(value = "/deleteCodeListData/{clCode}//{clVersion}//{userId}//{agencyMasterCode}")
+	public ServiceResponse deleteCodeListData(@PathVariable(name = "clCode") String clCode, @PathVariable(name = "clVersion") String clVersion, @PathVariable(name = "userId") Long userId, @PathVariable(name = "agencyMasterCode") String agencyMasterCode) {
+		try {
+			CodeListFusionWrapper codeListFusionWrapper = new CodeListFusionWrapper();
+			ServiceResponse serviceResponse = getFusionProperties();
+			if (serviceResponse.isStatus()) {
+				List<FusionProperties> fusionProperties = (List<FusionProperties>) serviceResponse.getResponse();
+
+				if (CollectionUtils.isEmpty(fusionProperties)) {
+					return new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+				}
+
+				List<AgencyMaster> agencyMaster = sdmxAgencyMasterRepo.findByIsActiveTrue();
+				Map<String, String> agencyMap = agencyMaster.stream().collect(Collectors.toMap(AgencyMaster::getAgencyMasterCode, AgencyMaster::getAgencyFusionName));
+
+				Map<String, String> fusionPropertiesMap = fusionProperties.stream().collect(Collectors.toMap(FusionProperties::getKey, FusionProperties::getValue));
+
+				CodeListFusion codeListFusion = new CodeListFusion();
+				codeListFusion.setId(clCode);
+				codeListFusion.setAgencyId(agencyMap.get(agencyMasterCode));
+				codeListFusion.setVersion(clVersion);
+				codeListFusionWrapper.setCodelist(Arrays.asList(codeListFusion));
+				boolean success = fusionApiService.submitDataToFusion(codeListFusionWrapper, GeneralConstants.ACTIONID_DELETION.getConstantIntVal(), userId);
+				if (success) {
+					return new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+				}
+			}
+
+		} catch (Exception e) {
+			LOGGER.error("Exception", e);
+		}
+		return new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+	}
+
+	@DeleteMapping(value = "/deleteElementDimensionData/{dsdCode}/{version}/{agencyCode}/{userId}")
+	public ServiceResponse deleteElementDimensionData(@PathVariable(name = "dsdCode") String dsdCode, @PathVariable(name = "version") String version, @PathVariable(name = "userId") Long userId, @PathVariable(name = "agencyCode") String agencyCode) {
+		try {
+			ServiceResponse serviceResponse = getFusionProperties();
+			if (serviceResponse.isStatus()) {
+				List<FusionProperties> fusionProperties = (List<FusionProperties>) serviceResponse.getResponse();
+
+				if (CollectionUtils.isEmpty(fusionProperties)) {
+					return new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+				}
+
+				Map<String, String> fusionPropertiesMap = fusionProperties.stream().collect(Collectors.toMap(FusionProperties::getKey, FusionProperties::getValue));
+
+				List<AgencyMaster> agencyMaster = sdmxAgencyMasterRepo.findByIsActiveTrue();
+				Map<String, String> agencyMap = agencyMaster.stream().collect(Collectors.toMap(AgencyMaster::getAgencyMasterCode, AgencyMaster::getAgencyFusionName));
+
+				DataStructureWrapper dataStructureWrapper = new DataStructureWrapper();
+				DataStructure dataStructure = new DataStructure();
+				dataStructure.setId(dsdCode);
+				dataStructure.setAgencyId(agencyMap.get(agencyCode));
+				dataStructure.setVersion(version);
+
+				dataStructureWrapper.setDataStructure((Arrays.asList(dataStructure)));
+				boolean success = fusionApiService.submitDataToFusion(dataStructureWrapper, GeneralConstants.ACTIONID_DELETION.getConstantIntVal(), userId);
+				if (success) {
+					return new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+				}
+			}
+
+		} catch (Exception e) {
+			LOGGER.error("Exception", e);
+		}
+		return new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+	}
+
+	@PostMapping(value = "/submitDimensionData/{userId}")
+	public ServiceResponse submitDimensionData(@PathVariable(name = "userId") Long userId) {
+		try {
+			ServiceResponse serviceResponse = getFusionProperties();
+			if (serviceResponse.isStatus()) {
+				List<FusionProperties> fusionProperties = (List<FusionProperties>) serviceResponse.getResponse();
+
+				if (CollectionUtils.isEmpty(fusionProperties)) {
+					return new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+				}
+				Map<String, String> fusionPropertiesMap = fusionProperties.stream().collect(Collectors.toMap(FusionProperties::getKey, FusionProperties::getValue));
+
+				Map<String, Object> columnValueMap = new HashMap<>();
+				columnValueMap.put(ColumnConstants.IS_ACTIVE.getConstantVal(), Boolean.TRUE);
+				List<DimensionMaster> dimensionMasterList = dimensionService.getDataByObject(columnValueMap, MethodConstants.GET_DIM_MASTER_RECORD_BY_IS_ACTIVE.getConstantVal());
+				ConceptSchemeWrapper conceptSchemeWrapper = createDimensionFusionObject(dimensionMasterList, fusionPropertiesMap, null, null);
+				boolean success = fusionApiService.submitDataToFusion(conceptSchemeWrapper, GeneralConstants.ACTIONID_ADDITION.getConstantIntVal(), userId);
+				if (success) {
+					return new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error("Exception", e);
+		}
+		return new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+	}
+
+	@PostMapping(value = "/submitDimensionData/{userId}/{conceptVersion}/{agencyCode}")
+	public ServiceResponse submitDimensionDataWithConceptVersion(@PathVariable(name = "userId") Long userId, @PathVariable(name = "conceptVersion") String conceptVersion, @PathVariable(name = "agencyCode") String agencyCode) {
+		try {
+			ServiceResponse serviceResponse = getFusionProperties();
+			if (serviceResponse.isStatus()) {
+				List<FusionProperties> fusionProperties = (List<FusionProperties>) serviceResponse.getResponse();
+
+				if (CollectionUtils.isEmpty(fusionProperties)) {
+					return new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+				}
+				Map<String, String> fusionPropertiesMap = fusionProperties.stream().collect(Collectors.toMap(FusionProperties::getKey, FusionProperties::getValue));
+
+				Map<String, Object> columnValueMap = new HashMap<>();
+				columnValueMap.put(ColumnConstants.IS_ACTIVE.getConstantVal(), Boolean.TRUE);
+				List<DimensionMaster> dimensionMasterList = dimensionService.getByIsActiveAndConceptVersion(Boolean.TRUE, conceptVersion, agencyCode);
+
+				List<AgencyMaster> agencyMaster = sdmxAgencyMasterRepo.findByIsActiveTrue();
+				Map<String, String> agencyMap = agencyMaster.stream().collect(Collectors.toMap(AgencyMaster::getAgencyMasterCode, AgencyMaster::getAgencyFusionName));
+
+				ConceptSchemeWrapper conceptSchemeWrapper = createDimensionFusionObject(dimensionMasterList, fusionPropertiesMap, conceptVersion, agencyMap.get(agencyCode));
+				boolean success = fusionApiService.submitDataToFusion(conceptSchemeWrapper, GeneralConstants.ACTIONID_ADDITION.getConstantIntVal(), userId);
+				if (success) {
+					return new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error("Exception", e);
+		}
+		return new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+	}
+
+	@PostMapping(value = "/getDimensionData/{userId}/{conceptVersion}/{agencyCode}")
+	public ServiceResponse getDimensionData(@PathVariable(name = "userId") Long userId, @PathVariable(name = "conceptVersion") String conceptVersion, @PathVariable(name = "agencyCode") String agencyCode) {
+		try {
+			ServiceResponse serviceResponse = getFusionProperties();
+			if (serviceResponse.isStatus()) {
+				List<FusionProperties> fusionProperties = (List<FusionProperties>) serviceResponse.getResponse();
+
+				if (CollectionUtils.isEmpty(fusionProperties)) {
+					return new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+				}
+				Map<String, String> fusionPropertiesMap = fusionProperties.stream().collect(Collectors.toMap(FusionProperties::getKey, FusionProperties::getValue));
+
+				Map<String, Object> columnValueMap = new HashMap<>();
+				columnValueMap.put(ColumnConstants.IS_ACTIVE.getConstantVal(), Boolean.TRUE);
+				List<DimensionMaster> dimensionMasterList = dimensionService.getDataByObject(columnValueMap, MethodConstants.GET_DIM_MASTER_RECORD_BY_IS_ACTIVE.getConstantVal());
+
+				List<AgencyMaster> agencyMaster = sdmxAgencyMasterRepo.findByIsActiveTrue();
+				Map<Long, String> agencyMap = agencyMaster.stream().collect(Collectors.toMap(AgencyMaster::getAgencyMasterId, AgencyMaster::getAgencyMasterCode));
+
+				ConceptSchemeWrapper conceptSchemeWrapper = createDimensionFusionObject(dimensionMasterList, fusionPropertiesMap, conceptVersion, agencyCode);
+				return new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(conceptSchemeWrapper).build();
+			}
+		} catch (Exception e) {
+			LOGGER.error("Exception", e);
+		}
+		return new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+	}
+
+	@PostMapping(value = "/submitElementDimensionData")
+	public ServiceResponse submitElementDimensionData(@RequestBody ElementDimensionBean elementDimensionBean) {
+		try {
+			ServiceResponse serviceResponse = getFusionProperties();
+			if (serviceResponse.isStatus()) {
+				List<FusionProperties> fusionProperties = (List<FusionProperties>) serviceResponse.getResponse();
+
+				List<AgencyMaster> agencyMaster = sdmxAgencyMasterRepo.findByIsActiveTrue();
+				Map<String, String> agencyMap = agencyMaster.stream().collect(Collectors.toMap(AgencyMaster::getAgencyMasterCode, AgencyMaster::getAgencyFusionName));
+
+				if (CollectionUtils.isEmpty(agencyMaster)) {
+					return new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+				}
+				Map<String, String> fusionPropertiesMap = fusionProperties.stream().collect(Collectors.toMap(FusionProperties::getKey, FusionProperties::getValue));
+
+				DataStructureWrapper dataStructureWrapper = createDataStructureFusionJson(elementDimensionBean, fusionPropertiesMap, agencyMap);
+				boolean success = fusionApiService.submitDataToFusion(dataStructureWrapper, GeneralConstants.ACTIONID_ADDITION.getConstantIntVal(), elementDimensionBean.getUserId());
+				if (success) {
+					return new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error("Exception", e);
+		}
+		return new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+	}
+
+	@GetMapping(value = "/getFusionConstraint/{userId}/{agencyId}")
+	public ServiceResponse getFusionConstraint(@RequestHeader(name = "jobProcessingId") String jobProcessingId, @PathVariable(name = "userId") Long userId, @PathVariable(name = "agencyId") String agencyId) {
+		try {
+			if (jobProcessingId != null && userId != null && agencyId != null) {
+				return fusionApiService.getFusionConstraint(jobProcessingId, agencyId, userId);
+			} else {
+				LOGGER.error("Input Request is invalid for job processing ID : " + jobProcessingId);
+				throw new ApplicationException(ErrorCode.EC0391.toString(), ObjectCache.getErrorCodeKey(ErrorCode.EC0391.toString()));
+			}
+		} catch (Exception e) {
+			LOGGER.error("Exception for application process ID : " + jobProcessingId, e);
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0013.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString())).build();
+		}
+	}
+
+	@PostMapping(value = "/validateEbrDocumentAgainstFusion")
+	public ServiceResponse validateEbrDocumentAgainstFusion(@RequestHeader(name = "jobProcessingId") String jobProcessingId, @RequestBody ValidateEbrDocInputRequest validateEbrDocInputRequest) {
+		try {
+			if (jobProcessingId != null && validateEbrDocInputRequest.getInstanceFilePath() != null) {
+				return fusionApiService.getFusionValidationResponse(validateEbrDocInputRequest, jobProcessingId);
+			} else {
+				LOGGER.error("Input Request is invalid for job processing ID : " + jobProcessingId);
+				throw new ApplicationException(ErrorCode.EC0391.toString(), ObjectCache.getErrorCodeKey(ErrorCode.EC0391.toString()));
+			}
+		} catch (Exception e) {
+			LOGGER.error("Exception for application process ID : " + jobProcessingId, e);
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0013.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString())).build();
+		}
+	}
+
+	private DataStructureWrapper createDataStructureFusionJson(ElementDimensionBean elementDimensionBean, Map<String, String> fusionPropertiesMap, Map<String, String> agencyMap) {
+
+		DataStructure dataStructure = new DataStructure();
+		dataStructure.setAgencyId(agencyMap.get(elementDimensionBean.getAgencyMasterCode()));
+		dataStructure.setId(elementDimensionBean.getDsdCode());
+		dataStructure.setUrn(fusionPropertiesMap.get(FusionPropertiesConstant.ELEMENT_URN.getConstant()) + agencyMap.get(elementDimensionBean.getAgencyMasterCode()) + ":" + elementDimensionBean.getDsdCode() + "(" + elementDimensionBean.getElementVersion() + ")");
+		dataStructure.setVersion(elementDimensionBean.getElementVersion());
+		dataStructure.setIsFinal(Boolean.parseBoolean(fusionPropertiesMap.get(FusionPropertiesConstant.IS_FINAL.getConstant())));
+
+		List<FusionDecription> names = new ArrayList<>();
+		FusionDecription fusionDecription = new FusionDecription();
+		fusionDecription.setLocale(fusionPropertiesMap.get(FusionPropertiesConstant.LOCALE.getConstant()));
+		fusionDecription.setValue(elementDimensionBean.getElementLabel());
+		names.add(fusionDecription);
+		dataStructure.setNames(names);
+
+		List<FusionDecription> descriptions = new ArrayList<>();
+		fusionDecription = new FusionDecription();
+		fusionDecription.setLocale(fusionPropertiesMap.get(FusionPropertiesConstant.LOCALE.getConstant()));
+		fusionDecription.setValue(elementDimensionBean.getElementDesc());
+		descriptions.add(fusionDecription);
+		dataStructure.setDescriptions(descriptions);
+
+		PrimaryMeasure primaryMeasure = new PrimaryMeasure();
+		primaryMeasure.setId(fusionPropertiesMap.get(FusionPropertiesConstant.OBS_ID.getConstant()));
+		primaryMeasure.setUrn(fusionPropertiesMap.get(FusionPropertiesConstant.OBS_URN.getConstant()) + agencyMap.get(elementDimensionBean.getAgencyMasterCode()) + ":" + elementDimensionBean.getDsdCode() + "(" + elementDimensionBean.getElementVersion() + ")." + fusionPropertiesMap.get(FusionPropertiesConstant.OBS_ID.getConstant()) + "");
+		//		primaryMeasure.setConcept("urn:sdmx:org.sdmx.infomodel.conceptscheme.Concept=SDMX:CROSS_DOMAIN_CONCEPTS" + "(" + elementDimensionBean.getElementVersion() + ")."+fusionPropertiesMap.get(FusionPropertiesConstant.OBS_ID.getConstant())+"");
+		primaryMeasure.setConcept(fusionPropertiesMap.get(FusionPropertiesConstant.OBS_CONCEPT.getConstant()) + "(" + fusionPropertiesMap.get(FusionPropertiesConstant.SCM_VERSION.getConstant()) + ")." + fusionPropertiesMap.get(FusionPropertiesConstant.OBS_ID.getConstant()) + "");
+		dataStructure.setPrimaryMeasure(primaryMeasure);
+
+		List<Dimension> dimensionList = new ArrayList<>();
+		List<Attribute> attributeList = new ArrayList<>();
+		for (DimensionMasterBean dimensionMasterBean : elementDimensionBean.getDimensionmasterBeans()) {
+			if (dimensionMasterBean.getDimensionCode().equalsIgnoreCase("OBS_VALUE")) {
+				continue;
+			}
+			if (dimensionMasterBean.getDimensionCode().equalsIgnoreCase("TIME_PERIOD")) {
+				Dimension dimension = new Dimension();
+				dimension.setId(dimensionMasterBean.getDimensionCode());
+				dimension.setUrn(fusionPropertiesMap.get(FusionPropertiesConstant.DATASTRUCT_DIM_URN.getConstant()) + agencyMap.get(elementDimensionBean.getAgencyMasterCode()) + ":" + elementDimensionBean.getDsdCode() + "(" + elementDimensionBean.getElementVersion() + ")." + dimensionMasterBean.getDimensionCode());
+
+				Representation representation = new Representation();
+				TextFormat textFormat = new TextFormat();
+				textFormat.setTextType(fusionPropertiesMap.get(FusionPropertiesConstant.TIME_PERIOD_TEXT_TYPE.getConstant()));
+
+				representation.setTextFormat(textFormat);
+				dimension.setRepresentation(representation);
+
+				dimension.setConcept(fusionPropertiesMap.get(FusionPropertiesConstant.OBS_CONCEPT.getConstant()) + "(" + fusionPropertiesMap.get(FusionPropertiesConstant.SCM_VERSION.getConstant()) + ")." + dimensionMasterBean.getDimensionCode() + "");
+				dimension.setIsTimeDimension(Boolean.TRUE);
+				dimensionList.add(dimension);
+			} else {
+				if (dimensionMasterBean.getAttachmentBean() != null && !StringUtils.isEmpty(dimensionMasterBean.getAttachmentBean().getAttachmentCode())) {
+					Attribute attribute = new Attribute();
+					attribute.setId(dimensionMasterBean.getDimensionCode());
+					attribute.setUrn(fusionPropertiesMap.get(FusionPropertiesConstant.ATTRIBUTE_URN.getConstant()) + agencyMap.get(elementDimensionBean.getAgencyMasterCode()) + ":" + elementDimensionBean.getDsdCode() + "(" + elementDimensionBean.getElementVersion() + ")." + dimensionMasterBean.getDimensionCode());
+					attribute.setMandatory(Boolean.parseBoolean(fusionPropertiesMap.get(FusionPropertiesConstant.ATTRIBUTE_MANDATORY.getConstant())));
+					attribute.setAttachmentLevel(dimensionMasterBean.getAttachmentBean().getAttachmentCode());
+					//attribute.setConcept(fusionPropertiesMap.get(FusionPropertiesConstant.ATTRIBUTE_CONCEPT.getConstant())  + fusionPropertiesMap.get(FusionPropertiesConstant.AGENCY_ID.getConstant()) + ":" + fusionPropertiesMap.get(FusionPropertiesConstant.SCM_ID.getConstant()) +"(1.0)." + dimensionMasterBean.getDimensionCode());
+					attribute.setConcept(fusionPropertiesMap.get(FusionPropertiesConstant.ATTRIBUTE_CONCEPT.getConstant()) + agencyMap.get(elementDimensionBean.getAgencyMasterCode()) + ":" + fusionPropertiesMap.get(FusionPropertiesConstant.SCM_ID.getConstant()) + "(" + dimensionMasterBean.getConceptVersion() + ")." + dimensionMasterBean.getDimensionCode());
+
+					if (dimensionMasterBean.getCodeListMasterBean() != null) {
+						Representation representation = new Representation();
+						representation.setRepresentation(fusionPropertiesMap.get(FusionPropertiesConstant.ATTACH_REPRES.getConstant()) + agencyMap.get(elementDimensionBean.getAgencyMasterCode()) + ":" + dimensionMasterBean.getCodeListMasterBean().getClCode() + "(" + dimensionMasterBean.getCodeListMasterBean().getClVersion() + ")");
+						attribute.setRepresentation(representation);
+					}
+					attributeList.add(attribute);
+				} else {
+					Dimension dimension = new Dimension();
+					dimension.setId(dimensionMasterBean.getDimensionCode());
+					dimension.setUrn(fusionPropertiesMap.get(FusionPropertiesConstant.DATASTRUCT_DIM_URN.getConstant()) + agencyMap.get(elementDimensionBean.getAgencyMasterCode()) + ":" + elementDimensionBean.getDsdCode() + "(" + elementDimensionBean.getElementVersion() + ")." + dimensionMasterBean.getDimensionCode());
+					if (dimensionMasterBean.getCodeListMasterBean() != null) {
+						Representation representation = new Representation();
+						representation.setRepresentation(fusionPropertiesMap.get(FusionPropertiesConstant.ATTACH_REPRES.getConstant()) + agencyMap.get(elementDimensionBean.getAgencyMasterCode()) + ":" + dimensionMasterBean.getCodeListMasterBean().getClCode() + "(" + dimensionMasterBean.getCodeListMasterBean().getClVersion() + ")");
+						dimension.setRepresentation(representation);
+					}
+					//dimension.setConcept(fusionPropertiesMap.get(FusionPropertiesConstant.DIM_CONCEPT.getConstant())  + fusionPropertiesMap.get(FusionPropertiesConstant.AGENCY_ID.getConstant()) + ":" + fusionPropertiesMap.get(FusionPropertiesConstant.SCM_ID.getConstant()) + "(" + fusionPropertiesMap.get(FusionPropertiesConstant.SCM_VERSION.getConstant())+")." + dimensionMasterBean.getDimensionCode());
+					dimension.setConcept(fusionPropertiesMap.get(FusionPropertiesConstant.DIM_CONCEPT.getConstant()) + agencyMap.get(elementDimensionBean.getAgencyMasterCode()) + ":" + fusionPropertiesMap.get(FusionPropertiesConstant.SCM_ID.getConstant()) + "(" + dimensionMasterBean.getConceptVersion() + ")." + dimensionMasterBean.getDimensionCode());
+
+					dimensionList.add(dimension);
+				}
+
+			}
+		}
+
+		if (!CollectionUtils.isEmpty(dimensionList)) {
+			DimensionWrapper dimensionWrapper = new DimensionWrapper();
+			dimensionWrapper.setDimensions(dimensionList);
+			dataStructure.setDimensionList(dimensionWrapper);
+		}
+
+		if (!CollectionUtils.isEmpty(attributeList)) {
+			AttributeWrapper attributeWrapper = new AttributeWrapper();
+			attributeWrapper.setAttributes(attributeList);
+			dataStructure.setAttributeList(attributeWrapper);
+		}
+
+		DataStructureWrapper dataStructureWrapper = new DataStructureWrapper();
+		dataStructureWrapper.setDataStructure(Arrays.asList(dataStructure));
+		return dataStructureWrapper;
+	}
+
+	private ConceptSchemeWrapper createDimensionFusionObject(List<DimensionMaster> dimensionMasterList, Map<String, String> fusionPropertiesMap, String conceptVersion, String agencyCode) {
+
+		List<Regex> regExList = regExRepo.findAll();
+
+		Map<Integer, String> regExMap = new HashMap<>();
+
+		if (!CollectionUtils.isEmpty(regExList)) {
+			regExMap = regExList.stream().collect(Collectors.toMap(Regex::getRegexId, Regex::getRegex));
+		}
+
+		ConceptSchemeWrapper concepSchemeWrapper = new ConceptSchemeWrapper();
+
+		ConceptScheme conceptScheme = new ConceptScheme();
+
+		conceptScheme.setId(fusionPropertiesMap.get(FusionPropertiesConstant.SCM_ID.getConstant()));
+		//		conceptScheme.setUrn(fusionPropertiesMap.get(FusionPropertiesConstant.SCM_URN.getConstant())"urn:sdmx:org.sdmx.infomodel.conceptscheme.ConceptScheme=RBI_CIMS:RBI_CIMS_SCM(1.0)");
+		conceptScheme.setUrn(fusionPropertiesMap.get(FusionPropertiesConstant.SCM_URN.getConstant()) + agencyCode + ":" + fusionPropertiesMap.get(FusionPropertiesConstant.SCM_ID.getConstant()) + "(" + conceptVersion + ")");
+
+		List<FusionDecription> fusionDesc = new ArrayList<>();
+		FusionDecription fusionDecription = new FusionDecription();
+		fusionDecription.setLocale(fusionPropertiesMap.get(FusionPropertiesConstant.LOCALE.getConstant()));
+		fusionDecription.setValue(fusionPropertiesMap.get(FusionPropertiesConstant.SCM_VALUE.getConstant()));
+		fusionDesc.add(fusionDecription);
+
+		conceptScheme.setNames(fusionDesc);
+
+		fusionDesc = new ArrayList<>();
+		fusionDecription = new FusionDecription();
+		fusionDecription.setLocale(fusionPropertiesMap.get(FusionPropertiesConstant.LOCALE.getConstant()));
+		fusionDecription.setValue(fusionPropertiesMap.get(FusionPropertiesConstant.SCM_DESC.getConstant()));
+		fusionDesc.add(fusionDecription);
+
+		conceptScheme.setDescriptions(fusionDesc);
+
+		conceptScheme.setAgencyId(agencyCode);
+		//conceptScheme.setVersion(fusionPropertiesMap.get(FusionPropertiesConstant.VERSION.getConstant()));
+		conceptScheme.setVersion(conceptVersion);
+		conceptScheme.setIsFinal(Boolean.parseBoolean(fusionPropertiesMap.get(FusionPropertiesConstant.IS_FINAL.getConstant())));
+		conceptScheme.setIsPartial(Boolean.parseBoolean(fusionPropertiesMap.get(FusionPropertiesConstant.IS_PARTIAL.getConstant())));
+		conceptScheme.setValidityType(fusionPropertiesMap.get(FusionPropertiesConstant.VALIDITY_TYPE.getConstant()));
+
+		List<ConceptScheme> conceptSchemeList = new ArrayList<>();
+
+		for (DimensionMaster dimensionMaster : dimensionMasterList) {
+			if (dimensionMaster.getDimensionCode().equalsIgnoreCase(fusionPropertiesMap.get(FusionPropertiesConstant.TIME_PERIOD.getConstant())) || dimensionMaster.getDimensionCode().equalsIgnoreCase(fusionPropertiesMap.get(FusionPropertiesConstant.OBS_VALUE.getConstant()))) {
+				continue;
+			}
+			ConceptScheme innerConceptScheme = new ConceptScheme();
+			innerConceptScheme.setId(dimensionMaster.getDimensionCode());
+			//			innerConceptScheme.setUrn("urn:sdmx:org.sdmx.infomodel.conceptscheme.Concept=RBI_CIMS:RBI_CIMS_SCM(1.0)"+"." + dimensionMaster.getDimensionCode());
+			innerConceptScheme.setUrn(fusionPropertiesMap.get(FusionPropertiesConstant.DIMENSION_URN.getConstant()) + agencyCode + ":" + fusionPropertiesMap.get(FusionPropertiesConstant.SCM_ID.getConstant()) + "(" + conceptVersion + ")" + "." + dimensionMaster.getDimensionCode());
+
+			fusionDesc = new ArrayList<>();
+			fusionDecription = new FusionDecription();
+			fusionDecription.setLocale(fusionPropertiesMap.get(FusionPropertiesConstant.LOCALE.getConstant()));
+			fusionDecription.setValue(dimensionMaster.getDimensionName());
+			fusionDesc.add(fusionDecription);
+
+			innerConceptScheme.setNames(fusionDesc);
+
+			fusionDesc = new ArrayList<>();
+			fusionDecription = new FusionDecription();
+			fusionDecription.setLocale(fusionPropertiesMap.get(FusionPropertiesConstant.LOCALE.getConstant()));
+			fusionDecription.setValue(dimensionMaster.getDimDesc());
+			fusionDesc.add(fusionDecription);
+
+			innerConceptScheme.setDescriptions(fusionDesc);
+
+			Representation representation = new Representation();
+
+			if (!ObjectUtils.isEmpty(dimensionMaster.getCodeListMaster())) {
+				//				representation.setRepresentation("urn:sdmx:org.sdmx.infomodel.codelist.Codelist=RBI_CIMS:"+dimensionMaster.getCodeListMaster().getClCode() + "(" + dimensionMaster.getCodeListMaster().getClVersion() + ")");
+				representation.setRepresentation(fusionPropertiesMap.get(FusionPropertiesConstant.DIMENSION_REPRESENTATION.getConstant()) + agencyCode + ":" + dimensionMaster.getCodeListMaster().getClCode() + "(" + dimensionMaster.getCodeListMaster().getClVersion() + ")");
+			} else {
+				TextFormat textFormat = new TextFormat();
+				textFormat.setTextType("String");
+				if (dimensionMaster.getRegex() != null && dimensionMaster.getRegex().getRegexId() != null) {
+					textFormat.setPattern(regExMap.get(dimensionMaster.getRegex().getRegexId()));
+				}
+				representation.setTextFormat(textFormat);
+			}
+
+			if (!ObjectUtils.isEmpty(dimensionMaster.getParentDimensionMaster())) {
+				innerConceptScheme.setParentConcept(dimensionMaster.getParentDimensionMaster().getDimensionCode());
+			}
+
+			innerConceptScheme.setRepresentation(representation);
+			conceptSchemeList.add(innerConceptScheme);
+		}
+
+		conceptScheme.setItems(conceptSchemeList);
+
+		concepSchemeWrapper.setConceptScheme(Arrays.asList(conceptScheme));
+
+		return concepSchemeWrapper;
+	}
+
+}

@@ -1,0 +1,472 @@
+package com.iris.service.impl;
+
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dateutility.enums.DateConstants;
+import com.iris.dateutility.util.DateManip;
+import com.iris.dto.FileDetailsBeanLimitedField;
+import com.iris.exception.ApplicationException;
+import com.iris.exception.ServiceException;
+import com.iris.model.EntityBean;
+import com.iris.model.FileDetails;
+import com.iris.model.FilingStatus;
+import com.iris.model.UploadChannel;
+import com.iris.model.UserMaster;
+import com.iris.model.UserRole;
+import com.iris.repository.EntityRepo;
+import com.iris.repository.FileDetailsRepo;
+import com.iris.sdmx.status.service.JsonToCsvProcessor;
+import com.iris.sdmx.upload.bean.DataSet;
+import com.iris.sdmx.upload.bean.EbrFileDetailsBean;
+import com.iris.sdmx.upload.bean.RepDateReturnDataPoint;
+import com.iris.sdmx.upload.bean.SDMXDocument;
+import com.iris.sdmx.upload.entity.ElementAudit;
+import com.iris.sdmx.upload.helper.EbrFileAuditHelper;
+import com.iris.sdmx.util.SDMXMLDocumentReaderUtilityService;
+import com.iris.service.GenericService;
+import com.iris.util.FileCheckSumUtility;
+import com.iris.util.FileManager;
+import com.iris.util.JsonUtility;
+import com.iris.util.ResourceUtil;
+import com.iris.util.XmlValidate;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.MethodConstants;
+
+@Service
+public class FileDetailsService implements GenericService<FileDetails, Long> {
+
+	static final Logger LOGGER = LogManager.getLogger(FileDetailsService.class);
+
+	@Autowired
+	FileDetailsRepo fileDetailsRepo;
+
+	@Autowired
+	private EntityRepo entityRepo;
+
+	@Autowired
+	private SDMXMLDocumentReaderUtilityService sDMXMLDocumentReaderUtilityService;
+	
+	@Override
+	public FileDetails add(FileDetails entity) throws ServiceException {
+		try{
+			return fileDetailsRepo.save(entity);
+		}catch(Exception e) {
+			throw new ServiceException("Exception : ", e);
+		}
+	}
+
+	@Override
+	public boolean update(FileDetails entity) throws ServiceException {
+		try{
+			 fileDetailsRepo.save(entity);
+			 return true;
+		}catch(Exception e) {
+			throw new ServiceException("Exception : ", e);
+		}
+	}
+
+	@Override
+	public List<FileDetails> getDataByIds(Long[] ids) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	@org.springframework.transaction.annotation.Transactional(rollbackFor = ServiceException.class)
+	public List<FileDetails> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+		try {
+			List<String> statusList  = null;
+			List<String> uploadChannelList  = null;
+			if(columnValueMap!= null) {
+				for (String columnName : columnValueMap.keySet()) {
+					if(columnValueMap.get(columnName)!= null && columnValueMap.get(columnName).size() > 0) {
+						if(columnName.equalsIgnoreCase(ColumnConstants.STATUS.getConstantVal())) {
+							statusList = columnValueMap.get(columnName);
+						}else if(columnName.equalsIgnoreCase(ColumnConstants.UPLOAD_CHANNEL.getConstantVal())) {
+							uploadChannelList = columnValueMap.get(columnName);
+						}
+					}
+				}
+			}
+			if(methodName.equalsIgnoreCase(MethodConstants.GET_ACTIVE_FILE_DETAILS_DATA_BY_STATUS.getConstantVal())) {
+				return fileDetailsRepo.getAciveFileDetailsDataByStatus(statusList, uploadChannelList);
+			}else if(methodName.equalsIgnoreCase(MethodConstants.GET_UNPROCESSED_DATA_AND_UPDATE_PROCESSING_FLAG.getConstantVal())) {
+				List<FileDetails> list =  fileDetailsRepo.getUnProcessedData();
+				for (FileDetails fileDetailsBean : list) {
+					fileDetailsBean.setProcessingFlag(true);
+					fileDetailsRepo.save(fileDetailsBean);
+				}
+				return list;
+			}
+			return null;
+		}catch(Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<FileDetails> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName)
+			throws ServiceException {
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<FileDetails> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<FileDetails> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public void deleteData(FileDetails bean) throws ServiceException {
+		
+	}
+
+	@Override
+	public FileDetails getDataById(Long id) throws ServiceException {
+		try {
+			return fileDetailsRepo.getDataById(id);
+		} catch (Exception e) {
+			throw new ServiceException("Exception : ", e);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<FileDetails> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		try {
+			Object status  = null;
+			Object uploadChannelList  = null;
+			Object returnCode  = null;
+			Object ifscCode  = null;
+			Object unMappedReturns  = null;
+			if(columnValueMap!= null) {
+				for (String columnName : columnValueMap.keySet()) {
+					if(columnValueMap.get(columnName)!= null) {
+						if(columnName.equalsIgnoreCase(ColumnConstants.STATUS.getConstantVal())) {
+							status = columnValueMap.get(columnName);
+						} else if(columnName.equalsIgnoreCase(ColumnConstants.UPLOAD_CHANNEL.getConstantVal())) {
+							uploadChannelList = columnValueMap.get(columnName);
+						} else if(columnName.equalsIgnoreCase(ColumnConstants.RETURN_CODE.getConstantVal())) {
+							returnCode = columnValueMap.get(columnName);
+						} else if(columnName.equalsIgnoreCase(ColumnConstants.IFSC_CODE.getConstantVal())) {
+							ifscCode = columnValueMap.get(columnName);
+						} else if(columnName.equalsIgnoreCase(ColumnConstants.UNMAPPED_RETURN.getConstantVal())) {
+							unMappedReturns = columnValueMap.get(columnName);
+						}
+					}
+				}
+			}
+			if(methodName.equalsIgnoreCase("getFileDetailsData")) {
+				List<Long> uploadChannelsList =  (List<Long>) uploadChannelList;
+				List<Integer> statusList =  (List<Integer>) status;
+				String startsDate = columnValueMap.get(ColumnConstants.STARTDATE.getConstantVal()).toString();
+				String endsDate = columnValueMap.get(ColumnConstants.ENDDATE.getConstantVal()).toString();
+				return fileDetailsRepo.getFileDetailsData(uploadChannelsList,statusList,startsDate,endsDate );
+			} else if(methodName.equalsIgnoreCase("getFileDetailsDataByEntityCode")) {
+				List<Long> uploadChannelsList =  (List<Long>) uploadChannelList;
+				List<Integer> statusList =  (List<Integer>) status;
+				List<String> ifscCodeList =  (List<String>) ifscCode;
+				if(ifscCodeList != null) {
+					ifscCodeList.replaceAll(String::toUpperCase);
+				}
+				String startsDate = columnValueMap.get(ColumnConstants.STARTDATE.getConstantVal()).toString();
+				String endsDate = columnValueMap.get(ColumnConstants.ENDDATE.getConstantVal()).toString();
+				if((boolean) unMappedReturns) {
+					return fileDetailsRepo.getFileDetailsDataWithEntityAndUnMappedReturn(uploadChannelsList,statusList,ifscCodeList,startsDate,endsDate );
+				} else {
+					return fileDetailsRepo.getFileDetailsDataByEntityCode(uploadChannelsList,statusList,ifscCodeList,startsDate,endsDate );
+				}
+			} else if(methodName.equalsIgnoreCase("getFileDetailsDataByEntityCodeAndReturnCode")) {
+				List<Long> uploadChannelsList =  (List<Long>) uploadChannelList;
+				List<Integer> statusList =  (List<Integer>) status;
+				List<String> returnCodeList =  (List<String>) returnCode;
+				if(returnCodeList != null) {
+					returnCodeList.replaceAll(String::toUpperCase);
+				}
+				List<String> ifscCodeList =  (List<String>) ifscCode;
+				if(ifscCodeList != null) {
+					ifscCodeList.replaceAll(String::toUpperCase);
+				}
+				String startsDate = columnValueMap.get(ColumnConstants.STARTDATE.getConstantVal()).toString();
+				String endsDate = columnValueMap.get(ColumnConstants.ENDDATE.getConstantVal()).toString();
+				if((boolean) unMappedReturns) {
+					return fileDetailsRepo.getFileDetailsDataWithUnMappedReturns(uploadChannelsList,statusList,returnCodeList,ifscCodeList,startsDate,endsDate );
+				} else {
+					return fileDetailsRepo.getFileDetailsDataByEntityCodeAndReturnCode(uploadChannelsList,statusList,returnCodeList,ifscCodeList,startsDate,endsDate );
+				}
+			}
+			return null;
+		}catch(Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+	
+
+	@Transactional(rollbackFor = Exception.class)
+	public void addXmlUploadData(EbrFileDetailsBean ebrFileAuditInputBean) throws Exception {
+			XmlValidate xmlValidate = new XmlValidate();
+
+			if (xmlValidate.isValidXmlDocument(ebrFileAuditInputBean.getFilePath())) {
+				if (xmlValidate.checkXMLDocumentType(ebrFileAuditInputBean.getFilePath()).equalsIgnoreCase(com.iris.util.constant.GeneralConstants.SDMX.getConstantVal())) {
+					Date date = new Date();
+					Set<String> dmIdSet = new HashSet<>();
+					Map<String, Map<String, List<String>>> dmIdMapForAllElement = new HashMap<>();
+
+					SDMXDocument sdmxDocument = sDMXMLDocumentReaderUtilityService.readSDMXDocument(ebrFileAuditInputBean.getFilePath());
+					
+					Set<String> errorSet = sDMXMLDocumentReaderUtilityService.validateSdmxDocumentAndGetDmIds(sdmxDocument, ebrFileAuditInputBean, dmIdSet, dmIdMapForAllElement);
+					
+					if(errorSet.size() > 0) {
+						throw new ApplicationException("E0001", ObjectCache.getErrorCodeKey(String.join(", ", errorSet)));
+					}
+					Map<String, List<RepDateReturnDataPoint>> elementAndDateWiseJson = sDMXMLDocumentReaderUtilityService.generateDateWiseJsonModified(sdmxDocument, dmIdSet, dmIdMapForAllElement);
+
+					UserMaster uploadedBy = new UserMaster();
+					uploadedBy.setUserId(ebrFileAuditInputBean.getUserIdFk());
+					
+					UserRole userRole = new UserRole();
+					userRole.setUserRoleId(ebrFileAuditInputBean.getRoleIdFk());
+
+					UploadChannel uploadChannel = new UploadChannel();
+					uploadChannel.setUploadChannelId(ebrFileAuditInputBean.getUploadChannelIdFk());
+					EntityBean entity = entityRepo.findByEntityCode(ebrFileAuditInputBean.getEntityCode());
+					ebrFileAuditInputBean.setEntityIdFk(entity.getEntityId());
+
+					List<DataSet> dataSetList = sdmxDocument.getDataSets();
+					Date currentDate = new Date();
+					
+					FileDetails fileDetails = new FileDetails();
+					fileDetails.setElementCount(dataSetList.size());
+					fileDetails.setIfscCode(entity.getIfscCode());
+					fileDetails.setUserMaster(uploadedBy);
+					fileDetails.setUserRole(userRole);
+					fileDetails.setUploadChannelIdFk(uploadChannel);
+					
+					FilingStatus filingStatus = new FilingStatus();
+					filingStatus.setFilingStatusId(1);
+					
+					fileDetails.setFilingStatus(filingStatus);
+					fileDetails.setFileName(getModifiedFileName(entity.getEntityId(), entity.getEntityCode(),
+							ebrFileAuditInputBean.getUserIdFk(), date) + "." + ebrFileAuditInputBean.getFileType());
+					fileDetails.setFileType(ebrFileAuditInputBean.getFileType());
+					fileDetails.setFileMimeType(ebrFileAuditInputBean.getFileMimeType());
+					fileDetails.setSize(new File(ebrFileAuditInputBean.getFilePath()).length());
+					fileDetails.setCreationDate(date);
+					fileDetails.setEmailId(ebrFileAuditInputBean.getUserEmailId());
+					fileDetails.setJsonFileName(getModifiedFileName(entity.getEntityId(), entity.getEntityCode(),
+							ebrFileAuditInputBean.getUserIdFk(), date) + "."
+							+ com.iris.util.constant.GeneralConstants.JSON.getConstantVal());
+					fileDetails.setFileCheckSum(FileCheckSumUtility.calculateFileChecksum(ebrFileAuditInputBean.getFilePath()));
+					fileDetails.setFileCopyingStartTime(currentDate);
+					fileDetails.setFileCopyingEndTime(currentDate);
+					fileDetails.setFileCreationTime(currentDate);
+					fileDetails.setIsActive(true);
+					fileDetails.setProcessingFlag(false);
+
+					List<ElementAudit> elementAuditList = new ArrayList<>();
+
+					String jsonString = JsonUtility.getGsonObject().toJson(sdmxDocument.getDataSets());
+					
+					// Need to be removed below two lines when processJsonToCsvConversion code will be removed 
+					pushSDMXFileToServer(ebrFileAuditInputBean, date);
+					createJsonFileToServer(jsonString, getModifiedFilePathOfSDMXDocument(entity.getEntityId(), entity.getEntityCode(), ebrFileAuditInputBean.getUserIdFk(), "json", date));
+					// Need to be removed below two lines when processJsonToCsvConversion code will be removed
+					
+					JsonToCsvProcessor jsonToCsvProcessor = new JsonToCsvProcessor();
+					Map<String, String> elementCodeAndCSVFileMap = jsonToCsvProcessor.processJsonToCsvConversion(jsonString, getDirectoryPathOfSDMXDocument(entity.getEntityId(), entity.getEntityCode(), ebrFileAuditInputBean.getUserIdFk(), date));
+					
+					for (DataSet dataSetObj : dataSetList) {
+						ElementAudit elementAudit = new ElementAudit();
+
+						elementAudit.setRowCount(dataSetObj.getData().size());
+						elementAudit.setElementCode(dataSetObj.getStructureRef().getCode());
+						elementAudit.setElementVersion(dataSetObj.getStructureRef().getVersion());
+						elementAudit.setConvertedFileName(null);
+						elementAudit.setIsRevised("0");
+						if (elementAndDateWiseJson != null
+								&& elementAndDateWiseJson.get(dataSetObj.getStructureRef().getCode()) != null) {
+							elementAudit.setEleReturnRef(JsonUtility.getGsonObject()
+									.toJson(elementAndDateWiseJson.get(dataSetObj.getStructureRef().getCode())));
+						}
+						elementAudit.setIsPushedToLnd("0");
+						elementAudit.setValResult(null);
+						elementAudit.setValStatus(0);
+						
+						FilingStatus elementFilingStatus = new FilingStatus();
+						elementFilingStatus.setFilingStatusId(1);
+						elementAudit.setStatus(elementFilingStatus);
+						
+						elementAudit.setConvertedFileName(elementCodeAndCSVFileMap.get(ebrFileAuditInputBean.getEntityCode() + "_" + dataSetObj.getStructureRef().getCode()));
+						elementAudit.setFileDetails(fileDetails);
+						elementAuditList.add(elementAudit);
+					}
+					fileDetails.setElementAudits(elementAuditList);
+
+					fileDetailsRepo.save(fileDetails);
+					
+					fileDetails.setApplicationProcessId(generatedAppliationProcessId(uploadedBy.getUserName(), entity.getIfscCode(), fileDetails.getId()));
+					fileDetailsRepo.save(fileDetails);
+				} else {
+					throw new ApplicationException(ErrorCode.E1546.toString(),
+							ObjectCache.getErrorCodeKey(ErrorCode.E1546.toString()));
+				}
+			} else {
+				throw new ApplicationException(ErrorCode.E0796.toString(),
+						ObjectCache.getErrorCodeKey(ErrorCode.E0796.toString()));
+			}
+	}
+	
+	private String generatedAppliationProcessId(String userName, String ifscCode, Long fileDetailsId){
+		String str = "";
+		if(userName!=null) {
+			str = str+ userName;
+		}else {
+			str = str+ "NA";
+		}
+		if(ifscCode!=null) {
+			str = str+ "-" +ifscCode;
+		}else {
+			str = str+ "NA";
+		}
+		if(fileDetailsId!=null) {
+			str = str+ "-" + fileDetailsId;
+		}else {
+			str = str+ "NA";
+		}
+		return str;
+	}
+	
+	private String getDirectoryPathOfSDMXDocument(Long entityId, String entityCode, Long userId, Date createdDate) {
+		String currentDate = DateManip.convertDateToString(createdDate, DateConstants.DD_MM_YYYY.getDateConstants());
+
+		String modifiedInstanceFilePath = ResourceUtil.getKeyValue("filepath.root")
+				+ ResourceUtil.getKeyValue("filepath.instanceEbr") + File.separator + entityCode.trim() + File.separator
+				+ currentDate;
+
+		String modifiedInstanceFileName = getModifiedFileName(entityId, entityCode, userId, createdDate);
+
+		return modifiedInstanceFilePath + File.separator + modifiedInstanceFileName;
+	}
+	
+	private String getModifiedFileName(Long entityId, String entityCode, Long userId, Date createdDate) {
+
+		String date = DateManip.convertDateToString(createdDate,
+				DateConstants.DD_MM_YYYY.getDateConstants() + " " + "HH:mm:ss:SSS");
+		date = date.replaceAll("[:]", "-");
+		date = date.replaceAll("[ ]", "_");
+
+		return entityId + "_" + entityCode.trim() + "_" + userId + "_" + date.trim();
+
+	}
+
+	public boolean pushSDMXFileToServer(EbrFileDetailsBean ebrFileAuditInputBean, Date createdDate)
+			throws ApplicationException {
+		String finalPath = getModifiedFilePathOfSDMXDocument(ebrFileAuditInputBean.getEntityIdFk(),
+				ebrFileAuditInputBean.getEntityCode().trim(), ebrFileAuditInputBean.getUserIdFk(),
+				ebrFileAuditInputBean.getFileType(), createdDate);
+		if (new File(ebrFileAuditInputBean.getFilePath()).isFile()) {
+			FileManager fileManageObj = new FileManager();
+			if (!fileManageObj.copyFile(new File(ebrFileAuditInputBean.getFilePath()), new File(finalPath))) {
+				throw new ApplicationException("E0001", "XML File Not Moved");
+			}
+		}
+		return true;
+	}
+	
+	private String getModifiedFilePathOfSDMXDocument(Long entityId, String entityCode, Long userId, String fileType,
+			Date createdDate) {
+		String currentDate = DateManip.convertDateToString(createdDate, DateConstants.DD_MM_YYYY.getDateConstants());
+
+		String modifiedInstanceFilePath = ResourceUtil.getKeyValue("filepath.root")
+				+ ResourceUtil.getKeyValue("filepath.instanceEbr") + File.separator + entityCode.trim() + File.separator
+				+ currentDate;
+
+		String modifiedInstanceFileName = getModifiedFileName(entityId, entityCode, userId, createdDate);
+
+		return modifiedInstanceFilePath + File.separator + modifiedInstanceFileName + File.separator
+				+ modifiedInstanceFileName + "." + fileType;
+	}
+	
+	private boolean createJsonFileToServer(String jsonString, String jsonFilePath) throws ApplicationException {
+
+		try {
+			File file = new File(jsonFilePath);
+			File parentDir = file.getParentFile();
+			if (!parentDir.exists()) {
+				parentDir.mkdirs();
+			}
+			Files.write(Paths.get(jsonFilePath), jsonString.getBytes());
+			return true;
+		} catch (Exception e) {
+			LOGGER.error("Exception occured while creating json file");
+			throw new ApplicationException("E0001", e.getMessage());
+		}
+	}
+	
+	/**
+	 * @param status
+	 * @return
+	 */
+	public List<FileDetailsBeanLimitedField> fetchSdmxAuditRecords(Integer statusId, String jobProcessingId) {
+		LOGGER.debug("Start fetchSdmxAuditRecords with job processing id - " + jobProcessingId);
+		List<FileDetailsBeanLimitedField> fileDetailsBeanLimitedFieldList = null;
+		// Filing Status
+		FilingStatus status = new FilingStatus(statusId);
+		List<FileDetails> fileDetailsList = fileDetailsRepo.fetchSdmxAuditRecords(status);
+
+		if (!CollectionUtils.isEmpty(fileDetailsList)) {
+			LOGGER.debug("fetchSdmxAuditRecords with job processing id - " + jobProcessingId
+					+ " ,EBR file audit list size - " + fileDetailsList.size());
+			fileDetailsBeanLimitedFieldList = new ArrayList<>();
+			for (FileDetails fileDetails : fileDetailsList) {
+				FileDetailsBeanLimitedField fileDetailsBeanLimitedField = new FileDetailsBeanLimitedField();
+				EbrFileAuditHelper.convertEbrFileAuditEntityToBean(fileDetails, fileDetailsBeanLimitedField);
+				fileDetailsBeanLimitedFieldList.add(fileDetailsBeanLimitedField);
+			}
+		} else {
+			LOGGER.debug("fetchSdmxAuditRecords empty with job processing id - " + jobProcessingId);
+		}
+		LOGGER.debug("End fetchSdmxAuditRecords with job processing id - " + jobProcessingId);
+		return fileDetailsBeanLimitedFieldList;
+	}
+	
+	/**
+	 * @param ebrFileAuditIds
+	 * @param statusId
+	 * @param jobProcessingId
+	 */
+	@Transactional(readOnly = false, rollbackFor = Exception.class)
+	public void updateStatusOfSdmxFileAuditRecords(List<Long> ebrFileAuditIds, Integer statusId,
+			String jobProcessingId) {
+		LOGGER.debug("Start updateStatusOfSdmxFileAuditRecords with job processing id - " + jobProcessingId);
+		FilingStatus status = new FilingStatus(statusId);
+		fileDetailsRepo.updateStatusOfSdmxFileAuditRecords(ebrFileAuditIds, status);
+		LOGGER.debug("End updateStatusOfSdmxFileAuditRecords with job processing id - " + jobProcessingId);
+	}
+}

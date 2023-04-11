@@ -1,0 +1,78 @@
+package com.iris.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.exception.ServiceException;
+import com.iris.model.UserRolePlatFormMap;
+import com.iris.repository.UserRolePortalMapRepo;
+import com.iris.service.GenericService;
+
+@Service
+public class PortalRoleService implements GenericService<UserRolePlatFormMap, Long> {
+
+	@Autowired
+	private UserRolePortalMapRepo repo;
+	
+	@Override
+	public UserRolePlatFormMap add(UserRolePlatFormMap entity) throws ServiceException {
+		return repo.save(entity);
+	}
+
+	@Override
+	public boolean update(UserRolePlatFormMap entity) throws ServiceException {
+		return false;
+	}
+
+	@Override
+	public List<UserRolePlatFormMap> getDataByIds(Long[] ids) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public UserRolePlatFormMap getDataById(Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<UserRolePlatFormMap> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<UserRolePlatFormMap> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName)
+			throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<UserRolePlatFormMap> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<UserRolePlatFormMap> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		return repo.findByIsActiveTrue();
+	}
+	
+	public List<UserRolePlatFormMap> UserRolePlatFormMapByUser(Long roleId){
+		return repo.findAllByUserRoleUserRoleIdAndIsActiveTrue(roleId);
+		
+	}
+
+	@Override
+	public List<UserRolePlatFormMap> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return repo.findAll();
+	}
+
+	@Override
+	public void deleteData(UserRolePlatFormMap bean) throws ServiceException {
+		repo.cancelRolePortalMap(bean.getUserRole().getUserRoleId());
+	}
+
+}

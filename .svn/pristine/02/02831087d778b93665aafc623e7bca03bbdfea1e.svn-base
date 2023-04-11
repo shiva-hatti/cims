@@ -1,0 +1,73 @@
+package com.iris.repository;
+
+import java.util.Date;
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.ReturnTemplate;
+
+public interface ReturnTemplateRepository extends JpaRepository<ReturnTemplate, Long> {
+
+	@Query("FROM ReturnTemplate returnTemplate WHERE returnTemplate.validFromDate <= date(:reportDate) AND returnTemplate.returnObj.returnId = :returnId and "
+			+ "returnTemplate.isActive = '1' and returnTypeIdFk.returnTypeId = 3 and returnTypeSectionId = 2 ORDER BY returnTemplate.validFromDate DESC")
+	List<ReturnTemplate> findByReturnIdAndValidFromDate(@Param("returnId") Long returnId,
+			@Param("reportDate") Date reportDate);
+
+	@Query("FROM ReturnTemplate returnTemplate WHERE returnTemplate.returnObj.returnId = :returnId AND returnTemplate.versionNumber =:versionNumber "
+			+ " ORDER BY returnTemplate.returnTemplateId DESC")
+	ReturnTemplate findByReturnIdAndVersionNumber(@Param("returnId") Long returnId,
+			@Param("versionNumber") String versionNumber);
+
+	@Query("FROM ReturnTemplate returnTemplate WHERE returnTemplate.returnObj.returnCode =:returnCode AND returnTemplate.returnTypeIdFk.returnTypeId =:returnType "
+			+ " AND returnTemplate.returnTypeSectionId =:retTypeSectId ORDER BY returnTemplate.returnTemplateId DESC")
+	List<ReturnTemplate> findByReturnIdAndReturnType(@Param("returnType") Long returnType,
+			@Param("returnCode") String returnCode, @Param("retTypeSectId") int retTypeSectionId);
+
+	@Query("FROM ReturnTemplate returnTemplate WHERE returnTemplate.returnObj.returnCode =:returnCode AND returnTemplate.returnTypeIdFk.returnTypeId =:returnType "
+			+ " AND returnTemplate.validFromDate =:fromDate AND returnTemplate.returnTypeSectionId =:retTypeSectId ORDER BY returnTemplate.returnTemplateId DESC")
+	List<ReturnTemplate> findFromDateByReturnCodeAndReturnType(@Param("returnType") Long returnType,
+			@Param("returnCode") String returnCode, @Param("retTypeSectId") int retTypeSectionId,
+			@Param("fromDate") Date fromDate);
+
+	@Query("From ReturnTemplate returnTemplate WHERE returnTemplate.returnObj.returnCode =:returnCode "
+			+ "AND returnTemplate.returnTypeIdFk.returnTypeId IN(:returnType) ORDER BY returnTemplate.versionNumber")
+	List<ReturnTemplate> findAllVersionUponReturnCodeAndReturnType(@Param("returnCode") String returnCode,
+			@Param("returnType") List<Long> returnTypeList);
+
+	@Query("FROM ReturnTemplate returnTemplate WHERE returnTemplate.returnObj.returnCode = :returnCode AND returnTemplate.versionNumber =:versionNumber AND "
+			+ "returnTemplate.returnTypeIdFk.returnTypeId =:returnType ORDER BY returnTemplate.returnTemplateId DESC")
+	ReturnTemplate findByReturnCodeRetTypeAndVersionNumber(@Param("returnCode") String returnCode,
+			@Param("versionNumber") String versionNumber, @Param("returnType") Long returnType);
+
+	@Query("FROM ReturnTemplate returnTemplate WHERE returnTemplate.returnObj.returnCode = :returnCode AND returnTemplate.versionNumber =:versionNumber AND "
+			+ "returnTemplate.returnTypeSectionId = 1 AND returnTemplate.returnTypeIdFk.returnTypeId =:returnType ORDER BY returnTemplate.returnTemplateId DESC")
+	ReturnTemplate findByReturnCodeRetTypeAndVersionNumberForCSV(@Param("returnCode") String returnCode,
+			@Param("versionNumber") String versionNumber, @Param("returnType") Long returnType);
+
+	@Query("FROM ReturnTemplate returnTemplate WHERE returnTemplate.returnObj.returnCode = :returnCode AND returnTemplate.versionNumber =:versionNumber AND "
+			+ "returnTemplate.returnTypeSectionId = 2 AND returnTemplate.returnTypeIdFk.returnTypeId =:returnType ORDER BY returnTemplate.returnTemplateId DESC")
+	ReturnTemplate findByReturnCodeRetTypeAndVersionNumberForWebForm(@Param("returnCode") String returnCode,
+			@Param("versionNumber") String versionNumber, @Param("returnType") Long returnType);
+
+	@Query("FROM ReturnTemplate tax WHERE tax.returnObj.returnCode In(:returnCode) AND tax.isActive = 1 order by tax.returnObj.returnCode, "
+			+ "tax.returnTypeIdFk.returnTypeDesc, tax.versionNumber")
+	List<ReturnTemplate> findAllRetTemplateData(@Param("returnCode") List<String> returnCodeList);
+
+	@Query("FROM ReturnTemplate returnTemplate WHERE returnTemplate.returnTypeIdFk.returnTypeId =:returnType "
+			+ " AND returnTemplate.returnTypeSectionId =:retTypeSectId AND returnTemplate.returnObj.returnId IN(:returnId) ORDER BY returnTemplate.returnObj.returnName DESC")
+	List<ReturnTemplate> findByReturnTypeAndSectionId(@Param("returnType") Long returnType,
+			@Param("retTypeSectId") int retTypeSectionId, List<Long> returnId);
+
+	@Query("FROM ReturnTemplate where returnObj.returnId =:id")
+	ReturnTemplate getDataById(@Param("id") Long id);
+	
+	@Query("FROM ReturnTemplate where returnTemplateId=:returnTemplateId")
+	ReturnTemplate fetchEntityByReturnTemplateId(@Param("returnTemplateId") Long returnTemplateId);
+	
+	@Query("SELECT COUNT(u) FROM ReturnTemplate u WHERE u.returnTemplateId=:returnTemplateId")
+	int isReturnTemplateExist(@Param("returnTemplateId") Long returnTemplateId);
+
+}

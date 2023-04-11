@@ -1,0 +1,1362 @@
+package com.iris.dynamicDropDown.controller;
+
+import java.lang.reflect.Type;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.Types;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.sql.DataSource;
+
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.NullArgumentException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.json.simple.parser.JSONParser;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.iris.caching.ObjectCache;
+import com.iris.controller.ConceptTypedDomain;
+import com.iris.dateutility.util.DateManip;
+import com.iris.dto.ApiDetails;
+import com.iris.dto.Option;
+import com.iris.dto.Options;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.dynamicDropDown.model.DropDownType;
+import com.iris.dynamicDropDown.model.DropDownTypeDto;
+import com.iris.dynamicDropDown.model.DropDownValueDto;
+import com.iris.dynamicDropDown.model.DropDownValues;
+import com.iris.dynamicDropDown.model.DynamicDropDownDto;
+import com.iris.dynamicDropDown.repo.ConceptTypeDomainRepo;
+import com.iris.dynamicDropDown.repo.DynamicDropDownRepo;
+import com.iris.dynamicDropDown.repo.DynamicDropDownTypeRepo;
+import com.iris.model.CountryMaster;
+import com.iris.model.Currency;
+import com.iris.model.CurrencyLabel;
+import com.iris.model.EntityBean;
+import com.iris.model.Return;
+import com.iris.repository.EntityRepo;
+import com.iris.repository.ReturnRepo;
+import com.iris.service.impl.CountryMasterService;
+import com.iris.service.impl.CurrencyMasterService;
+import com.iris.util.UtilMaster;
+import com.iris.util.Validations;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.GeneralConstants;
+
+
+/**
+ * @author BHAVANA
+ *
+ */
+@RestController
+@RequestMapping("/service")
+public class DynaDropDownController {
+	private static final Logger Logger = LogManager.getLogger(DynaDropDownController.class);
+	@Autowired
+	private DynamicDropDownRepo dynamicDropDownRepo;
+	@Autowired
+	private ConceptTypeDomainRepo axisManagerRepo;
+	
+	@Autowired
+	private ReturnRepo returnRepo;
+	@Autowired
+	private EntityRepo entityRepo;
+	@Autowired
+	private CurrencyMasterService currencyMasterService;
+	@Autowired
+	private CountryMasterService countryMasterService;
+	@Autowired
+	private DynamicDropDownTypeRepo dynamicDropDownTypeRepo;
+	@Autowired
+	DataSource datasource;
+	
+	@SuppressWarnings("null")
+	@PostMapping("/getDynamicDropDownValue/{dropDownType}/{returnCode}")
+	public ServiceResponse getDynamicDropDownValue(@PathVariable("dropDownType") String dropDownType, @PathVariable("returnCode") String returnCode) {
+		ServiceResponse response = null;
+		try {
+			if (Validations.isEmpty(dropDownType)) {
+				Logger.error("Exception while fetching Dynamic drop down, if lang code or dropdowntype is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0889.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString())).build();
+			}
+			List<DropDownValues> dropDownValuesList = null;
+			Options options = new Options();
+			if (Validations.isEmpty(returnCode) || returnCode.equalsIgnoreCase("null")) {
+				dropDownValuesList = dynamicDropDownRepo.findByActiveWithDropDownType(dropDownType);
+				options.setReturnCode(null);
+			} else {
+				dropDownValuesList = dynamicDropDownRepo.findByActiveWithDropDownTypeAndReturnCode(dropDownType, returnCode.toUpperCase());
+				options.setReturnCode(returnCode);
+			}
+			if (CollectionUtils.isEmpty(dropDownValuesList)) {
+				Logger.error("Exception while fetching Dynamic drop down, if drop down type list is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0660.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0660.toString())).build();
+			}
+			Option option;
+			List<Option> listOfOption = new ArrayList<>();
+			for (DropDownValues dropDownValues : dropDownValuesList) {
+				option = new Option();
+				option.setKey(dropDownValues.getDropDownValueCode());
+				option.setValue(dropDownValues.getDropDownValueEn());
+				
+				listOfOption.add(option);
+			}
+
+		
+			options.setDropDownTypeCode(dropDownValuesList.get(0).getDropDownTypeIdFk().getDropdownTypeCode());
+			options.setDropDownTypeName(dropDownValuesList.get(0).getDropDownTypeIdFk().getDropdownTypeName());
+			
+			options.setOptionList(listOfOption);
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			response.setResponse(options);
+			return response;
+
+		} catch (NullArgumentException nae) {
+			Logger.error("Exception while fetching Dynamic drop down With lang code dropdownType");
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString())
+				.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+	
+		}
+	}
+	
+	@SuppressWarnings("null")
+	@PostMapping("/getDynamicDropDownValue/{dropDownType}/{returnCode}/{detail}")
+	public ServiceResponse getDynamicDropDownValueWithDetail(@PathVariable("dropDownType") String dropDownType, @PathVariable("returnCode") String returnCode, @PathVariable("detail") String detail) {
+		ServiceResponse response = null;
+		try {
+			if (Validations.isEmpty(dropDownType) || Validations.isEmpty(detail)) {
+				Logger.error("Exception while fetching Dynamic drop down, if lang code or dropdowntype is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0889.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString())).build();
+			}
+			List<DropDownValues> dropDownValuesList = null;
+			Options options = new Options();
+			if (Validations.isEmpty(returnCode) || returnCode.equalsIgnoreCase("null")) {
+				dropDownValuesList = dynamicDropDownRepo.findByActiveWithDropDownType(dropDownType);
+				options.setReturnCode(null);
+			} else {
+				dropDownValuesList = dynamicDropDownRepo.findByActiveWithDropDownTypeAndReturnCodeAndDetails(dropDownType, returnCode.toUpperCase(), detail);
+				options.setReturnCode(returnCode);
+			}
+			if (CollectionUtils.isEmpty(dropDownValuesList)) {
+				Logger.error("Exception while fetching Dynamic drop down, if drop down type list is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0660.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0660.toString())).build();
+			}
+			Option option;
+			List<Option> listOfOption = new ArrayList<>();
+			for (DropDownValues dropDownValues : dropDownValuesList) {
+				option = new Option();
+				option.setKey(dropDownValues.getDropDownValueCode());
+				option.setValue(dropDownValues.getDropDownValueEn());
+				
+				listOfOption.add(option);
+			}
+
+		
+			options.setDropDownTypeCode(dropDownValuesList.get(0).getDropDownTypeIdFk().getDropdownTypeCode());
+			options.setDropDownTypeName(dropDownValuesList.get(0).getDropDownTypeIdFk().getDropdownTypeName());
+			
+			options.setOptionList(listOfOption);
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			response.setResponse(options);
+			return response;
+
+		} catch (NullArgumentException nae) {
+			Logger.error("Exception while fetching Dynamic drop down With lang code dropdownType");
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString())
+				.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+	
+		}
+	}
+	
+	@PostMapping("/getDropDownUponEffectiveDate/{dropDownType}/{effectiveDate}")
+	public ServiceResponse getDropDownUponEffectiveDate(@PathVariable("dropDownType") String dropDownType, @PathVariable("effectiveDate") String effectiveDate) throws ParseException {
+		ServiceResponse response = null;
+		try {
+			if (Validations.isEmpty(dropDownType)) {
+				Logger.error("Exception while fetching Dynamic drop down, if lang code or dropdowntype is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0889.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString())).build();
+			}
+			
+			Options options = new Options();
+			Date startDate = DateManip.convertStringToDate(effectiveDate, "ddMMyyyy");
+			DropDownValues dropDownValues = dynamicDropDownRepo.findByDropDownTypeUponEffFromDate(dropDownType, startDate);
+			if (dropDownValues == null) {
+				Logger.error("Exception while fetching Dynamic drop down, if drop down type list is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0660.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0660.toString())).build();
+			}
+			Option option;
+			List<Option> listOfOption = new ArrayList<>();
+			option = new Option();
+			option.setKey(dropDownValues.getDropDownValueCode());
+			option.setValue(dropDownValues.getDropDownValueEn());
+			listOfOption.add(option);
+			options.setDropDownTypeCode(dropDownValues.getDropDownTypeIdFk().getDropdownTypeCode());
+			options.setDropDownTypeName(dropDownValues.getDropDownTypeIdFk().getDropdownTypeName());
+			
+			options.setOptionList(listOfOption);
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			response.setResponse(options);
+			return response;
+
+		} catch (NullArgumentException nae) {
+			Logger.error("Exception while fetching Dynamic drop down With lang code dropdownType");
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString())
+				.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+	
+		}
+	}
+
+	@SuppressWarnings("null")
+	@PostMapping("/geSubDropDownOption/{dropDownType}/{dropDownTypeValueCode}/{returnCode}")
+	public ServiceResponse geSubDropDownOption(@PathVariable("dropDownType") String dropDownType,@PathVariable("dropDownTypeValueCode") String dropDownTypeValueCode, @PathVariable("returnCode") String returnCode) {
+		ServiceResponse response = null;
+		try {
+			if (Validations.isEmpty(dropDownType)) {
+				Logger.error("Exception while fetching Dynamic drop down, dropdowntype is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0889.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString())).build();
+			}
+			
+			if (Validations.isEmpty(dropDownTypeValueCode)) {
+				Logger.error("Exception while fetching Dynamic drop down, if lang code or dropdowntype is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0889.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString())).build();
+			}
+			
+			DropDownValues dropDownValues = dynamicDropDownRepo.findByActiveUponDropDownValueCode(dropDownTypeValueCode);
+			if(dropDownValues == null) {
+				Logger.error("Exception while fetching Dynamic drop down, if dropdowntype is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0889.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString())).build();
+			}
+			
+			List<DropDownValues> dropDownValuesList = null;
+			Options options = new Options();
+			if (Validations.isEmpty(returnCode) || returnCode.equalsIgnoreCase("null")) {
+				dropDownValuesList = dynamicDropDownRepo.findByActiveUponDropDownTypeValue(dropDownType, dropDownValues.getDropDownValueId());
+				options.setReturnCode(null);
+			} else {
+				dropDownValuesList = dynamicDropDownRepo.findByActiveUponDropDownTypeValueAndReturnCode(dropDownType, returnCode.toUpperCase(), dropDownValues.getDropDownValueId());
+				options.setReturnCode(returnCode);
+			}
+			if (CollectionUtils.isEmpty(dropDownValuesList)) {
+				Logger.error("Exception while fetching Dynamic drop down, if drop down type list is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0660.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0660.toString())).build();
+			}
+			Option option;
+			List<Option> listOfOption = new ArrayList<>();
+			for (DropDownValues dropDownOptions : dropDownValuesList) {
+				option = new Option();
+				option.setKey(dropDownOptions.getDropDownValueCode());
+				option.setValue(dropDownOptions.getDropDownValueEn());
+				
+				listOfOption.add(option);
+			}
+
+		
+			options.setDropDownTypeCode(dropDownValuesList.get(0).getDropDownTypeIdFk().getDropdownTypeCode());
+			options.setDropDownTypeName(dropDownValuesList.get(0).getDropDownTypeIdFk().getDropdownTypeName());
+			
+			options.setOptionList(listOfOption);
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			response.setResponse(options);
+			return response;
+
+		} catch (NullArgumentException nae) {
+			Logger.error("Exception while fetching Dynamic drop down With lang code dropdownType");
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString())
+				.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+	
+		}
+	}
+
+	
+	@SuppressWarnings("null")
+	@PostMapping("/getDropDownValueUponeReturnCode_OLD/{returnCode}")
+	public ServiceResponse getDropDownValueUponeReturnCode_OLD(@PathVariable("returnCode") String returnCode) {
+		ServiceResponse response = null;
+		try {
+			if (Validations.isEmpty(returnCode)) {
+				Logger.error("Exception while fetching Dynamic drop down, if returnCode is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0889.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString())).build();
+			}
+			
+			List<DropDownValues> dropDownValuesList = null;
+			
+			dropDownValuesList = dynamicDropDownRepo.findDropDownOptionReturnCode(returnCode.toUpperCase());
+			
+			if (CollectionUtils.isEmpty(dropDownValuesList)) {
+				Logger.error("Exception while fetching Dynamic drop down, if drop down type list is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0660.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0134.toString())).build();
+			}
+			Return returnObj = returnRepo.findByReturnCode(returnCode);
+			if(returnObj == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0134.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0134.toString())).build();
+			}
+			
+			List<Long> dropdownTypeIdList = new ArrayList<>();
+			for (DropDownValues dropDownValues : dropDownValuesList) {
+				if(!dropdownTypeIdList.contains(dropDownValues.getDropDownTypeIdFk().getDropdownTypeId())) {
+					dropdownTypeIdList.add(dropDownValues.getDropDownTypeIdFk().getDropdownTypeId());
+				} 
+			}
+		
+			
+			List<ConceptTypedDomain> axisManagerList =  axisManagerRepo.findByActiveWithDropDownTypeId(dropdownTypeIdList, returnObj.getReturnId());
+			Option option;
+			
+			Options options = null;
+			List<Option> optionList = null;
+			List<Options> dropDownOptionBeanList = new ArrayList<>();
+						
+			for(Long dropDownTypeId : dropdownTypeIdList) {
+				options = new Options();
+				optionList = new ArrayList<>();
+				for(DropDownValues dropDownValues : dropDownValuesList) {
+					if(dropDownTypeId.equals(dropDownValues.getDropDownTypeIdFk().getDropdownTypeId())) {
+						option = new Option();
+						option.setKey(dropDownValues.getDropDownValueCode());
+						option.setValue(dropDownValues.getDropDownValueEn());
+						optionList.add(option);
+						options.setDropDownTypeCode(dropDownValues.getDropDownTypeIdFk().getDropdownTypeCode());
+						options.setDropDownTypeName(dropDownValues.getDropDownTypeIdFk().getDropdownTypeName());
+						options.setReturnCode(returnCode);
+					}
+				}
+			
+				if (!CollectionUtils.isEmpty(axisManagerList)) {
+					for(ConceptTypedDomain axisMngt : axisManagerList) {
+						if(axisMngt.getDropDownTypeIdFk().getDropdownTypeId().equals(dropDownTypeId)) {
+							options.setConcept(axisMngt.getConcept());
+							options.setTypeDomain(axisMngt.getTypedDomain());
+						}
+					}	
+				}
+				options.setOptionList(optionList);
+				dropDownOptionBeanList.add(options);
+			}
+			
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			response.setResponse(dropDownOptionBeanList);
+			return response;
+
+		} catch (NullArgumentException nae) {
+			Logger.error("Exception while fetching Dynamic drop down With lang code dropdownType");
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString())
+				.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+	
+		}
+	}
+	
+	
+	@SuppressWarnings("null")
+	@PostMapping("/getDropDownValueUponeReturnCode/{returnCode}")
+	public ServiceResponse getDropDownValueUponeReturnCode(@PathVariable("returnCode") String returnCode) {
+		ServiceResponse response = null;
+		try {
+			if (Validations.isEmpty(returnCode)) {
+				Logger.error("Exception while fetching Dynamic drop down, if returnCode is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0889.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString())).build();
+			}
+			
+			Return returnObj = returnRepo.findByReturnCode(returnCode);
+			if(returnObj == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0134.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0134.toString())).build();
+			}
+			
+			List<DropDownType> dropDownList = dynamicDropDownTypeRepo.findDropDownTypebyReturnCodeAndReturnId(returnCode.toUpperCase(),returnObj.getReturnId());
+			
+//			if (CollectionUtils.isEmpty(dropDownList)) {
+//				Logger.error("Exception while fetching Dynamic drop down, if drop down type list is empty");
+//				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0660.toString())
+//						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0134.toString())).build();
+//			}
+			
+			Option option;
+			Options options = null;
+			List<Option> optionList = null;
+			List<Options> dropDownOptionBeanList = new ArrayList<>();
+			List<Long> dropdownTypeIdList = new ArrayList<>();
+			List<ConceptTypedDomain> conceptDomainList = new ArrayList<>();
+			Map <String,List<Options>> dropdownTypeMap = new HashMap<>();
+			List<Options> elrTagList = new ArrayList<>();
+			for (DropDownType dropDownType : dropDownList) {
+				options = new Options();
+				optionList = new ArrayList<>();
+				if(!dropDownType.isFormAPI()) {
+					dropdownTypeIdList = new ArrayList<>();
+					dropdownTypeIdList.add(dropDownType.getDropdownTypeId());
+					
+					List<DropDownValues>  dropDownValuesList = dynamicDropDownRepo.findByActiveWithDropDownTypeAndReturnCode(dropDownType.getDropdownTypeCode(),returnCode.toUpperCase());
+					
+					conceptDomainList =  axisManagerRepo.findByActiveWithDropDownTypeId(dropdownTypeIdList, returnObj.getReturnId());
+					for(DropDownValues dropDownValues : dropDownValuesList) {
+						option = new Option();
+						option.setKey(dropDownValues.getDropDownValueCode());
+						option.setValue(dropDownValues.getDropDownValueEn());
+						if(!UtilMaster.isEmpty(dropDownValues.getDetails())) {
+							
+							Type listToken = new TypeToken<Map<String, String>>() {
+							}.getType();
+							Map<String, String> beanMap = new Gson().fromJson(dropDownValues.getDetails(), listToken);
+							option.setDetailsMap(beanMap);
+							
+						}
+						optionList.add(option);
+						options.setDropDownTypeCode(dropDownValues.getDropDownTypeIdFk().getDropdownTypeCode());
+						options.setDropDownTypeName(dropDownValues.getDropDownTypeIdFk().getDropdownTypeName());
+						options.setReturnCode(returnCode);
+					}
+					options.setDropDownTypeCode(dropDownType.getDropdownTypeCode());
+					options.setDropDownTypeName(dropDownType.getDropdownTypeName());
+					options.setReturnCode(returnCode);
+					if (!CollectionUtils.isEmpty(conceptDomainList)) {
+						for(ConceptTypedDomain conMngt : conceptDomainList) {
+							options.setConcept(conMngt.getConcept());
+							options.setTypeDomain(conMngt.getTypedDomain());
+							options.setExplicitMember(conMngt.getExplicitMember());
+							options.setElrTag(conMngt.getElrTag());
+						}	
+					}
+					options.setOptionList(optionList);
+					dropDownOptionBeanList.add(options);
+				} else {
+					dropdownTypeIdList = new ArrayList<>();
+					options.setDropDownTypeCode(dropDownType.getDropdownTypeCode());
+					options.setDropDownTypeName(dropDownType.getDropdownTypeName());
+					options.setReturnCode(returnCode);
+					dropdownTypeIdList.add(dropDownType.getDropdownTypeId());
+					conceptDomainList =  axisManagerRepo.findByActiveWithDropDownTypeId(dropdownTypeIdList, returnObj.getReturnId());
+					if (!CollectionUtils.isEmpty(conceptDomainList)) {
+						for(ConceptTypedDomain conMngt : conceptDomainList) {
+							if (!Validations.isEmpty(conMngt.getConcept())) {
+								options.setConcept(conMngt.getConcept());
+							} else {
+								options.setConcept(null);
+							}
+							if (!Validations.isEmpty(conMngt.getTypedDomain())) {
+								options.setTypeDomain(conMngt.getTypedDomain());
+							} else {
+								options.setTypeDomain(null);
+							}
+						
+							if (!Validations.isEmpty(conMngt.getApiUrlDetails())) {
+								ApiDetails apiDetails = new Gson().fromJson(conMngt.getApiUrlDetails(), ApiDetails.class);
+								options.setApiDetails(apiDetails);
+							} else {
+								options.setApiDetails(null);
+							}
+							
+							if (!Validations.isEmpty(conMngt.getElrTag())) {
+								options.setElrTag(conMngt.getElrTag());
+							} else {
+								options.setElrTag(null);
+							}
+						}	
+					}
+					options.setOptionList(null);
+					dropDownOptionBeanList.add(options);
+				}
+			}
+			List<ConceptTypedDomain> conceptTypedDomainList = axisManagerRepo.findByActiveDataByReturnId(returnObj.getReturnId());
+			if (!CollectionUtils.isEmpty(conceptTypedDomainList)) {
+				for(ConceptTypedDomain conceptTypedDomain : conceptTypedDomainList) {
+					options = new Options();
+					if (!Validations.isEmpty(conceptTypedDomain.getElrTag())) {
+						options.setElrTag(conceptTypedDomain.getElrTag());
+						elrTagList.add(options);
+					}
+				}
+			}
+			if(!CollectionUtils.isEmpty(dropDownOptionBeanList) || !CollectionUtils.isEmpty(elrTagList)) {
+				dropdownTypeMap.put(GeneralConstants.DROPDOWN_TYPE_LIST.getConstantVal(), dropDownOptionBeanList);
+				dropdownTypeMap.put(GeneralConstants.ELR_TAG_LIST.getConstantVal(), elrTagList);
+			}
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			response.setResponse(dropdownTypeMap);
+			return response;
+
+		} catch (NullArgumentException nae) {
+			Logger.error("Exception while fetching Dynamic drop down With lang code dropdownType");
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString())
+				.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+	
+		}
+	}
+	
+	@SuppressWarnings("null")
+	@PostMapping("/getDropDownTypeDetailsUponReturnCode/{returnCode}")
+	public ServiceResponse getDropDownTypeDetailsUponReturnCode(@PathVariable("returnCode") String returnCode) {
+		ServiceResponse response = null;
+		try {
+			if (Validations.isEmpty(returnCode)) {
+				Logger.error("Exception while fetching Dynamic drop down, if returnCode is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0889.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString())).build();
+			}
+			Return returnObj = returnRepo.findByReturnCode(returnCode);
+			if(returnObj == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0134.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0134.toString())).build();
+			}
+			List<DropDownType> dropDownList = dynamicDropDownTypeRepo.findDropDownTypebyReturnCode(returnCode.toUpperCase());
+			if (CollectionUtils.isEmpty(dropDownList)) {
+				Logger.error("Exception while fetching Dynamic drop down, if drop down type list is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0660.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0134.toString())).build();
+			}
+			
+			Options options = null;
+			List<Options> dropDownOptionBeanList = new ArrayList<>();
+			List<Long> dropdownTypeIdList = new ArrayList<>();
+			List<ConceptTypedDomain> conceptDomainList = new ArrayList<>();
+			for (DropDownType dropDownType : dropDownList) {
+				options = new Options();
+				if(!dropDownType.isFormAPI()) {
+					dropdownTypeIdList = new ArrayList<>();
+					dropdownTypeIdList.add(dropDownType.getDropdownTypeId());
+					conceptDomainList =  axisManagerRepo.findByActiveWithDropDownTypeId(dropdownTypeIdList, returnObj.getReturnId());
+					options.setDropDownTypeCode(dropDownType.getDropdownTypeCode());
+					options.setDropDownTypeName(dropDownType.getDropdownTypeName());
+					options.setReturnCode(returnCode);
+					if (!CollectionUtils.isEmpty(conceptDomainList)) {
+						for(ConceptTypedDomain conMngt : conceptDomainList) {
+							options.setConcept(conMngt.getConcept());
+							options.setTypeDomain(conMngt.getTypedDomain());
+							options.setExplicitMember(conMngt.getExplicitMember());
+							options.setElrTag(conMngt.getElrTag());
+						}	
+					}
+					dropDownOptionBeanList.add(options);
+				} else {
+					dropdownTypeIdList = new ArrayList<>();
+					options.setDropDownTypeCode(dropDownType.getDropdownTypeCode());
+					options.setDropDownTypeName(dropDownType.getDropdownTypeName());
+					options.setReturnCode(returnCode);
+					dropdownTypeIdList.add(dropDownType.getDropdownTypeId());
+					conceptDomainList =  axisManagerRepo.findByActiveWithDropDownTypeId(dropdownTypeIdList, returnObj.getReturnId());
+					if (!CollectionUtils.isEmpty(conceptDomainList)) {
+						for(ConceptTypedDomain conMngt : conceptDomainList) {
+							if (!Validations.isEmpty(conMngt.getConcept())) {
+								options.setConcept(conMngt.getConcept());
+							} else {
+								options.setConcept(null);
+							}
+							if (!Validations.isEmpty(conMngt.getTypedDomain())) {
+								options.setTypeDomain(conMngt.getTypedDomain());
+							} else {
+								options.setTypeDomain(null);
+							}
+						
+							if (!Validations.isEmpty(conMngt.getApiUrlDetails())) {
+								ApiDetails apiDetails = new Gson().fromJson(conMngt.getApiUrlDetails(), ApiDetails.class);
+								options.setApiDetails(apiDetails);
+							} else {
+								options.setApiDetails(null);
+							}
+							
+							if (!Validations.isEmpty(conMngt.getElrTag())) {
+								options.setElrTag(conMngt.getElrTag());
+							} else {
+								options.setElrTag(null);
+							}
+						}	
+					}
+					options.setOptionList(null);
+					dropDownOptionBeanList.add(options);
+				}
+				
+			}
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			response.setResponse(dropDownOptionBeanList);
+			return response;
+
+		} catch (NullArgumentException nae) {
+			Logger.error("Exception while fetching Dynamic drop down With lang code dropdownType");
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString())
+				.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+		}
+	}
+	
+	@PostMapping("/getAllActiveEntity")
+	public ServiceResponse getAllActiveEntity() {
+		ServiceResponse response = null;
+		try {
+			Options options = new Options();
+			List<EntityBean> entityList = entityRepo.findAll(Sort.by(Sort.Direction.ASC, "entityName"));
+
+			if (CollectionUtils.isEmpty(entityList)) {
+				Logger.error("Exception while fetching Dynamic entityList drop down, if drop down type list is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0660.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0660.toString())).build();
+			}
+			sortApprovalList(entityList);
+			Option option;
+			List<Option> listOfOption = new ArrayList<>();
+			
+			for (EntityBean entityBean : entityList) {
+				option = new Option();
+				option.setKey(entityBean.getEntityCode());
+				option.setValue(entityBean.getEntityName());
+				
+				listOfOption.add(option);
+			}
+			
+			options.setOptionList(listOfOption);
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			response.setResponse(options);
+			return response;
+
+		} catch (NullArgumentException nae) {
+			Logger.error("Exception while fetching Dynamic drop down With lang code dropdownType");
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString())
+				.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+	
+		}
+	}
+	
+	private void sortApprovalList(List<EntityBean> appStatusList) {
+		if (appStatusList != null) {
+			Collections.sort(appStatusList, new Comparator<EntityBean>() {
+				public int compare(EntityBean entList1, EntityBean entList2) {
+					return entList1.getEntityName().compareTo(entList1.getEntityName());
+				}
+			});
+		}
+	}
+	
+	@SuppressWarnings("null")
+	@PostMapping("/fetchCurrencyUponLangCode/{LANG_CODE}")
+	public ServiceResponse fetchCurrencyUponLangCode(@PathVariable("LANG_CODE") String langCode) {
+		Logger.info("fetch currency data for dropdown started");
+		ServiceResponse response = null;
+		try {
+			Option option = null;
+			Options options = null;
+			List<Option> optionList = null;
+			optionList = new ArrayList<>();
+			List<Currency> listOfActiveCurrencyData = currencyMasterService.getActiveDataFor(Currency.class, null);
+			options = new Options();
+			if(CollectionUtils.isEmpty(listOfActiveCurrencyData)) {
+				Logger.error("Exception while fetching Dynamic drop down, if Currency list not found");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0889.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString())).build();
+			}
+			
+					
+			for (Currency currency : listOfActiveCurrencyData) {
+				option = new Option();
+				option.setKey(currency.getCurrencyISOCode());
+				CurrencyLabel currencyLabel = currency.getCurrLblSet().stream().filter(f -> f.getLangIdFk().getLanguageCode().equalsIgnoreCase(langCode)).findAny().orElse(null);
+				if(currencyLabel != null) {
+					option.setValue(currencyLabel.getCurrencyLabel());
+				} else {
+					option.setValue(currency.getCurrencyName());
+				}
+				optionList.add(option);
+			}
+			if(!CollectionUtils.isEmpty(optionList)) {
+				options.setOptionList(optionList);
+			}
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			response.setResponse(options);
+			return response;
+
+		} catch (NullArgumentException nae) {
+			Logger.error("Exception while fetching Dynamic drop down, if Currency list not found");
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString())
+				.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+	
+		}
+	}
+	@PostMapping(value = "/fetchActiveCountryData/{languageCode}")
+	public ServiceResponse fetchActiveCountryData(@PathVariable String languageCode) {
+		Logger.info("fetch country data controller started " + languageCode);
+		ServiceResponse serviceResponse = null;
+		Option option = null;
+		Options options = null;
+		List<Option> optionList = null;
+		List<CountryMaster> listOfActiveCountryData = null;
+		if (languageCode != null) {
+
+			listOfActiveCountryData = new ArrayList<>();
+			optionList = new ArrayList<>();
+			options = new Options();
+			listOfActiveCountryData = countryMasterService.getActiveDataFor(CountryMaster.class, null);
+
+			for (CountryMaster countryMaster : listOfActiveCountryData) {
+				option = new Option();
+				if (languageCode.equals(GeneralConstants.ENG_LANG.getConstantVal())) {
+					option.setKey(countryMaster.getCountryCode());
+					option.setValue(countryMaster.getCountryName().toUpperCase());
+				} else if (languageCode.equals(GeneralConstants.HIN_LANG.getConstantVal())) {
+					option.setKey(countryMaster.getCountryCode());
+					option.setValue(countryMaster.getCountryNameBil().toUpperCase());
+				}
+				optionList.add(option);
+			}
+			options.setOptionList(optionList);
+			serviceResponse = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			serviceResponse.setResponse(options);
+			
+		}
+		return serviceResponse;
+	}
+	
+	@SuppressWarnings("null")
+	@PostMapping("/geDropDownWithClassification/{dropDownType}/{returnCode}")
+	public ServiceResponse geDropDownWithClassification(@PathVariable("dropDownType") String dropDownType, @PathVariable("returnCode") String returnCode) {
+		ServiceResponse response = null;
+		try {
+			if (Validations.isEmpty(dropDownType)) {
+				Logger.error("Exception while fetching Dynamic drop down, dropdowntype is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0889.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString())).build();
+			}
+			List<DropDownValues> dropDownValuesList = null;
+			Options options = new Options();
+			if (Validations.isEmpty(returnCode) || returnCode.equalsIgnoreCase("null")) {
+				dropDownValuesList = dynamicDropDownRepo.findByActiveWithDropDownType(dropDownType);
+				options.setReturnCode(null);
+			} else {
+				dropDownValuesList = dynamicDropDownRepo.findByActiveWithDropDownTypeAndReturnCode(dropDownType, returnCode.toUpperCase());
+				options.setReturnCode(returnCode);
+			}
+			if (CollectionUtils.isEmpty(dropDownValuesList)) {
+				Logger.error("Exception while fetching Dynamic drop down, if drop down type list is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0660.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0660.toString())).build();
+			}
+			Option option;
+			List<Option> listOfOption = new ArrayList<>();
+			for (DropDownValues dropDownValues : dropDownValuesList) {
+				option = new Option();
+				option.setKey(dropDownValues.getDropDownValueCode());
+				option.setValue(dropDownValues.getDropDownValueEn().toUpperCase() +"~"+ dropDownValues.getDropDownTypeValueIdFk().getDropDownValueEn().toUpperCase());
+				
+				listOfOption.add(option);
+			}
+
+		
+			options.setDropDownTypeCode(dropDownValuesList.get(0).getDropDownTypeIdFk().getDropdownTypeCode());
+			options.setDropDownTypeName(dropDownValuesList.get(0).getDropDownTypeIdFk().getDropdownTypeName());
+			
+			options.setOptionList(listOfOption);
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			response.setResponse(options);
+			return response;
+
+		} catch (NullArgumentException nae) {
+			Logger.error("Exception while fetching Dynamic drop down With lang code dropdownType");
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString())
+				.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+	
+		}
+	}
+	
+	@PostMapping(value = "/saveAndUpdateDynamicDropdownData")
+	public ServiceResponse saveAndUpdateDynamicDropdownData(@RequestHeader(name = "JobProcessingId")  String jobProcessId,@RequestBody DynamicDropDownDto dropDownTypeDto) {
+		Logger.info("saveAndUpdateDynamicDropdownData started");
+		ServiceResponse response = null;
+		String dropDownTypeData = null;
+		String childTableData = null;
+		Boolean parentTableFlag = null;
+		String dropdownTypeCode = null;
+		String apiDetails = null;
+		List<Return> returnCodeList = new ArrayList<>();
+		try(Connection con = datasource.getConnection();
+				CallableStatement stmt = con.prepareCall(GeneralConstants.SP_PARENT_DROPDOWN_TYPE.getConstantVal());) {
+			DropDownTypeDto dropDownType = new DropDownTypeDto();
+			if(!Objects.isNull(dropDownTypeDto.getDropDownTypeDto())) {
+				if(dropDownTypeDto.getDropDownTypeDto().getReturnCode() != null) {
+					String returnStr = dropDownTypeDto.getDropDownTypeDto().getReturnCode().replace("\"", "");
+					String[] returnArr = returnStr.substring( 1, returnStr.length() - 1 ).split(",");
+					long[] returnIds = new long[returnArr.length];
+					  for (int i = 0; i < returnArr.length; i++)
+						  returnIds[i] = Long.parseLong(returnArr[i]);
+					 returnCodeList = returnRepo.getDataByReturnIdInAndIsActiveTrue(ArrayUtils.toObject(returnIds));
+					  StringBuilder returnCode = new StringBuilder();
+					  if(!CollectionUtils.isEmpty(returnCodeList)) {
+						  for (Return returnDto : returnCodeList) {
+							  returnCode.append(returnDto.getReturnCode());
+							  returnCode.append(",");
+						  }
+						  dropDownType.setDropdownTypeId(dropDownTypeDto.getDropDownTypeDto().getDropdownTypeId());
+						  dropDownType.setDropdownTypeName(dropDownTypeDto.getDropDownTypeDto().getDropdownTypeName());
+						  dropDownType.setDropdownTypeCode(dropDownTypeDto.getDropDownTypeDto().getDropdownTypeCode());
+						  dropdownTypeCode = dropDownTypeDto.getDropDownTypeDto().getDropdownTypeCode();
+						  dropDownType.setReturnCode(returnCode.toString().substring(0, returnCode.toString().length() - 1));
+						  dropDownType.setIsFormAPI(dropDownTypeDto.getDropDownTypeDto().getIsFormAPI());
+						  apiDetails = dropDownTypeDto.getDropDownTypeDto().getApiUrlDetailsJson();
+						  dropDownType.setIsActive(true);
+						  dropDownTypeDto.setDropDownTypeDto(dropDownType);
+					  }
+					  dropDownTypeData =  new Gson().toJson(dropDownTypeDto.getDropDownTypeDto());
+				}
+			}
+			Logger.info("Call Parent Procedure (SP_PARENT_DROPDOWN_TYPE)");
+			Logger.info("Call Parent Table Json :" + dropDownTypeData);
+			if(dropDownTypeData != null) {
+				stmt.setString(1, dropDownTypeData);
+				stmt.registerOutParameter(2, Types.INTEGER);
+				stmt.executeQuery();
+				int number = stmt.getInt(2);
+				
+				if(number == 0) {
+					parentTableFlag = true;
+				} else {
+					parentTableFlag = false;
+				}
+			}
+			Logger.info("Call Parent Procedure (SP_PARENT_DROPDOWN_TYPE) Status :" + parentTableFlag);
+		}catch (Exception e) {
+			Logger.error("Exception while saveAndUpdateDynamicDropdownData - First Table Exception" + e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString())
+				.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+		}
+		
+		try(Connection con = datasource.getConnection();
+				CallableStatement stmt = con.prepareCall(GeneralConstants.SP_CHILD_DROPDOWN_VAL.getConstantVal());) {
+			DynamicDropDownDto dynamicDropDownDto = new DynamicDropDownDto();
+			List<ConceptTypedDomain> conceptTypedDomainList = new ArrayList<>();
+			ConceptTypedDomain conceptTypedDomainObj  = new ConceptTypedDomain();
+			JSONParser jsonPar = new JSONParser();
+			if(!CollectionUtils.isEmpty(dropDownTypeDto.getConceptTypeDomainDetailsList())) {
+				if(dropDownTypeDto.getDropDownTypeDto().getIsFormAPI()) {
+					conceptTypedDomainObj  = new ConceptTypedDomain();
+					for(ConceptTypedDomain conceptTypedDomainDto : dropDownTypeDto.getConceptTypeDomainDetailsList()) {
+						conceptTypedDomainObj  = new ConceptTypedDomain();
+						conceptTypedDomainObj.setConceptTypeDomainId(conceptTypedDomainDto.getConceptTypeDomainId());
+						conceptTypedDomainObj.setConcept(conceptTypedDomainDto.getConcept());
+						conceptTypedDomainObj.setTypedDomain(conceptTypedDomainDto.getTypedDomain());
+						conceptTypedDomainObj.setReturnId(conceptTypedDomainDto.getReturnId());
+						jsonPar = new JSONParser();
+						conceptTypedDomainObj.setJsonApiDetails((org.json.simple.JSONObject) jsonPar.parse(apiDetails));
+						conceptTypedDomainObj.setExplicitMember(conceptTypedDomainDto.getExplicitMember());
+						conceptTypedDomainObj.setElrTag(conceptTypedDomainDto.getElrTag());
+						conceptTypedDomainObj.setIsActive(conceptTypedDomainDto.getIsActive());
+						conceptTypedDomainList.add(conceptTypedDomainObj);
+					}
+					dynamicDropDownDto.setConceptTypeDomainDetailsList(conceptTypedDomainList);
+				} else {
+					dynamicDropDownDto.setConceptTypeDomainDetailsList(dropDownTypeDto.getConceptTypeDomainDetailsList());
+				}
+			} else if(dropDownTypeDto.getDropDownTypeDto() != null) {
+				if(dropDownTypeDto.getDropDownTypeDto().getIsFormAPI()) {
+					conceptTypedDomainObj  = new ConceptTypedDomain();
+					for(Return returnDto : returnCodeList) {
+						conceptTypedDomainObj  = new ConceptTypedDomain();
+						conceptTypedDomainObj.setConceptTypeDomainId(-1L);
+						conceptTypedDomainObj.setReturnId(returnDto.getReturnId());
+						jsonPar = new JSONParser();
+						conceptTypedDomainObj.setJsonApiDetails((org.json.simple.JSONObject) jsonPar.parse(apiDetails));
+						conceptTypedDomainObj.setIsActive(true);
+						conceptTypedDomainList.add(conceptTypedDomainObj);
+					}
+					dynamicDropDownDto.setConceptTypeDomainDetailsList(conceptTypedDomainList);
+				}
+			}
+			if(!CollectionUtils.isEmpty(dropDownTypeDto.getDropdownValDetailsList())) {
+				List<DropDownValues> dropDownValuesList = new ArrayList<>();
+				DropDownValues dropDownValuesObj = new DropDownValues();
+				for(DropDownValues dropDownValues : dropDownTypeDto.getDropdownValDetailsList()) {
+					dropDownValuesObj = new DropDownValues();
+					dropDownValuesObj.setDropDownValueId(dropDownValues.getDropDownValueId());
+					dropDownValuesObj.setDropDownValueEn(dropDownValues.getDropDownValueEn());
+					dropDownValuesObj.setDropDownValueHi(dropDownValues.getDropDownValueHi());
+					dropDownValuesObj.setDropDownValueCode(dropDownValues.getDropDownValueCode());
+					if(!Validations.isEmpty(dropDownValues.getEffectiveDate())) {
+						dropDownValuesObj.setEffectiveDate(dropDownValues.getEffectiveDate());
+					} else {
+						dropDownValuesObj.setEffectiveDate(null);
+					}
+					if(!Validations.isEmpty(dropDownValues.getDetails())) {
+						jsonPar = new JSONParser();
+						dropDownValuesObj.setJsonDetailsDetails((org.json.simple.JSONObject) jsonPar.parse(dropDownValues.getDetails()));
+					}
+					dropDownValuesObj.setDropDownTypeIdFk(dropDownValues.getDropDownTypeIdFk());
+					if(dropDownValues.getDropDownTypeValIdFk() != null) {
+						if(dropDownValues.getDropDownTypeValIdFk().equals(-1L)) {
+							dropDownValuesObj.setDropDownTypeValIdFk(null);
+						} else {
+							dropDownValuesObj.setDropDownTypeValIdFk(dropDownValues.getDropDownTypeValIdFk());
+						}
+					}
+					dropDownValuesObj.setIsActive(dropDownValues.getIsActive());
+					dropDownValuesList.add(dropDownValuesObj);
+				}
+				dynamicDropDownDto.setDropdownValDetailsList(dropDownValuesList);
+			}
+				Logger.info("Call Child Procedure (SP_CHILD_DROPDOWN_VAL)");
+				childTableData =  new Gson().toJson(dynamicDropDownDto);
+				Logger.info("Call Child Table Json :" + childTableData);
+				stmt.setString(1, childTableData);
+				stmt.setString(2, dropdownTypeCode);
+				stmt.registerOutParameter(3, Types.INTEGER);
+				stmt.executeQuery();
+				int number = stmt.getInt(3);
+				if(number == 0) {
+					parentTableFlag = true;
+				} else {
+					parentTableFlag = false;
+				}
+				Logger.info("Call Child Procedure (SP_CHILD_DROPDOWN_VAL) status :" + parentTableFlag);
+		} catch (Exception e) {
+			Logger.error("Exception while saveAndUpdateDynamicDropdownData - Second and Third Table Exception" + e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString())
+				.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+		}
+		response = new ServiceResponse.ServiceResponseBuilder().setStatus(parentTableFlag).build();
+		response.setResponse(dropDownTypeData);
+		return response;
+	}
+	
+	@SuppressWarnings("null")
+	@PostMapping(value = "/checkDropDownUniqueCodeExist")
+	public ServiceResponse checkDropDownUniqueCodeExist(@RequestHeader(name = "JobProcessingId")  String jobProcessId,@RequestBody DropDownTypeDto dropDownTypeDto) {
+		Logger.info("checkDropDownUniqueCodeExist started");
+		ServiceResponse response = null;
+		List<DropDownTypeDto> dynamicDropDownDtoList = new ArrayList<>();
+		try {
+			List<DropDownType> dropDownTypeCode = dynamicDropDownTypeRepo.findAllActiveDropDownCode();
+			DropDownTypeDto dropDownTypeObj = null;
+			for (DropDownType dropDownType : dropDownTypeCode) {
+				dropDownTypeObj = new DropDownTypeDto();
+				dropDownTypeObj.setDropdownTypeId(dropDownType.getDropdownTypeId());
+				dropDownTypeObj.setDropdownTypeCode(dropDownType.getDropdownTypeCode());
+				dropDownTypeObj.setDropdownTypeName(dropDownType.getDropdownTypeName());
+				dynamicDropDownDtoList.add(dropDownTypeObj);
+			}
+			if (CollectionUtils.isEmpty(dynamicDropDownDtoList)) {
+				Logger.error("Exception while fetching Dynamic drop down, if drop down type list is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0660.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0660.toString())).build();
+			}
+		} catch (Exception e) {
+			Logger.error("Exception while fetching Active Dynamic drop down Code");
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString())
+				.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+		}
+		response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+		response.setResponse(dynamicDropDownDtoList);
+		return response;
+	}
+	
+	@PostMapping(value = "/fetchDropDownVal")
+	public ServiceResponse fetchDropDownVal(@RequestHeader(name = "JobProcessingId")  String jobProcessId,@RequestBody DynamicDropDownDto dropDownTypeDto) {
+		Logger.info("fetchDropDownVal started");
+		ServiceResponse response = null;
+		List<DropDownValues> dropDownValuesRespList = new ArrayList<>();
+		try {
+			List<DropDownValues> dropDownValuesList = dynamicDropDownRepo.findByActiveDropDownValue(dropDownTypeDto.getDropDownTypeDto().getDropdownTypeId());
+			DropDownValues dropDownValuesObj = new DropDownValues();
+			for (DropDownValues dropDownValues : dropDownValuesList) {
+				dropDownValuesObj = new DropDownValues();
+				dropDownValuesObj.setDropDownValueId(dropDownValues.getDropDownValueId());
+				dropDownValuesObj.setDropDownValueEn(dropDownValues.getDropDownValueEn());
+				dropDownValuesRespList.add(dropDownValuesObj);
+			}
+			if (CollectionUtils.isEmpty(dropDownValuesRespList)) {
+				Logger.error("Exception while fetching Dynamic dropdown value, if drop down type list is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0660.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0660.toString())).build();
+			}
+		} catch (Exception e) {
+			Logger.error("Exception while fetching Active Dynamic drop down value");
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString())
+				.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+		}
+		response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+		response.setResponse(dropDownValuesRespList);
+		return response;
+	}
+	
+	@PostMapping(value = "/fetchDynamicDropdownData")
+	public ServiceResponse fetchDynamicDropdownData(@RequestHeader(name = "JobProcessingId")  String jobProcessId,@RequestBody DynamicDropDownDto dropDownTypeDto) {
+		Logger.info("fetchDynamicDropdownData started");
+		ServiceResponse response = null;
+		DynamicDropDownDto responseObject = new DynamicDropDownDto();
+		try {
+			List<ConceptTypedDomain> conceptTypedDomainList = new ArrayList<>();
+			List<DropDownValues> dropDownValuesList = new ArrayList<>();
+			ConceptTypedDomain conceptTypedDomainObj = new ConceptTypedDomain();
+			DropDownValues dropDownValuesObj = new DropDownValues();
+			DropDownTypeDto dynamicDropDownTypeDto = new DropDownTypeDto();
+			String returnIds = null;
+			if(!Objects.isNull(dropDownTypeDto)) {
+				DropDownType dropDownTypeObj = dynamicDropDownTypeRepo.findActiveDropdownByDropdownTypeId(dropDownTypeDto.getDropDownTypeDto().getDropdownTypeId());
+				if(dropDownTypeObj.getReturnCode() != null) {
+					List<String> returnCodeList = Stream.of(dropDownTypeObj.getReturnCode().split(",")).collect(Collectors.toList());
+					List<Return> returnIdList = returnRepo.getDataByReturnCodeInIgnoreCaseAndIsActiveTrue(returnCodeList);
+					returnCodeList = new ArrayList<>();
+					for(Return returnObj : returnIdList) {
+						returnCodeList.add(returnObj.getReturnId().toString());
+					}
+					returnIds = String.join(",", returnCodeList);
+				}
+				if(!Objects.isNull(dropDownTypeObj)) {
+					conceptTypedDomainList = dropDownTypeObj.getConceptTypedDomainFk().stream().collect(Collectors.toList());
+					dropDownValuesList = dropDownTypeObj.getDropDownValuesFk().stream().collect(Collectors.toList());
+					dynamicDropDownTypeDto.setDropdownTypeId(dropDownTypeObj.getDropdownTypeId());
+					dynamicDropDownTypeDto.setDropdownTypeName(dropDownTypeObj.getDropdownTypeName());
+					dynamicDropDownTypeDto.setDropdownTypeCode(dropDownTypeObj.getDropdownTypeCode());
+					dynamicDropDownTypeDto.setReturnCode(returnIds);
+					if(dropDownTypeObj.isFormAPI()) {
+						for (ConceptTypedDomain conceptTypedDomain : conceptTypedDomainList) {
+							if(conceptTypedDomain.getApiUrlDetails() != null) {
+								dynamicDropDownTypeDto.setIsFormAPI(true);
+								dynamicDropDownTypeDto.setApiUrlDetailsJson(conceptTypedDomain.getApiUrlDetails());
+								break;
+							}
+						}
+						
+					} else {
+						dynamicDropDownTypeDto.setIsFormAPI(false);
+					}
+					if(CollectionUtils.isEmpty(conceptTypedDomainList)) {
+						dynamicDropDownTypeDto.setIsConcept(false);
+					} else {
+						
+						List<ConceptTypedDomain> conceptTypedDomainLst = new ArrayList<>();
+						for (ConceptTypedDomain conceptTypedDomain : conceptTypedDomainList) {
+							if(Validations.isEmpty(conceptTypedDomain.getConcept()) && Validations.isEmpty(conceptTypedDomain.getTypedDomain()) && Validations.isEmpty(conceptTypedDomain.getExplicitMember())&& Validations.isEmpty(conceptTypedDomain.getElrTag())) {
+								dynamicDropDownTypeDto.setIsConcept(false);
+								break;
+							} else {
+								dynamicDropDownTypeDto.setIsConcept(true);
+								if(Boolean.TRUE.equals(conceptTypedDomain.getIsActive())) {
+									conceptTypedDomainObj = new ConceptTypedDomain();
+									conceptTypedDomainObj.setConceptTypeDomainId(conceptTypedDomain.getConceptTypeDomainId());
+									conceptTypedDomainObj.setConcept(conceptTypedDomain.getConcept());
+									conceptTypedDomainObj.setTypedDomain(conceptTypedDomain.getTypedDomain());
+									conceptTypedDomainObj.setExplicitMember(conceptTypedDomain.getExplicitMember());
+									conceptTypedDomainObj.setElrTag(conceptTypedDomain.getElrTag());
+									conceptTypedDomainObj.setReturnId(conceptTypedDomain.getReturnIdFk().getReturnId());
+									conceptTypedDomainLst.add(conceptTypedDomainObj);
+								}
+							}
+							
+						}
+						conceptTypedDomainLst.sort((ConceptTypedDomain c1, ConceptTypedDomain c2) -> c1.getConceptTypeDomainId().compareTo(c2.getConceptTypeDomainId()));
+						responseObject.setConceptTypeDomainDetailsList(conceptTypedDomainLst);
+					}
+					if(CollectionUtils.isEmpty(dropDownValuesList)) {
+						dynamicDropDownTypeDto.setIsDropdownVal(false);
+					} else {
+						dynamicDropDownTypeDto.setIsDropdownVal(true);
+						List<DropDownValues> dropDownValuesLst = new ArrayList<>();
+						for (DropDownValues dropDownValues : dropDownValuesList) {
+							if(dropDownValues.getIsActive()) {
+								dropDownValuesObj = new DropDownValues();
+								dropDownValuesObj.setDropDownValueId(dropDownValues.getDropDownValueId());
+								dropDownValuesObj.setDropDownValueEn(dropDownValues.getDropDownValueEn());
+								dropDownValuesObj.setDropDownValueHi(dropDownValues.getDropDownValueHi());
+								dropDownValuesObj.setDropDownValueCode(dropDownValues.getDropDownValueCode());
+								dropDownValuesObj.setEffectiveFromDate(dropDownValues.getEffectiveFromDate());
+								dropDownValuesObj.setDetails(dropDownValues.getDetails());
+								if(dropDownValues.getDropDownTypeValueIdFk() != null) {
+									dropDownValuesObj.setDropDownTypeValIdFk(dropDownValues.getDropDownTypeValueIdFk().getDropDownValueId());
+								}
+								dropDownValuesLst.add(dropDownValuesObj);
+							}
+						}
+						dropDownValuesLst.sort((DropDownValues d1, DropDownValues d2) -> d1.getDropDownValueId().compareTo(d2.getDropDownValueId()));
+						responseObject.setDropdownValDetailsList(dropDownValuesLst);
+					}
+				}
+				responseObject.setDropDownTypeDto(dynamicDropDownTypeDto);
+			}
+		} catch (Exception e) {
+			Logger.error("Exception while fetchDynamicDropdownData");
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString())
+				.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+		}
+		response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+		response.setResponse(responseObject);
+		return response;
+	}
+	
+	@SuppressWarnings("null")
+	@PostMapping("/geDropDownWithClassificationInkey/{dropDownType}/{returnCode}")
+	public ServiceResponse geDropDownWithClassificationInkey(@PathVariable("dropDownType") String dropDownType, @PathVariable("returnCode") String returnCode) {
+		ServiceResponse response = null;
+		try {
+			if (Validations.isEmpty(dropDownType)) {
+				Logger.error("Exception while fetching Dynamic drop down, dropdowntype is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0889.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString())).build();
+			}
+			List<DropDownValues> dropDownValuesList = null;
+			Options options = new Options();
+			if (Validations.isEmpty(returnCode) || returnCode.equalsIgnoreCase("null")) {
+				dropDownValuesList = dynamicDropDownRepo.findByActiveWithDropDownType(dropDownType);
+				options.setReturnCode(null);
+			} else {
+				dropDownValuesList = dynamicDropDownRepo.findByActiveWithDropDownTypeAndReturnCode(dropDownType, returnCode.toUpperCase());
+				options.setReturnCode(returnCode);
+			}
+			if (CollectionUtils.isEmpty(dropDownValuesList)) {
+				Logger.error("Exception while fetching Dynamic drop down, if drop down type list is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0660.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0660.toString())).build();
+			}
+			Option option;
+			List<Option> listOfOption = new ArrayList<>();
+			for (DropDownValues dropDownValues : dropDownValuesList) {
+				option = new Option();
+				option.setKey(dropDownValues.getDropDownValueCode() +"~"+ dropDownValues.getDropDownTypeValueIdFk().getDropDownValueEn().toUpperCase());
+				option.setValue(dropDownValues.getDropDownValueEn().toUpperCase());
+				
+				listOfOption.add(option);
+			}
+
+		
+			options.setDropDownTypeCode(dropDownValuesList.get(0).getDropDownTypeIdFk().getDropdownTypeCode());
+			options.setDropDownTypeName(dropDownValuesList.get(0).getDropDownTypeIdFk().getDropdownTypeName());
+			
+			options.setOptionList(listOfOption);
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			response.setResponse(options);
+			return response;
+
+		} catch (NullArgumentException nae) {
+			Logger.error("Exception while fetching Dynamic drop down With lang code dropdownType");
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString())
+				.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+	
+		}
+	}
+	
+	@SuppressWarnings("null")
+	@GetMapping("/geCountryDropDownForClassification/{dropDownType}/{returnCode}")
+	public ServiceResponse geCountryDropDownForClassification(@PathVariable("dropDownType") String dropDownType, @PathVariable("returnCode") String returnCode) {
+		ServiceResponse response = null;
+		try {
+			if (Validations.isEmpty(dropDownType)) {
+				Logger.error("Exception while fetching Dynamic drop down, dropdowntype is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0889.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString())).build();
+			}
+			List<DropDownValues> dropDownValuesList = null;
+			Options options = new Options();
+			if (Validations.isEmpty(returnCode) || returnCode.equalsIgnoreCase("null")) {
+				dropDownValuesList = dynamicDropDownRepo.findByActiveWithDropDownType(dropDownType);
+				options.setReturnCode(null);
+			} else {
+				dropDownValuesList = dynamicDropDownRepo.findByActiveWithDropDownTypeAndReturnCode(dropDownType, returnCode.toUpperCase());
+				options.setReturnCode(returnCode);
+			}
+			if (CollectionUtils.isEmpty(dropDownValuesList)) {
+				Logger.error("Exception while fetching Dynamic drop down, if drop down type list is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0660.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0660.toString())).build();
+			}
+			Option option;
+			List<Option> listOfOption = new ArrayList<>();
+			for (DropDownValues dropDownValues : dropDownValuesList) {
+				option = new Option();
+				option.setKey(dropDownValues.getDropDownValueCode());
+				option.setValue(dropDownValues.getDropDownValueEn().toUpperCase());
+				
+				listOfOption.add(option);
+			}
+
+			options.setDropDownTypeCode(dropDownValuesList.get(0).getDropDownTypeIdFk().getDropdownTypeCode());
+			options.setDropDownTypeName(dropDownValuesList.get(0).getDropDownTypeIdFk().getDropdownTypeName());
+			
+			options.setOptionList(listOfOption);
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			response.setResponse(options);
+			return response;
+
+		} catch (NullArgumentException nae) {
+			Logger.error("Exception while fetching Dynamic drop down With lang code dropdownType");
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString())
+				.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+		}
+	}
+	@SuppressWarnings("null")
+	@GetMapping("/geCountryDropDownForClassification/{countryName}")
+	public ServiceResponse geCountryDropDownForClassification(@PathVariable("countryName") String countryName) {
+		ServiceResponse response = null;
+		try {
+			if (Validations.isEmpty(countryName)) {
+				Logger.error("Exception while fetching Dynamic drop down, dropdowntype is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0889.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString())).build();
+			}
+			Options options = new Options();
+			countryName = countryName.replaceAll("_", " ");
+			List<DropDownValues> dropDownValuesList = dynamicDropDownRepo.findByDrDoValueCode(countryName);
+			if (CollectionUtils.isEmpty(dropDownValuesList)) {
+				Logger.error("Exception while fetching Dynamic drop down, if drop down type list is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0660.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0660.toString())).build();
+			}
+			Option option;
+			List<Option> listOfOption = new ArrayList<>();
+			for (DropDownValues dropDownValues : dropDownValuesList) {
+				option = new Option();
+				option.setKey(dropDownValues.getDropDownTypeValueIdFk().getDropDownValueCode());
+				option.setValue(dropDownValues.getDropDownTypeValueIdFk().getDropDownValueEn());
+				
+				listOfOption.add(option);
+			}
+
+			//options.setDropDownTypeCode(dropDownValuesList.get(0).getDropDownTypeIdFk().getDropdownTypeCode());
+			//options.setDropDownTypeName(dropDownValuesList.get(0).getDropDownTypeIdFk().getDropdownTypeName());
+			
+			options.setOptionList(listOfOption);
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			response.setResponse(options);
+			return response;
+
+		} catch (NullArgumentException nae) {
+			Logger.error("Exception while fetching Dynamic drop down With lang code dropdownType");
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString())
+				.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+		}
+	}
+
+	
+	@PostMapping("/getDropdownValuesByElrTag")
+	public ServiceResponse getDropdownValuesByElrTag(@RequestBody DropDownValueDto dropDownValueDto) {
+		ServiceResponse response = null;
+		Logger.info("Request getDropdownValuesByElrTag");
+		try {
+			List<ConceptTypedDomain> conceptDomainList = new ArrayList<>();
+			List<Options> dropDownOptionBeanList = new ArrayList<>();
+			Return returnObj = null;
+			if(!Objects.isNull(dropDownValueDto)) {
+				if(!Validations.isEmpty(dropDownValueDto.getReturnCode())) {
+					returnObj = returnRepo.findByReturnCode(dropDownValueDto.getReturnCode().toUpperCase());
+				} else {
+					return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0648.toString())
+							.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0648.toString())).build();
+				}
+				
+				if(returnObj == null) {
+					return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0634.toString())
+							.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0634.toString())).build();
+				}
+				if(!Validations.isEmpty(dropDownValueDto.getReturnCode()) && !CollectionUtils.isEmpty(dropDownValueDto.getElrTagList()) && !CollectionUtils.isEmpty(dropDownValueDto.getConceptList())) {
+					conceptDomainList =  axisManagerRepo.findByActiveDataByReturnIdElrListConceptList(returnObj.getReturnId(), dropDownValueDto.getElrTagList(),dropDownValueDto.getConceptList());
+				} else if(!Validations.isEmpty(dropDownValueDto.getReturnCode()) && !CollectionUtils.isEmpty(dropDownValueDto.getElrTagList())) {
+					conceptDomainList =  axisManagerRepo.findByActiveDataByReturnIdElrList(returnObj.getReturnId(), dropDownValueDto.getElrTagList());
+				} else if(!Validations.isEmpty(dropDownValueDto.getReturnCode()) && !CollectionUtils.isEmpty(dropDownValueDto.getConceptList())) {
+					conceptDomainList =  axisManagerRepo.findByActiveDataByReturnIdConceptList(returnObj.getReturnId(),dropDownValueDto.getConceptList());
+				} else if(!Validations.isEmpty(dropDownValueDto.getReturnCode())) {
+					conceptDomainList =  axisManagerRepo.findByAllActiveDataByReturnId(returnObj.getReturnId());
+				}
+			}
+			if (!CollectionUtils.isEmpty(conceptDomainList)) {
+				dropDownOptionBeanList = getDropdownValList(conceptDomainList,returnObj);
+			}
+			if(!CollectionUtils.isEmpty(dropDownOptionBeanList)) {
+				response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			} else {
+				response = new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+			}
+			response.setResponse(dropDownOptionBeanList);
+			return response;
+		} catch (Exception e) {
+			Logger.error("Exception while fetching Dynamic drop down value With returnCode");
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString())
+				.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+		}
+	}
+
+	@SuppressWarnings("null")
+	private List<Options> getDropdownValList(List<ConceptTypedDomain> conceptTypedDomainList, Return returnObj) {
+		List<Options> dropDownOptionBeanList = new ArrayList<>();
+		try {
+			List<Long> dropDownTypeIdList = new ArrayList<>();
+			Option option;
+			Options options = null;
+			List<Option> optionList = new ArrayList<>();
+			List<Long> dropdownTypeIdList = new ArrayList<>();
+			List<ConceptTypedDomain> conceptDomainList = new ArrayList<>();
+			for(ConceptTypedDomain conceptTypedDomain : conceptTypedDomainList) {
+				dropDownTypeIdList.add(conceptTypedDomain.getDropDownTypeIdFk().getDropdownTypeId());
+			}
+			List<DropDownType> dropDownList = dynamicDropDownTypeRepo.findActiveDropdownByListDropdownTypeId(dropDownTypeIdList);
+			for (DropDownType dropDownType : dropDownList) {
+				options = new Options();
+				optionList = new ArrayList<>();
+				if(!dropDownType.isFormAPI()) {
+					dropdownTypeIdList = new ArrayList<>();
+					dropdownTypeIdList.add(dropDownType.getDropdownTypeId());
+					
+					List<DropDownValues>  dropDownValuesList = dynamicDropDownRepo.findByActiveWithDropDownTypeAndReturnCode(dropDownType.getDropdownTypeCode(),returnObj.getReturnCode().toUpperCase());
+					
+					conceptDomainList =  axisManagerRepo.findByActiveWithDropDownTypeId(dropdownTypeIdList, returnObj.getReturnId());
+					for(DropDownValues dropDownValues : dropDownValuesList) {
+						option = new Option();
+						option.setKey(dropDownValues.getDropDownValueCode());
+						option.setValue(dropDownValues.getDropDownValueEn());
+						if(!UtilMaster.isEmpty(dropDownValues.getDetails())) {
+							Type listToken = new TypeToken<Map<String, String>>() {
+							}.getType();
+							Map<String, String> beanMap = new Gson().fromJson(dropDownValues.getDetails(), listToken);
+							option.setDetailsMap(beanMap);
+						}
+						optionList.add(option);
+					}
+					options.setDropDownTypeCode(dropDownType.getDropdownTypeCode());
+					options.setDropDownTypeName(dropDownType.getDropdownTypeName());
+					options.setReturnCode(returnObj.getReturnCode());
+					if (!CollectionUtils.isEmpty(conceptDomainList)) {
+						for(ConceptTypedDomain conMngt : conceptDomainList) {
+							options.setConcept(conMngt.getConcept());
+							options.setTypeDomain(conMngt.getTypedDomain());
+							options.setExplicitMember(conMngt.getExplicitMember());
+							options.setElrTag(conMngt.getElrTag());
+						}	
+					}
+					options.setOptionList(optionList);
+					dropDownOptionBeanList.add(options);
+				}
+			}
+			
+		} catch (Exception e) {
+			Logger.error("Exception while fetching Dynamic drop down value : "+e);
+		}
+		return dropDownOptionBeanList;
+	}
+	
+}

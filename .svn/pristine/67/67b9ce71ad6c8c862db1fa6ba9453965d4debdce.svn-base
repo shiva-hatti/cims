@@ -1,0 +1,407 @@
+package com.iris.sdmx.sdmxDataModelCodesDownloadController;
+
+import java.util.HashMap;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.exception.ApplicationException;
+import com.iris.model.RoleType;
+import com.iris.model.UserMaster;
+import com.iris.sdmx.sdmxDataModelCodesDownloadBean.SdmxModelCodesDownloadBean;
+import com.iris.sdmx.sdmxDataModelCodesDownloadService.SdmxModelCodesDownloadService;
+import com.iris.service.GenericService;
+import com.iris.util.JsonUtility;
+import com.iris.util.UtilMaster;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.GeneralConstants;
+
+/**
+ * @author sdhone
+ *
+ */
+@RestController
+@RequestMapping(value = "/service/sdmxDataModelCodesDownloadController")
+public class SdmxDataModelCodesDownloadController {
+	
+	private static final Logger LOGGER = LogManager.getLogger(SdmxDataModelCodesDownloadController.class);
+	
+
+	@Autowired
+	private SdmxModelCodesDownloadService sdmxModelCodesDownloadService ;
+	
+	@Autowired
+	private GenericService<UserMaster, Long> userMasterService;
+	
+	//========== Feching  Api Start 
+	
+	@PostMapping(value = "/getAllSDMXPublishTemplate")
+	public ServiceResponse getAllSDMXPublishTemplate(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody SdmxModelCodesDownloadBean sdmxModelCodesDownloadBean ) {
+		LOGGER.info("Request received to get dimension data for job processing Id : " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(sdmxModelCodesDownloadBean));
+		
+		try {
+			validateSdmxModelCodesRequestBean(jobProcessId, sdmxModelCodesDownloadBean);
+
+			UserMaster userMaster = userMasterService.getDataById(sdmxModelCodesDownloadBean.getUserId());
+			
+			if(userMaster == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			} else if(userMaster.getRoleType() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			
+			RoleType roleType = userMaster.getRoleType();
+			
+			if(GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().equals(roleType.getRoleTypeId())) {
+				// return with error response;
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0613.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0613.toString())).build();
+			}
+		
+			List<SdmxModelCodesDownloadBean> sdmxModelCodesDownloadBeans = sdmxModelCodesDownloadService.fetchPublishTemplate(sdmxModelCodesDownloadBean.getReturnIdList(), jobProcessId);
+			return new ServiceResponseBuilder().setStatus(true).setResponse(sdmxModelCodesDownloadBeans).build();
+			
+		}catch(ApplicationException e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(e.getErrorCode()).setStatusMessage(ObjectCache.getErrorCodeKey(e.getErrorCode())).build();
+		}catch(Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+	
+	@PostMapping(value = "/getAllElementAccordingDataTemplate")
+	public ServiceResponse getAllElementAccordingDataTemplate(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody SdmxModelCodesDownloadBean sdmxModelCodesDownloadBean ) {
+		LOGGER.info("Request received to get dimension data for job processing Id : " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(sdmxModelCodesDownloadBean));
+		
+		try {
+			validateSdmxModelCodesRequestBean(jobProcessId, sdmxModelCodesDownloadBean);
+
+			UserMaster userMaster = userMasterService.getDataById(sdmxModelCodesDownloadBean.getUserId());
+			
+			if(userMaster == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			} else if(userMaster.getRoleType() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			
+			RoleType roleType = userMaster.getRoleType();
+			
+			if(GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().equals(roleType.getRoleTypeId())) {
+				// return with error response;
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0613.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0613.toString())).build();
+			}
+		
+			List<SdmxModelCodesDownloadBean> sdmxModelCodesDownloadBeans = sdmxModelCodesDownloadService.getAllElementAccordingDataTemplate( sdmxModelCodesDownloadBean.getReturnPreviewTypeId(),jobProcessId);
+			return new ServiceResponseBuilder().setStatus(true).setResponse(sdmxModelCodesDownloadBeans).build();
+			
+		}catch(ApplicationException e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(e.getErrorCode()).setStatusMessage(ObjectCache.getErrorCodeKey(e.getErrorCode())).build();
+		}catch(Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+	
+	@PostMapping(value = "/getTemplateDetailsAccordingEle")
+	public ServiceResponse getTemplateDetailsAccordingEle(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody SdmxModelCodesDownloadBean sdmxModelCodesDownloadBean ) {
+		LOGGER.info("Request received to get dimension data for job processing Id : " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(sdmxModelCodesDownloadBean));
+		
+		try {
+			validateSdmxModelCodesRequestBean(jobProcessId, sdmxModelCodesDownloadBean);
+
+			UserMaster userMaster = userMasterService.getDataById(sdmxModelCodesDownloadBean.getUserId());
+			
+			if(userMaster == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			} else if(userMaster.getRoleType() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			
+			RoleType roleType = userMaster.getRoleType();
+			
+			if(GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().equals(roleType.getRoleTypeId())) {
+				// return with error response;
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0613.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0613.toString())).build();
+			}
+		
+			//List<SdmxModelCodesDownloadBean> sdmxModelCodesDownloadBeans = sdmxModelCodesDownloadService.generateCsvForTemplate( sdmxModelCodesDownloadBean,jobProcessId);
+			//return new ServiceResponseBuilder().setStatus(true).setResponse(sdmxModelCodesDownloadBeans).build();
+			List<SdmxModelCodesDownloadBean> sdmxModelCodesDownloadBeans =  sdmxModelCodesDownloadService.getTemplateDetailsAccordingEle( sdmxModelCodesDownloadBean,jobProcessId);
+			return new ServiceResponseBuilder().setStatus(true).setResponse(sdmxModelCodesDownloadBeans).build();
+		}catch(ApplicationException e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(e.getErrorCode()).setStatusMessage(ObjectCache.getErrorCodeKey(e.getErrorCode())).build();
+		}catch(Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+	
+	
+	
+	//=========== Feching  Api Done ==================== 
+	
+
+	
+	
+	//==== Downloading Api Start =====// 
+	
+	@PostMapping(value = "/downloadCsvForTemplateView")
+	public ServiceResponse downloadCsvForTemplateView(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody SdmxModelCodesDownloadBean sdmxModelCodesDownloadBean ) {
+		LOGGER.info("Request received to get dimension data for job processing Id : " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(sdmxModelCodesDownloadBean));
+		
+		try {
+			validateSdmxModelCodesRequestBean(jobProcessId, sdmxModelCodesDownloadBean);
+
+			UserMaster userMaster = userMasterService.getDataById(sdmxModelCodesDownloadBean.getUserId());
+			
+			if(userMaster == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			} else if(userMaster.getRoleType() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			
+			RoleType roleType = userMaster.getRoleType();
+			
+			if(GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().equals(roleType.getRoleTypeId())) {
+				// return with error response;
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0613.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0613.toString())).build();
+			}
+		
+			//List<SdmxModelCodesDownloadBean> sdmxModelCodesDownloadBeans = sdmxModelCodesDownloadService.generateCsvForTemplate( sdmxModelCodesDownloadBean,jobProcessId);
+			//return new ServiceResponseBuilder().setStatus(true).setResponse(sdmxModelCodesDownloadBeans).build();
+			String direcotryPath = sdmxModelCodesDownloadService.downloadCsvForTemplateView( sdmxModelCodesDownloadBean,jobProcessId,userMaster);
+			return new ServiceResponseBuilder().setStatus(true).setResponse(direcotryPath).build();
+		}catch(ApplicationException e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(e.getErrorCode()).setStatusMessage(ObjectCache.getErrorCodeKey(e.getErrorCode())).build();
+		}catch(Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+	
+	
+	@PostMapping(value = "/downloadJsonFile")
+	public ServiceResponse downloadJsonFile(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody SdmxModelCodesDownloadBean sdmxModelCodesDownloadBean ) {
+		LOGGER.info("Request received to get dimension data for job processing Id : " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(sdmxModelCodesDownloadBean));
+		
+		try {
+			validateSdmxModelCodesRequestBeanToDownloadJsonFile(jobProcessId, sdmxModelCodesDownloadBean);
+
+			UserMaster userMaster = userMasterService.getDataById(sdmxModelCodesDownloadBean.getUserId());
+			
+			if(userMaster == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			} else if(userMaster.getRoleType() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			
+			RoleType roleType = userMaster.getRoleType();
+			
+			if(GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().equals(roleType.getRoleTypeId())) {
+				// return with error response;
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0613.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0613.toString())).build();
+			}
+			
+			String jsonFilePath = sdmxModelCodesDownloadService.generateJsonFile(sdmxModelCodesDownloadBean,jobProcessId,userMaster);
+			
+			return new ServiceResponseBuilder().setStatus(true).setResponse(jsonFilePath).build();
+		}catch(ApplicationException e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(e.getErrorCode()).setStatusMessage(ObjectCache.getErrorCodeKey(e.getErrorCode())).build();
+		}catch(Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+	
+	@PostMapping(value = "/downloadElementWiseJsonFile")
+	public ServiceResponse downloadElementWiseJsonFile(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody SdmxModelCodesDownloadBean sdmxModelCodesDownloadBean ) {
+		LOGGER.info("Request received to get dimension data for job processing Id : " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(sdmxModelCodesDownloadBean));
+		
+		try {
+			validateSdmxModelCodesRequestBeanToDownloadElementWiseJsonFile(jobProcessId, sdmxModelCodesDownloadBean);
+
+			UserMaster userMaster = userMasterService.getDataById(sdmxModelCodesDownloadBean.getUserId());
+			
+			if(userMaster == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			} else if(userMaster.getRoleType() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			
+			RoleType roleType = userMaster.getRoleType();
+			
+			if(GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().equals(roleType.getRoleTypeId())) {
+				// return with error response;
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0613.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0613.toString())).build();
+			}
+			
+			String jsonFilePath = sdmxModelCodesDownloadService.generateElementWiseJsonFile(sdmxModelCodesDownloadBean,jobProcessId,userMaster);
+			
+			return new ServiceResponseBuilder().setStatus(true).setResponse(jsonFilePath).build();
+		}catch(ApplicationException e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(e.getErrorCode()).setStatusMessage(ObjectCache.getErrorCodeKey(e.getErrorCode())).build();
+		}catch(Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+	
+	
+	@PostMapping(value = "/generateElementWiseCsvFile")
+	public ServiceResponse generateElementWiseCsvFile(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody SdmxModelCodesDownloadBean sdmxModelCodesDownloadBean ) {
+		LOGGER.info("Request received to get dimension data for job processing Id : " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(sdmxModelCodesDownloadBean));
+		
+		try {
+			validateSdmxModelCodesRequestBeanToDownloadElementWiseJsonFile(jobProcessId, sdmxModelCodesDownloadBean);
+
+			UserMaster userMaster = userMasterService.getDataById(sdmxModelCodesDownloadBean.getUserId());
+			
+			if(userMaster == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			} else if(userMaster.getRoleType() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			
+			RoleType roleType = userMaster.getRoleType();
+			
+			if(GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().equals(roleType.getRoleTypeId())) {
+				// return with error response;
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0613.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0613.toString())).build();
+			}
+			
+			String csvFilePath = sdmxModelCodesDownloadService.generateElementWiseCsvFile(sdmxModelCodesDownloadBean,jobProcessId,userMaster);
+			
+			return new ServiceResponseBuilder().setStatus(true).setResponse(csvFilePath).build();
+		}catch(ApplicationException e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(e.getErrorCode()).setStatusMessage(ObjectCache.getErrorCodeKey(e.getErrorCode())).build();
+		}catch(Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+	
+	
+    // end Download Api Is Completed 
+	
+	
+	
+	//Sagar
+	@PostMapping(value = "/generateCsvForTemplate")
+	public ServiceResponse generateCsvForTemplate(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody SdmxModelCodesDownloadBean sdmxModelCodesDownloadBean ) {
+		LOGGER.info("Request received to get dimension data for job processing Id : " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(sdmxModelCodesDownloadBean));
+		
+		try {
+			validateSdmxModelCodesRequestBean(jobProcessId, sdmxModelCodesDownloadBean);
+
+			UserMaster userMaster = userMasterService.getDataById(sdmxModelCodesDownloadBean.getUserId());
+			
+			if(userMaster == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			} else if(userMaster.getRoleType() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			
+			RoleType roleType = userMaster.getRoleType();
+			
+			if(GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().equals(roleType.getRoleTypeId())) {
+				// return with error response;
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0613.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0613.toString())).build();
+			}
+		
+			//List<SdmxModelCodesDownloadBean> sdmxModelCodesDownloadBeans = sdmxModelCodesDownloadService.generateCsvForTemplate( sdmxModelCodesDownloadBean,jobProcessId);
+			//return new ServiceResponseBuilder().setStatus(true).setResponse(sdmxModelCodesDownloadBeans).build();
+			sdmxModelCodesDownloadService.generateCsvForTemplateNew( sdmxModelCodesDownloadBean,jobProcessId,userMaster);
+			
+			return new ServiceResponseBuilder().setStatus(true).build();
+		}catch(ApplicationException e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(e.getErrorCode()).setStatusMessage(ObjectCache.getErrorCodeKey(e.getErrorCode())).build();
+		}catch(Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+	
+
+	
+	
+	
+	private void validateSdmxModelCodesRequestBean(String jobProcessingId,
+			SdmxModelCodesDownloadBean sdmxModelCodesDownloadBean ) throws ApplicationException {
+		if (UtilMaster.isEmpty(jobProcessingId) || UtilMaster.isEmpty(sdmxModelCodesDownloadBean.getUserId())
+				|| UtilMaster.isEmpty(sdmxModelCodesDownloadBean.getRoleId()) ) {
+			throw new ApplicationException(ErrorCode.E0889.toString(),ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString()));
+		}		
+	}
+
+
+	private void validateSdmxModelCodesRequestBeanToDownloadJsonFile(String jobProcessingId,
+			SdmxModelCodesDownloadBean sdmxModelCodesDownloadBean ) throws ApplicationException {
+		if (UtilMaster.isEmpty(jobProcessingId) || UtilMaster.isEmpty(sdmxModelCodesDownloadBean.getUserId())
+				|| UtilMaster.isEmpty(sdmxModelCodesDownloadBean.getRoleId()) || UtilMaster.isEmpty(sdmxModelCodesDownloadBean.getReturnCode())
+				|| UtilMaster.isEmpty(sdmxModelCodesDownloadBean.getVersionNumber()) ||  CollectionUtils.isEmpty(sdmxModelCodesDownloadBean.getSdmxElementList())) {
+			throw new ApplicationException(ErrorCode.E0889.toString(),ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString()));
+		}		
+	}
+	
+	private void validateSdmxModelCodesRequestBeanToDownloadElementWiseJsonFile(String jobProcessingId,
+			SdmxModelCodesDownloadBean sdmxModelCodesDownloadBean ) throws ApplicationException {
+		if (UtilMaster.isEmpty(jobProcessingId) || UtilMaster.isEmpty(sdmxModelCodesDownloadBean.getUserId())
+				|| UtilMaster.isEmpty(sdmxModelCodesDownloadBean.getRoleId()) || UtilMaster.isEmpty(sdmxModelCodesDownloadBean.getElementCode())
+				|| UtilMaster.isEmpty(sdmxModelCodesDownloadBean.getVersionNumber()) ||  CollectionUtils.isEmpty(sdmxModelCodesDownloadBean.getSdmxReturnPreviewBeans())) {
+			throw new ApplicationException(ErrorCode.E0889.toString(),ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString()));
+		}			
+	}
+	
+	
+	
+	public static void main(String[] args) {
+		
+		Set<Map<String, String>> setValue = new HashSet<>();
+		
+		Map<String, String> map1 = new HashMap<>();
+		map1.put("DSDID", "RBI:AALOE(1.0)");
+		map1.put("CELL_REF_NUMBER", "29a50");
+		map1.put("DMID", "DMI002950");
+
+		Map<String, String> map2 = new HashMap<>();
+		map2.put("DSDID", "RBI:AALOE(1.0)");
+		map2.put("CELL_REF_NUMBER", "2950");
+		map2.put("DMID", "DMI002950");
+		
+		
+		setValue.add(map1);
+		setValue.add(map2);
+		
+		System.out.println(setValue);
+		
+		
+		
+		
+
+		
+		
+		
+		
+	}
+}

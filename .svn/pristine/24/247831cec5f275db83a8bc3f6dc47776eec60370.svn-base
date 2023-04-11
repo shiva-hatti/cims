@@ -1,0 +1,42 @@
+package com.iris.formula.gen.controller;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.iris.formula.gen.FormulaBean;
+import com.iris.formula.gen.service.FormulaGeneratorService;
+import com.iris.webservices.client.ServiceResponse;
+
+@RestController
+@RequestMapping("/service/formula")
+public class FormulaGenController {
+	private static final Logger Logger = LoggerFactory.getLogger(FormulaGenController.class);
+
+	@Autowired
+	private FormulaGeneratorService service;
+
+
+	@PostMapping("/save")
+	public ServiceResponse saveFormula(@RequestHeader(name = "JobProcessingId") String jobProcessId,@RequestBody
+			FormulaBean formula) throws JsonProcessingException  {
+		Logger.info("into Save Formula Controller");
+		service.saveFormula(formula);
+		return new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+
+	}
+	
+	@PostMapping("/getError")
+	public ServiceResponse gerError(@RequestHeader(name = "JobProcessingId") String jobProcessId,@RequestBody
+			FormulaBean formula) throws JsonProcessingException  {
+		Logger.info("into Save Formula Controller");
+		return new ServiceResponse.ServiceResponseBuilder().setResponse(service.prepareEditFormula(formula)).setStatus(true).build();
+
+	}
+}

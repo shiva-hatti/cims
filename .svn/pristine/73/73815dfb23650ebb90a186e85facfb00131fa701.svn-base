@@ -1,0 +1,408 @@
+/**
+ * 
+ */
+package com.iris.sdmx.lockrecord.service;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.iris.caching.ObjectCache;
+import com.iris.exception.ApplicationException;
+import com.iris.exception.ServiceException;
+import com.iris.model.ReturnTemplate;
+import com.iris.model.UserMaster;
+import com.iris.repository.ReturnTemplateRepository;
+import com.iris.sdmx.exceltohtml.bean.CellRefLockLogsBean;
+import com.iris.sdmx.exceltohtml.entity.SdmxReturnPreviewEntity;
+import com.iris.sdmx.exceltohtml.repo.SdmxReturnPreviewRepo;
+import com.iris.sdmx.lockrecord.bean.SdmxLockRecordBean;
+import com.iris.sdmx.lockrecord.bean.SdmxLockRecordSetBean;
+import com.iris.sdmx.lockrecord.entity.SdmxLockRecordEntity;
+import com.iris.sdmx.lockrecord.helper.SdmxLockRecordHelper;
+import com.iris.sdmx.lockrecord.repo.SdmxLockRecordRepo;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ErrorCode;
+
+
+
+/**
+ * @author apagaria
+ *
+ */
+@Service
+@Transactional(readOnly = true)
+public class SdmxLockRecordService implements GenericService<SdmxLockRecordEntity, Long> {
+
+	private static final Logger LOGGER = LogManager.getLogger(SdmxLockRecordService.class);
+
+	@Autowired
+	private SdmxLockRecordRepo sdmxLockRecordRepo;
+
+	@Autowired
+	private SdmxLockRecordHelper sdmxLockRecordHelper;
+
+	@Autowired
+	private SdmxReturnPreviewRepo sdmxReturnPreviewRepo;
+	@Autowired
+	private ReturnTemplateRepository returnTemplateRepository;
+	
+	@Override
+	public SdmxLockRecordEntity add(SdmxLockRecordEntity sdmxLockRecordEntity) throws ServiceException {
+		return sdmxLockRecordRepo.save(sdmxLockRecordEntity);
+	}
+
+	@Override
+	public boolean update(SdmxLockRecordEntity entity) throws ServiceException {
+
+		return false;
+	}
+
+	@Override
+	public List<SdmxLockRecordEntity> getDataByIds(Long[] ids) throws ServiceException {
+
+		return null;
+	}
+
+	@Override
+	public SdmxLockRecordEntity getDataById(Long id) throws ServiceException {
+
+		return null;
+	}
+
+	@Override
+	public List<SdmxLockRecordEntity> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+
+		return null;
+	}
+
+	@Override
+	public List<SdmxLockRecordEntity> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap,
+			String methodName) throws ServiceException {
+
+		return null;
+	}
+
+	@Override
+	public List<SdmxLockRecordEntity> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<SdmxLockRecordEntity> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<SdmxLockRecordEntity> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public void deleteData(SdmxLockRecordEntity bean) throws ServiceException {
+
+	}
+
+	/**
+	 * @param sdmxLockRecordSetBean
+	 * @param jobProcessingId
+	 * @param userId
+	 */
+	@Transactional(readOnly = false)
+	public void setLockOnRecord(SdmxLockRecordSetBean sdmxLockRecordSetBean, String jobProcessingId, Long userId,
+			Long lockRecordId, String recordDetailEncodedStr) {
+		LOGGER.info("Job Processing id - " + jobProcessingId + ", @setLockOnRecord START");
+		SdmxLockRecordEntity sdmxLockRecordEntity = new SdmxLockRecordEntity();
+		sdmxLockRecordHelper.convertSetBeanToEntity(sdmxLockRecordSetBean, sdmxLockRecordEntity, userId,
+				jobProcessingId, lockRecordId, recordDetailEncodedStr);
+		add(sdmxLockRecordEntity);
+		LOGGER.info("Job Processing id - " + jobProcessingId + ", @setLockOnRecord END");
+	}
+
+	/**
+	 * @param recordDetailEncode
+	 * @param isActive
+	 * @param jobProcessingId
+	 * @return
+	 */
+	public SdmxLockRecordBean findByRecordDetailEncodeNActive(String recordDetailEncode, Boolean isActive,
+			String jobProcessingId) {
+		LOGGER.info("Job Processing id - " + jobProcessingId + ", @findByRecordDetailEncodeNActive START");
+		LOGGER.debug("Job Processing id - " + jobProcessingId
+				+ ", @findByRecordDetailEncodeNActive recordDetailEncode - " + recordDetailEncode);
+		SdmxLockRecordBean sdmxLockRecordBean = null;
+		SdmxLockRecordEntity sdmxLockRecordEntity = sdmxLockRecordRepo
+				.findByRecordDetailEncodeNActive(recordDetailEncode, isActive);
+		if (sdmxLockRecordEntity != null) {
+			sdmxLockRecordBean = new SdmxLockRecordBean();
+			SdmxLockRecordHelper.fetchBeanFromEntity(sdmxLockRecordEntity, sdmxLockRecordBean, jobProcessingId);
+		} else {
+			LOGGER.debug(
+					"Job Processing id - " + jobProcessingId + ", @findByRecordDetailEncodeNActive no entity found");
+		}
+		LOGGER.info("Job Processing id - " + jobProcessingId + ", @findByRecordDetailEncodeNActive END");
+		return sdmxLockRecordBean;
+	}
+
+	/**
+	 * @param recordDetailEncode
+	 * @param isActive
+	 * @param jobProcessingId
+	 * @return
+	 */
+	public SdmxLockRecordBean findByRecordDetailEncode(String recordDetailEncode, String jobProcessingId) {
+		LOGGER.info("Job Processing id - " + jobProcessingId + ", @findByRecordDetailEncode START");
+		LOGGER.debug("Job Processing id - " + jobProcessingId + ", @findByRecordDetailEncode recordDetailEncode - "
+				+ recordDetailEncode);
+		SdmxLockRecordBean sdmxLockRecordBean = null;
+		SdmxLockRecordEntity sdmxLockRecordEntity = sdmxLockRecordRepo.findByRecordDetailEncode(recordDetailEncode);
+		if (sdmxLockRecordEntity != null) {
+			sdmxLockRecordBean = new SdmxLockRecordBean();
+			SdmxLockRecordHelper.fetchBeanFromEntity(sdmxLockRecordEntity, sdmxLockRecordBean, jobProcessingId);
+		} else {
+			LOGGER.debug("Job Processing id - " + jobProcessingId + ", @findByRecordDetailEncode no entity found");
+		}
+		LOGGER.info("Job Processing id - " + jobProcessingId + ", @findByRecordDetailEncode END");
+		return sdmxLockRecordBean;
+	}
+
+	/**
+	 * @param recordDetailEncode
+	 * @param isActive
+	 * @param jobProcessingId
+	 */
+	@Transactional(readOnly = false)
+	public void findNSaveByRecordDetailEncodeNActive(String recordDetailEncode, Boolean isActive,
+			Long userId,String jobProcessingId) {
+		LOGGER.info("Job Processing id - " + jobProcessingId + ", @findNSaveByRecordDetailEncodeNActive START");
+		LOGGER.debug("Job Processing id - " + jobProcessingId
+				+ ", @findNSaveByRecordDetailEncodeNActive recordDetailEncode - " + recordDetailEncode);
+		SdmxLockRecordEntity sdmxLockRecordEntity = sdmxLockRecordRepo
+				.findByRecordDetailEncodeNActive(recordDetailEncode, isActive);
+		if (sdmxLockRecordEntity != null) {
+			if(userId != null) {
+				UserMaster releasedBy = new UserMaster();
+				releasedBy.setUserId(userId);
+				sdmxLockRecordEntity.setReleasedBy(releasedBy);
+				sdmxLockRecordEntity.setReleasedOn(new Date());
+			}
+			
+			sdmxLockRecordEntity.setIsActive(Boolean.FALSE);
+			add(sdmxLockRecordEntity);
+		} else {
+			LOGGER.debug("Job Processing id - " + jobProcessingId
+					+ ", @findNSaveByRecordDetailEncodeNActive no entity found");
+		}
+		LOGGER.info("Job Processing id - " + jobProcessingId + ", @findNSaveByRecordDetailEncodeNActive END");
+	}
+
+	/**
+	 * @param moduleId
+	 * @param returnTemplateIdFk
+	 * @return
+	 */
+	public Boolean isReturnTemplateLocked(Long moduleId, Long returnTemplateIdFk, Long returnPreviewId) {
+		Boolean isReturnLocked = true;
+		List<SdmxLockRecordEntity> sdmxLockRecordEntities = sdmxLockRecordRepo.findEntityByModelDimNElementId(moduleId,
+				returnTemplateIdFk,returnPreviewId);
+		if(CollectionUtils.isEmpty(sdmxLockRecordEntities)) {
+			isReturnLocked = false;
+		}
+		return isReturnLocked;
+	}
+	
+	@Transactional(readOnly = true)
+	public List<SdmxLockRecordEntity> getMultipleCellRefLock(Long returnTemplateId, Long returnPreviewId, String jobProcessingId){
+		LOGGER.info("Job Processing id - " + jobProcessingId + ", @getMultipleCellRefLock START");
+		List<SdmxLockRecordEntity> sdmxLockRecordEntities = new ArrayList<>();
+		sdmxLockRecordEntities = sdmxLockRecordRepo.getMultipleCellRefLock(returnTemplateId, returnPreviewId);
+		LOGGER.info("Job Processing id - " + jobProcessingId + ", @getMultipleCellRefLock END");
+		return sdmxLockRecordEntities;
+	}
+	
+	@Transactional(readOnly = false)
+	public void releaseMultipleCellRefLock(List<SdmxLockRecordEntity> sdmxLockRecordEntities,Long userId, String jobProcessingId) {
+		LOGGER.info("Job Processing id - " + jobProcessingId + ", @releaseMultipleCellRefLock START");
+		if(!sdmxLockRecordEntities.isEmpty()) {
+			for(SdmxLockRecordEntity sdmxLockRecordEntity: sdmxLockRecordEntities) {
+				UserMaster releasedBy = new UserMaster();
+				releasedBy.setUserId(userId);
+				sdmxLockRecordEntity.setReleasedBy(releasedBy);
+				sdmxLockRecordEntity.setReleasedOn(new Date());
+				sdmxLockRecordEntity.setIsActive(Boolean.FALSE);
+				add(sdmxLockRecordEntity);
+			}
+		}
+		LOGGER.info("Job Processing id - " + jobProcessingId + ", @releaseMultipleCellRefLock END");
+	}
+	
+	public List<CellRefLockLogsBean> getCellRefLockLogs(Long returnPreviewId,String jobProcessId) {
+		LOGGER.info("Job Processing id - " + jobProcessId + ", @getCellRefLockLogs - START");
+		Gson gson = new Gson();
+		List<SdmxLockRecordEntity> sdmxLockRecordEntities = new ArrayList<>();
+		List<CellRefLockLogsBean> cellRefLockLogsBeanList = new ArrayList<>();
+		List<CellRefLockLogsBean> cellRefLockLogsBeanListSorted = new ArrayList<>();
+		CellRefLockLogsBean cellRefLockLogsBean;
+		LOGGER.debug("Job Processing id - " + jobProcessId
+				+ ", Service @getCellRefLockLogs fetching lock logs - START");
+		sdmxLockRecordEntities = sdmxLockRecordRepo.getCellRefLockLogs(returnPreviewId);
+		LOGGER.debug("Job Processing id - " + jobProcessId
+				+ ", Service @getCellRefLockLogs fetching lock logs - END");
+		if(!sdmxLockRecordEntities.isEmpty()) {
+			for(SdmxLockRecordEntity sdmxLockRecordEntity: sdmxLockRecordEntities) {
+				SortedMap<String, Long> retMap = gson.fromJson(sdmxLockRecordEntity.getRecordDetailJson(),
+						new TypeToken<TreeMap<String, Long>>() {
+						}.getType());
+				if(retMap.containsKey("returnCellRef")) {
+					cellRefLockLogsBean = new CellRefLockLogsBean();
+					
+					cellRefLockLogsBean.setCellReference(retMap.get("returnCellRef"));
+					cellRefLockLogsBean.setLockedById(sdmxLockRecordEntity.getLockedBy().getUserId());
+					cellRefLockLogsBean.setLockedByName(sdmxLockRecordEntity.getLockedBy().getUserName());
+					cellRefLockLogsBean.setLockedOnInLong(sdmxLockRecordEntity.getCreatedOn().getTime());
+					
+					cellRefLockLogsBeanList.add(cellRefLockLogsBean);
+				}
+			}
+			LOGGER.debug("Job Processing id - " + jobProcessId
+					+ ", Service @getCellRefLockLogs Sorting lock logs list - START");
+			cellRefLockLogsBeanListSorted = cellRefLockLogsBeanList.stream()
+		            .sorted(Comparator.comparingLong(CellRefLockLogsBean::getCellReference))
+		            .collect(Collectors.toList());
+			LOGGER.debug("Job Processing id - " + jobProcessId
+					+ ", Service @getCellRefLockLogs Sorting lock logs list - END");
+		} 
+		LOGGER.info("Job Processing id - " + jobProcessId + ", @getCellRefLockLogs - END");
+		return cellRefLockLogsBeanListSorted;
+		
+	}
+	
+	public Boolean isReturnCellRefLocked( Long returnPreviewId, Long cellRef) {
+		Boolean isReturnCellRefLocked = true;
+		SdmxLockRecordEntity sdmxLockRecordEntity = sdmxLockRecordRepo.isReturnCellRefLocked(returnPreviewId,cellRef);
+				
+		if(sdmxLockRecordEntity == null) {
+			isReturnCellRefLocked = false;
+		}
+		return isReturnCellRefLocked;
+	}
+	
+	public List<SdmxLockRecordBean> getModuleWiseLocks(Long moduleId, String jobProcessId) {
+		LOGGER.info("Job Processing id - " + jobProcessId + ", @getModuleWiseLocks - START");
+		List<SdmxLockRecordEntity> sdmxLockRecordEntityList = new ArrayList<>();
+		LOGGER.debug("Job Processing id - " + jobProcessId
+				+ ", excute getModuleWiseLocks query - START");
+		sdmxLockRecordEntityList = sdmxLockRecordRepo.getModuleWiseLocks(moduleId, Boolean.TRUE);
+		LOGGER.debug("Job Processing id - " + jobProcessId
+				+ ", excute getModuleWiseLocks query - END");
+		List<SdmxLockRecordBean> sdmxLockRecordBeanList = new ArrayList<>();
+		SdmxLockRecordBean sdmxLockRecordBean;
+		if(!sdmxLockRecordEntityList.isEmpty()) {
+			for(SdmxLockRecordEntity sdmxLockRecordEntity: sdmxLockRecordEntityList) {
+				sdmxLockRecordBean = new SdmxLockRecordBean();
+				SdmxLockRecordHelper.fetchBeanFromEntity(sdmxLockRecordEntity, sdmxLockRecordBean, jobProcessId);
+				sdmxLockRecordBeanList.add(sdmxLockRecordBean);
+			}
+		} else {
+			LOGGER.debug("Job Processing id - " + jobProcessId
+					+ ", No entity found");
+		}
+		
+		LOGGER.info("Job Processing id - " + jobProcessId + ", @getModuleWiseLocks - END");
+		return sdmxLockRecordBeanList;
+	}
+	
+	@Transactional(readOnly = false)
+	public void releaseModuleWiseLocks(List<Long> lockRecordIdList,Long moduleId, Long userId,String jobProcessId) throws ApplicationException {
+		LOGGER.info("Job Processing id - " + jobProcessId + ", @releaseModuleWiseLocks - START");
+		List<SdmxLockRecordEntity> sdmxLockRecordEntityList = new ArrayList<>();
+		LOGGER.debug("Job Processing id - " + jobProcessId
+				+ ", excute getLocks query - START");
+		sdmxLockRecordEntityList = sdmxLockRecordRepo.getLocks(lockRecordIdList,moduleId, Boolean.TRUE);
+		LOGGER.debug("Job Processing id - " + jobProcessId
+				+ ", excute getLocks query - END");
+		if(moduleId == 2) {
+			validateReusedTemplate(sdmxLockRecordEntityList,jobProcessId);
+		}
+		if(!sdmxLockRecordEntityList.isEmpty()) {
+			for(SdmxLockRecordEntity sdmxLockRecordEntity: sdmxLockRecordEntityList) {
+				UserMaster releasedBy = new UserMaster();
+				releasedBy.setUserId(userId);
+				sdmxLockRecordEntity.setReleasedBy(releasedBy);
+				sdmxLockRecordEntity.setReleasedOn(new Date());
+				sdmxLockRecordEntity.setIsActive(Boolean.FALSE);
+				add(sdmxLockRecordEntity);
+			}
+		} else {
+			LOGGER.debug("Job Processing id - " + jobProcessId
+					+ ", No entity found");
+		} 
+		LOGGER.info("Job Processing id - " + jobProcessId + ", @releaseModuleWiseLocks - END");
+	}
+	
+	public Map<Long,String> getReturnInfo(List<Long> templateIdList, String jobProcessId) {
+		LOGGER.info("Job Processing id - " + jobProcessId + ", @getReturnInfo - START");
+		List<ReturnTemplate> returnInfoList = new ArrayList<>();
+		returnInfoList = returnTemplateRepository.getReturnInfo(templateIdList);
+		Map<Long,String> templateReturnInfoMap = new HashMap<>();
+		
+		if(!returnInfoList.isEmpty()) {
+			for(ReturnTemplate returnTemplate : returnInfoList) {
+				
+					templateReturnInfoMap.put(returnTemplate.getReturnTemplateId(),
+							returnTemplate.getReturnObj().getReturnName()+"~"+returnTemplate.getVersionNumber());
+				
+			}
+		}
+		
+		LOGGER.info("Job Processing id - " + jobProcessId + ", @getReturnInfo - START");
+		return templateReturnInfoMap;
+	}
+	
+	public void validateReusedTemplate(List<SdmxLockRecordEntity> sdmxLockRecordEntityList, String jobProcessId) throws ApplicationException{
+		LOGGER.info("Job Processing id - " + jobProcessId + ", @validateReusedTemplate - START");
+		List<String> templateIdList = new ArrayList<>();
+		Gson gson = new Gson();
+		if(!sdmxLockRecordEntityList.isEmpty()) {
+			for(SdmxLockRecordEntity sdmxLockRecordEntity: sdmxLockRecordEntityList) {
+				SortedMap<String, Long> retMap = gson.fromJson(sdmxLockRecordEntity.getRecordDetailJson(),
+						new TypeToken<TreeMap<String, Long>>() {
+						}.getType());
+				Long templateId = retMap.get("returnTemplateId");
+				if(!templateIdList.contains(templateId.toString())) {
+					templateIdList.add(templateId.toString());
+				}
+			}
+		}
+		
+		if(!templateIdList.isEmpty()) {
+			List<SdmxReturnPreviewEntity> sdmxReturnPreviewEntity = new ArrayList<>();
+			sdmxReturnPreviewEntity = sdmxReturnPreviewRepo.validateReusedTemplate(templateIdList);
+			if(!sdmxReturnPreviewEntity.isEmpty()) {
+				throw new ApplicationException(ErrorCode.E1216.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E1216.toString()));
+
+			}
+		}
+		LOGGER.info("Job Processing id - " + jobProcessId + ", @validateReusedTemplate - END");
+	}
+}

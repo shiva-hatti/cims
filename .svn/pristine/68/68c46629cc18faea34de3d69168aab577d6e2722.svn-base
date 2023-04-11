@@ -1,0 +1,276 @@
+/**
+ * 
+ */
+package com.iris.sdmx.element.bean;
+
+import java.io.Serializable;
+
+import com.iris.sdmx.util.SdmxValidations;
+
+/**
+ * @author apagaria
+ *
+ */
+public class SdmxEditElementInputBean implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	private String elementLabel;
+
+	private Long classificationTypeId;
+
+	private Long flowTypeId;
+
+	private Long natureTypeId;
+
+	private Long dependencyTypeId;
+
+	private Long sectorTypeId;
+
+	private String ownerDepartmentCode;
+
+	private String parentElementDsdCode;
+
+	private String parentElementVer;
+
+	private String elementDesc;
+
+	private Long roleId;
+	
+	private Boolean addApproval;
+	
+	private Boolean editApproval;
+	
+	//newly added
+	private String elementVer;
+	
+	private String agencyMasterCode;
+
+	/**
+	 * @return the elementLabel
+	 */
+	public String getElementLabel() {
+		return elementLabel;
+	}
+
+	/**
+	 * @param elementLabel the elementLabel to set
+	 */
+	public void setElementLabel(String elementLabel) {
+		this.elementLabel = SdmxValidations.trimInput(elementLabel);
+	}
+
+	/**
+	 * @return the classificationTypeId
+	 */
+	public Long getClassificationTypeId() {
+		return classificationTypeId;
+	}
+
+	/**
+	 * @param classificationTypeId the classificationTypeId to set
+	 */
+	public void setClassificationTypeId(Long classificationTypeId) {
+		this.classificationTypeId = classificationTypeId;
+	}
+
+	/**
+	 * @return the flowTypeId
+	 */
+	public Long getFlowTypeId() {
+		return flowTypeId;
+	}
+
+	/**
+	 * @param flowTypeId the flowTypeId to set
+	 */
+	public void setFlowTypeId(Long flowTypeId) {
+		this.flowTypeId = flowTypeId;
+	}
+
+	/**
+	 * @return the natureTypeId
+	 */
+	public Long getNatureTypeId() {
+		return natureTypeId;
+	}
+
+	/**
+	 * @param natureTypeId the natureTypeId to set
+	 */
+	public void setNatureTypeId(Long natureTypeId) {
+		this.natureTypeId = natureTypeId;
+	}
+
+	/**
+	 * @return the dependencyTypeId
+	 */
+	public Long getDependencyTypeId() {
+		return dependencyTypeId;
+	}
+
+	/**
+	 * @param dependencyTypeId the dependencyTypeId to set
+	 */
+	public void setDependencyTypeId(Long dependencyTypeId) {
+		this.dependencyTypeId = dependencyTypeId;
+	}
+
+	/**
+	 * @return the sectorTypeId
+	 */
+	public Long getSectorTypeId() {
+		return sectorTypeId;
+	}
+
+	/**
+	 * @param sectorTypeId the sectorTypeId to set
+	 */
+	public void setSectorTypeId(Long sectorTypeId) {
+		this.sectorTypeId = sectorTypeId;
+	}
+
+	/**
+	 * @return the ownerDepartmentCode
+	 */
+	public String getOwnerDepartmentCode() {
+		return ownerDepartmentCode;
+	}
+
+	/**
+	 * @param ownerDepartmentCode the ownerDepartmentCode to set
+	 */
+	public void setOwnerDepartmentCode(String ownerDepartmentCode) {
+		this.ownerDepartmentCode = SdmxValidations.trimInput(ownerDepartmentCode);
+	}
+
+	/**
+	 * @return the parentElementDsdCode
+	 */
+	public String getParentElementDsdCode() {
+		return parentElementDsdCode;
+	}
+
+	/**
+	 * @param parentElementDsdCode the parentElementDsdCode to set
+	 */
+	public void setParentElementDsdCode(String parentElementDsdCode) {
+		this.parentElementDsdCode = SdmxValidations.trimInput(parentElementDsdCode);
+	}
+
+	/**
+	 * @return the parentElementVer
+	 */
+	public String getParentElementVer() {
+		return parentElementVer;
+	}
+
+	/**
+	 * @param parentElementVer the parentElementVer to set
+	 */
+	public void setParentElementVer(String parentElementVer) {
+		this.parentElementVer = SdmxValidations.trimInput(parentElementVer);
+	}
+
+	/**
+	 * @return the elementDesc
+	 */
+	public String getElementDesc() {
+		return elementDesc;
+	}
+
+	/**
+	 * @param elementDesc the elementDesc to set
+	 */
+	public void setElementDesc(String elementDesc) {
+		this.elementDesc = SdmxValidations.trimInput(elementDesc);
+	}
+
+	/**
+	 * @return the roleId
+	 */
+	public Long getRoleId() {
+		return roleId;
+	}
+
+	/**
+	 * @param roleId the roleId to set
+	 */
+	public void setRoleId(Long roleId) {
+		this.roleId = roleId;
+	}
+
+	/**
+	 * @return the elementVer
+	 */
+	public String getElementVer() {
+		return elementVer;
+	}
+
+	/**
+	 * @param elementVer the elementVer to set
+	 */
+	public void setElementVer(String elementVer) {
+		this.elementVer = elementVer;
+	}
+	
+	
+
+	/**
+	 * @return the agencyMasterCode
+	 */
+	public String getAgencyMasterCode() {
+		return agencyMasterCode;
+	}
+
+	/**
+	 * @param agencyMasterCode the agencyMasterCode to set
+	 */
+	public void setAgencyMasterCode(String agencyMasterCode) {
+		this.agencyMasterCode = agencyMasterCode;
+	}
+
+	/**
+	 *
+	 */
+	
+	@Override
+	public String toString() {
+		return "SdmxEditElementInputBean [elementLabel=" + elementLabel + ", classificationTypeId="
+				+ classificationTypeId + ", flowTypeId=" + flowTypeId + ", natureTypeId=" + natureTypeId
+				+ ", dependencyTypeId=" + dependencyTypeId + ", sectorTypeId=" + sectorTypeId + ", ownerDepartmentCode="
+				+ ownerDepartmentCode + ", parentElementDsdCode=" + parentElementDsdCode + ", parentElementVer="
+				+ parentElementVer + ", elementDesc=" + elementDesc + ", roleId=" + roleId + "]";
+	}
+
+	/**
+	 * @return the addApproval
+	 */
+	public Boolean getAddApproval() {
+		return addApproval;
+	}
+
+	/**
+	 * @param addApproval the addApproval to set
+	 */
+	public void setAddApproval(Boolean addApproval) {
+		this.addApproval = addApproval;
+	}
+
+	/**
+	 * @return the editApproval
+	 */
+	public Boolean getEditApproval() {
+		return editApproval;
+	}
+
+	/**
+	 * @param editApproval the editApproval to set
+	 */
+	public void setEditApproval(Boolean editApproval) {
+		this.editApproval = editApproval;
+	}
+}

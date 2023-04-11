@@ -1,0 +1,72 @@
+/**
+ * 
+ */
+package com.iris.sdmx.element.helper;
+
+import org.springframework.beans.BeanUtils;
+
+import com.google.gson.Gson;
+import com.iris.model.UserMaster;
+import com.iris.sdmx.element.bean.SdmxElementTempBean;
+import com.iris.sdmx.element.entity.SdmxElementTempEntity;
+import com.iris.sdmx.status.entity.SdmxStatusEntity;
+
+/**
+ * @author apagaria
+ *
+ */
+public class SdmxElementTempHelper {
+
+	private SdmxElementTempHelper() {
+
+	}
+
+	/**
+	 * @param sdmxElementSectorEntity
+	 * @param sdmxElementSectorBean
+	 */
+	public static void convertEntityToBean(SdmxElementTempEntity sdmxElementTempEntity,
+			SdmxElementTempBean sdmxElementTempBean) {
+		BeanUtils.copyProperties(sdmxElementTempEntity, sdmxElementTempBean);
+		// Removing extra data from user master for created By field
+		if (sdmxElementTempEntity.getCreatedBy() != null && sdmxElementTempEntity.getCreatedBy().getUserId() != null) {
+			sdmxElementTempBean.setCreatedBy(sdmxElementTempEntity.getCreatedBy().getUserId());
+		}
+		// Removing extra data from user master for modify By field
+		if (sdmxElementTempEntity.getModifyBy() != null && sdmxElementTempEntity.getModifyBy().getUserId() != null) {
+			sdmxElementTempBean.setModifyBy(sdmxElementTempEntity.getModifyBy().getUserId());
+		}
+	}
+
+	public static void convertBeanToEntity(SdmxElementTempBean sdmxElementTempBean,
+			SdmxElementTempEntity sdmxElementTempEntity) {
+		BeanUtils.copyProperties(sdmxElementTempEntity, sdmxElementTempBean);
+
+		// Created By
+		if (sdmxElementTempBean.getCreatedBy() != null && sdmxElementTempBean.getCreatedBy() > 0) {
+			UserMaster userMaster = new UserMaster();
+			userMaster.setUserId(sdmxElementTempBean.getCreatedBy());
+			sdmxElementTempEntity.setCreatedBy(userMaster);
+		}
+
+		// Modify By
+		if (sdmxElementTempBean.getModifyBy() != null && sdmxElementTempBean.getModifyBy() > 0) {
+			UserMaster userMaster = new UserMaster();
+			userMaster.setUserId(sdmxElementTempBean.getModifyBy());
+			sdmxElementTempEntity.setModifyBy(userMaster);
+		}
+
+		// Status
+		if (sdmxElementTempBean.getStatusId() != null && sdmxElementTempBean.getStatusId() > 0) {
+			SdmxStatusEntity sdmxStatusEntity = new SdmxStatusEntity();
+			sdmxStatusEntity.setStatusId(sdmxElementTempBean.getStatusId());
+			sdmxElementTempEntity.setSdmxStatusEntity(sdmxStatusEntity);
+		}
+
+		// Sdmx Element Entity
+		if (sdmxElementTempBean.getSdmxElementEntity() != null) {
+			sdmxElementTempEntity.setSdmxElementEntity(new Gson().toJson(sdmxElementTempBean.getSdmxElementEntity()));
+		}
+	}
+
+}

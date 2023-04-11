@@ -1,0 +1,13 @@
+package com.iris.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.AuditFirmMod;
+
+public interface AuditFirmModRepo extends JpaRepository<AuditFirmMod, Long> {
+
+	@Query(value ="SELECT * FROM TBL_AUDIT_FIRM_MODIFICATION_HISTORY where AUDIT_FIRM_ID_FK =:auditFirmId ORDER BY  LAST_MODIFIED_ON DESC LIMIT 1",nativeQuery = true)
+	AuditFirmMod getPreviousAuditFirmById(@Param("auditFirmId")Long auditFirmId);
+}

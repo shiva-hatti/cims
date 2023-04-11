@@ -1,0 +1,322 @@
+package com.iris.ebr.business.technical.metadata.bean;
+
+import java.io.Serializable;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+
+
+
+
+public class SDMXDimensionBean implements Serializable {
+
+	private static final long serialVersionUID = 94232834827279264L;
+
+	private int dimId;
+	private String dimLable;
+	private String dimCode;
+	private String dimType;
+	//private String dimVersion;
+	private String conceptVersion;
+	private String clCode;
+	private String clVersion;
+	private String dimParentCode;
+	private String dimParentVersion;
+	private String dimRestriction;
+	private Integer regexFk;
+	private Integer minLength;
+	private Integer maxLength;
+	private String dimDesc;
+	private int entryType;
+	
+	private Integer clIdFk;
+	private int dimTypeIdFk;
+
+	private String dimensionCode;
+	private String attachmentType;
+	private AttachmentBean attachmentBean;
+	
+	private String agencyCode;
+	/**
+	 * @return the dimId
+	 */
+	public int getDimId() {
+		return dimId;
+	}
+	
+	/**
+	 * @param dimId the dimId to set
+	 */
+	public void setDimId(int dimId) {
+		if (dimId == 0) {
+			//throw new NullArgumentException();
+		}
+		this.dimId = dimId;
+	}
+	/**
+	 * @return the dimLable
+	 */
+	public String getDimLable() {
+		return dimLable;
+	}
+	/**
+	 * @param dimLable the dimLable to set
+	 */
+	public void setDimLable(String dimLable) {
+		if (StringUtils.isEmpty(dimLable)) {
+			//throw new NullArgumentException();
+		}
+		this.dimLable = StringUtils.trim(dimLable);
+	}
+	/**
+	 * @return the dimCode
+	 */
+	public String getDimCode() {
+		return dimCode;
+	}
+	/**
+	 * @param dimCode the dimCode to set
+	 */
+	public void setDimCode(String dimCode) {
+		if (StringUtils.isEmpty(dimCode)) {
+			//throw new NullArgumentException();
+		}
+		this.dimCode = StringUtils.trim(dimCode);
+	}
+	/**
+	 * @return the dimType
+	 */
+	public String getDimType() {
+		return dimType;
+	}
+	/**
+	 * @param dimType the dimType to set
+	 */
+	public void setDimType(String dimType) {
+		if (StringUtils.isEmpty(dimType)) {
+			//throw new NullArgumentException();
+		}
+		this.dimType = StringUtils.trim(dimType);
+	}
+	/**
+	 * @return the clCode
+	 */
+	public String getClCode() {
+		return clCode;
+	}
+	/**
+	 * @param clCode the clCode to set
+	 */
+	public void setClCode(String clCode) {
+		this.clCode = StringUtils.trim(clCode);
+	}
+	/**
+	 * @return the dimParentCode
+	 */
+	public String getDimParentCode() {
+		return dimParentCode;
+	}
+	/**
+	 * @param dimParentCode the dimParentCode to set
+	 */
+	public void setDimParentCode(String dimParentCode) {
+		this.dimParentCode = StringUtils.trim(dimParentCode);
+	}
+	/**
+	 * @return the dimRestriction
+	 */
+	public String getDimRestriction() {
+		return dimRestriction;
+	}
+	/**
+	 * @param dimRestriction the dimRestriction to set
+	 */
+	public void setDimRestriction(String dimRestriction) {
+		this.dimRestriction = StringUtils.trim(dimRestriction);
+	}
+	/**
+	 * @return the regexFk
+	 */
+	public Integer getRegexFk() {
+		return regexFk;
+	}
+	/**
+	 * @param regexFk the regexFk to set
+	 */
+	public void setRegexFk(Integer regexFk) {
+		this.regexFk = regexFk;
+	}
+	/**
+	 * @return the minLength
+	 */
+	public Integer getMinLength() {
+		return minLength;
+	}
+	/**
+	 * @param minLength the minLength to set
+	 */
+	public void setMinLength(Integer minLength) {
+		this.minLength = minLength;
+	}
+	/**
+	 * @return the maxLength
+	 */
+	public Integer getMaxLength() {
+		return maxLength;
+	}
+	/**
+	 * @param maxLength the maxLength to set
+	 */
+	public void setMaxLength(Integer maxLength) {
+		this.maxLength = maxLength;
+	}
+	/**
+	 * @return the dimDesc
+	 */
+	public String getDimDesc() {
+		return dimDesc;
+	}
+	/**
+	 * @param dimDesc the dimDesc to set
+	 */
+	public void setDimDesc(String dimDesc) {
+		this.dimDesc = StringUtils.trim(dimDesc);
+	}
+	/**
+	 * @return the entryType
+	 */
+	public int getEntryType() {
+		return entryType;
+	}
+	/**
+	 * @param entryType the entryType to set
+	 */
+	public void setEntryType(int entryType) {
+		if (entryType < 1 || entryType > 2) {
+			//throw new NullArgumentException();
+		}
+		this.entryType = entryType;
+	}
+	/**
+	 * @return the clIdFk
+	 */
+	public Integer getClIdFk() {
+		return clIdFk;
+	}
+	/**
+	 * @param clIdFk the clIdFk to set
+	 */
+	public void setClIdFk(Integer clIdFk) {
+		this.clIdFk = clIdFk;
+	}
+	/**
+	 * @return the dimTypeIdFk
+	 */
+	public int getDimTypeIdFk() {
+		return dimTypeIdFk;
+	}
+	/**
+	 * @param dimTypeIdFk the dimTypeIdFk to set
+	 */
+	public void setDimTypeIdFk(int dimTypeIdFk) {
+		this.dimTypeIdFk = dimTypeIdFk;
+	}
+
+	public String getDimensionCode() {
+		return dimensionCode;
+	}
+
+	public void setDimensionCode(String dimensionCode) {
+		this.dimensionCode = dimensionCode;
+	}
+
+	public String getAttachmentType() {
+		return attachmentType;
+	}
+
+	public void setAttachmentType(String attachmentType) {
+		this.attachmentType = attachmentType;
+	}
+
+	public AttachmentBean getAttachmentBean() {
+		return attachmentBean;
+	}
+
+	public void setAttachmentBean(AttachmentBean attachmentBean) {
+		this.attachmentBean = attachmentBean;
+	}
+
+	/**
+	 * @return the dimVersion
+	 */
+	/*
+	 * public String getDimVersion() { return dimVersion; }
+	 */
+
+	/**
+	 * @param dimVersion the dimVersion to set
+	 */
+	/*
+	 * public void setDimVersion(String dimVersion) { this.dimVersion = dimVersion;
+	 * }
+	 */
+
+	/**
+	 * @return the clVersion
+	 */
+	public String getClVersion() {
+		return clVersion;
+	}
+
+	/**
+	 * @param clVersion the clVersion to set
+	 */
+	public void setClVersion(String clVersion) {
+		this.clVersion = clVersion;
+	}
+
+	/**
+	 * @return the dimParentVersion
+	 */
+	public String getDimParentVersion() {
+		return dimParentVersion;
+	}
+
+	/**
+	 * @param dimParentVersion the dimParentVersion to set
+	 */
+	public void setDimParentVersion(String dimParentVersion) {
+		this.dimParentVersion = dimParentVersion;
+	}
+
+	/**
+	 * @return the agencyCode
+	 */
+	public String getAgencyCode() {
+		return agencyCode;
+	}
+
+	/**
+	 * @param agencyCode the agencyCode to set
+	 */
+	public void setAgencyCode(String agencyCode) {
+		this.agencyCode = agencyCode;
+	}
+
+	/**
+	 * @return the conceptVersion
+	 */
+	public String getConceptVersion() {
+		return conceptVersion;
+	}
+
+	/**
+	 * @param conceptVersion the conceptVersion to set
+	 */
+	public void setConceptVersion(String conceptVersion) {
+		this.conceptVersion = conceptVersion;
+	}
+	
+	
+	
+}

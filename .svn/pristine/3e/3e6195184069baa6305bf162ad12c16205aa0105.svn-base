@@ -1,0 +1,91 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+
+import com.iris.util.Validations;
+
+public class ReturnTempUploadDTO implements Serializable {
+
+	private static final long serialVersionUID = 8953039757478213128L;
+	private Long userId;
+	private String returnCode;
+	private String sessionFromat;
+	private WebformReturnTempUploadDTO webformRetTempUploadDTO;
+	private CsvReturnTempUploadDTO csvRetTempUploadDTO;
+	private SdmxReturnTempUploadDTO sdmxRetTempUploadDTO;
+	private XbrlReturnTempUploadDTO xbrlRetTempUploadDTO;
+	private Boolean saveFormulaAsDraft;
+	private Boolean includePreviousFormula;
+	
+	public String getReturnCode() {
+		return returnCode;
+	}
+
+	public void setReturnCode(String returnCode) {
+		this.returnCode = Validations.trimInput(returnCode);
+	}
+
+	public String getSessionFromat() {
+		return sessionFromat;
+	}
+
+	public void setSessionFromat(String sessionFromat) {
+		this.sessionFromat = Validations.trimInput(sessionFromat);
+	}
+
+	public Long getUserId() {
+		return userId;
+	}
+
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	public WebformReturnTempUploadDTO getWebformRetTempUploadDTO() {
+		return webformRetTempUploadDTO;
+	}
+
+	public void setWebformRetTempUploadDTO(WebformReturnTempUploadDTO webformRetTempUploadDTO) {
+		this.webformRetTempUploadDTO = webformRetTempUploadDTO;
+	}
+
+	public CsvReturnTempUploadDTO getCsvRetTempUploadDTO() {
+		return csvRetTempUploadDTO;
+	}
+
+	public void setCsvRetTempUploadDTO(CsvReturnTempUploadDTO csvRetTempUploadDTO) {
+		this.csvRetTempUploadDTO = csvRetTempUploadDTO;
+	}
+
+	public SdmxReturnTempUploadDTO getSdmxRetTempUploadDTO() {
+		return sdmxRetTempUploadDTO;
+	}
+
+	public void setSdmxRetTempUploadDTO(SdmxReturnTempUploadDTO sdmxRetTempUploadDTO) {
+		this.sdmxRetTempUploadDTO = sdmxRetTempUploadDTO;
+	}
+
+	public XbrlReturnTempUploadDTO getXbrlRetTempUploadDTO() {
+		return xbrlRetTempUploadDTO;
+	}
+
+	public void setXbrlRetTempUploadDTO(XbrlReturnTempUploadDTO xbrlRetTempUploadDTO) {
+		this.xbrlRetTempUploadDTO = xbrlRetTempUploadDTO;
+	}
+
+	public Boolean getSaveFormulaAsDraft() {
+		return saveFormulaAsDraft;
+	}
+
+	public void setSaveFormulaAsDraft(Boolean saveFormulaAsDraft) {
+		this.saveFormulaAsDraft = saveFormulaAsDraft;
+	}
+
+	public Boolean getIncludePreviousFormula() {
+		return includePreviousFormula;
+	}
+
+	public void setIncludePreviousFormula(Boolean includePreviousFormula) {
+		this.includePreviousFormula = includePreviousFormula;
+	}
+}

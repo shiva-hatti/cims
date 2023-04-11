@@ -1,0 +1,18 @@
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.iris.model.CountryMaster;
+
+/**
+ * @author sikhan
+ */
+public interface CountryMasterRepo extends JpaRepository<CountryMaster, Long> {
+
+	@Query("FROM CountryMaster where isActive = 1")
+	List<CountryMaster> findAllActiveData();
+
+}

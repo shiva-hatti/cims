@@ -1,0 +1,464 @@
+package com.iris.controller;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dateutility.enums.DateConstants;
+import com.iris.dateutility.util.DateManip;
+import com.iris.dto.DynamicContent;
+import com.iris.dto.MailServiceBean;
+import com.iris.dto.ServiceResponse;
+import com.iris.exception.ServiceException;
+import com.iris.model.EntityBean;
+import com.iris.model.FilingCalendar;
+import com.iris.model.Return;
+import com.iris.model.ReturnEntityMappingNew;
+import com.iris.model.ReturnProperty;
+import com.iris.model.ReturnPropertyValue;
+import com.iris.model.ReturnRegulatorMapping;
+import com.iris.model.ReturnsUploadDetails;
+import com.iris.model.UserEntityRole;
+import com.iris.repository.ReturnPropertyValueRepository;
+import com.iris.service.impl.EntityService;
+import com.iris.service.impl.FilingCalendarService;
+import com.iris.service.impl.ReturnEntityMapServiceNew;
+import com.iris.service.impl.ReturnRegulatorMappingService;
+import com.iris.service.impl.ReturnService;
+import com.iris.service.impl.ReturnUploadDetailsService;
+import com.iris.service.impl.UserEntityRoleService;
+import com.iris.util.FillingCalendarDateUtil;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.FilingCalenderConstants;
+import com.iris.util.constant.MailConstant;
+
+@RestController
+public class FilingCalendarMailSchedulerController {
+	
+	@Autowired
+	private ReturnService returnService;
+	@Autowired
+	private ReturnUploadDetailsService returnUploadDetailsService;
+	@Autowired
+	private ReturnEntityMapServiceNew returnEntityMapServiceNew;
+	@Autowired
+	private EntityService entityService;
+	@Autowired
+	private UserEntityRoleService userEntityRoleService;
+	@Autowired
+	private FilingCalendarService filingCalendarService;
+	@Autowired
+	private FilingCalendarController filingCalendarController;
+	@Autowired
+	private ReturnPropertyValueRepository returnPropertyValueRepository;
+	@Autowired
+	private ReturnRegulatorMappingService returnRegulatorMappingService;
+	@Autowired
+	private PrepareSendMailController prepareSendMailController;
+	@Autowired
+	private HolidayController holidayController;
+	
+	private FillingCalendarDateUtil fillingCalendarDateUtil = new FillingCalendarDateUtil();
+	private FilingCalendar filingCalendarData = new FilingCalendar();
+	private List<Return> returnList = new ArrayList<>();
+	private List<ReturnsUploadDetails> returnsUploadDetailsList = new ArrayList<>();
+	private List<ReturnEntityMappingNew> returnEntityMappingNewList = new ArrayList<>();
+	private List<EntityBean> activeEntityList = new ArrayList<>();
+	private List<UserEntityRole> userEntityRoleList = new ArrayList<>();
+	private List<ReturnPropertyValue> returnPropertyValList = new ArrayList<>();
+	private List<ReturnRegulatorMapping> returnRegulatorMappingList = new ArrayList<>();
+	private String jobProcessingId = UUID.randomUUID().toString();
+	
+	static final Logger logger = LogManager.getLogger(FilingCalendarMailSchedulerController.class);
+	
+//	@Scheduled(cron = "${cron.mailScheduler}")
+	public void sendMailNotification() {
+		logger.info("Filing Calendar Mail Scheduler Start for jobProcessingId : " + jobProcessingId);
+		try {
+			LocalDateTime currentDate = LocalDateTime.now();
+			DateTimeFormatter dtf = DateTimeFormatter.ofPattern( DateConstants.DD_MM_YYYY.getDateConstants());
+			List<String> holidayList = getHolidayList(currentDate);
+			Map<Long, String> endDateMap = fillingCalendarDateUtil.getFilingEndDate(currentDate,holidayList,jobProcessingId);
+			for (Entry<Long, String> entry : endDateMap.entrySet()) {
+				if(entry.getKey().equals(FilingCalenderConstants.YEARLY.getConstantLongVal())) {
+					returnList = returnService.getDataByFrequencyId(FilingCalenderConstants.YEARLY.getConstantLongVal());
+					sendFilingCalendarMailNotification(returnList,entry.getValue(),FilingCalenderConstants.YEARLY.getConstantLongVal(),dtf.format(currentDate));
+				} else if(entry.getKey().equals(FilingCalenderConstants.CUSTOMIZED_ANNUALLY.getConstantLongVal())) {
+					returnList = returnService.getDataByFrequencyId(FilingCalenderConstants.CUSTOMIZED_ANNUALLY.getConstantLongVal());
+					sendFilingCalendarMailNotification(returnList,entry.getValue(),FilingCalenderConstants.CUSTOMIZED_ANNUALLY.getConstantLongVal(),dtf.format(currentDate));
+				} else if(entry.getKey().equals(FilingCalenderConstants.HALF_YEARLY.getConstantLongVal())) {
+					returnList = returnService.getDataByFrequencyId(FilingCalenderConstants.HALF_YEARLY.getConstantLongVal());
+					sendFilingCalendarMailNotification(returnList,entry.getValue(),FilingCalenderConstants.HALF_YEARLY.getConstantLongVal(),dtf.format(currentDate));
+				} else if(entry.getKey().equals(FilingCalenderConstants.QUATERLY.getConstantLongVal())) {
+					returnList = returnService.getDataByFrequencyId(FilingCalenderConstants.QUATERLY.getConstantLongVal());
+					sendFilingCalendarMailNotification(returnList,entry.getValue(),FilingCalenderConstants.QUATERLY.getConstantLongVal(),dtf.format(currentDate));
+				} else if(entry.getKey().equals(FilingCalenderConstants.MONTHLY.getConstantLongVal())) {
+					returnList = returnService.getDataByFrequencyId(FilingCalenderConstants.MONTHLY.getConstantLongVal());
+					sendFilingCalendarMailNotification(returnList,entry.getValue(),FilingCalenderConstants.MONTHLY.getConstantLongVal(),dtf.format(currentDate));
+				} else if(entry.getKey().equals(FilingCalenderConstants.FIRST_HALF_MONTHLY_EXCLUDE_HOLIDAY.getConstantLongVal())) {
+					returnList = returnService.getDataByFrequencyId(FilingCalenderConstants.FIRST_HALF_MONTHLY_EXCLUDE_HOLIDAY.getConstantLongVal());
+					sendFilingCalendarMailNotification(returnList,entry.getValue(),FilingCalenderConstants.FIRST_HALF_MONTHLY_EXCLUDE_HOLIDAY.getConstantLongVal(),dtf.format(currentDate));
+				} else if(entry.getKey().equals(FilingCalenderConstants.FORT_NIGHTLY.getConstantLongVal())) { 
+					returnList = returnService.getDataByFrequencyId(FilingCalenderConstants.FORT_NIGHTLY.getConstantLongVal()); 
+					sendFilingCalendarMailNotification(returnList,entry.getValue(),FilingCalenderConstants.FORT_NIGHTLY.getConstantLongVal(),dtf.format(currentDate)); 
+				} else if(entry.getKey().equals(FilingCalenderConstants.WEEKLY.getConstantLongVal())) {
+					returnList = returnService.getDataByFrequencyId(FilingCalenderConstants.WEEKLY.getConstantLongVal());
+					sendFilingCalendarMailNotification(returnList,entry.getValue(),FilingCalenderConstants.WEEKLY.getConstantLongVal(),dtf.format(currentDate));
+				} else if(entry.getKey().equals(FilingCalenderConstants.FORTNIGHTLY_15_DAYS.getConstantLongVal())) {
+					returnList = returnService.getDataByFrequencyId(FilingCalenderConstants.FORTNIGHTLY_15_DAYS.getConstantLongVal());
+					sendFilingCalendarMailNotification(returnList,entry.getValue(),FilingCalenderConstants.FORTNIGHTLY_15_DAYS.getConstantLongVal(),dtf.format(currentDate));
+				} else if(entry.getKey().equals(FilingCalenderConstants.DAILY.getConstantLongVal())) {
+					returnList = returnService.getDataByFrequencyId(FilingCalenderConstants.DAILY.getConstantLongVal());
+					sendFilingCalendarMailNotification(returnList,entry.getValue(),FilingCalenderConstants.DAILY.getConstantLongVal(),dtf.format(currentDate));
+				} else if(entry.getKey().equals(FilingCalenderConstants.QUARTERLY_WITH_LAST_FORTNIGHT_OF_QUARTER.getConstantLongVal())) {
+					returnList = returnService.getDataByFrequencyId(FilingCalenderConstants.QUARTERLY_WITH_LAST_FORTNIGHT_OF_QUARTER.getConstantLongVal());
+					sendFilingCalendarMailNotification(returnList,entry.getValue(),FilingCalenderConstants.QUARTERLY_WITH_LAST_FORTNIGHT_OF_QUARTER.getConstantLongVal(),dtf.format(currentDate));
+				} else if(entry.getKey().equals(FilingCalenderConstants.MONTHLY_WITH_LAST_FORTNIGHT_OF_QUARTER.getConstantLongVal())) {
+					returnList = returnService.getDataByFrequencyId(FilingCalenderConstants.MONTHLY_WITH_LAST_FORTNIGHT_OF_QUARTER.getConstantLongVal());
+					sendFilingCalendarMailNotification(returnList,entry.getValue(),FilingCalenderConstants.MONTHLY_WITH_LAST_FORTNIGHT_OF_QUARTER.getConstantLongVal(),dtf.format(currentDate));
+				} else if(entry.getKey().equals(FilingCalenderConstants.CUSTOMIZED_MONTHLY_WITH_LAST_FORTNIGHT_OF_QUARTER.getConstantLongVal())) {
+					returnList = returnService.getDataByFrequencyId(FilingCalenderConstants.CUSTOMIZED_MONTHLY_WITH_LAST_FORTNIGHT_OF_QUARTER.getConstantLongVal());
+					sendFilingCalendarMailNotification(returnList,entry.getValue(),FilingCalenderConstants.CUSTOMIZED_MONTHLY_WITH_LAST_FORTNIGHT_OF_QUARTER.getConstantLongVal(),dtf.format(currentDate));
+				} else if(entry.getKey().equals(FilingCalenderConstants.CUSTOMIZED_QUARTERLY_WITH_LAST_FORTNIGHT_OF_QUARTER.getConstantLongVal())) {
+					returnList = returnService.getDataByFrequencyId(FilingCalenderConstants.CUSTOMIZED_QUARTERLY_WITH_LAST_FORTNIGHT_OF_QUARTER.getConstantLongVal());
+					sendFilingCalendarMailNotification(returnList,entry.getValue(),FilingCalenderConstants.CUSTOMIZED_QUARTERLY_WITH_LAST_FORTNIGHT_OF_QUARTER.getConstantLongVal(),dtf.format(currentDate));
+				} else if(entry.getKey().equals(FilingCalenderConstants.CUSTOMIZED_MONTHLY_WITH_LAST_FRIDAY.getConstantLongVal())) {
+					returnList = returnService.getDataByFrequencyId(FilingCalenderConstants.CUSTOMIZED_MONTHLY_WITH_LAST_FRIDAY.getConstantLongVal());
+					sendFilingCalendarMailNotification(returnList,entry.getValue(),FilingCalenderConstants.CUSTOMIZED_MONTHLY_WITH_LAST_FRIDAY.getConstantLongVal(),dtf.format(currentDate));
+				} else if(entry.getKey().equals(FilingCalenderConstants.FREQ_ID_HALF_MONTHLY.getConstantLongVal())) {
+					returnList = returnService.getDataByFrequencyId(FilingCalenderConstants.FREQ_ID_HALF_MONTHLY.getConstantLongVal());
+					sendFilingCalendarMailNotification(returnList,entry.getValue(),FilingCalenderConstants.FREQ_ID_HALF_MONTHLY.getConstantLongVal(),dtf.format(currentDate));
+				}
+			}
+		} catch (Exception e) {
+			logger.error("Exception in sendMailNotification for JobProcessingId " + jobProcessingId + "Exception is" + e);
+			return;
+		}
+		return;
+	}
+
+	private void sendFilingCalendarMailNotification(List<Return> returnList2, String endDate, Long frequencyId, String formattedCurrentDate) {
+		List<Long> entityBeanList = new ArrayList<>();
+		List<Long> activeEntityBeanList = new ArrayList<>();
+		Map<Long, String> entityMap = new HashMap<>();
+		String notificationDate = "";
+		try {
+			for (Return returnItr: returnList2) {
+				returnPropertyValList = new ArrayList<>();
+				Return retObj = returnService.getDataById(returnItr.getReturnId());
+				List<ReturnPropertyValue> returnProList = returnPropertyValueRepository.getAllData();
+				ReturnPropertyValue retProVal = null;
+				if(retObj != null) {
+					if (retObj.getReturnPropertyIdFk() != null && !CollectionUtils.isEmpty(returnProList)) {
+						returnProList = returnProList
+								.stream()
+								.filter(x -> x.getReturnProprtyIdFK()!=null)
+								.filter(x -> x.getReturnProprtyIdFK().getReturnProprtyId().equals(retObj
+								.getReturnPropertyIdFk().getReturnProprtyId())).collect(Collectors.toList());
+					
+					if (!CollectionUtils.isEmpty(returnProList)) {
+						for (ReturnPropertyValue retPro : returnProList) {
+							retProVal = new ReturnPropertyValue();
+							retProVal.setReturnProprtyValId(retPro.getReturnProprtyValId());
+							returnPropertyValList.add(retProVal);
+						}
+					}
+				}
+			}
+				if(returnPropertyValList.isEmpty()) {
+					filingCalendarData = getFilingCalData(frequencyId,returnItr.getReturnId(),returnItr.getReturnPropertyIdFk());
+					if(filingCalendarData != null) {
+						if("1".equalsIgnoreCase(filingCalendarData.getSendMail())) {
+							if(frequencyId.equals(FilingCalenderConstants.DAILY.getConstantLongVal())) 
+								endDate = getDailyFrequencyEndDate(filingCalendarData,formattedCurrentDate);
+							
+							notificationDate = filingCalendarController.getWindowEndDate(endDate,(int) (long)filingCalendarData.getEmailNotificationDays(),filingCalendarData.getFilingWindowExtensionStart()+1);
+							if(formattedCurrentDate.equalsIgnoreCase(notificationDate)) {
+								returnsUploadDetailsList = returnUploadDetailsService.getReturnUploadDetailsByReturnId(DateManip.convertStringToDate(endDate, DateConstants.DD_MM_YYYY.getDateConstants()),returnItr.getReturnId(),returnItr.getReturnPropertyIdFk());
+								if(returnsUploadDetailsList.isEmpty()) {
+									returnEntityMappingNewList = returnEntityMapServiceNew.getAllNotSubmittedEntityList(returnItr.getReturnId());
+								}else {
+									for (ReturnsUploadDetails returnsUploadDetailsItr : returnsUploadDetailsList) {
+										entityBeanList.add(returnsUploadDetailsItr.getEntity().getEntityId());
+									}
+									returnEntityMappingNewList = returnEntityMapServiceNew.getNotSubmittedEntityList(entityBeanList,returnItr.getReturnId());
+								}
+								
+								entityBeanList = new ArrayList<>();
+								for (ReturnEntityMappingNew returnEntityMappingNewItr : returnEntityMappingNewList) {
+									entityBeanList.add(returnEntityMappingNewItr.getEntity().getEntityId());
+								}
+								activeEntityList = entityService.getActiveEntityList(entityBeanList);
+								for (EntityBean activeList : activeEntityList) {
+									activeEntityBeanList.add(activeList.getEntityId());
+								}
+								userEntityRoleList = userEntityRoleService.getActiveEntities(activeEntityBeanList);
+								entityMap = new HashMap<>();
+								for (UserEntityRole userEntityRoleItr : userEntityRoleList) {
+									if (entityMap.containsKey(userEntityRoleItr.getEntityBean().getEntityId())) { 
+										entityMap.put(userEntityRoleItr.getEntityBean().getEntityId(),entityMap.get(userEntityRoleItr.getEntityBean().getEntityId())+","+userEntityRoleItr.getCompanyEmail());
+										} else { 
+											entityMap.put(userEntityRoleItr.getEntityBean().getEntityId(), userEntityRoleItr.getCompanyEmail());
+										}
+								}
+								if(!entityMap.isEmpty()) {
+									StringBuilder sb = new StringBuilder();
+									for (Entry<Long, String> entry : entityMap.entrySet()) {
+										sb.append(removeDuplicateMailIds(entry.getValue())).append(",");
+									}
+									sendMailToEntityAndReturnOwner(removeDuplicateMailIds(sb.toString()),returnItr,endDate,null);
+								}
+							}
+						}
+				    }
+				}else {
+					ReturnProperty returnPropertyObj = null;
+					for (ReturnPropertyValue returnPropertyValueItr : returnPropertyValList) {
+						returnPropertyObj = new ReturnProperty();
+						returnPropertyObj.setReturnProprtyId(returnPropertyValueItr.getReturnProprtyValId());
+						filingCalendarData = getFilingCalData(frequencyId,returnItr.getReturnId(),returnPropertyObj);
+						if(filingCalendarData != null) {
+							if("1".equalsIgnoreCase(filingCalendarData.getSendMail())) {
+								if(frequencyId.equals(FilingCalenderConstants.DAILY.getConstantLongVal())) 
+									endDate = getDailyFrequencyEndDate(filingCalendarData,formattedCurrentDate);
+								
+								notificationDate = filingCalendarController.getWindowEndDate(endDate,(int) (long)filingCalendarData.getEmailNotificationDays(),filingCalendarData.getFilingWindowExtensionStart()+1);
+								if(formattedCurrentDate.equalsIgnoreCase(notificationDate)) {
+									returnsUploadDetailsList = returnUploadDetailsService.getReturnUploadDetailsByReturnId(DateManip.convertStringToDate(endDate, DateConstants.DD_MM_YYYY.getDateConstants()),returnItr.getReturnId(),returnPropertyObj);
+									if(returnsUploadDetailsList.isEmpty()) {
+										returnEntityMappingNewList = returnEntityMapServiceNew.getAllNotSubmittedEntityList(returnItr.getReturnId());
+									}else {
+										for (ReturnsUploadDetails returnsUploadDetailsItr : returnsUploadDetailsList) {
+											entityBeanList.add(returnsUploadDetailsItr.getEntity().getEntityId());
+										}
+										returnEntityMappingNewList = returnEntityMapServiceNew.getNotSubmittedEntityList(entityBeanList,returnItr.getReturnId());
+									}
+									
+									entityBeanList = new ArrayList<>();
+									for (ReturnEntityMappingNew returnEntityMappingNewItr : returnEntityMappingNewList) {
+										entityBeanList.add(returnEntityMappingNewItr.getEntity().getEntityId());
+									}
+									activeEntityList = entityService.getActiveEntityList(entityBeanList);
+									for (EntityBean activeList : activeEntityList) {
+										activeEntityBeanList.add(activeList.getEntityId());
+									}
+									userEntityRoleList = userEntityRoleService.getActiveEntities(activeEntityBeanList);
+									entityMap = new HashMap<>();
+									for (UserEntityRole userEntityRoleItr : userEntityRoleList) {
+										if (entityMap.containsKey(userEntityRoleItr.getEntityBean().getEntityId())) { 
+											entityMap.put(userEntityRoleItr.getEntityBean().getEntityId(),entityMap.get(userEntityRoleItr.getEntityBean().getEntityId())+","+userEntityRoleItr.getCompanyEmail());
+											} else { 
+												entityMap.put(userEntityRoleItr.getEntityBean().getEntityId(), userEntityRoleItr.getCompanyEmail());
+											}
+									}
+									if(!entityMap.isEmpty()) {
+										StringBuilder sb = new StringBuilder();
+										for (Entry<Long, String> entry : entityMap.entrySet()) {
+											sb.append(removeDuplicateMailIds(entry.getValue())).append(",");
+										}
+										sendMailToEntityAndReturnOwner(removeDuplicateMailIds(sb.toString()),returnItr,endDate,returnPropertyValueItr.getReturnProprtyValId());
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			logger.error("Exception in sendFilingCalendarMailNotification for JobProcessingId " + jobProcessingId + "Exception is" + e);
+		}
+	}
+
+	private String removeDuplicateMailIds(String mailIds) {
+		if(mailIds != null) {
+			return Arrays.stream( mailIds.split(",")).distinct().collect(Collectors.joining(",") ); 
+		}
+		return null;
+	}
+
+	private void sendMailToEntityAndReturnOwner(String mailIds,Return returnObj, String endDate, Integer returnPropertyId) {
+		FilingCalendar filingCalendarInformation = null;
+		String returnOwnerMailIds="";
+		List<String> ccReturnOwnerList = new ArrayList<>();
+		try {
+			
+			returnOwnerMailIds = getReturnOwnerMailIds(returnObj);
+			List<String> toEntityMailList = Arrays.asList(mailIds.split(","));
+			if(returnOwnerMailIds != null)
+				ccReturnOwnerList = Arrays.asList(returnOwnerMailIds.split(","));
+			filingCalendarInformation = getFilingInformation(returnObj,endDate,returnPropertyId);
+			List<DynamicContent> dynamicContentList = getDyamicListForMailNotification(filingCalendarInformation,returnObj);
+			sendMail(dynamicContentList,toEntityMailList,ccReturnOwnerList);
+		} catch (Exception e) {
+			logger.error("Exception in sendMailToEntityAndReturnOwner for JobProcessingId " + jobProcessingId + "Exception is" + e);
+		}
+	}
+	void sendMail(List<DynamicContent> dynamicContentList, List<String> bccEntityMailList, List<String> ccReturnOwnerList){
+		try {
+			MailServiceBean mailServiceBean = new MailServiceBean();
+			mailServiceBean.setAlertId(95L);
+			mailServiceBean.setUniqueId(jobProcessingId);
+			Map<Integer, List<String>> emailMap = new HashMap<>();
+			emailMap.put(MailConstant.EMAIL_BCC.getConstantIntVal(),bccEntityMailList );
+			emailMap.put(MailConstant.EMAIL_CC.getConstantIntVal(), ccReturnOwnerList);
+			mailServiceBean.setEmailMap(emailMap);
+			mailServiceBean.setDynamicContentsList(dynamicContentList);
+			
+			List<MailServiceBean> mailServiceBeanList = new ArrayList<>();
+			mailServiceBeanList.add(mailServiceBean);
+			ServiceResponse serviceResponse = prepareSendMailController.prepareSendEmail(jobProcessingId, mailServiceBeanList);
+			if(serviceResponse.isStatus()) {
+				logger.info("Mail sent successfully");
+			}
+		}catch(Exception e) {
+			logger.error("Exception in sendMail for JobProcessingId " + jobProcessingId + "Exception is" + e);
+		}
+	}
+	private List<DynamicContent> getDyamicListForMailNotification(FilingCalendar filingCalendarInformation, Return returnObj) {
+		List<DynamicContent> dynamicContentList = new ArrayList<>();
+		DynamicContent dynamicContent = new DynamicContent();
+		dynamicContent.setLabel(ObjectCache.getLabelKeyValue("en","field.return.name"));
+		dynamicContent.setValue(returnObj.getReturnName());
+		dynamicContentList.add(dynamicContent);
+		
+		if(!"null".equalsIgnoreCase(filingCalendarInformation.getReturnPropertyName().trim())) {
+			dynamicContent = new DynamicContent();
+			dynamicContent.setLabel(ObjectCache.getLabelKeyValue("en","field.return.returnProperty"));
+			dynamicContent.setValue(ObjectCache.getLabelKeyValue("en",filingCalendarInformation.getReturnPropertyName().trim()));
+			dynamicContentList.add(dynamicContent);
+		}
+		
+		dynamicContent = new DynamicContent();
+		dynamicContent.setLabel(ObjectCache.getLabelKeyValue("en","field.frequencyName"));
+		dynamicContent.setValue(ObjectCache.getLabelKeyValue("en",returnObj.getFrequency().getFrequencyName()));
+		dynamicContentList.add(dynamicContent);
+		
+		dynamicContent = new DynamicContent();
+		dynamicContent.setLabel(ObjectCache.getLabelKeyValue("en","field.submissionEndDate"));
+		dynamicContent.setValue(filingCalendarInformation.getFilingEndDate());
+		dynamicContentList.add(dynamicContent);
+		
+		return dynamicContentList;
+	}
+	private FilingCalendar getFilingInformation(Return returnObj, String endDate, Integer returnPropertyId) {
+		List<String> setFilingDatails = new ArrayList<>();
+		List<String> informationList =  new ArrayList<>();
+		SimpleDateFormat format1 = new SimpleDateFormat("E MMM dd HH:mm:ss zzzz yyyy", Locale.ENGLISH);
+		SimpleDateFormat format2 = new SimpleDateFormat("dd-MM-yyyy");
+		filingCalendarData = new FilingCalendar();
+		try {
+			if(returnObj != null) {
+				setFilingDatails.add(returnObj.getFrequency().getFrequencyId().toString());
+				setFilingDatails.add(returnObj.getReturnId().toString());
+				if(returnPropertyId != null)
+					setFilingDatails.add(returnPropertyId.toString());
+				else
+					setFilingDatails.add(null);
+				setFilingDatails.add(DateManip.formatDate(endDate, DateConstants.DD_MM_YYYY.getDateConstants(), DateConstants.DD_MMM_YYYY.getDateConstants()));
+				setFilingDatails.add(format1.format(format2.parse(endDate)));
+				setFilingDatails.add(DateConstants.DD_MMM_YYYY.getDateConstants());
+				ServiceResponse serviceResponse = filingCalendarController.viewFilingCalendarInfo(jobProcessingId, setFilingDatails);
+				informationList = Arrays.asList(serviceResponse.getResponse().toString().substring(1, serviceResponse.getResponse().toString().length()-1).split(","));
+				filingCalendarData.setFilingEndDate(informationList.get(1));
+				filingCalendarData.setReturnPropertyName(informationList.get(3));
+			}
+		} catch (Exception e) {
+			logger.error("Exception in getFilingInformation for JobProcessingId " + jobProcessingId + "Exception is" + e);
+		}
+		return filingCalendarData;
+	}
+
+	private String getReturnOwnerMailIds(Return returnObj) {
+	List<String> mailList = new ArrayList<>();
+		try {
+			if(returnObj != null) {
+				returnRegulatorMappingList = returnRegulatorMappingService.findByReturnIdFkReturnIdAndIsActiveTrue(returnObj.getReturnId());
+				for (ReturnRegulatorMapping returnRegulatorMapping : returnRegulatorMappingList) {
+					mailList.add(returnRegulatorMapping.getEmailIds());
+				}
+				return removeDuplicateMailIds(String.join(",", mailList));
+			}
+		} catch (Exception e) {
+			logger.error("Exception in getReturnOwnerMailIds for JobProcessingId " + jobProcessingId + "Exception is" + e);
+		}
+		return null;
+	}
+
+	private FilingCalendar getFilingCalData(Long frequencyId, Long returnId, ReturnProperty returnProperty) {
+		Integer propertyId;
+		try {
+			if(returnProperty == null)
+				propertyId = null;
+	       else
+	    	   propertyId = returnProperty.getReturnProprtyId();
+			
+			return filingCalendarService.getViewCalInfo(frequencyId,returnId,propertyId);
+		} catch (Exception e) {
+			logger.error("Exception in getFilingCalData for JobProcessingId " + jobProcessingId + "Exception is" + e);
+		}
+		return null;
+	}
+	private List<String> getHolidayList(LocalDateTime currentDate) {
+		List<String> holidayListDate = new ArrayList<>();
+		try {
+			ServiceResponse serviceResponse;
+			if(currentDate.getDayOfMonth() <= 15 && currentDate.getMonthValue() == 1) {
+				serviceResponse = holidayController.fetchActiveHolidayForYear(jobProcessingId,String.valueOf(currentDate.getYear() - 1));
+			}else {
+				serviceResponse = holidayController.fetchActiveHolidayForYear(jobProcessingId,String.valueOf(currentDate.getYear()));
+			}
+					if (serviceResponse.isStatus()) {
+						@SuppressWarnings("unchecked")
+						List<String> holidayList = (List<String>) serviceResponse.getResponse();
+						Collections.sort(holidayList, new Comparator<String>() {
+					        DateFormat f = new SimpleDateFormat(DateConstants.DD_MM_YYYY.getDateConstants());
+					        @Override
+					        public int compare(String o1, String o2) {
+					            try {
+					                return f.parse(o1).compareTo(f.parse(o2));
+					            } catch (ParseException e) {
+					            	throw new ServiceException(ErrorConstants.ERROR_MSG_CONTROLLER.getConstantVal(), e);
+					            }
+					        }
+					    });
+						holidayListDate = new ArrayList<>(holidayList);
+						Collections.reverse(holidayListDate);
+					}
+		} catch (Exception e) {
+			logger.error("Exception in getHolidayList for JobProcessingId " + jobProcessingId + "Exception is" + e);
+		}
+		return holidayListDate;
+	}
+	private String getDailyFrequencyEndDate(FilingCalendar filingCalendarData2, String formattedCurrentDate) throws ParseException {
+		SimpleDateFormat sdf = new SimpleDateFormat(DateConstants.DD_MM_YYYY.getDateConstants());
+		SimpleDateFormat sdf1 = new SimpleDateFormat( DateConstants.DD_MM_YYYY.getDateConstants());
+		Calendar c = Calendar.getInstance();
+		c.setTime(sdf.parse(formattedCurrentDate));
+		c.add(Calendar.DAY_OF_MONTH, ((int) (long) filingCalendarData2.getEmailNotificationDays()-1));
+		c.setTime(sdf.parse(sdf1.format(sdf.parse(sdf.format(c.getTime())))));
+		c.add(Calendar.DAY_OF_MONTH, (-filingCalendarData2.getFilingWindowExtensionStart()));
+		return sdf1.format(sdf.parse(sdf.format(c.getTime())));
+	}
+}

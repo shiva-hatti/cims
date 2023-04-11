@@ -1,0 +1,227 @@
+package com.iris.sdmx.upload.bean;
+
+import java.io.Serializable;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+/**
+ * @author vjadhav
+ *
+ */
+@JsonInclude(Include.NON_NULL)
+public class ElementAuditBean implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	private Long elementAuditId;
+
+	private Long fileAuditIdFk;
+
+	private String elementCode;
+
+	private String elementVersion;
+
+	private int rowCount;
+
+	private String isPushedToLnd;
+
+	private String eleReturnRef;
+
+	private String isRevised;
+
+	private int valStatus;
+
+	private String valResult;
+
+	private String convertedFileName;
+
+	private Integer filingStatusId;
+
+	private String status;
+
+	/**
+	 * @return the elementAuditId
+	 */
+	public Long getElementAuditId() {
+		return elementAuditId;
+	}
+
+	/**
+	 * @param elementAuditId the elementAuditId to set
+	 */
+	public void setElementAuditId(Long elementAuditId) {
+		this.elementAuditId = elementAuditId;
+	}
+
+	/**
+	 * @return the fileAuditIdFk
+	 */
+	public Long getFileAuditIdFk() {
+		return fileAuditIdFk;
+	}
+
+	/**
+	 * @param fileAuditIdFk the fileAuditIdFk to set
+	 */
+	public void setFileAuditIdFk(Long fileAuditIdFk) {
+		this.fileAuditIdFk = fileAuditIdFk;
+	}
+
+	/**
+	 * @return the elementCode
+	 */
+	public String getElementCode() {
+		return elementCode;
+	}
+
+	/**
+	 * @param elementCode the elementCode to set
+	 */
+	public void setElementCode(String elementCode) {
+		this.elementCode = elementCode;
+	}
+
+	/**
+	 * @return the elementVersion
+	 */
+	public String getElementVersion() {
+		return elementVersion;
+	}
+
+	/**
+	 * @param elementVersion the elementVersion to set
+	 */
+	public void setElementVersion(String elementVersion) {
+		this.elementVersion = elementVersion;
+	}
+
+	/**
+	 * @return the rowCount
+	 */
+	public int getRowCount() {
+		return rowCount;
+	}
+
+	/**
+	 * @param rowCount the rowCount to set
+	 */
+	public void setRowCount(int rowCount) {
+		this.rowCount = rowCount;
+	}
+
+	/**
+	 * @return the isPushedToLnd
+	 */
+	public String getIsPushedToLnd() {
+		return isPushedToLnd;
+	}
+
+	/**
+	 * @param isPushedToLnd the isPushedToLnd to set
+	 */
+	public void setIsPushedToLnd(String isPushedToLnd) {
+		this.isPushedToLnd = isPushedToLnd;
+	}
+
+	/**
+	 * @return the eleReturnRef
+	 */
+	public String getEleReturnRef() {
+		return eleReturnRef;
+	}
+
+	/**
+	 * @param eleReturnRef the eleReturnRef to set
+	 */
+	public void setEleReturnRef(String eleReturnRef) {
+		this.eleReturnRef = eleReturnRef;
+	}
+
+	/**
+	 * @return the isRevised
+	 */
+	public String getIsRevised() {
+		return isRevised;
+	}
+
+	/**
+	 * @param isRevised the isRevised to set
+	 */
+	public void setIsRevised(String isRevised) {
+		this.isRevised = isRevised;
+	}
+
+	/**
+	 * @return the valStatus
+	 */
+	public int getValStatus() {
+		return valStatus;
+	}
+
+	/**
+	 * @param valStatus the valStatus to set
+	 */
+	public void setValStatus(int valStatus) {
+		this.valStatus = valStatus;
+	}
+
+	/**
+	 * @return the valResult
+	 */
+	public String getValResult() {
+		return valResult;
+	}
+
+	/**
+	 * @param valResult the valResult to set
+	 */
+	public void setValResult(String valResult) {
+		this.valResult = valResult;
+	}
+
+	/**
+	 * @return the convertedFileName
+	 */
+	public String getConvertedFileName() {
+		return convertedFileName;
+	}
+
+	/**
+	 * @param convertedFileName the convertedFileName to set
+	 */
+	public void setConvertedFileName(String convertedFileName) {
+		this.convertedFileName = convertedFileName;
+	}
+
+	/**
+	 * @return the filingStatusId
+	 */
+	public Integer getFilingStatusId() {
+		return filingStatusId;
+	}
+
+	/**
+	 * @param filingStatusId the filingStatusId to set
+	 */
+	public void setFilingStatusId(Integer filingStatusId) {
+		this.filingStatusId = filingStatusId;
+	}
+
+	/**
+	 * @return the status
+	 */
+	public String getStatus() {
+		return status;
+	}
+
+	/**
+	 * @param status the status to set
+	 */
+	public void setStatus(String status) {
+		this.status = status;
+	}
+}

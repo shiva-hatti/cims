@@ -1,0 +1,105 @@
+/**
+ * 
+ */
+package com.iris.service.impl;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.exception.ServiceException;
+import com.iris.model.DistrictMaster;
+import com.iris.repository.DistrictMasterRepo;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.MethodConstants;
+
+/**
+ * @author Siddique H Khan
+ *
+ */
+@Service
+public class DistrictMasterService implements GenericService<DistrictMaster, Long> {
+
+	@Autowired
+	DistrictMasterRepo districtMasterRepo;
+
+	@Override
+	public DistrictMaster add(DistrictMaster entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean update(DistrictMaster entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public List<DistrictMaster> getDataByIds(Long[] ids) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public DistrictMaster getDataById(Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<DistrictMaster> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName) throws ServiceException {
+		try {
+			List<String> stateCodeList = null;
+			if (methodName.equalsIgnoreCase(MethodConstants.GET_DISTRICT_LIST_BY_STATE_CODE.getConstantVal())) {
+				stateCodeList = columnValueMap.get(ColumnConstants.STATE_CODE.getConstantVal());
+				return districtMasterRepo.getDistrictListByState(stateCodeList.get(0));
+			}
+			return Collections.emptyList();
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<DistrictMaster> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<DistrictMaster> getDataByObject(Map<String, Object> columnValueMap, String methodName) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<DistrictMaster> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		try {
+			if (bean.equals(DistrictMaster.class) && id == null) {
+				return districtMasterRepo.findAllActiveData();
+			}
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+		return null;
+	}
+
+	@Override
+	public List<DistrictMaster> getAllDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void deleteData(DistrictMaster bean) throws ServiceException {
+		// TODO Auto-generated method stub
+
+	}
+
+}

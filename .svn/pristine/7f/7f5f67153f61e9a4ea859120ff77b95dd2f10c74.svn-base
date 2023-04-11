@@ -1,0 +1,24 @@
+/**
+ * 
+ */
+package com.iris.sdmx.codelist.repo;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.iris.sdmx.codelist.entity.CodeListMaster;
+
+/**
+ * @author sajadhav
+ *
+ */
+public interface CodeListMasterRepo extends JpaRepository<CodeListMaster, Long>{
+
+	List<CodeListMaster> findByIsActiveTrue();
+	
+	CodeListMaster findByClId(Long clId);
+	
+	CodeListMaster findByClCodeAndClVersionAndIsActive(String clCode, String clVersion, boolean isActive);
+	
+}

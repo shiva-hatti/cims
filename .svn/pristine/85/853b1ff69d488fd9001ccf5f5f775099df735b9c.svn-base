@@ -1,0 +1,298 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Set;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+/**
+ * @author psheke
+ * @date 16/10/2020
+ */
+@Entity
+@Table(name = "TBL_AUDIT_FIRM")
+public class AuditFirmInfo implements Serializable {
+
+	private static final long serialVersionUID = 1567683102338709712L;
+
+	@Id
+	@Column(name = "AUDIT_FIRM_ID")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long auditFirmId;
+
+	@Column(name = "AUDIT_FIRM_NAME")
+	private String auditFirmDefaultName;
+
+	@Column(name = "AUDIT_FIRM_REG_NO")
+	private String auditFirmRegNo;
+
+	@Column(name = "BUSINESS_ADDRESS")
+	private String businessAddress;
+
+	@Column(name = "EMAIL_ADDRESS")
+	private String emailAddress;
+
+	@Column(name = "PHONE_NO")
+	private String phoneNo;
+
+	@Column(name = "MOBILE_NO")
+	private String mobileNo;
+
+	@Column(name = "AUDIT_FIRM_URL")
+	private String auditFirmWebsite;
+
+	@ManyToOne
+	@JoinColumn(name = "COUNTRY_ID_FK")
+	private CountryMaster country;
+
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "CREATED_BY_FK")
+	private UserMaster createdBy;
+
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "LAST_MODIFIED_BY_FK")
+	private UserMaster lastModifiedBy;
+
+	@Column(name = "LAST_MODIFIED_ON")
+	private Date lastModifiedOn;
+
+	@Column(name = "LAST_UPDATED_ON")
+	private Date lastUpdatedOn;
+	
+	@OneToMany(mappedBy = "auditFirmIdFk")
+	private Set<AuditFirmLabelInfo> auditFirmLabelSet;
+
+	/**
+	 * @return the lastUpdatedOn
+	 */
+	public Date getLastUpdatedOn() {
+		return lastUpdatedOn;
+	}
+
+	/**
+	 * @param lastUpdatedOn the lastUpdatedOn to set
+	 */
+	public void setLastUpdatedOn(Date lastUpdatedOn) {
+		this.lastUpdatedOn = lastUpdatedOn;
+	}
+
+	/**
+	 * @return the auditFirmId
+	 */
+	public Long getAuditFirmId() {
+		return auditFirmId;
+	}
+
+	/**
+	 * @param auditFirmId the auditFirmId to set
+	 */
+	public void setAuditFirmId(Long auditFirmId) {
+		this.auditFirmId = auditFirmId;
+	}
+
+	/**
+	 * @return the auditFirmName
+	 */
+	public String getAuditFirmDefaultName() {
+		return auditFirmDefaultName;
+	}
+
+	/**
+	 * @param auditFirmName the auditFirmName to set
+	 */
+	public void setAuditFirmDefaultName(String auditFirmDefaultName) {
+		this.auditFirmDefaultName = auditFirmDefaultName;
+	}
+
+	/**
+	 * @return the businessAddress
+	 */
+	public String getBusinessAddress() {
+		return businessAddress;
+	}
+
+	/**
+	 * @param businessAddress the businessAddress to set
+	 */
+	public void setBusinessAddress(String businessAddress) {
+		this.businessAddress = businessAddress;
+	}
+
+	/**
+	 * @return the emailAddress
+	 */
+	public String getEmailAddress() {
+		return emailAddress;
+	}
+
+	/**
+	 * @param emailAddress the emailAddress to set
+	 */
+	public void setEmailAddress(String emailAddress) {
+		this.emailAddress = emailAddress;
+	}
+
+	/**
+	 * @return the phoneNo
+	 */
+	public String getPhoneNo() {
+		return phoneNo;
+	}
+
+	/**
+	 * @param phoneNo the phoneNo to set
+	 */
+	public void setPhoneNo(String phoneNo) {
+		this.phoneNo = phoneNo;
+	}
+
+	/**
+	 * @return the mobileNo
+	 */
+	public String getMobileNo() {
+		return mobileNo;
+	}
+
+	/**
+	 * @param mobileNo the mobileNo to set
+	 */
+	public void setMobileNo(String mobileNo) {
+		this.mobileNo = mobileNo;
+	}
+
+	/**
+	 * @return the auditFirmWebsite
+	 */
+	public String getAuditFirmWebsite() {
+		return auditFirmWebsite;
+	}
+
+	/**
+	 * @param auditFirmWebsite the auditFirmWebsite to set
+	 */
+	public void setAuditFirmWebsite(String auditFirmWebsite) {
+		this.auditFirmWebsite = auditFirmWebsite;
+	}
+
+	/**
+	 * @return the country
+	 */
+	public CountryMaster getCountry() {
+		return country;
+	}
+
+	/**
+	 * @param country the country to set
+	 */
+	public void setCountry(CountryMaster country) {
+		this.country = country;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the lastModifiedBy
+	 */
+	public UserMaster getLastModifiedBy() {
+		return lastModifiedBy;
+	}
+
+	/**
+	 * @param lastModifiedBy the lastModifiedBy to set
+	 */
+	public void setLastModifiedBy(UserMaster lastModifiedBy) {
+		this.lastModifiedBy = lastModifiedBy;
+	}
+
+	/**
+	 * @return the lastModifiedOn
+	 */
+	public Date getLastModifiedOn() {
+		return lastModifiedOn;
+	}
+
+	/**
+	 * @param lastModifiedOn the lastModifiedOn to set
+	 */
+	public void setLastModifiedOn(Date lastModifiedOn) {
+		this.lastModifiedOn = lastModifiedOn;
+	}
+
+	/**
+	 * @return the auditFirmRegNo
+	 */
+	public String getAuditFirmRegNo() {
+		return auditFirmRegNo;
+	}
+
+	/**
+	 * @param auditFirmRegNo the auditFirmRegNo to set
+	 */
+	public void setAuditFirmRegNo(String auditFirmRegNo) {
+		this.auditFirmRegNo = auditFirmRegNo;
+	}
+	public Set<AuditFirmLabelInfo> getAuditFirmLabelSet() {
+		return auditFirmLabelSet;
+	}
+
+	public void setAuditFirmLabelSet(Set<AuditFirmLabelInfo> auditFirmLabelSet) {
+		this.auditFirmLabelSet = auditFirmLabelSet;
+	}
+
+
+}

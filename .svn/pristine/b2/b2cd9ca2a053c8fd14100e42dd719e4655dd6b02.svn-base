@@ -1,0 +1,35 @@
+/**
+ * 
+ */
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.BranchMasterDomestic;
+
+/**
+ * @author sikhan
+ *
+ */
+public interface BranchMasterDomesticRepo extends JpaRepository<BranchMasterDomestic, Long> {
+
+	@Query(value = " FROM BranchMasterDomestic bmd where bmd.branchWorkingCode =:branchWorkingCode and bmd.isActive = 1")
+	List<BranchMasterDomestic> getBranchMasterByBranchWorkingCode(@Param("branchWorkingCode") String branchWorkingCode);
+
+	@Query(value = " FROM BranchMasterDomestic bmd where bmd.branchCode =:branchWorkingCode and bmd.isActive = 1")
+	BranchMasterDomestic checkBranchMasterByBranchWorkingCode(@Param("branchWorkingCode") String branchWorkingCode);
+
+	@Query(value = " FROM BranchMasterDomestic bmd where bmd.isActive = 1")
+	List<BranchMasterDomestic> getBranchMasterList();
+
+	@Query(value = " FROM BranchMasterDomestic bmd where bmd.isActive = 1 and bmd.branchWorkingCode =:branchWorkingCode and bmd.branchCode LIKE :branchCode%")
+	List<BranchMasterDomestic> getBranchMasterListByBranchCode(@Param("branchCode") String branchCode,@Param("branchWorkingCode") String branchWorkingCode);
+
+	@Query(value = " FROM BranchMasterDomestic bmd where bmd.isActive = 1 and bmd.branchWorkingCode =:branchWorkingCode and bmd.branch LIKE :branchName%")
+	List<BranchMasterDomestic> getBranchMasterListByBranchName(@Param("branchName") String branchName,@Param("branchWorkingCode") String branchWorkingCode);
+
+}

@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.15.0.final using JasperReports Library version 6.15.0-dd49bfb94918336b8321d5507193f0169ead4e95  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="crossSubReport" pageWidth="700" pageHeight="550" columnWidth="700" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="70313f1a-d009-456f-a833-39c74ce11f51">
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<queryString>
+		<![CDATA[]]>
+	</queryString>
+	<field name="compElementName" class="java.lang.String">
+		<fieldDescription><![CDATA[compElementName]]></fieldDescription>
+	</field>
+	<field name="setName" class="java.lang.String">
+		<fieldDescription><![CDATA[setName]]></fieldDescription>
+	</field>
+	<field name="bankCode" class="java.lang.String">
+		<fieldDescription><![CDATA[bankCode]]></fieldDescription>
+	</field>
+	<field name="uploadIdList" class="java.util.List">
+		<fieldDescription><![CDATA[uploadIdList]]></fieldDescription>
+	</field>
+	<field name="validationRule" class="java.lang.String">
+		<fieldDescription><![CDATA[validationRule]]></fieldDescription>
+	</field>
+	<field name="compValue" class="java.lang.String">
+		<fieldDescription><![CDATA[compValue]]></fieldDescription>
+	</field>
+	<field name="auditUnaudigFlag" class="java.lang.String">
+		<fieldDescription><![CDATA[auditUnaudigFlag]]></fieldDescription>
+	</field>
+	<field name="refValue" class="java.lang.String">
+		<fieldDescription><![CDATA[refValue]]></fieldDescription>
+	</field>
+	<field name="uploadIds" class="java.lang.String">
+		<fieldDescription><![CDATA[uploadIds]]></fieldDescription>
+	</field>
+	<field name="srNo" class="java.lang.String">
+		<fieldDescription><![CDATA[srNo]]></fieldDescription>
+	</field>
+	<field name="refElementName" class="java.lang.String">
+		<fieldDescription><![CDATA[refElementName]]></fieldDescription>
+	</field>
+	<field name="compTemplateName" class="java.lang.String">
+		<fieldDescription><![CDATA[compTemplateName]]></fieldDescription>
+	</field>
+	<field name="refTemplateName" class="java.lang.String">
+		<fieldDescription><![CDATA[refTemplateName]]></fieldDescription>
+	</field>
+	<field name="pageBreak" class="java.lang.String">
+		<fieldDescription><![CDATA[pageBreak]]></fieldDescription>
+	</field>
+	<field name="cmpReturnCode" class="java.lang.String">
+		<fieldDescription><![CDATA[cmpReturnCode]]></fieldDescription>
+	</field>
+	<field name="refReturnCode" class="java.lang.String">
+		<fieldDescription><![CDATA[refReturnCode]]></fieldDescription>
+	</field>
+	<field name="cmpReturnName" class="java.lang.String">
+		<fieldDescription><![CDATA[cmpReturnName]]></fieldDescription>
+	</field>
+	<field name="refElementName_1" class="java.lang.String">
+		<fieldDescription><![CDATA[refElementName]]></fieldDescription>
+	</field>
+	<field name="refReturnName" class="java.lang.String">
+		<fieldDescription><![CDATA[refReturnName]]></fieldDescription>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+		</band>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="72" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<textField>
+				<reportElement x="0" y="30" width="50" height="38" uuid="9ea9275e-34c8-4de7-ac94-a218f5e003d7"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement>
+					<font size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Sr"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="50" y="31" width="100" height="37" uuid="1219e008-0f56-4d78-8d5d-c40ac7b8a918"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement>
+					<font size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Template Name"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="150" y="30" width="90" height="38" uuid="c1d9d4ce-e168-450e-9141-d136ef40c1a3"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement>
+					<font size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Element Name"]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+				<reportElement stretchType="ElementGroupHeight" x="0" y="1" width="320" height="30" uuid="1a67168c-d0cc-4fce-bedb-25bc30347437"/>
+				<box padding="1">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="none">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{refReturnName}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="ScaleFont" isBlankWhenNull="true">
+				<reportElement stretchType="ElementGroupHeight" x="428" y="1" width="269" height="30" uuid="fca58fea-2a51-42ea-8549-81f398c22797"/>
+				<box padding="1">
+					<pen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{cmpReturnName}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" stretchType="ContainerBottom" x="428" y="30" width="70" height="38" uuid="9fc187e8-f8ea-47a9-ac16-0ee923fff763"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement>
+					<font size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Template Name"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="498" y="31" width="100" height="37" uuid="4ff1b124-bde9-4cc7-84c9-7dfd5be87551"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement>
+					<font size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Element Name"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="598" y="30" width="100" height="38" uuid="c45bcb22-6a0b-43b4-84a1-6fdb6de8a07c"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement>
+					<font size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Value (Rs. Lakh)"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement stretchType="ElementGroupHeight" x="240" y="31" width="80" height="37" uuid="f3559515-e6d3-429c-8373-81a1413f81cf"/>
+				<box padding="1">
+					<pen lineWidth="1.0"/>
+				</box>
+				<textElement>
+					<font size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Value (Rs. Lakh)"]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight">
+				<reportElement x="320" y="1" width="108" height="67" uuid="2b20c1ab-6080-4839-8454-152a5c7029fe"/>
+				<box padding="1">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Validation Rules"]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="26" splitType="Prevent">
+			<textField textAdjust="StretchHeight">
+				<reportElement stretchType="ElementGroupHeight" x="50" y="0" width="100" height="25" uuid="6da576f0-5700-4494-9a2d-1a6cacda6b13"/>
+				<box padding="1">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textFieldExpression><![CDATA[$F{refTemplateName}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight">
+				<reportElement stretchType="ElementGroupHeight" x="150" y="0" width="90" height="25" uuid="0e01fae8-2489-4794-97bb-bf14657efd84"/>
+				<box padding="1">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top"/>
+				<textFieldExpression><![CDATA[$F{refElementName}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+				<reportElement stretchType="ElementGroupHeight" x="240" y="0" width="80" height="25" uuid="93798c95-6dea-4979-8d38-480d6e2d182f"/>
+				<box padding="1">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textFieldExpression><![CDATA[$F{refValue}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+				<reportElement stretchType="ElementGroupHeight" x="428" y="0" width="70" height="25" uuid="4a13d614-ff62-4332-9da3-7fbe65c84695"/>
+				<box padding="1">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textFieldExpression><![CDATA[$F{compTemplateName}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+				<reportElement stretchType="ElementGroupHeight" x="498" y="0" width="100" height="25" uuid="329e9fdd-fa7b-4f3c-accd-e0d2285d3e01"/>
+				<box padding="1">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textFieldExpression><![CDATA[$F{compElementName}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight">
+				<reportElement stretchType="ElementGroupHeight" x="598" y="1" width="100" height="24" uuid="9533f9cc-0f2a-4260-9a63-72465358d4a6"/>
+				<box padding="1">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textFieldExpression><![CDATA[$F{compValue}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+				<reportElement stretchType="ElementGroupHeight" x="1" y="1" width="48" height="25" uuid="109dc1bd-3b0b-40da-abb1-a5f6a231566e"/>
+				<box padding="1">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textFieldExpression><![CDATA[$F{srNo}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
+				<reportElement stretchType="ElementGroupHeight" x="320" y="0" width="108" height="25" uuid="f7f7db4f-a555-4372-8160-dd950002dc61"/>
+				<box padding="1">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textFieldExpression><![CDATA[$F{validationRule}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+		</band>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+		</band>
+	</summary>
+</jasperReport>

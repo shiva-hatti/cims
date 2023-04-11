@@ -1,0 +1,28 @@
+package com.iris.dynamicDropDown.repo;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import com.iris.dynamicDropDown.model.DropDownType;
+
+@Repository
+public interface DynamicDropDownTypeRepo extends JpaRepository<DropDownType, Integer> {
+
+	@Query("FROM DropDownType ddt where ddt.isActive = 1 and UPPER(ddt.returnCode) LIKE %:returnCode% ")
+	List<DropDownType> findDropDownTypebyReturnCode(@Param("returnCode") String returnCode);
+
+	@Query("FROM DropDownType where isActive = 1 ")
+	List<DropDownType> findAllActiveDropDownCode();
+
+	@Query("FROM DropDownType where isActive = 1 and  dropdownTypeId = :dropdownTypeId")
+	DropDownType findActiveDropdownByDropdownTypeId(@Param("dropdownTypeId") Long dropdownTypeId);
+
+	@Query("FROM DropDownType ddt,ConceptTypedDomain ctd where ddt.isActive = 1 and UPPER(ddt.returnCode) LIKE %:returnCode% and ddt.dropdownTypeId = ctd.dropDownTypeIdFk.dropdownTypeId and ctd.returnIdFk.returnId =:returnId and ctd.elrTag is null")
+	List<DropDownType> findDropDownTypebyReturnCodeAndReturnId(@Param("returnCode") String returnCode, @Param("returnId") Long returnId);
+
+	@Query("FROM DropDownType where isActive = 1 and dropdownTypeId IN(:dropdownTypeIdList)")
+	List<DropDownType> findActiveDropdownByListDropdownTypeId(@Param("dropdownTypeIdList") List<Long> dropdownTypeIdList);
+}

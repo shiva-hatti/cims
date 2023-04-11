@@ -1,0 +1,519 @@
+/**
+ * 
+ */
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+/**
+ * @author sajadhav
+ *
+ */
+@Entity
+@Table(name = "TBL_RETURN_ENTITY_MAPP_NEW")
+public class ReturnEntityMappingNew implements Serializable{
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 7363219159545005029L;
+
+	@Id
+	@Column(name = "RET_ENT_MAP_ID")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long retEntMapId;
+	
+	@ManyToOne
+	@JoinColumn(name = "RETURN_ID_FK")
+	private Return returnObj;
+	
+	@ManyToOne
+	@JoinColumn(name = "ENTITY_ID_FK")
+	private EntityBean entity;
+
+	@Column(name = "IS_ACTIVE")
+	private boolean isActive;
+	
+	@Column(name = "UPLOAD_CHANNEL")
+	private boolean uploadChannel;
+	
+	@Column(name = "WEB_CHANNEL")
+	private boolean webChannel;
+	
+	@Column(name = "EMAIL_CHANNEL")
+	private boolean emailChannel;
+	
+	@Column(name = "API_CHANNEL")
+	private boolean apiChannel;
+	
+	@Column(name = "STS_CHANNEL")
+	private boolean stsChannel;
+	
+	@ManyToOne
+	@JoinColumn(name = "CREATED_BY_FK")
+	private UserMaster createdBy;
+	
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+	
+	@ManyToOne
+	@JoinColumn(name = "MODIFIED_BY_FK")
+	private UserMaster modifiedBy;
+	
+	@Column(name = "MODIFIED_ON")
+	private Date modifiedOn;
+	
+	@Column(name = "MAPPING_CREATED_VIA_MODULE")
+	private String retEntMapCreatedViaModule;
+
+	@Column(name = "MAPPING_UPDATED_VIA_MODULE")
+	private String retEntMapUpdatedViaModule;
+	
+	@Transient
+	private Long entityId; 
+	
+	@Transient
+	private String entityCode;
+	
+	@Transient
+	private String ifscCode;
+	
+	@Transient
+	private String entityName;
+	
+	@Transient
+	private ReturnProperty returnPropertyIdFk;
+	
+	@Transient
+	private Long subCategoryId; 
+	
+	@Transient
+	private String subCategoryName; 
+	
+	@Transient
+	private Long returnId; 
+	
+	@Transient
+	private String returnCode; 
+	
+	@Transient
+	private String returnName;
+	
+	@Transient
+	private Long frequenctId;
+	
+	@Transient
+	private Integer returnPropertyId;
+	
+	
+	@ManyToOne
+	@JoinColumn(name = "MODIFIED_BY_FK_CHANNEL")
+	private UserMaster modifiedbyFkChannel;
+	
+	@Column(name = "MODIFIED_ON_CHANNEL")
+	private Date modifiedOnChannel;
+	
+	@Column(name = "CHANNEL_UPDATED_VIA_MODULE")
+	private String channelUpdatedViaModule;
+
+	@Transient
+	private String createdOnString;
+	
+	@Transient
+	private String modifiedOnString;
+	
+	public ReturnEntityMappingNew() {
+
+	}
+	
+	public ReturnEntityMappingNew(Long entityId, String entityCode, String ifscCode, String entityName,
+			Long subCategoryId, String subCategoryName, Long returnId, String returnCode, String returnName,
+			boolean uploadChannel, boolean webChannel, boolean stsChannel, boolean apiChannel, boolean emailChannel) {
+		this.entityId = entityId;
+		this.entityCode = entityCode;
+		this.ifscCode = ifscCode;
+		this.entityName = entityName;
+		this.subCategoryId = subCategoryId;
+		this.subCategoryName = subCategoryName;
+		this.returnId = returnId;
+		this.returnCode = returnCode;
+		this.returnName = returnName;
+		this.uploadChannel = uploadChannel;
+		this.webChannel = webChannel;
+		this.stsChannel = stsChannel;
+		this.apiChannel = apiChannel;
+		this.emailChannel = emailChannel;
+	}
+	
+	public ReturnEntityMappingNew(Long entityId, String entityCode, String ifscCode, String entityName,
+			Long subCategoryId, String subCategoryName, Long returnId, String returnCode, String returnName,
+			boolean uploadChannel, boolean webChannel, boolean stsChannel, boolean apiChannel, boolean emailChannel,ReturnProperty returnPropertyIdFk) {
+		this.entityId = entityId;
+		this.entityCode = entityCode;
+		this.ifscCode = ifscCode;
+		this.entityName = entityName;
+		this.subCategoryId = subCategoryId;
+		this.subCategoryName = subCategoryName;
+		this.returnId = returnId;
+		this.returnCode = returnCode;
+		this.returnName = returnName;
+		this.uploadChannel = uploadChannel;
+		this.webChannel = webChannel;
+		this.stsChannel = stsChannel;
+		this.apiChannel = apiChannel;
+		this.emailChannel = emailChannel;
+		this.returnPropertyIdFk=returnPropertyIdFk;
+	}
+	
+	public ReturnEntityMappingNew(Long entityId, String entityCode, String ifscCode, String entityName, Long returnId, String returnCode, String returnName) {
+		this.entity = new EntityBean();
+		this.entity.setEntityId(entityId);
+		this.entity.setEntityCode(entityCode);
+		this.entity.setIfscCode(ifscCode);
+		this.entity.setEntityName(entityName);
+		
+		this.returnObj = new Return();
+		this.returnObj.setReturnCode(returnCode);
+		this.returnObj.setReturnId(returnId);
+		this.returnObj.setReturnName(returnName);
+	}
+	
+	public ReturnEntityMappingNew(Long returnId, String returnName, String returnCode, Long frequenctId, Integer returnPropertyId, Long entityId, String entityName) {
+		this.returnId = returnId;
+		this.returnName = returnName;
+		this.returnCode = returnCode;
+		this.returnPropertyId = returnPropertyId;
+		this.frequenctId = frequenctId;
+		this.entityId = entityId;
+		this.entityName = entityName;
+	}
+	
+	/**
+	 * @return the modifiedbyFkChannel
+	 */
+	public UserMaster getModifiedbyFkChannel() {
+		return modifiedbyFkChannel;
+	}
+
+	/**
+	 * @param modifiedbyFkChannel the modifiedbyFkChannel to set
+	 */
+	public void setModifiedbyFkChannel(UserMaster modifiedbyFkChannel) {
+		this.modifiedbyFkChannel = modifiedbyFkChannel;
+	}
+
+	/**
+	 * @return the modifiedOnChannel
+	 */
+	public Date getModifiedOnChannel() {
+		return modifiedOnChannel;
+	}
+
+	/**
+	 * @param modifiedOnChannel the modifiedOnChannel to set
+	 */
+	public void setModifiedOnChannel(Date modifiedOnChannel) {
+		this.modifiedOnChannel = modifiedOnChannel;
+	}
+
+	/**
+	 * @return the channelUpdatedViaModule
+	 */
+	public String getChannelUpdatedViaModule() {
+		return channelUpdatedViaModule;
+	}
+
+	/**
+	 * @param channelUpdatedViaModule the channelUpdatedViaModule to set
+	 */
+	public void setChannelUpdatedViaModule(String channelUpdatedViaModule) {
+		this.channelUpdatedViaModule = channelUpdatedViaModule;
+	}
+	
+	public Long getEntityId() {
+		return entityId;
+	}
+
+	public void setEntityId(Long entityId) {
+		this.entityId = entityId;
+	}
+
+	public String getEntityCode() {
+		return entityCode;
+	}
+
+	public void setEntityCode(String entityCode) {
+		this.entityCode = entityCode;
+	}
+
+	public String getIfscCode() {
+		return ifscCode;
+	}
+
+	public void setIfscCode(String ifscCode) {
+		this.ifscCode = ifscCode;
+	}
+
+	public String getEntityName() {
+		return entityName;
+	}
+
+	public void setEntityName(String entityName) {
+		this.entityName = entityName;
+	}
+
+	public Long getSubCategoryId() {
+		return subCategoryId;
+	}
+
+	public void setSubCategoryId(Long subCategoryId) {
+		this.subCategoryId = subCategoryId;
+	}
+
+	public String getSubCategoryName() {
+		return subCategoryName;
+	}
+
+	public void setSubCategoryName(String subCategoryName) {
+		this.subCategoryName = subCategoryName;
+	}
+
+	public Long getReturnId() {
+		return returnId;
+	}
+
+	public void setReturnId(Long returnId) {
+		this.returnId = returnId;
+	}
+
+	public String getReturnCode() {
+		return returnCode;
+	}
+
+	public void setReturnCode(String returnCode) {
+		this.returnCode = returnCode;
+	}
+
+	public String getReturnName() {
+		return returnName;
+	}
+
+	public void setReturnName(String returnName) {
+		this.returnName = returnName;
+	}
+
+	public boolean isUploadChannel() {
+		return uploadChannel;
+	}
+
+
+	public void setUploadChannel(boolean uploadChannel) {
+		this.uploadChannel = uploadChannel;
+	}
+
+
+	public boolean isWebChannel() {
+		return webChannel;
+	}
+
+
+	public void setWebChannel(boolean webChannel) {
+		this.webChannel = webChannel;
+	}
+
+
+	public boolean isEmailChannel() {
+		return emailChannel;
+	}
+
+
+	public void setEmailChannel(boolean emailChannel) {
+		this.emailChannel = emailChannel;
+	}
+
+
+	public boolean isApiChannel() {
+		return apiChannel;
+	}
+
+
+	public void setApiChannel(boolean apiChannel) {
+		this.apiChannel = apiChannel;
+	}
+
+
+	public boolean isStsChannel() {
+		return stsChannel;
+	}
+
+
+	public void setStsChannel(boolean stsChannel) {
+		this.stsChannel = stsChannel;
+	}
+
+
+	public boolean isActive() {
+		return isActive;
+	}
+
+
+	public void setActive(boolean isActive) {
+		this.isActive = isActive;
+	}
+
+
+	public Long getRetEntMapId() {
+		return retEntMapId;
+	}
+
+
+	public void setRetEntMapId(Long retEntMapId) {
+		this.retEntMapId = retEntMapId;
+	}
+
+
+	public Return getReturnObj() {
+		return returnObj;
+	}
+
+
+	public void setReturnObj(Return returnObj) {
+		this.returnObj = returnObj;
+	}
+
+
+	public EntityBean getEntity() {
+		return entity;
+	}
+
+
+	public void setEntity(EntityBean entity) {
+		this.entity = entity;
+	}
+
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	public UserMaster getModifiedBy() {
+		return modifiedBy;
+	}
+
+	public void setModifiedBy(UserMaster modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+
+	public Date getModifiedOn() {
+		return modifiedOn;
+	}
+
+	public void setModifiedOn(Date modifiedOn) {
+		this.modifiedOn = modifiedOn;
+	}
+
+	/**
+	 * @return the retEntMapCreatedViaModule
+	 */
+	public String getRetEntMapCreatedViaModule() {
+		return retEntMapCreatedViaModule;
+	}
+
+	/**
+	 * @param retEntMapCreatedViaModule the retEntMapCreatedViaModule to set
+	 */
+	public void setRetEntMapCreatedViaModule(String retEntMapCreatedViaModule) {
+		this.retEntMapCreatedViaModule = retEntMapCreatedViaModule;
+	}
+
+	/**
+	 * @return the retEntMapUpdatedViaModule
+	 */
+	public String getRetEntMapUpdatedViaModule() {
+		return retEntMapUpdatedViaModule;
+	}
+
+	/**
+	 * @param retEntMapUpdatedViaModule the retEntMapUpdatedViaModule to set
+	 */
+	public void setRetEntMapUpdatedViaModule(String retEntMapUpdatedViaModule) {
+		this.retEntMapUpdatedViaModule = retEntMapUpdatedViaModule;
+	}
+
+	/**
+	 * @return the createdOnString
+	 */
+	public String getCreatedOnString() {
+		return createdOnString;
+	}
+
+	/**
+	 * @param createdOnString the createdOnString to set
+	 */
+	public void setCreatedOnString(String createdOnString) {
+		this.createdOnString = createdOnString;
+	}
+
+	/**
+	 * @return the modifiedOnString
+	 */
+	public String getModifiedOnString() {
+		return modifiedOnString;
+	}
+
+	/**
+	 * @param modifiedOnString the modifiedOnString to set
+	 */
+	public void setModifiedOnString(String modifiedOnString) {
+		this.modifiedOnString = modifiedOnString;
+	}
+
+	
+
+	public ReturnProperty getReturnPropertyIdFk() {
+		return returnPropertyIdFk;
+	}
+
+	public void setReturnPropertyIdFk(ReturnProperty returnPropertyIdFk) {
+		this.returnPropertyIdFk = returnPropertyIdFk;
+	}
+
+	public Long getFrequenctId() {
+		return frequenctId;
+	}
+
+	public void setFrequenctId(Long frequenctId) {
+		this.frequenctId = frequenctId;
+	}
+
+	public Integer getReturnPropertyId() {
+		return returnPropertyId;
+	}
+
+	public void setReturnPropertyId(Integer returnPropertyId) {
+		this.returnPropertyId = returnPropertyId;
+	}
+	
+}

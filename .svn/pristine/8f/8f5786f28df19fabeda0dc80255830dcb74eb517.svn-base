@@ -1,0 +1,137 @@
+/**
+ * 
+ */
+package com.iris.sdmx.exceltohtml.service;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.codec.binary.Base64;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.iris.sdmx.exceltohtml.bean.ProcessUploadInputBean;
+import com.iris.sdmx.exceltohtml.bean.SdmxReturnPreviewBean;
+import com.iris.sdmx.exceltohtml.bean.SdmxReturnSheetInfoBean;
+import com.iris.sdmx.util.SdmxUtil;
+
+/**
+ * @author apagaria
+ *
+ */
+@Service
+public class SdmxUploadFileProcessorService {
+
+	/**
+	 * 
+	 */
+	@Value("${excel.to.html.xls.base.path}")
+	private String excelToHtmlXlsBasePath;
+
+	/**
+	 * 
+	 */
+	@Value("${excel.to.html.base.path}")
+	private String excelToHtmlBasePath;
+
+	/**
+	 * 
+	 */
+	@Autowired
+	private SdmxReturnPreviewService sdmxReturnPreviewService;
+
+	/**
+	 * 
+	 */
+	@Autowired
+	private SdmxReturnSheetInfoService sdmxReturnSheetInfoService;
+
+	public void processUploadedFile(ProcessUploadInputBean processUploadInputBean, Long userId, Long returnTemplateId)
+			throws IOException {
+
+		// Copy Xlsx file
+		String destinationXlsFilePath = copyXlsxFile(processUploadInputBean);
+
+		// Copy HTML file
+		String destinationHtmlFilePath = copyHtmlFile(processUploadInputBean);
+
+		// Save data in return preview
+		saveSdmxReturnPreview(destinationHtmlFilePath, destinationXlsFilePath, userId, returnTemplateId);
+
+		// Save data in Return sheet table
+		saveSdmxReturnSheetInfo(processUploadInputBean, userId, returnTemplateId);
+	}
+
+	/**
+	 * @param processUploadInputBean
+	 * @return
+	 * @throws IOException
+	 */
+	private String copyXlsxFile(ProcessUploadInputBean processUploadInputBean) throws IOException {
+		// Excel File Create
+		String destinationXlsFilePath = excelToHtmlXlsBasePath + File.separator + processUploadInputBean.getReturnCode()
+				+ File.separator + processUploadInputBean.getFileName() + ".xlsx";
+		File dir = new File(
+				excelToHtmlXlsBasePath + File.separator + processUploadInputBean.getReturnCode() + File.separator);
+		if (!dir.exists())
+			dir.mkdirs();
+		SdmxUtil.copyFile(processUploadInputBean.getExcelFilePath(), destinationXlsFilePath);
+		return destinationXlsFilePath;
+	}
+
+	/**
+	 * @param processUploadInputBean
+	 * @return
+	 * @throws IOException
+	 */
+	private String copyHtmlFile(ProcessUploadInputBean processUploadInputBean) throws IOException {
+		// HTML File create
+		String destinationHtmlFilePath = excelToHtmlBasePath + File.separator + processUploadInputBean.getReturnCode()
+				+ File.separator + processUploadInputBean.getFileName() + ".html";
+		File dir = new File(
+				excelToHtmlBasePath + File.separator + processUploadInputBean.getReturnCode() + File.separator);
+		if (!dir.exists())
+			dir.mkdirs();
+		SdmxUtil.copyFile(processUploadInputBean.getHtmlFilePath(), destinationHtmlFilePath);
+		return destinationHtmlFilePath;
+	}
+
+	/**
+	 * @param destinationHtmlFilePath
+	 * @param destinationXlsFilePath
+	 * @param userId
+	 * @param returnTemplateId
+	 */
+	private void saveSdmxReturnPreview(String destinationHtmlFilePath, String destinationXlsFilePath, Long userId,
+			Long returnTemplateId) {
+		SdmxReturnPreviewBean sdmxReturnPreviewBean = new SdmxReturnPreviewBean();
+		sdmxReturnPreviewBean.setHtmlFilePath(destinationHtmlFilePath);
+		sdmxReturnPreviewBean.setXlsxFilePath(destinationXlsFilePath);
+		sdmxReturnPreviewBean.setCreatedBy(userId);
+		sdmxReturnPreviewBean.setReturnTemplateIdFk(returnTemplateId);
+		sdmxReturnPreviewService.saveEntityByBean(sdmxReturnPreviewBean);
+	}
+
+	/**
+	 * @param processUploadInputBean
+	 * @param userId
+	 * @param returnTemplateId
+	 * @throws UnsupportedEncodingException
+	 */
+	private void saveSdmxReturnSheetInfo(ProcessUploadInputBean processUploadInputBean, Long userId,
+			Long returnTemplateId) throws UnsupportedEncodingException {
+		Type listType = new TypeToken<ArrayList<SdmxReturnSheetInfoBean>>() {
+		}.getType();
+
+		List<SdmxReturnSheetInfoBean> sdmxReturnSheetInfoBeanList = new Gson().fromJson(
+				new String(Base64.decodeBase64(processUploadInputBean.getSheetInfoBean().getBytes("utf-8"))), listType);
+		sdmxReturnSheetInfoService.saveEntityByBean(sdmxReturnSheetInfoBeanList, returnTemplateId, userId);
+	}
+}

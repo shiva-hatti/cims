@@ -1,0 +1,246 @@
+/**
+ * 
+ */
+package com.iris.sdmx.elementdimensionmapping.entity;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+import com.iris.model.UserMaster;
+import com.iris.sdmx.element.entity.SdmxElementEntity;
+
+/**
+ * @author sajadhav
+ *
+ */
+@Entity
+@Table(name = "TBL_SDMX_ELEMENT_DIMENSIONS")
+public class ElementDimension implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3958472159625564667L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "ELEMENT_DIMENSIONS_ID")
+	private Long elementDimensionId;
+	
+	@Column(name = "ELEMENT_DIMENSIONS")
+	private String elementDimensionJson;
+	
+	@ManyToOne
+	@JoinColumn(name = "ELEMENT_ID_FK")
+	private SdmxElementEntity element;
+	
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+	
+	@ManyToOne
+	@JoinColumn(name = "CREATED_BY_FK")
+	private UserMaster createdBy;
+	
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+	
+	@ManyToOne
+	@JoinColumn(name = "LAST_MODIFIED_BY_FK")
+	private UserMaster lastModifiedBy;
+	
+	@Column(name = "LAST_MODIFIED_ON")
+	private Date lastModifiedOn;
+	
+	@Column(name = "LAST_UPDATED_ON")
+	private Date lastUpdatedOn;
+	
+	@ManyToOne
+	@JoinColumn(name = "LAST_APPROVED_BY_FK")
+	private UserMaster lastApprovedBy;
+	
+	@Column(name = "LAST_APPROVED_ON")
+	private Date lastApprovedOn;
+	
+	@Column(name = "IS_PENDING")
+	private Boolean isPending;
+	
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the elementDimensionId
+	 */
+	public Long getElementDimensionId() {
+		return elementDimensionId;
+	}
+
+	/**
+	 * @param elementDimensionId the elementDimensionId to set
+	 */
+	public void setElementDimensionId(Long elementDimensionId) {
+		this.elementDimensionId = elementDimensionId;
+	}
+
+	/**
+	 * @return the elementDimensionJson
+	 */
+	public String getElementDimensionJson() {
+		return elementDimensionJson;
+	}
+
+	/**
+	 * @param elementDimensionJson the elementDimensionJson to set
+	 */
+	public void setElementDimensionJson(String elementDimensionJson) {
+		this.elementDimensionJson = elementDimensionJson;
+	}
+
+	/**
+	 * @return the element
+	 */
+	public SdmxElementEntity getElement() {
+		return element;
+	}
+
+	/**
+	 * @param element the element to set
+	 */
+	public void setElement(SdmxElementEntity element) {
+		this.element = element;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the lastModifiedBy
+	 */
+	public UserMaster getLastModifiedBy() {
+		return lastModifiedBy;
+	}
+
+	/**
+	 * @param lastModifiedBy the lastModifiedBy to set
+	 */
+	public void setLastModifiedBy(UserMaster lastModifiedBy) {
+		this.lastModifiedBy = lastModifiedBy;
+	}
+
+	/**
+	 * @return the lastModifiedOn
+	 */
+	public Date getLastModifiedOn() {
+		return lastModifiedOn;
+	}
+
+	/**
+	 * @param lastModifiedOn the lastModifiedOn to set
+	 */
+	public void setLastModifiedOn(Date lastModifiedOn) {
+		this.lastModifiedOn = lastModifiedOn;
+	}
+
+	/**
+	 * @return the lastUpdatedOn
+	 */
+	public Date getLastUpdatedOn() {
+		return lastUpdatedOn;
+	}
+
+	/**
+	 * @param lastUpdatedOn the lastUpdatedOn to set
+	 */
+	public void setLastUpdatedOn(Date lastUpdatedOn) {
+		this.lastUpdatedOn = lastUpdatedOn;
+	}
+
+	/**
+	 * @return the lastApprovedBy
+	 */
+	public UserMaster getLastApprovedBy() {
+		return lastApprovedBy;
+	}
+
+	/**
+	 * @param lastApprovedBy the lastApprovedBy to set
+	 */
+	public void setLastApprovedBy(UserMaster lastApprovedBy) {
+		this.lastApprovedBy = lastApprovedBy;
+	}
+
+	/**
+	 * @return the lastApprovedOn
+	 */
+	public Date getLastApprovedOn() {
+		return lastApprovedOn;
+	}
+
+	/**
+	 * @param lastApprovedOn the lastApprovedOn to set
+	 */
+	public void setLastApprovedOn(Date lastApprovedOn) {
+		this.lastApprovedOn = lastApprovedOn;
+	}
+
+	/**
+	 * @return the isPending
+	 */
+	public Boolean getIsPending() {
+		return isPending;
+	}
+
+	/**
+	 * @param isPending the isPending to set
+	 */
+	public void setIsPending(Boolean isPending) {
+		this.isPending = isPending;
+	}
+	
+	
+}

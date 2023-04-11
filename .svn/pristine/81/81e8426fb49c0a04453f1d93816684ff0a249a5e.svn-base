@@ -1,0 +1,382 @@
+/**
+ * 
+ */
+package com.iris.controller;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dateutility.enums.DateConstants;
+import com.iris.dateutility.util.DateManip;
+import com.iris.dto.Action;
+import com.iris.dto.ApplicableCheckDto;
+import com.iris.dto.DynamicContent;
+import com.iris.dto.MailServiceBean;
+import com.iris.dto.ReturnUploadNBusinessResult;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.dto.WorkflowJsonBean;
+import com.iris.exception.ApplicationException;
+import com.iris.model.BusinessValidationFailed;
+import com.iris.model.FilingStatus;
+import com.iris.model.ReturnApprovalDetail;
+import com.iris.model.ReturnUploadNBusinessData;
+import com.iris.model.ReturnsUploadDetails;
+import com.iris.model.WorkFlowActivity;
+import com.iris.model.XBRLWebFormPartialData;
+import com.iris.service.ApplicablityCheckServeice;
+import com.iris.service.impl.ReturnUploadDetailsService;
+import com.iris.service.impl.XbrlWebFormService;
+import com.iris.util.FileManager;
+import com.iris.util.ResourceUtil;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.util.constant.ServiceConstants;
+import com.iris.workflow.WorkflowUtility;
+
+/**
+ * @author apagaria
+ *
+ */
+@RestController
+@RequestMapping("/service/returnUploadResultParser")
+public class ReturnUploadResultProcessorController {
+
+	@Autowired
+	private ReturnUploadDetailsService returnsUploadDetailsService;
+
+	@Autowired
+	private ApplicablityCheckServeice applicablityCheckService;
+
+	@Autowired
+	private XbrlWebFormService xbrlWebFormService;
+
+	@Autowired
+	private PrepareSendMailController prepareSendMailController;
+
+	@Autowired
+	private NotificationController notificationController;
+
+	static final Logger LOGGER = LogManager.getLogger(ReturnUploadResultProcessorController.class);
+
+	@PostMapping(value = "/updateReturnUploadNBusinessResultData")
+	public ServiceResponse updateReturnUploadNBusinessResultData(@RequestHeader(name = "AppId") String appId,
+			@RequestHeader(name = "JobProcessingId") String jobProcessingId,
+			@RequestBody List<ReturnUploadNBusinessData> returnUploadResultDetails) {
+		LOGGER.info(ServiceConstants.JOB_PROCESSING_ID_TXT + jobProcessingId + ", updateReturnUploadNBusinessResultData - START");
+
+		try {
+			List<ReturnsUploadDetails> returnUploadDetailList = returnsUploadDetailsService.getDataByIds(ArrayUtils.toObject(returnUploadResultDetails.stream().mapToLong(f -> f.getUploadId()).toArray()));
+			Map<Long, ReturnsUploadDetails> returnUploadDetailsMap = null; 
+
+			if(!CollectionUtils.isEmpty(returnUploadDetailList)) {
+				returnUploadDetailsMap =  returnUploadDetailList.stream().collect(Collectors.toMap(ReturnsUploadDetails::getUploadId, returnUploadDetail -> returnUploadDetail));
+			}
+
+			ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+			serviceResponseBuilder.setStatus(true);
+			List<ReturnUploadNBusinessResult> returnUploadResultBeans = new LinkedList<>();
+
+			for (ReturnUploadNBusinessData returnUploadNBusinessData : returnUploadResultDetails) {
+				ReturnUploadNBusinessResult returnUploadNBusinessResult = new ReturnUploadNBusinessResult();
+				LOGGER.info(ServiceConstants.JOB_PROCESSING_ID_TXT + jobProcessingId + ", updateReturnUploadNBusinessResultData - Return application processing id - " + returnUploadNBusinessData.getApplicationProcessId() + " START");
+				try {
+					updateValidationStatus(returnUploadNBusinessData, returnUploadNBusinessResult, returnUploadDetailsMap);
+					updateXbrlPartialDataFilingStatus(returnUploadNBusinessData, returnUploadNBusinessResult, jobProcessingId);
+				} catch (Exception e) {
+					LOGGER.error("Exception occured for upload Id : " + returnUploadNBusinessData.getUploadId(), e);
+					serviceResponseBuilder.setStatus(false);
+					returnUploadNBusinessResult.setStatus(false);
+				}
+				LOGGER.info(ServiceConstants.JOB_PROCESSING_ID_TXT + jobProcessingId
+						+ ", updateReturnUploadNBusinessResultData - Return application process Id - "
+						+ returnUploadNBusinessData.getApplicationProcessId() + " END");
+				returnUploadResultBeans.add(returnUploadNBusinessResult);
+			}
+			serviceResponseBuilder.setResponse(returnUploadResultBeans);
+			ServiceResponse serviceResponse = serviceResponseBuilder.build();
+			LOGGER.info(ServiceConstants.JOB_PROCESSING_ID_TXT + jobProcessingId
+					+ ", updateReturnUploadNBusinessResultData - START");
+			return serviceResponse;
+		}catch(Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorConstants.DEFAULT_ERROR.getConstantVal()).build();
+		}
+
+	}
+
+	/**
+	 * @param returnUploadDetailsMap 
+	 * @param workflowMap 
+	 * @param returnUploadDetails
+	 * @param csvFormulaResult
+	 * @throws Exception
+	 */
+	private void updateValidationStatus(ReturnUploadNBusinessData returnUploadNBusinessData,
+			ReturnUploadNBusinessResult returnUploadNBusinessResult, Map<Long, ReturnsUploadDetails> returnUploadDetailsMap) throws Exception {
+		Long uploadedID = returnUploadNBusinessData.getUploadId();
+		ReturnsUploadDetails returnUploadDetails = returnUploadDetailsMap.get(uploadedID);
+
+		boolean isvalidationFailed = false;
+		if(returnUploadDetails!= null) {
+			if (returnUploadNBusinessData.getFillingStatusId() == GeneralConstants.BUSINESS_VALIDATION_FAIL.getConstantIntVal() || returnUploadNBusinessData.getFillingStatusId() == GeneralConstants.TECHNICAL_ERROR_ID.getConstantIntVal()) {
+				isvalidationFailed = true;
+				prepareObjectForBusinessValidationFailed(returnUploadDetails,returnUploadNBusinessResult,returnUploadNBusinessData);
+			} else {
+				prepareObjectForWorkflowAndBusinessValidationSuccess(returnUploadDetails, returnUploadDetails.getWorkFlowMaster().getWorkFlowJson(),returnUploadNBusinessResult);
+			}
+			returnUploadDetails.setConsistancyCheckJson(returnUploadNBusinessData.getConsistancyCheckJson());
+			returnsUploadDetailsService.add(returnUploadDetails);
+			returnUploadNBusinessResult.setStatus(true);
+			if(!isvalidationFailed) {// Send Successfull validation email
+				sendMail(returnUploadDetails.getAlertTypeId(), GeneralConstants.UPLOAD_FILLING_MENU_ID.getConstantLongVal(),returnUploadDetails, prepareDynamicContentBodyForValidationSuccess(returnUploadDetails));
+				notificationController.sendFilingApprovalNotificationToUsers(returnUploadDetails.getUploadId(), null, returnUploadDetails.getUploadedBy().getUserId(), true);
+			}
+		}else {
+			throw new ApplicationException("error.uploadId.notFound", "Upload ID not found");
+		}
+	}
+
+
+	void sendMail(Long alertId, Long menuId, ReturnsUploadDetails returnUploadDetails,  List<DynamicContent> dynamicContentList){
+		try {
+			LOGGER.info("Mail Sending started For Alert Id ");
+
+			String processingId = UUID.randomUUID().toString();
+			MailServiceBean mailServiceBean = new MailServiceBean();
+			mailServiceBean.setAlertId(alertId);
+			mailServiceBean.setMenuId(menuId);
+			mailServiceBean.setRoleId(returnUploadDetails.getUploadUsrRole().getUserRoleId());
+			mailServiceBean.setUniqueId(processingId);
+			mailServiceBean.setUserId(returnUploadDetails.getUploadedBy().getUserId());
+			mailServiceBean.setEntityCode(returnUploadDetails.getEntity().getEntityCode());
+			mailServiceBean.setReturnCode(returnUploadDetails.getReturnObj().getReturnCode());
+			mailServiceBean.setDynamicContentsList(dynamicContentList);
+
+			List<MailServiceBean> mailServiceBeanList = new ArrayList<>();
+			mailServiceBeanList.add(mailServiceBean);
+			ServiceResponse serviceResponse = prepareSendMailController.prepareSendEmail(processingId, mailServiceBeanList);
+			if(serviceResponse.isStatus()) {
+				LOGGER.info("Mail sent successfully");
+			}
+		}catch(Exception e) {
+			LOGGER.error("Exception while sending email", e);
+		}
+
+	}
+
+	private List<DynamicContent> prepareDynamicContentBodyForValidationSuccess(
+			ReturnsUploadDetails returnsUploadDetails) {
+		try {
+			List<DynamicContent> dynamicContents = new ArrayList<>();
+
+			DynamicContent dynamicContent = new DynamicContent();
+			dynamicContent.setLabel(ObjectCache.getLabelKeyValue("en","field.return.name"));
+			dynamicContent.setValue(returnsUploadDetails.getReturnObj().getReturnName());
+			dynamicContent.setKey("#RETURN_NAME");
+			dynamicContents.add(dynamicContent);
+
+			dynamicContent = new DynamicContent();
+			dynamicContent.setLabel(ObjectCache.getLabelKeyValue("en","field.return.code"));
+			dynamicContent.setValue(returnsUploadDetails.getReturnObj().getReturnCode());
+			dynamicContents.add(dynamicContent);
+
+			dynamicContent = new DynamicContent();
+			dynamicContent.setLabel(ObjectCache.getLabelKeyValue("en","field.entity.entityCode"));
+			dynamicContent.setValue(returnsUploadDetails.getEntity().getEntityCode());
+			dynamicContents.add(dynamicContent);
+
+			dynamicContent = new DynamicContent();
+			dynamicContent.setLabel(ObjectCache.getLabelKeyValue("en","field.uploadfiling.entity"));
+			dynamicContent.setValue(returnsUploadDetails.getEntity().getEntityName());
+			dynamicContents.add(dynamicContent);
+
+			dynamicContent = new DynamicContent();
+			dynamicContent.setLabel(ObjectCache.getLabelKeyValue("en","field.reporting.year"));
+			dynamicContent.setValue("" + DateManip.convertDateToString(returnsUploadDetails.getStartDate(), DateConstants.DD_MM_YYYY.getDateConstants()) + " TO " + DateManip.convertDateToString(returnsUploadDetails.getEndDate(), DateConstants.DD_MM_YYYY.getDateConstants()) + "");
+			dynamicContent.setKey("#END_DATE");
+			dynamicContents.add(dynamicContent);
+
+			String datetFormat = DateConstants.DD_MMM_YYYY.getDateConstants();
+			String calendarFormat = "en";
+			String timeFormat = DateConstants.HH_MM_SS.getDateConstants() + " " + DateConstants.AM_PM.getDateConstants();
+
+			dynamicContent = new DynamicContent();
+			dynamicContent.setLabel(ObjectCache.getLabelKeyValue("en","field.filingMngt.uplodedDate"));
+			dynamicContent.setValue(DateManip.formatAppDateTime(returnsUploadDetails.getFileDetailsBean().getCreationDate(), datetFormat + " " + timeFormat, calendarFormat));
+			dynamicContents.add(dynamicContent);
+
+			dynamicContent = new DynamicContent();
+			dynamicContent.setLabel(ObjectCache.getLabelKeyValue("en","field.filingMngt.uploadedBy"));
+			dynamicContent.setValue(returnsUploadDetails.getUploadedBy().getUserName());
+			dynamicContents.add(dynamicContent);
+
+			return dynamicContents;
+		} catch (Exception e) {
+			LOGGER.error("Exception : ",e);
+		}
+		return null;
+	}
+
+	private void prepareObjectForWorkflowAndBusinessValidationSuccess(ReturnsUploadDetails returnUploadDetails, String json, 
+			ReturnUploadNBusinessResult returnUploadNBusinessResult) throws Exception {
+		LOGGER.info("Workflow json string: " + json);
+		WorkflowJsonBean workflowJsonBean = WorkflowUtility.getWorkflowJsonBeanOfCurrentStep(json, returnUploadDetails.getCurrentWFStep());
+		if(workflowJsonBean.getFilingStatusId()<=0) {
+			LOGGER.error("FILLING status can not be 0");
+		}
+		returnUploadDetails.setAlertTypeId(workflowJsonBean.getNotify().getEmailalerttype());
+		List<ReturnApprovalDetail> returnApprovalDtlList = new ArrayList<>();
+		getReturnApprovalDtlList(returnApprovalDtlList, returnUploadDetails, workflowJsonBean.getNextStep(), json);
+
+		FilingStatus filingStatus = getFillingStatus(returnApprovalDtlList,workflowJsonBean.getFilingStatusId());
+		returnUploadDetails.setFilingStatus(filingStatus);
+
+		if(CollectionUtils.isEmpty(returnUploadDetails.getReturnApprovalDetailsList())) {
+			returnUploadDetails.setReturnApprovalDetailsList(returnApprovalDtlList);
+		}else {
+			returnUploadDetails.getReturnApprovalDetailsList().addAll(returnApprovalDtlList);
+		}
+
+		returnUploadNBusinessResult.setUploadId(returnUploadDetails.getUploadId());
+		returnUploadNBusinessResult.setFillingStatusId(filingStatus.getFilingStatusId());
+	}
+
+
+	private FilingStatus getFillingStatus(List<ReturnApprovalDetail> returnApprovalDtlList, int filingStatusId) {
+		for (int i = returnApprovalDtlList.size() - 1; i>=0 ; i--) {
+			if(returnApprovalDtlList.get(i).getFilingStatusId()!= 0) {
+				FilingStatus filingStatus = new FilingStatus();
+				filingStatus.setFilingStatusId(returnApprovalDtlList.get(i).getFilingStatusId());
+				return filingStatus;
+			}else {
+				continue;
+			}
+		}
+		FilingStatus filingStatus = new FilingStatus();
+		filingStatus.setFilingStatusId(filingStatusId);
+		return filingStatus;
+	}
+
+	private void getReturnApprovalDtlList(List<ReturnApprovalDetail> returnApprovalDetails, ReturnsUploadDetails returnsUploadDetails, int stepNo, String workflowJson) {
+		ReturnApprovalDetail newReturnApprovalDetail = new ReturnApprovalDetail();
+		newReturnApprovalDetail.setReturnUploadDetails(returnsUploadDetails);
+		WorkflowJsonBean workflowJsonBean = null;
+		try {
+			workflowJsonBean = WorkflowUtility.getWorkflowJsonBeanOfCurrentStep(workflowJson, stepNo);
+			newReturnApprovalDetail.setWorkflowStep(workflowJsonBean.getStepNo());
+			WorkFlowActivity workFlowActivity = new WorkFlowActivity();
+			workFlowActivity.setActivityId(new Long(workflowJsonBean.getActivities().get(0).getActivityId()+""));
+
+			newReturnApprovalDetail.setWorkFlowActivity(workFlowActivity);
+			newReturnApprovalDetail.setCreationTime(new Date());
+
+			if(workflowJsonBean.isAutoApproved()) {
+				newReturnApprovalDetail.setComment("AUTO_APPROVED");
+				newReturnApprovalDetail.setReviewStatus("APPROVED");
+				Action action = workflowJsonBean.getActions().stream().filter(f -> f.getActionStatusId() == 1).findAny().orElse(null);
+				if(action!= null) {
+					if(action.getNextStep()!= 0) {
+						newReturnApprovalDetail.setFilingStatusId(action.getFilingStatusId());
+						newReturnApprovalDetail.setComplete(false);
+						returnApprovalDetails.add(newReturnApprovalDetail);
+						getReturnApprovalDtlList(returnApprovalDetails, returnsUploadDetails, action.getNextStep(), workflowJson);
+					}else {
+						newReturnApprovalDetail.setFilingStatusId(action.getFilingStatusId());
+						newReturnApprovalDetail.setComplete(true);
+						returnApprovalDetails.add(newReturnApprovalDetail);
+					}
+				}
+			}else {
+				newReturnApprovalDetail.setComplete(false);
+				returnApprovalDetails.add(newReturnApprovalDetail);
+			}
+		}catch(Exception e) {
+			LOGGER.error("Exception :",e);
+		}
+	}
+
+	private void prepareObjectForBusinessValidationFailed(ReturnsUploadDetails returnUploadDetails, ReturnUploadNBusinessResult returnUploadNBusinessResult, ReturnUploadNBusinessData returnUploadNBusinessData) {
+		FilingStatus filingStatus = new FilingStatus();
+		filingStatus.setFilingStatusId(returnUploadNBusinessData.getFillingStatusId());
+
+		returnUploadDetails.setFilingStatus(filingStatus);
+		returnUploadNBusinessResult.setUploadId(returnUploadDetails.getUploadId());
+		returnUploadNBusinessResult.setFillingStatusId(GeneralConstants.BUSINESS_VALIDATION_FAIL.getConstantIntVal());
+
+		if(!StringUtils.isEmpty(returnUploadNBusinessData.getCsvValidatorJson())) {
+			if (!CollectionUtils.isEmpty(returnUploadDetails.getBusinessValidationFailedList())) {
+				returnUploadDetails.getBusinessValidationFailedList().get(0)
+				.setValidationFailedJSON(returnUploadNBusinessData.getCsvValidatorJson());
+				returnUploadDetails.getBusinessValidationFailedList().get(0).setCreatedOn(new Date());
+				returnUploadDetails.getBusinessValidationFailedList().get(0)
+				.setReturnsUploadDetails(returnUploadDetails);
+			} else {
+				List<BusinessValidationFailed> businessValidationFieldList = new ArrayList<>();
+				BusinessValidationFailed businessValidationFailed = new BusinessValidationFailed();
+				businessValidationFailed.setReturnsUploadDetails(returnUploadDetails);
+				businessValidationFailed.setValidationFailedJSON(returnUploadNBusinessData.getCsvValidatorJson());
+				businessValidationFailed.setCreatedOn(new Date());
+				businessValidationFieldList.add(businessValidationFailed);
+				returnUploadDetails.setBusinessValidationFailedList(businessValidationFieldList);
+			}
+		}
+	}
+
+
+
+	private void updateXbrlPartialDataFilingStatus(ReturnUploadNBusinessData returnUploadNBusinessData, ReturnUploadNBusinessResult returnUploadNBusinessResult, String requestTxnId) throws Exception {
+		Long uploadedID = returnUploadNBusinessData.getUploadId();
+		FilingStatus filingStatus = new FilingStatus();
+		XBRLWebFormPartialData xbrlWebFormData = xbrlWebFormService.getDataByUploadId(uploadedID);
+		ReturnsUploadDetails returnUploadDetails = returnsUploadDetailsService.getReturnUploadDetailsByUploadIdNActive(uploadedID);
+		if (xbrlWebFormData != null) {
+			if (returnUploadNBusinessData.getFillingStatusId() == GeneralConstants.BUSINESS_VALIDATION_FAIL.getConstantIntVal()) {
+				filingStatus.setFilingStatusId(GeneralConstants.BUSINESS_VALIDATION_FAIL.getConstantIntVal());
+				String financialYear = DateManip.formatDate(DateManip.convertDateToString(returnUploadDetails.getEndDate(), DateConstants.DD_MM_YYYY.getDateConstants()),DateConstants.DD_MM_YYYY.getDateConstants(), DateConstants.YYYY.getDateConstants());
+				String uploadInstanceFilePath = ResourceUtil.getKeyValue("filepath.root")
+						+ ResourceUtil.getKeyValue("filepath.instanceZip") + returnUploadDetails.getEntity().getEntityCode().trim()
+						+ File.separator + financialYear + File.separator + returnUploadDetails.getInstanceFile().replace(GeneralConstants.XML_EXTENSION.getConstantVal(), "");
+				String destFolder = ResourceUtil.getKeyValue("filepath.xbrl.webform.instance") + File.separator + xbrlWebFormData.getTaxonomyId().getXsdFileName() + File.separator +
+						xbrlWebFormData.getTaxonomyId().getVersionNumber() + File.separator+ xbrlWebFormData.getGuid();
+				File[] filesInDirectory = new File(uploadInstanceFilePath).listFiles();
+				for(File csvFile : filesInDirectory) {
+					String filePath = csvFile.getAbsolutePath();
+					String fileExtenstion = filePath.substring(filePath.lastIndexOf(".") + 1,filePath.length());
+					//if (FileManager.checkDirExistence(new File(destFolder))) {
+					if("csv".equals(fileExtenstion)) {
+						FileManager.copyFileToDirectory(csvFile, new File(destFolder));
+					}
+					//}
+
+				}  
+			} else if (returnUploadNBusinessData.getFillingStatusId() == GeneralConstants.BUSINESS_VALIDATION_SUCCESS.getConstantIntVal()) {
+				filingStatus.setFilingStatusId(GeneralConstants.BUSINESS_VALIDATION_SUCCESS.getConstantIntVal());
+			} else {
+				filingStatus.setFilingStatusId(returnUploadNBusinessData.getFillingStatusId());
+			}
+			xbrlWebFormData.setFilingStatus(filingStatus);		
+			xbrlWebFormService.add(xbrlWebFormData);
+		}
+	}
+
+}

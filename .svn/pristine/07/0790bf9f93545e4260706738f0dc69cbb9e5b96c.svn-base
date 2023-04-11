@@ -1,0 +1,117 @@
+/**
+ * 
+ */
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.model.ETLAuditLog;
+import com.iris.model.FilingStatus;
+import com.iris.model.ReturnsUploadDetails;
+import com.iris.service.impl.ETLAuditLogService;
+import com.iris.util.constant.ErrorConstants;
+
+/**
+ * @author akhandagale
+ *
+ */
+@RestController
+@RequestMapping("/service/etlAuditLogProcessor")
+public class ETLAuditLogController {
+
+	static final Logger LOGGER = LogManager.getLogger(ETLAuditLogController.class);
+	
+	@Autowired
+	private ETLAuditLogService eTLAuditLogService;
+	
+	@PostMapping(value = "/getAuditLogEntrybyFilingNumber/{uploadId}")
+	@ResponseBody
+	public ServiceResponse getAuditLogEntrybyFilingNumber(@RequestHeader(name = "AppId") String appId, @PathVariable(name = "uploadId") Long uploadId){
+		try{
+			List<ETLAuditLog> etlAuditLogList = eTLAuditLogService.getDataByUploadId(uploadId);
+			if(CollectionUtils.isEmpty(etlAuditLogList)) {
+				return new ServiceResponse.ServiceResponseBuilder()
+						.setStatus(false)
+						.setStatusCode(ErrorConstants.DEFAULT_ERROR.getConstantVal())
+						.setStatusMessage("No entry in Audit Log table for given upload Id")
+						.build();
+			}
+			etlAuditLogList = prepareEtlAuditLogList(etlAuditLogList);
+			return new ServiceResponseBuilder()
+					.setStatus(true)
+					.setStatusCode("200")
+					.setStatusMessage("Requet processed successfully")
+					.setResponse(etlAuditLogList)
+					.build();
+		}catch(Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorConstants.DEFAULT_ERROR.getConstantVal()).build();
+		}
+	}
+	
+	private List<ETLAuditLog> prepareEtlAuditLogList(List<ETLAuditLog> etlAuditLogList) {
+		
+		ETLAuditLog eTLAuditLogNew = null;
+		List<ETLAuditLog> eTLAuditLogNewList = new ArrayList<>();
+		for(ETLAuditLog eTLAuditLog : etlAuditLogList) {
+			eTLAuditLogNew = new ETLAuditLog();
+			eTLAuditLogNew.setAuditId(eTLAuditLog.getAuditId());
+			eTLAuditLogNew.setDocPath(eTLAuditLog.getDocPath());
+			eTLAuditLogNew.setStatus(eTLAuditLog.getStatus());
+			ReturnsUploadDetails rudtl = new ReturnsUploadDetails();
+			rudtl.setUploadId(eTLAuditLog.getReturnUploadDetails().getUploadId());
+			FilingStatus filingStatus = new FilingStatus();
+			filingStatus.setFilingStatusId(eTLAuditLog.getReturnUploadDetails().getFilingStatus().getFilingStatusId());
+			filingStatus.setStatus(ObjectCache.getLabelKeyValue("en",eTLAuditLog.getReturnUploadDetails().getFilingStatus().getStatus()));
+			rudtl.setFilingStatus(filingStatus);
+			eTLAuditLogNew.setReturnUploadDetails(rudtl);
+			eTLAuditLogNewList.add(eTLAuditLogNew);
+		}
+		return eTLAuditLogNewList;
+	}
+
+	@PostMapping(value = "/updateAuditLogEntryWithAuditIdAndStatus/{auditLogId}/{status}")
+	@ResponseBody
+	public ServiceResponse updateAuditLogEntry(@RequestHeader(name = "AppId") String appId, @PathVariable(name = "auditLogId") Long auditLogId,
+			@PathVariable(name = "status") Long status){
+		try{
+			
+			eTLAuditLogService.updateAuditLogStatus(auditLogId, status);
+			
+			List<ETLAuditLog> etlAuditLogList = eTLAuditLogService.getDataByAuditLogId(auditLogId);
+			if(CollectionUtils.isEmpty(etlAuditLogList)) {
+				return new ServiceResponse.ServiceResponseBuilder()
+						.setStatusCode(ErrorConstants.DEFAULT_ERROR.getConstantVal())
+						.setStatus(false)
+						.setStatusMessage("No entry in Audit Log table for given upload Id")
+						.build();
+			}
+			etlAuditLogList = prepareEtlAuditLogList(etlAuditLogList);
+			return new ServiceResponseBuilder()
+					.setStatus(true)
+					.setStatusCode("200")
+					.setStatusMessage("Record updated successfully.")
+					.setResponse(etlAuditLogList)
+					.build();
+		}catch(Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorConstants.DEFAULT_ERROR.getConstantVal()).build();
+		}
+	}
+
+}

@@ -1,0 +1,118 @@
+package com.iris.rbrToEbr.entity;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+/**
+ * @author vjadhav
+ *
+ */
+@Entity
+@Table(name = "TBL_EBR_RBR_CONVERSION_DATA")
+@JsonInclude(Include.NON_NULL)
+public class EbrRbrConvData implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1001942986924913523L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "EBR_RBR_CONVERSION_DATA_ID")
+	private int ebrRbrConvId;
+	
+	@Column(name = "BANK_WORKING_CODE")
+	private String bankCode;
+	
+	@Column(name = "RETURN_CODE")
+	private String returnCode;
+	
+	@Column(name = "REPORTING_DATE")
+	private Date reportingDate;
+	
+	@Column(name = "AUDIT_FLAG")
+	private int auditFlag;
+
+	/**
+	 * @return the ebrRbrConvId
+	 */
+	public int getEbrRbrConvId() {
+		return ebrRbrConvId;
+	}
+
+	/**
+	 * @param ebrRbrConvId the ebrRbrConvId to set
+	 */
+	public void setEbrRbrConvId(int ebrRbrConvId) {
+		this.ebrRbrConvId = ebrRbrConvId;
+	}
+
+	/**
+	 * @return the bankCode
+	 */
+	public String getBankCode() {
+		return bankCode;
+	}
+
+	/**
+	 * @param bankCode the bankCode to set
+	 */
+	public void setBankCode(String bankCode) {
+		this.bankCode = bankCode;
+	}
+
+	/**
+	 * @return the returnCode
+	 */
+	public String getReturnCode() {
+		return returnCode;
+	}
+
+	/**
+	 * @param returnCode the returnCode to set
+	 */
+	public void setReturnCode(String returnCode) {
+		this.returnCode = returnCode;
+	}
+
+	/**
+	 * @return the reportingDate
+	 */
+	public Date getReportingDate() {
+		return reportingDate;
+	}
+
+	/**
+	 * @param reportingDate the reportingDate to set
+	 */
+	public void setReportingDate(Date reportingDate) {
+		this.reportingDate = reportingDate;
+	}
+
+	/**
+	 * @return the auditFlag
+	 */
+	public int getAuditFlag() {
+		return auditFlag;
+	}
+
+	/**
+	 * @param auditFlag the auditFlag to set
+	 */
+	public void setAuditFlag(int auditFlag) {
+		this.auditFlag = auditFlag;
+	}
+	
+	
+}

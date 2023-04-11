@@ -1,0 +1,35 @@
+/**
+ * 
+ */
+package com.iris.sdmx.elementdimensionmapping.repo;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+
+import com.iris.sdmx.elementdimensionmapping.entity.ElementDimensionMod;
+
+/**
+ * @author sajadhav
+ *
+ */
+public interface ElementDimensionModRepo extends JpaRepository<ElementDimensionMod, Long>{
+
+	@Query("from ElementDimensionMod e where  e.adminStatusId =:adminStatusId and  e.element.dsdCode =:dsdCode and  e.element.elementVer =:version and "
+			+ "e.element.agencyMaster.agencyMasterCode =:agencyCode")
+	ElementDimensionMod findByElementDsdCodeAndElementElementVerAndAdminStatusId(String dsdCode, String version,String agencyCode, int adminStatusId);
+	
+	List<ElementDimensionMod> findByAdminStatusId(int adminStatusId);
+	
+	ElementDimensionMod findByElementDimensionModId(Long elementDimensionModId);
+	
+	@Modifying(clearAutomatically=true)
+	@Query("update ElementDimensionMod e set e.adminStatusId =:adminStatusId, e.comments =:comments where e.elementDimensionModId =:elementDimensionModId")
+	int approveRejectRequest(int adminStatusId, String comments, Long elementDimensionModId);
+	
+	@Modifying(clearAutomatically=true)
+	@Query("update ElementDimensionMod e set e.elementDimension.elementDimensionId =:elementDimensionId where e.elementDimensionModId =:elementDimensionModId")
+	int setElementDimensionId(Long elementDimensionModId, Long elementDimensionId);
+}

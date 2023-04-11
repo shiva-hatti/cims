@@ -1,0 +1,45 @@
+/**
+ * 
+ */
+package com.iris.sdmx.upload.helper;
+
+import java.io.Serializable;
+
+import org.springframework.beans.BeanUtils;
+
+import com.iris.model.FilingStatus;
+import com.iris.sdmx.upload.bean.ElementAuditBean;
+import com.iris.sdmx.upload.entity.ElementAudit;
+
+/**
+ * @author apagaria
+ *
+ */
+public class SdmxElementAuditHelper implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5404975705721983289L;
+
+	/**
+	 * @param elementAudit
+	 * @param elementAuditBean
+	 */
+	public static void convertElementAuditEntityToBean(ElementAudit elementAudit, ElementAuditBean elementAuditBean) {
+		// Copy same properties
+		BeanUtils.copyProperties(elementAudit, elementAuditBean);
+
+		// ebrFileAuditIdFk
+		if (elementAudit.getFileDetails() != null) {
+			elementAuditBean.setFileAuditIdFk(elementAudit.getFileDetails().getId());
+		}
+
+		// Status
+		if (elementAudit.getStatus() != null) {
+			FilingStatus filingStatus = elementAudit.getStatus();
+			elementAuditBean.setFilingStatusId(filingStatus.getFilingStatusId());
+			elementAuditBean.setStatus(filingStatus.getStatus());
+		}
+	}
+}

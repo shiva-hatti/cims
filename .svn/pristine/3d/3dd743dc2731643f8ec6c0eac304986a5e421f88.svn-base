@@ -1,0 +1,86 @@
+package com.iris.sdmx.agency.master.controller;
+
+import java.util.List;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.model.UserMaster;
+import com.iris.sdmx.agency.master.bean.SdmxAgencyMasterBean;
+import com.iris.sdmx.agency.master.bean.SdmxAgencyRequestBean;
+import com.iris.sdmx.agency.master.service.SdmxAgencyMasterService;
+import com.iris.service.GenericService;
+import com.iris.util.JsonUtility;
+import com.iris.util.constant.ErrorCode;
+
+@RestController
+@RequestMapping(value = "/service/sdmxAgencyMasterController")
+public class SdmxAgencyMasterController {
+
+	private static final Logger LOGGER = LogManager.getLogger(SdmxAgencyMasterController.class);
+	
+	@Autowired
+	private GenericService<UserMaster, Long> userMasterService;
+	
+	@Autowired SdmxAgencyMasterService sdmxGroupMasterService;
+	
+	@PostMapping(value = "/fetchActiveSdmxAgencyMaster")
+	public ServiceResponse getActiveSdmxAgencyMaster(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody SdmxAgencyRequestBean sdmxGroupRequestBean) {
+
+		LOGGER.info("Request received to SDMX Group Master for job processing Id : " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(sdmxGroupRequestBean));
+		
+		try {
+			
+			UserMaster userMaster = userMasterService.getDataById(sdmxGroupRequestBean.getUserId());
+			if(userMaster == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			} else if(userMaster.getRoleType() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			
+			List<SdmxAgencyMasterBean> sdmxGroupMasterBean = sdmxGroupMasterService.getActiveRecord();
+			
+			if(!CollectionUtils.isEmpty(sdmxGroupMasterBean)) {
+				LOGGER.info("Size of  SDMX Group Master Data" +sdmxGroupMasterBean.size());
+				return new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(sdmxGroupMasterBean).build();
+			}else {
+				LOGGER.info("Size of  SDMX Group Master Data Not Found Any record " );
+				return new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(null).build();
+			}
+			
+		} catch (Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusMessage(ErrorCode.E0808.toString()).setStatusCode(ObjectCache.getErrorCodeKey(ErrorCode.E0808.toString())).build();
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

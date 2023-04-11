@@ -1,0 +1,73 @@
+package com.iris.model;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+/**
+ * @author Shivabasava Hatti
+ *
+ */
+
+@Entity
+@Table(name = "TBL_LEAD_BANK_MAPPING")
+public class LeadBankMaster implements Serializable{
+
+	private static final long serialVersionUID = -9179125889769472395L;
+	
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@Column(name = "LEAD_BANK_ID")
+	private Long leadBankId;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name="APPLICABLE_ENTITY_ID_FK")
+	private EntityBean entityFk;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name="FILING_ENT_BANK_TYPE_ID_FK")
+	private BankTypeBean bankTypeFk;
+	
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	public Long getLeadBankId() {
+		return leadBankId;
+	}
+
+	public void setLeadBankId(Long leadBankId) {
+		this.leadBankId = leadBankId;
+	}
+
+	public EntityBean getEntityFk() {
+		return entityFk;
+	}
+
+	public void setEntityFk(EntityBean entityFk) {
+		this.entityFk = entityFk;
+	}
+
+	public BankTypeBean getBankTypeFk() {
+		return bankTypeFk;
+	}
+
+	public void setBankTypeFk(BankTypeBean bankTypeFk) {
+		this.bankTypeFk = bankTypeFk;
+	}
+
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+	
+}

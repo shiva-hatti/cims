@@ -1,0 +1,155 @@
+/**
+ * 
+ */
+package com.iris.sdmx.exceltohtml.service;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.iris.exception.ServiceException;
+import com.iris.model.ReturnTemplate;
+import com.iris.model.UserMaster;
+import com.iris.sdmx.exceltohtml.bean.SdmxReturnPreviewBean;
+import com.iris.sdmx.exceltohtml.entity.SdmxReturnPreviewEntity;
+import com.iris.sdmx.exceltohtml.helper.SdmxReturnPreviewHelper;
+import com.iris.sdmx.exceltohtml.repo.SdmxReturnPreviewRepo;
+import com.iris.service.GenericService;
+
+/**
+ * @author apagaria
+ *
+ */
+@Service
+@Transactional(readOnly = true)
+public class SdmxReturnPreviewService implements GenericService<SdmxReturnPreviewEntity, Long> {
+
+	@Autowired
+	private SdmxReturnPreviewRepo sdmxReturnPreviewRepo;
+
+	@Override
+	@Transactional(readOnly = false)
+	public SdmxReturnPreviewEntity add(SdmxReturnPreviewEntity entity) throws ServiceException {
+		return sdmxReturnPreviewRepo.save(entity);
+	}
+
+	@Override
+	@Transactional(readOnly = false)
+	public boolean update(SdmxReturnPreviewEntity entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public List<SdmxReturnPreviewEntity> getDataByIds(Long[] ids) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public SdmxReturnPreviewEntity getDataById(Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<SdmxReturnPreviewEntity> getDataByColumnValue(Map<String, List<String>> columnValueMap,
+			String methodName) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<SdmxReturnPreviewEntity> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap,
+			String methodName) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<SdmxReturnPreviewEntity> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<SdmxReturnPreviewEntity> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<SdmxReturnPreviewEntity> getAllDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	@Transactional(readOnly = false)
+	public void deleteData(SdmxReturnPreviewEntity bean) throws ServiceException {
+		// TODO Auto-generated method stub
+
+	}
+
+	/**
+	 * @return
+	 */
+	public List<SdmxReturnPreviewBean> fetchAllRecord() {
+		List<SdmxReturnPreviewBean> sdmxReturnPreviewBeans = null;
+		List<SdmxReturnPreviewEntity> sdmxReturnPreviewEntities = sdmxReturnPreviewRepo.findAll();
+		if (!CollectionUtils.isEmpty(sdmxReturnPreviewEntities)) {
+			sdmxReturnPreviewBeans = new ArrayList<>();
+			for (SdmxReturnPreviewEntity sdmxReturnPreviewEntity : sdmxReturnPreviewEntities) {
+				SdmxReturnPreviewBean sdmxReturnPreviewBean = new SdmxReturnPreviewBean();
+				SdmxReturnPreviewHelper.convertEntityToBean(sdmxReturnPreviewEntity, sdmxReturnPreviewBean);
+				sdmxReturnPreviewBeans.add(sdmxReturnPreviewBean);
+			}
+		}
+		return sdmxReturnPreviewBeans;
+	}
+
+	/**
+	 * @param returnTemplateId
+	 * @return
+	 */
+	public String fetchHtmlByReturnTemplateId(Long returnTemplateId) {
+		ReturnTemplate returnTemplate = new ReturnTemplate();
+		returnTemplate.setReturnTemplateId(returnTemplateId);
+		return sdmxReturnPreviewRepo.fetchHtmlByReturnTemplateId(returnTemplate);
+	}
+
+	/**
+	 * @return
+	 */
+	@Transactional(readOnly = false)
+	public Long saveEntityByBean(SdmxReturnPreviewBean sdmxReturnPreviewBean) {
+		SdmxReturnPreviewEntity sdmxReturnPreviewEntity = new SdmxReturnPreviewEntity();
+		SdmxReturnPreviewHelper.convertBeanToEntity(sdmxReturnPreviewBean, sdmxReturnPreviewEntity);
+		SdmxReturnPreviewEntity oldSdmxReturnPreviewEntity = sdmxReturnPreviewRepo
+				.findByReturnTemplate(sdmxReturnPreviewEntity.getReturnTemplateIdFk());
+		if (oldSdmxReturnPreviewEntity != null) {
+			oldSdmxReturnPreviewEntity.setHtmlFilePath(sdmxReturnPreviewBean.getHtmlFilePath());
+			oldSdmxReturnPreviewEntity.setXlsxFilePath(sdmxReturnPreviewBean.getXlsxFilePath());
+			UserMaster userMaster = new UserMaster();
+			userMaster.setUserId(sdmxReturnPreviewBean.getCreatedBy());
+			oldSdmxReturnPreviewEntity.setModifyBy(userMaster);
+			oldSdmxReturnPreviewEntity.setModifyOn(new Date());
+			oldSdmxReturnPreviewEntity.setLastUpdatedOn(oldSdmxReturnPreviewEntity.getModifyOn());
+			sdmxReturnPreviewEntity = add(oldSdmxReturnPreviewEntity);
+		} else {
+			sdmxReturnPreviewEntity = add(sdmxReturnPreviewEntity);
+
+		}
+		return sdmxReturnPreviewEntity.getReturnPreviewTypeId();
+	}
+
+}

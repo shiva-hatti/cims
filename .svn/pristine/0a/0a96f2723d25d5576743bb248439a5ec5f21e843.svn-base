@@ -1,0 +1,69 @@
+/**
+ * 
+ */
+package com.iris.exception;
+
+/**
+ * @author sajadhav
+ *
+ */
+public class ApplicationException extends Exception {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 589764036475427329L;
+
+	/**
+	 * 
+	 */
+	private String errorCode;
+
+	/**
+	 * 
+	 */
+	private String errorMsg;
+
+	/**
+	 * @param errorCode
+	 * @param errorMsg
+	 */
+	public ApplicationException(String errorCode, String errorMsg) {
+		super();
+		this.errorCode = errorCode;
+		this.errorMsg = errorMsg;
+	}
+
+	/**
+	 * @return the errorCode
+	 */
+	public String getErrorCode() {
+		return errorCode;
+	}
+
+	/**
+	 * @param errorCode the errorCode to set
+	 */
+	public void setErrorCode(String errorCode) {
+		this.errorCode = errorCode;
+	}
+
+	/**
+	 * @return the errorMsg
+	 */
+	public String getErrorMsg() {
+		return errorMsg;
+	}
+
+	/**
+	 * @param errorMsg the errorMsg to set
+	 */
+	public void setErrorMsg(String errorMsg) {
+		this.errorMsg = errorMsg;
+	}
+
+	@Override
+	public String toString() {
+		return "ApplicationException [errorCode=" + errorCode + ", errorMsg=" + errorMsg + "]";
+	}
+}

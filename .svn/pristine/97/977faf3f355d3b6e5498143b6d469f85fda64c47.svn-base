@@ -1,0 +1,76 @@
+package com.iris.sdmx.ebrvalidation.controller;
+
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.exception.ApplicationException;
+import com.iris.sdmx.ebrvalidation.bean.EbrFileDetails;
+import com.iris.sdmx.ebrvalidation.bean.EbrFileDetailsInputRequest;
+import com.iris.sdmx.ebrvalidation.bean.UpdateEbrFilingStatusInputRequest;
+import com.iris.sdmx.ebrvalidation.service.EbrDocValidationService;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.ErrorConstants;
+
+
+@RestController
+public class EbrDocValidationController {
+
+	static final Logger LOGGER=  LogManager.getLogger(EbrDocValidationController.class);
+	
+	@Autowired
+	private EbrDocValidationService ebrDocValidationService;
+	
+	
+	@PostMapping(value = "/fetchEbrRecordListForValidation")
+	public ServiceResponse fetchEbrRecordListForValidation(@RequestHeader("JobProcessingId") String jobProcessId,
+			@RequestBody EbrFileDetailsInputRequest ebrFileDetailsInputRequest) {
+		try {
+			validateRequestForFetchEbrRecordListForValidation(ebrFileDetailsInputRequest);
+			List<EbrFileDetails> ebrFileDetailList =  ebrDocValidationService.getEbrFileDetailsRecordByStatusWithTheUpdate(ebrFileDetailsInputRequest);
+			return new ServiceResponseBuilder().setStatus(true).setResponse(ebrFileDetailList).build();
+		} catch (ApplicationException applicationException) {
+			LOGGER.error(applicationException.getErrorMsg() + " for Transaction ID : " + jobProcessId, applicationException);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(applicationException.getErrorCode())
+					.setStatusMessage(applicationException.getErrorMsg()).build();
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_CONTROLLER.getConstantVal() + "Transaction ID : " + jobProcessId, e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0013.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString())).build();
+		}
+	}
+
+	@PostMapping(value = "/updateEbrFilingValidationStatus")
+	public ServiceResponse updateEbrFilingValidationStatus(@RequestHeader("JobProcessingId") String jobProcessId, @RequestBody UpdateEbrFilingStatusInputRequest updateEbrFilingStatusInputRequest) {
+		try {
+			validateEbrFilingValidationStatus(updateEbrFilingStatusInputRequest, jobProcessId);
+			
+			ebrDocValidationService.updateEbrFilingValidationStatus(updateEbrFilingStatusInputRequest, jobProcessId);
+			
+			return new ServiceResponseBuilder().setStatus(true).setStatusCode(com.iris.util.constant.GeneralConstants.SUCCESS.getConstantVal()).build();
+		}catch(Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_CONTROLLER.getConstantVal() + "Transaction ID : " + jobProcessId, e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0013.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString())).build();
+		}
+		
+	}
+	
+	
+	
+	private void validateEbrFilingValidationStatus(UpdateEbrFilingStatusInputRequest updateEbrFilingStatusInputRequest, String jobProcessId) {
+		
+	}
+
+	private void validateRequestForFetchEbrRecordListForValidation(EbrFileDetailsInputRequest ebrFileDetails) throws ApplicationException {
+		
+	}
+}

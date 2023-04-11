@@ -1,0 +1,203 @@
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.EntityManager;
+import javax.persistence.Tuple;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.SchedulerLogInfo;
+import com.iris.dto.ServiceResponse;
+import com.iris.model.Scheduler;
+import com.iris.model.SchedulerInfo;
+import com.iris.repository.SchedulerLogRepo;
+import com.iris.repository.SchedulerRepo;
+import com.iris.util.constant.ErrorCode;
+
+/**
+ * @author psheke
+ * @date 19/05/2021
+ */
+@Service
+public class SchedulerLogProcessor {
+	@Autowired
+	private EntityManager em;
+	@Autowired
+	private SchedulerRepo schedulerRepo;
+
+	@Autowired
+	private SchedulerLogRepo schedulerLogRepo;
+	static final Logger LOGGER = LogManager.getLogger(SchedulerLogProcessor.class);
+
+	/**
+	 * This method is for retrieving Scheduler Log Records from database.
+	 */
+	public List<SchedulerInfo> getSchedulerLogList(int count) {
+		LOGGER.info("Retrieving Scheduler Log Records:getSchedulerLogList");
+		StringBuilder sb = new StringBuilder();
+		Map<Integer, SchedulerInfo> schedulerLogMap = new LinkedHashMap<>();
+		List<SchedulerInfo> schedulerList = new ArrayList<>();
+		SchedulerLogInfo schedulerLogInfo;
+		SchedulerInfo schedulerInfo;
+		List<SchedulerLogInfo> schedulerLogInfoList;
+		sb.append("	select  SCHEDULER_ID,SCHEDULER_NAME,RECORDS_TO_BE_PROCESSED,IS_ACTIVE,SCHEDULER_CODE,MAX_PARALLEL_INSTANCE," + "ID,SCHEDULER_ID_FK,SCHEDULER_STARTED_TIME,SCHEDULER_STOPPED_TIME,TAKEN_RECORDS_COUNT,SUCCESSFULLY_PROCESSED_COUNT,JOB_PROCESS_ID," + "IP_ADDRESS,IS_RUNNING,rn from TBL_SCHEDULER a LEFT JOIN( ").append(" select * from  ( select T.SCHEDULER_ID_FK,T.ID,T.SCHEDULER_STARTED_TIME,T.SCHEDULER_STOPPED_TIME,T.TAKEN_RECORDS_COUNT,T.SUCCESSFULLY_PROCESSED_COUNT,T.JOB_PROCESS_ID,T.IP_ADDRESS,T.IS_RUNNING, ").append(" row_number() over(partition by T.SCHEDULER_ID_FK order by T.ID desc) as rn from TBL_SCHEDULER_LOG as T ").append("  ) as T where T.rn <= :count ) b  on a.SCHEDULER_ID=b.SCHEDULER_ID_FK ");
+
+		//		sb.append("	select  * from TBL_SCHEDULER a LEFT JOIN( ").append(
+		//				" select * from  ( select T.SCHEDULER_ID_FK,T.ID,T.SCHEDULER_STARTED_TIME,T.SCHEDULER_STOPPED_TIME,T.TAKEN_RECORDS_COUNT,T.SUCCESSFULLY_PROCESSED_COUNT,T.JOB_PROCESS_ID,T.IP_ADDRESS, ")
+		//		.append(" row_number() over(partition by T.SCHEDULER_ID_FK order by T.ID desc) as rn from TBL_SCHEDULER_LOG as T ")
+		//		.append("  ) as T where T.rn <= :count ) b  on a.SCHEDULER_ID=b.SCHEDULER_ID_FK ");
+		try {
+			List<Tuple> result = em.createNativeQuery(sb.toString(), Tuple.class).setParameter("count", count).getResultList();
+
+			for (Tuple tuple : result) {
+
+				if (schedulerLogMap.containsKey(tuple.get("SCHEDULER_ID"))) {
+					if (schedulerLogMap.get(tuple.get("SCHEDULER_ID")) != null) {
+						schedulerInfo = schedulerLogMap.get(tuple.get("SCHEDULER_ID"));
+						if (schedulerInfo.getSchedulerLoglist() != null) {
+							schedulerLogInfo = new SchedulerLogInfo();
+							if (tuple.get("SCHEDULER_STARTED_TIME") != null) {
+								schedulerLogInfo.setSchedulerStartTime(((Date) tuple.get("SCHEDULER_STARTED_TIME")).getTime());
+							}
+							if (tuple.get("SCHEDULER_STOPPED_TIME") != null) {
+								schedulerLogInfo.setSchedulerStopTime(((Date) tuple.get("SCHEDULER_STOPPED_TIME")).getTime());
+							}
+							if (tuple.get("TAKEN_RECORDS_COUNT") != null) {
+								schedulerLogInfo.setTakenRecordsCount((Integer) tuple.get("TAKEN_RECORDS_COUNT"));
+							}
+							if (tuple.get("SUCCESSFULLY_PROCESSED_COUNT") != null) {
+								schedulerLogInfo.setSuccessfullyProcessCount((Integer) tuple.get("SUCCESSFULLY_PROCESSED_COUNT"));
+							}
+							if (tuple.get("JOB_PROCESS_ID") != null) {
+								schedulerLogInfo.setJobProcessId(tuple.get("JOB_PROCESS_ID").toString());
+
+							}
+							if (tuple.get("IP_ADDRESS") != null) {
+								schedulerLogInfo.setIpAddress(tuple.get("IP_ADDRESS").toString());
+
+							}
+							schedulerInfo.getSchedulerLoglist().add(schedulerLogInfo);
+
+							schedulerLogMap.put((Integer) tuple.get("SCHEDULER_ID"), schedulerInfo);
+						} else {
+							schedulerLogInfoList = new ArrayList<>();
+							schedulerLogInfo = new SchedulerLogInfo();
+							if (tuple.get("SCHEDULER_STARTED_TIME") != null) {
+								schedulerLogInfo.setSchedulerStartTime(((Date) tuple.get("SCHEDULER_STARTED_TIME")).getTime());
+							}
+							if (tuple.get("SCHEDULER_STOPPED_TIME") != null) {
+								schedulerLogInfo.setSchedulerStopTime(((Date) tuple.get("SCHEDULER_STOPPED_TIME")).getTime());
+							}
+							if (tuple.get("TAKEN_RECORDS_COUNT") != null) {
+								schedulerLogInfo.setTakenRecordsCount((Integer) tuple.get("TAKEN_RECORDS_COUNT"));
+							}
+							if (tuple.get("SUCCESSFULLY_PROCESSED_COUNT") != null) {
+								schedulerLogInfo.setSuccessfullyProcessCount((Integer) tuple.get("SUCCESSFULLY_PROCESSED_COUNT"));
+							}
+							if (tuple.get("JOB_PROCESS_ID") != null) {
+								schedulerLogInfo.setJobProcessId(tuple.get("JOB_PROCESS_ID").toString());
+
+							}
+							if (tuple.get("IP_ADDRESS") != null) {
+								schedulerLogInfo.setIpAddress(tuple.get("IP_ADDRESS").toString());
+
+							}
+							schedulerLogInfoList.add(schedulerLogInfo);
+						}
+					}
+				} else {
+					schedulerInfo = new SchedulerInfo();
+					if (tuple.get("IS_ACTIVE").toString() != null && tuple.get("IS_ACTIVE").toString().equalsIgnoreCase("1")) {
+						schedulerInfo.setActive(Boolean.TRUE);
+					} else {
+						schedulerInfo.setActive(Boolean.FALSE);
+					}
+
+					schedulerInfo.setSchedulerId((Integer) tuple.get("SCHEDULER_ID"));
+					schedulerInfo.setSchedulerName(tuple.get("SCHEDULER_NAME").toString());
+					schedulerInfo.setSchedulerCode(tuple.get("SCHEDULER_CODE").toString());
+					if (tuple.get("RECORDS_TO_BE_PROCESSED") != null) {
+						schedulerInfo.setRecordsTobeProcessed((Integer) tuple.get("RECORDS_TO_BE_PROCESSED"));
+					}
+					if (tuple.get("IS_RUNNING") != null && tuple.get("IS_RUNNING").toString().equalsIgnoreCase("1")) {
+						schedulerInfo.setIsRunning(Boolean.TRUE);
+					} else {
+						schedulerInfo.setIsRunning(Boolean.FALSE);
+					}
+					if (tuple.get("SCHEDULER_ID_FK") != null) {
+						schedulerLogInfoList = new ArrayList<>();
+						schedulerLogInfo = new SchedulerLogInfo();
+						if (tuple.get("SCHEDULER_STARTED_TIME") != null) {
+							schedulerLogInfo.setSchedulerStartTime(((Date) tuple.get("SCHEDULER_STARTED_TIME")).getTime());
+						}
+						if (tuple.get("SCHEDULER_STOPPED_TIME") != null) {
+							schedulerLogInfo.setSchedulerStopTime(((Date) tuple.get("SCHEDULER_STOPPED_TIME")).getTime());
+						}
+						if (tuple.get("TAKEN_RECORDS_COUNT") != null) {
+							schedulerLogInfo.setTakenRecordsCount((Integer) tuple.get("TAKEN_RECORDS_COUNT"));
+						}
+						if (tuple.get("SUCCESSFULLY_PROCESSED_COUNT") != null) {
+							schedulerLogInfo.setSuccessfullyProcessCount((Integer) tuple.get("SUCCESSFULLY_PROCESSED_COUNT"));
+						}
+						if (tuple.get("JOB_PROCESS_ID") != null) {
+							schedulerLogInfo.setJobProcessId(tuple.get("JOB_PROCESS_ID").toString());
+						}
+						if (tuple.get("IP_ADDRESS") != null) {
+							schedulerLogInfo.setIpAddress(tuple.get("IP_ADDRESS").toString());
+
+						}
+						schedulerLogInfoList.add(schedulerLogInfo);
+						schedulerInfo.setSchedulerLoglist(schedulerLogInfoList);
+
+					}
+					schedulerLogMap.put(schedulerInfo.getSchedulerId(), schedulerInfo);
+				}
+
+			}
+			schedulerList.addAll(schedulerLogMap.values());
+		} catch (Exception e) {
+			LOGGER.error(ErrorCode.EC0033.toString(), e);
+		}
+		return schedulerList;
+	}
+
+	/**
+	 * This method is for updating Scheduler Log Records.
+	 */
+	public ServiceResponse updateSchedulerInfo(SchedulerInfo schedulerInfo) {
+		LOGGER.info("Updating Scheduler Log Records:updateSchedulerInfo");
+
+		try {
+			Scheduler schedulerInfoObj = new Scheduler();
+			Scheduler schedulerObj = schedulerRepo.findBySchedulerId(Long.valueOf(schedulerInfo.getSchedulerId().longValue()));
+			if (schedulerObj != null) {
+				schedulerInfoObj.setIsActive(schedulerObj.getIsActive());
+				schedulerInfoObj.setRecordsToBeProcessed(schedulerObj.getRecordsToBeProcessed());
+				schedulerInfoObj.setSchedulerName(schedulerObj.getSchedulerName());
+				//schedulerInfoObj.setIsRunning(schedulerInfo.getIsRunning());
+				schedulerInfoObj.setSchedulerId(schedulerObj.getSchedulerId());
+				schedulerInfoObj.setSchedulerCode(schedulerObj.getSchedulerCode());
+				if (!schedulerInfo.getIsRunning()) {
+					schedulerLogRepo.stopScheduler(Long.valueOf(schedulerInfo.getSchedulerId().longValue()), schedulerInfo.getIsRunning());
+				}
+				schedulerRepo.save(schedulerInfoObj);
+			}
+			LOGGER.info("Updated Scheduler Log successfully");
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+		} catch (Exception e) {
+			LOGGER.error(ErrorCode.EC0033.toString(), e);
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+
+		}
+	}
+
+}

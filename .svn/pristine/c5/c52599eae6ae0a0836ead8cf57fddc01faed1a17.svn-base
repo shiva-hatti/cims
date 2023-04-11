@@ -1,0 +1,401 @@
+/**
+ * 
+ */
+package com.iris.sdmx.elementdimensionmapping.bean;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.iris.sdmx.agency.master.bean.SdmxAgencyMasterBean;
+import com.iris.sdmx.dimesnsion.bean.DimensionMasterBean;
+
+/**
+ * @author sajadhav
+ *
+ */
+@JsonInclude(Include.NON_DEFAULT)
+public class ElementDimensionBean implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 5518926194797487056L;
+
+	private Long elementId;
+
+	private String dsdCode;
+
+	private String elementVersion;
+
+	private String elementLabel;
+
+	private Long userId;
+
+	private Long roleId;
+
+	private String langCode;
+
+	private List<DimensionMasterBean> dimensionmasterBeans;
+
+	private Boolean isActive;
+
+	private Date lastUpdatedOn;
+
+	private String elementDesc;
+
+	private Long lastUpdatedOnInLong;
+
+	private String deptCode;
+
+	private Boolean isPending;
+
+	private Long eleDimComboId;
+
+	private String dsdId;
+	private String allApplicableDim;
+
+	private List<String> allApplicableDimJson;
+
+	private Boolean addApproval;
+
+	private Boolean editApproval;
+
+	private String agencyMasterCode;
+
+	private int agencyId;
+
+	private SdmxAgencyMasterBean sdmxAgencyMasterBean;
+
+	/*
+	 * private int eleDimComboId; private int elementId; private String dsdId;
+	 * private String allApplicableDim;
+	 * 
+	 * private List<String> allApplicableDimJson;
+	 */
+
+	public ElementDimensionBean() {
+
+	}
+
+	public ElementDimensionBean(Long eleDimComboId, Long elementId, String allApplicableDim, String elementVersion, String dsdCode) {
+		this.eleDimComboId = eleDimComboId;
+		this.elementId = elementId;
+		this.allApplicableDim = allApplicableDim;
+		this.elementVersion = elementVersion;
+		this.dsdCode = dsdCode;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the userId
+	 */
+	public Long getUserId() {
+		return userId;
+	}
+
+	/**
+	 * @param userId the userId to set
+	 */
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	/**
+	 * @return the roleId
+	 */
+	public Long getRoleId() {
+		return roleId;
+	}
+
+	/**
+	 * @param roleId the roleId to set
+	 */
+	public void setRoleId(Long roleId) {
+		this.roleId = roleId;
+	}
+
+	/**
+	 * @return the langCode
+	 */
+	public String getLangCode() {
+		return langCode;
+	}
+
+	/**
+	 * @param langCode the langCode to set
+	 */
+	public void setLangCode(String langCode) {
+		this.langCode = langCode;
+	}
+
+	/**
+	 * @return the elementLabel
+	 */
+	public String getElementLabel() {
+		return elementLabel;
+	}
+
+	/**
+	 * @param elementLabel the elementLabel to set
+	 */
+	public void setElementLabel(String elementLabel) {
+		this.elementLabel = elementLabel;
+	}
+
+	/**
+	 * @return the elementId
+	 */
+	public Long getElementId() {
+		return elementId;
+	}
+
+	/**
+	 * @param elementId the elementId to set
+	 */
+	public void setElementId(Long elementId) {
+		this.elementId = elementId;
+	}
+
+	/**
+	 * @return the dsdCode
+	 */
+	public String getDsdCode() {
+		return dsdCode;
+	}
+
+	/**
+	 * @param dsdCode the dsdCode to set
+	 */
+	public void setDsdCode(String dsdCode) {
+		this.dsdCode = dsdCode;
+	}
+
+	/**
+	 * @return the elementVersion
+	 */
+	public String getElementVersion() {
+		return elementVersion;
+	}
+
+	/**
+	 * @param elementVersion the elementVersion to set
+	 */
+	public void setElementVersion(String elementVersion) {
+		this.elementVersion = elementVersion;
+	}
+
+	/**
+	 * @return the dimensionmasterBeans
+	 */
+	public List<DimensionMasterBean> getDimensionmasterBeans() {
+		return dimensionmasterBeans;
+	}
+
+	/**
+	 * @param dimensionmasterBeans the dimensionmasterBeans to set
+	 */
+	public void setDimensionmasterBeans(List<DimensionMasterBean> dimensionmasterBeans) {
+		this.dimensionmasterBeans = dimensionmasterBeans;
+	}
+
+	public Date getLastUpdatedOn() {
+		return lastUpdatedOn;
+	}
+
+	public void setLastUpdatedOn(Date lastUpdatedOn) {
+		this.lastUpdatedOn = lastUpdatedOn;
+	}
+
+	/**
+	 * @return the elementDesc
+	 */
+	public String getElementDesc() {
+		return elementDesc;
+	}
+
+	/**
+	 * @param elementDesc the elementDesc to set
+	 */
+	public void setElementDesc(String elementDesc) {
+		this.elementDesc = elementDesc;
+	}
+
+	public Long getLastUpdatedOnInLong() {
+		return lastUpdatedOnInLong;
+	}
+
+	public void setLastUpdatedOnInLong(Long lastUpdatedOnInLong) {
+		this.lastUpdatedOnInLong = lastUpdatedOnInLong;
+	}
+
+	/**
+	 * @return the deptCode
+	 */
+	public String getDeptCode() {
+		return deptCode;
+	}
+
+	/**
+	 * @param deptCode the deptCode to set
+	 */
+	public void setDeptCode(String deptCode) {
+		this.deptCode = deptCode;
+	}
+
+	/**
+	 * @return the isPending
+	 */
+	public Boolean getIsPending() {
+		return isPending;
+	}
+
+	/**
+	 * @param isPending the isPending to set
+	 */
+	public void setIsPending(Boolean isPending) {
+		this.isPending = isPending;
+	}
+
+	/**
+	 * @return the eleDimComboId
+	 */
+	public Long getEleDimComboId() {
+		return eleDimComboId;
+	}
+
+	/**
+	 * @param eleDimComboId the eleDimComboId to set
+	 */
+	public void setEleDimComboId(Long eleDimComboId) {
+		this.eleDimComboId = eleDimComboId;
+	}
+
+	/**
+	 * @return the dsdId
+	 */
+	public String getDsdId() {
+		return dsdId;
+	}
+
+	/**
+	 * @param dsdId the dsdId to set
+	 */
+	public void setDsdId(String dsdId) {
+		this.dsdId = dsdId;
+	}
+
+	/**
+	 * @return the allApplicableDim
+	 */
+	public String getAllApplicableDim() {
+		return allApplicableDim;
+	}
+
+	/**
+	 * @param allApplicableDim the allApplicableDim to set
+	 */
+	public void setAllApplicableDim(String allApplicableDim) {
+		this.allApplicableDim = allApplicableDim;
+	}
+
+	/**
+	 * @return the allApplicableDimJson
+	 */
+	public List<String> getAllApplicableDimJson() {
+		return allApplicableDimJson;
+	}
+
+	/**
+	 * @param allApplicableDimJson the allApplicableDimJson to set
+	 */
+	public void setAllApplicableDimJson(List<String> allApplicableDimJson) {
+		this.allApplicableDimJson = allApplicableDimJson;
+	}
+
+	/**
+	 * @return the addApproval
+	 */
+	public Boolean getAddApproval() {
+		return addApproval;
+	}
+
+	/**
+	 * @param addApproval the addApproval to set
+	 */
+	public void setAddApproval(Boolean addApproval) {
+		this.addApproval = addApproval;
+	}
+
+	/**
+	 * @return the editApproval
+	 */
+	public Boolean getEditApproval() {
+		return editApproval;
+	}
+
+	/**
+	 * @param editApproval the editApproval to set
+	 */
+	public void setEditApproval(Boolean editApproval) {
+		this.editApproval = editApproval;
+	}
+
+	/**
+	 * @return the agencyMasterCode
+	 */
+	public String getAgencyMasterCode() {
+		return agencyMasterCode;
+	}
+
+	/**
+	 * @param agencyMasterCode the agencyMasterCode to set
+	 */
+	public void setAgencyMasterCode(String agencyMasterCode) {
+		this.agencyMasterCode = agencyMasterCode;
+	}
+
+	/**
+	 * @return the sdmxAgencyMasterBean
+	 */
+	public SdmxAgencyMasterBean getSdmxAgencyMasterBean() {
+		return sdmxAgencyMasterBean;
+	}
+
+	/**
+	 * @param sdmxAgencyMasterBean the sdmxAgencyMasterBean to set
+	 */
+	public void setSdmxAgencyMasterBean(SdmxAgencyMasterBean sdmxAgencyMasterBean) {
+		this.sdmxAgencyMasterBean = sdmxAgencyMasterBean;
+	}
+
+	/**
+	 * @return the agencyId
+	 */
+	public int getAgencyId() {
+		return agencyId;
+	}
+
+	/**
+	 * @param agencyId the agencyId to set
+	 */
+	public void setAgencyId(int agencyId) {
+		this.agencyId = agencyId;
+	}
+
+}

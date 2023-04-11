@@ -1,0 +1,42 @@
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.FileDetails;
+
+public interface FileDetailsRepo extends JpaRepository<FileDetails, Long> {
+	 
+	@Query(value = "FROM FileDetails fd where fd.isActive = '1' and fd.fileStatus.fileStatusId IN (:statusList) and fd.uploadChannelIdFk.uploadChannelDesc IN (:uploadChannelList)")
+	List<FileDetails> getAciveFileDetailsDataByStatus(@Param("statusList") List<String> statusList, @Param("uploadChannelList") List<String> uploadChannelList);
+
+	@Query(value = "select * FROM TBL_FILE_DETAILS fd where fd.FILE_STATUS_ID_FK in('1') and fd.IS_ACTIVE = '1' and fd.PROCESSING_FLAG = '0' order by ID asc for update", nativeQuery = true)
+//	@Query(value = "select * FROM TBL_FILE_DETAILS fd where fd.id = 2271 for update", nativeQuery = true)
+	List<FileDetails> getUnProcessedData();
+
+	@Query(value = "FROM FileDetails fd  where fd.uploadChannelIdFk.uploadChannelId IN (:uploadChannelList) and fd.fileStatus.fileStatusId IN (:statusList) and  date(fd.creationDate) between date(:startsDate) and date(:endsDate) order by fd.creationDate desc")
+	List<FileDetails> getFileDetailsData(@Param("uploadChannelList") List<Long> uploadChannelList,@Param("statusList") List<Long> statusList,@Param("startsDate") String startsDate,@Param("endsDate") String endsDate);
+	
+	@Query(value = "FROM FileDetails fd where fd.uploadChannelIdFk.uploadChannelId IN (:uploadChannelList) and fd.fileStatus.fileStatusId IN (:statusList) and upper(fd.ifscCode) IN (:ifscCodeList) and date(fd.creationDate) between date(:startsDate) and date(:endsDate) order by fd.creationDate desc")
+	List<FileDetails> getFileDetailsDataByEntityCode(@Param("uploadChannelList") List<Long> uploadChannelList,@Param("statusList") List<Long> statusList,@Param("ifscCodeList") List<String>  ifscCodeList,@Param("startsDate") String startsDate,@Param("endsDate") String endsDate);
+	
+	@Query(value = "FROM FileDetails fd where fd.uploadChannelIdFk.uploadChannelId IN (:uploadChannelList) and fd.fileStatus.fileStatusId IN (:statusList) and upper(fd.ifscCode) IN (:ifscCodeList) and fd.returnCode IS NULL and date(fd.creationDate) between date(:startsDate) and date(:endsDate) order by fd.creationDate desc")
+	List<FileDetails> getFileDetailsDataWithEntityAndUnMappedReturn(@Param("uploadChannelList") List<Long> uploadChannelList,@Param("statusList") List<Long> statusList,@Param("ifscCodeList") List<String>  ifscCodeList,@Param("startsDate") String startsDate,@Param("endsDate") String endsDate);
+	
+	@Query(value = "FROM FileDetails fd where fd.uploadChannelIdFk.uploadChannelId IN (:uploadChannelList) and fd.fileStatus.fileStatusId IN (:statusList) and upper(fd.returnCode) IN (:returnCodeList) and upper(fd.ifscCode) IN (:ifscCodeList) and date(fd.creationDate) between date(:startsDate) and date(:endsDate) order by fd.creationDate desc")
+	List<FileDetails> getFileDetailsDataByEntityCodeAndReturnCode(@Param("uploadChannelList") List<Long> uploadChannelList,@Param("statusList") List<Long> statusList,@Param("returnCodeList") List<String> returnCodeList,@Param("ifscCodeList") List<String>  ifscCodeList,@Param("startsDate") String startsDate,@Param("endsDate") String endsDate);
+	
+	@Query(value = "FROM FileDetails fd where fd.uploadChannelIdFk.uploadChannelId IN (:uploadChannelList) and fd.fileStatus.fileStatusId IN (:statusList) and ifnull(upper(fd.returnCode),'null') in (:returnCodeList,'null')  and upper(fd.ifscCode) IN (:ifscCodeList) and date(fd.creationDate) between date(:startsDate) and date(:endsDate) order by fd.creationDate desc")
+	List<FileDetails> getFileDetailsDataWithUnMappedReturns(@Param("uploadChannelList") List<Long> uploadChannelList,@Param("statusList") List<Long> statusList,@Param("returnCodeList") List<String> returnCodeList,@Param("ifscCodeList") List<String>  ifscCodeList,@Param("startsDate") String startsDate,@Param("endsDate") String endsDate);
+	
+	FileDetails getDataById(Long id);
+	
+	
+
+	
+	
+	
+}

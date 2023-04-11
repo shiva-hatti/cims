@@ -1,0 +1,64 @@
+package com.iris.sdmx.fusion.bean;
+
+/**
+ * @author apagaria
+ *
+ */
+public class Links {
+
+	private String rel;
+	private String urn;
+	private String uri;
+	private String type;
+	private String hreflang;
+
+	public void setRel(String rel) {
+		this.rel = rel;
+	}
+
+	public String getRel() {
+		return rel;
+	}
+
+	public void setUrn(String urn) {
+		this.urn = urn;
+	}
+
+	public String getUrn() {
+		return urn;
+	}
+
+	public void setUri(String uri) {
+		this.uri = uri;
+	}
+
+	public String getUri() {
+		return uri;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setHreflang(String hreflang) {
+		this.hreflang = hreflang;
+	}
+
+	public String getHreflang() {
+		return hreflang;
+	}
+
+	/**
+	 *
+	 */
+	@Override
+	public String toString() {
+		return "Links [rel=" + rel + ", urn=" + urn + ", uri=" + uri + ", type=" + type + ", hreflang=" + hreflang
+				+ "]";
+	}
+
+}

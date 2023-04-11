@@ -1,0 +1,79 @@
+package com.iris.dynamicDropDown.model;
+
+import java.io.Serializable;
+import java.util.List;
+
+import com.iris.controller.ConceptTypedDomain;
+
+public class DynamicDropDownDto implements Serializable {
+	private static final long serialVersionUID = 6532738437725520190L;
+
+	private DropDownTypeDto dropDownTypeDto;
+	private List<ConceptTypedDomain> conceptTypeDomainDetailsList;
+	private List<DropDownValues> dropdownValDetailsList;
+	private String conceptTypeDomainDetailsListStr;
+	private String dropdownValDetailsListStr;
+	
+	
+	/**
+	 * @return the dropDownTypeDto
+	 */
+	public DropDownTypeDto getDropDownTypeDto() {
+		return dropDownTypeDto;
+	}
+	/**
+	 * @param dropDownTypeDto the dropDownTypeDto to set
+	 */
+	public void setDropDownTypeDto(DropDownTypeDto dropDownTypeDto) {
+		this.dropDownTypeDto = dropDownTypeDto;
+	}
+	/**
+	 * @return the conceptTypeDomainDetailsList
+	 */
+	public List<ConceptTypedDomain> getConceptTypeDomainDetailsList() {
+		return conceptTypeDomainDetailsList;
+	}
+	/**
+	 * @param conceptTypeDomainDetailsList the conceptTypeDomainDetailsList to set
+	 */
+	public void setConceptTypeDomainDetailsList(List<ConceptTypedDomain> conceptTypeDomainDetailsList) {
+		this.conceptTypeDomainDetailsList = conceptTypeDomainDetailsList;
+	}
+	/**
+	 * @return the dropdownValDetailsList
+	 */
+	public List<DropDownValues> getDropdownValDetailsList() {
+		return dropdownValDetailsList;
+	}
+	/**
+	 * @param dropdownValDetailsList the dropdownValDetailsList to set
+	 */
+	public void setDropdownValDetailsList(List<DropDownValues> dropdownValDetailsList) {
+		this.dropdownValDetailsList = dropdownValDetailsList;
+	}
+	/**
+	 * @return the conceptTypeDomainDetailsListStr
+	 */
+	public String getConceptTypeDomainDetailsListStr() {
+		return conceptTypeDomainDetailsListStr;
+	}
+	/**
+	 * @param conceptTypeDomainDetailsListStr the conceptTypeDomainDetailsListStr to set
+	 */
+	public void setConceptTypeDomainDetailsListStr(String conceptTypeDomainDetailsListStr) {
+		this.conceptTypeDomainDetailsListStr = conceptTypeDomainDetailsListStr;
+	}
+	/**
+	 * @return the dropdownValDetailsListStr
+	 */
+	public String getDropdownValDetailsListStr() {
+		return dropdownValDetailsListStr;
+	}
+	/**
+	 * @param dropdownValDetailsListStr the dropdownValDetailsListStr to set
+	 */
+	public void setDropdownValDetailsListStr(String dropdownValDetailsListStr) {
+		this.dropdownValDetailsListStr = dropdownValDetailsListStr;
+	}
+	
+}

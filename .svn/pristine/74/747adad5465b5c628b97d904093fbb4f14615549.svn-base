@@ -1,0 +1,283 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.iris.util.Validations;
+
+/**
+ * This is the ReturnTemplate bean class with Hibernate mapping.
+ * 
+ * @author Amruta Kadam
+ * @version 1.1
+ * @since 15-06-2020
+ */
+@Entity
+@Table(name = "TBL_RETURN_TEMPLATE")
+@JsonInclude(Include.NON_NULL)
+public class ReturnTemplate implements Serializable {
+
+	private static final long serialVersionUID = 1432025100607068046L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "RETURN_TEMPLATE_ID")
+	private Long returnTemplateId;
+
+	@ManyToOne(cascade = { CascadeType.ALL })
+	@JoinColumn(name = "RETURN_ID_FK")
+	private Return returnObj;
+
+	@Column(name = "VERSION_NUMBER")
+	private String versionNumber;
+
+	@Column(name = "VERSION_DESC")
+	private String versionDesc;
+
+	@Column(name = "RETURN_TEMP_FILE_NAME")
+	private String taxonomyName;
+
+	@Column(name = "VALID_FROM_DATE")
+	private Date validFromDate;
+
+	@Column(name = "RETURN_TEMP_SCHEMA_FILE_NAME")
+	private String xsdFileName;
+
+	@ManyToOne
+	@JoinColumn(name = "RETURN_TYPE_ID_FK")
+	private ReturnType returnTypeIdFk;
+
+	@Column(name = "FORMULA_FILE_NAME")
+	private String formulaFileName;
+
+	@ManyToOne(cascade = { CascadeType.ALL })
+	@JoinColumn(name = "CREATED_BY_FK")
+	private UserMaster createdBy;
+
+	@Column(name = "RETURN_TYPE_SECTION_ID")
+	private int returnTypeSectionId;
+
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+
+	@ManyToOne(cascade = { CascadeType.ALL })
+	@JoinColumn(name = "MODIFIED_BY_FK")
+	private UserMaster modifiedByFk;
+
+	@Column(name = "MODIFIED_ON")
+	private Date modifedOn;
+
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	@Column(name = "JSON_DATA_FILE_NAME")
+	private String jsonDataFileName;
+
+	/**
+	 * @return the jsonDataFileName
+	 */
+	public String getJsonDataFileName() {
+		return jsonDataFileName;
+	}
+
+	/**
+	 * @param jsonDataFileName the jsonDataFileName to set
+	 */
+	public void setJsonDataFileName(String jsonDataFileName) {
+		this.jsonDataFileName = jsonDataFileName;
+	}
+
+	/**
+	 * @return the taxonomyId
+	 */
+	public Long getReturnTemplateId() {
+		return returnTemplateId;
+	}
+
+	/**
+	 * @param returnTemplateId the taxonomyId to set
+	 */
+	public void setReturnTemplateId(Long returnTemplateId) {
+		this.returnTemplateId = returnTemplateId;
+	}
+
+	/**
+	 * @return the returnObj
+	 */
+	public Return getReturnObj() {
+		return returnObj;
+	}
+
+	/**
+	 * @param returnObj the returnObj to set
+	 */
+	public void setReturnObj(Return returnObj) {
+		this.returnObj = returnObj;
+	}
+
+	/**
+	 * @return the versionNumber
+	 */
+	public String getVersionNumber() {
+		return versionNumber;
+	}
+
+	/**
+	 * @param versionNumber the versionNumber to set
+	 */
+	public void setVersionNumber(String versionNumber) {
+		this.versionNumber = Validations.trimInput(versionNumber);
+	}
+
+	/**
+	 * @return the versionDesc
+	 */
+	public String getVersionDesc() {
+		return versionDesc;
+	}
+
+	/**
+	 * @param versionDesc the versionDesc to set
+	 */
+	public void setVersionDesc(String versionDesc) {
+		this.versionDesc = Validations.trimInput(versionDesc);
+	}
+
+	/**
+	 * @return the taxonomyName
+	 */
+	public String getTaxonomyName() {
+		return taxonomyName;
+	}
+
+	/**
+	 * @param taxonomyName the taxonomyName to set
+	 */
+	public void setTaxonomyName(String taxonomyName) {
+		this.taxonomyName = Validations.trimInput(taxonomyName);
+	}
+
+	/**
+	 * @return the validFromDate
+	 */
+	public Date getValidFromDate() {
+		return validFromDate;
+	}
+
+	/**
+	 * @param validFromDate the validFromDate to set
+	 */
+	public void setValidFromDate(Date validFromDate) {
+		this.validFromDate = validFromDate;
+	}
+
+	/**
+	 * @return the xsdFileName
+	 */
+	public String getXsdFileName() {
+		return xsdFileName;
+	}
+
+	/**
+	 * @param xsdFileName the xsdFileName to set
+	 */
+	public void setXsdFileName(String xsdFileName) {
+		this.xsdFileName = Validations.trimInput(xsdFileName);
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	public ReturnType getReturnTypeIdFk() {
+		return returnTypeIdFk;
+	}
+
+	public void setReturnTypeIdFk(ReturnType returnTypeIdFk) {
+		this.returnTypeIdFk = returnTypeIdFk;
+	}
+
+	public UserMaster getModifiedByFk() {
+		return modifiedByFk;
+	}
+
+	public void setModifiedByFk(UserMaster modifiedByFk) {
+		this.modifiedByFk = modifiedByFk;
+	}
+
+	public Date getModifedOn() {
+		return modifedOn;
+	}
+
+	public void setModifedOn(Date modifedOn) {
+		this.modifedOn = modifedOn;
+	}
+
+	public Integer geL̥tReturnTypeSectionId() {
+		return returnTypeSectionId;
+	}
+
+	public void setReturnTypeSectionId(Integer returnTypeSectionId) {
+		this.returnTypeSectionId = returnTypeSectionId;
+	}
+
+	public String getFormulaFileName() {
+		return formulaFileName;
+	}
+
+	public void setFormulaFileName(String formulaFileName) {
+		this.formulaFileName = Validations.trimInput(formulaFileName);
+	}
+
+	public int getReturnTypeSectionId() {
+		return returnTypeSectionId;
+	}
+
+	public void setReturnTypeSectionId(int returnTypeSectionId) {
+		this.returnTypeSectionId = returnTypeSectionId;
+	}
+
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+}

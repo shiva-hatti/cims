@@ -1,0 +1,135 @@
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.google.gson.Gson;
+
+import com.iris.caching.ObjectCache;
+import com.iris.crossvalidation.service.CrossValidationStatusService;
+import com.iris.crossvalidation.service.dto.CrossValidationDto;
+import com.iris.dto.EntityMasterDto;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.model.CrossValStatusDet;
+import com.iris.model.CrossValidationStatus;
+import com.iris.model.DynamicDropDownBean;
+import com.iris.model.EntityBean;
+import com.iris.model.ReturnDet;
+import com.iris.model.ReturnGroupMapping;
+import com.iris.util.UtilMaster;
+import com.iris.util.constant.ErrorCode;
+
+/**
+ * @author psheke
+ * @date 12/11/2020
+ */
+@RestController
+@RequestMapping("/service/crossValidationController")
+public class CrossValidationController {
+	static final Logger LOGGER = LogManager.getLogger(CrossValidationController.class);
+
+	@Autowired
+	private CrossValProcessor crossValProcessor;
+
+	@Autowired
+	private CrossValidationStatusService service;
+
+	@Autowired
+	EntityMasterController entityMasterController;
+
+	@GetMapping(value = "/getCrossValReturnGroup")
+	public ServiceResponse getSetList(@RequestHeader(name = "AppId") String jobProcessId, @RequestHeader(name = "UUID") String uuid) {
+		LOGGER.info("Fetching Return Group applicable for Cross Validation: getSetList");
+		ServiceResponse serviceResponse = null;
+		DynamicDropDownBean option = null;
+		List<DynamicDropDownBean> optionList = new ArrayList<>();
+		try {
+			List<ReturnGroupMapping> setList = crossValProcessor.getSetList();
+			for (ReturnGroupMapping returnGroup : setList) {
+				option = new DynamicDropDownBean();
+				option.setKey(returnGroup.getReturnGroupMapId());
+				option.setValue(returnGroup.getDefaultGroupName());
+				optionList.add(option);
+			}
+			String jsonResult = new Gson().toJson(optionList);
+			serviceResponse = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			serviceResponse.setResponse(jsonResult);
+		} catch (Exception e) {
+			LOGGER.error(ErrorCode.EC0033.toString());
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+		return serviceResponse;
+	}
+
+	@PostMapping(value = "/fetchCrossValidationStatus/{returnGroupMapId}/{reportDate}/{auditStatus}/{userId}/{roleId}/{langCode}")
+	public ServiceResponse fetchCrossValidationStatus(@RequestHeader(name = "AppId") String jobProcessingId, @RequestHeader(name = "UUID") String uuid, @PathVariable String returnGroupMapId, @PathVariable String reportDate, @PathVariable String auditStatus, @PathVariable Long userId, @PathVariable Long roleId, @PathVariable String langCode) {
+		LOGGER.info("Fetching Cross Validation Status: fetchCrossValidationStatus");
+		try {
+			List<Long> selectedEntity = new ArrayList<>();
+			EntityMasterDto entityMasterDto = new EntityMasterDto();
+			entityMasterDto.setActive(true);
+			entityMasterDto.setRoleId(roleId);
+			entityMasterDto.setUserId(userId);
+
+			entityMasterDto.setLanguageCode(langCode);
+			List<EntityBean> entityList = (List<EntityBean>) entityMasterController.getEntityMasterList(jobProcessingId, entityMasterDto).getResponse();
+			if (entityList != null && !entityList.isEmpty()) {
+				selectedEntity.addAll(entityList.stream().map(inner -> inner.getEntityId()).collect(Collectors.toList()));
+			}
+
+			if (selectedEntity.isEmpty()) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+			}
+			List<CrossValidationStatus> crossValStatusList = null;
+			List<ReturnDet> returnList = crossValProcessor.fetchReturnListbyGroupMapId(returnGroupMapId);
+			if (!returnList.isEmpty()) {
+				crossValStatusList = crossValProcessor.getCrossValidationList(returnGroupMapId, reportDate, auditStatus, selectedEntity, returnList);
+
+			} else {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+			}
+			CrossValStatusDet crossVal = new CrossValStatusDet();
+			crossVal.setCrossValStatusList(crossValStatusList);
+			crossVal.setReturnList(returnList);
+			String jsonResult = new Gson().toJson(crossVal);
+			if (!UtilMaster.isEmpty(jsonResult)) {
+				return new ServiceResponseBuilder().setStatus(true).setResponse(jsonResult).build();
+			} else {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+			}
+		} catch (Exception e) {
+			LOGGER.error(ErrorCode.EC0033.toString());
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+
+	}
+
+	@PostMapping("/generateReport/{userId}")
+	public ServiceResponse generateReport(@RequestHeader(name = "AppId") String jobProcessingId, @RequestHeader(name = "UUID") String uuid, @RequestBody CrossValidationDto input, @PathVariable String userId) {
+		LOGGER.info("Generating Cross Validation Status Report: generateReport");
+		ServiceResponse serviceResponse = null;
+		try {
+			String outputPath = service.generateReport(input, "screen", userId);
+			serviceResponse = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			serviceResponse.setResponse(outputPath);
+
+		} catch (Exception e) {
+			LOGGER.error(ErrorCode.EC0033.toString());
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+		return serviceResponse;
+	}
+}

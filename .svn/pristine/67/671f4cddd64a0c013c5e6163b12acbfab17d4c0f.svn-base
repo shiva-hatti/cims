@@ -1,0 +1,16 @@
+package com.iris.repository;
+
+import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.iris.controller.DashboardChartSettingBean;
+
+public interface DashboardChartSettingRepo extends JpaRepository<DashboardChartSettingBean, Long> {
+
+	@Query("FROM DashboardChartSettingBean where isActive = 1 and reportType = 1")
+	List<DashboardChartSettingBean> findByIsActiveTrue();
+
+	@Query("FROM DashboardChartSettingBean where isActive = 1 and reportType = 2")
+	List<DashboardChartSettingBean> findByIsActiveTrueForRevisionReq();
+}

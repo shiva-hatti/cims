@@ -1,0 +1,89 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+import com.iris.util.Validations;
+
+@Entity
+@Table(name = "TBL_HOLIDAY")
+public class Holiday implements Serializable {
+
+	private static final long serialVersionUID = -8857053503982065131L;
+
+	@Id
+	@Column(name = "HOLIDAY_ID")
+	private Long holidayId;
+
+	@Column(name = "HOLIDAY_DATE")
+	private Date holidayDate;
+
+	@Column(name = "HOLIDAY_DESC")
+	private String holidayDesc;
+
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	/**
+	 * @return the holidayId
+	 */
+	public Long getHolidayId() {
+		return holidayId;
+	}
+
+	/**
+	 * @param holidayId the holidayId to set
+	 */
+	public void setHolidayId(Long holidayId) {
+		this.holidayId = holidayId;
+	}
+
+	/**
+	 * @return the holidayDate
+	 */
+	public Date getHolidayDate() {
+		return holidayDate;
+	}
+
+	/**
+	 * @param holidayDate the holidayDate to set
+	 */
+	//@TypeConversion(converter="com.iris.struts2.typeconverter.DateConverter")
+	public void setHolidayDate(Date holidayDate) {
+		this.holidayDate = holidayDate;
+	}
+
+	/**
+	 * @return the holidayDesc
+	 */
+	public String getHolidayDesc() {
+		return holidayDesc;
+	}
+
+	/**
+	 * @param holidayDesc the holidayDesc to set
+	 */
+	public void setHolidayDesc(String holidayDesc) {
+		this.holidayDesc = Validations.trimInput(holidayDesc);
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+	
+}

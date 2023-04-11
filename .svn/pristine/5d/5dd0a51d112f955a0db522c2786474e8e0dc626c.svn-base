@@ -1,0 +1,44 @@
+package com.iris.sdmx.element.bean;
+
+import java.io.Serializable;
+
+public class SdmxElementRequestMappingBean implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	private Long elementId;
+	
+	private String elementCode;
+	
+	private String elementVersion;
+
+	public Long getElementId() {
+		return elementId;
+	}
+
+	public void setElementId(Long elementId) {
+		this.elementId = elementId;
+	}
+
+	public String getElementCode() {
+		return elementCode;
+	}
+
+	public void setElementCode(String elementCode) {
+		this.elementCode = elementCode;
+	}
+
+	public String getElementVersion() {
+		return elementVersion;
+	}
+
+	public void setElementVersion(String elementVersion) {
+		this.elementVersion = elementVersion;
+	}
+	
+	
+
+}

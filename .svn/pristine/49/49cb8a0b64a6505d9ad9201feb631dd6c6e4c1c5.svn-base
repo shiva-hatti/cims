@@ -1,0 +1,124 @@
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.google.gson.Gson;
+import com.iris.caching.ObjectCache;
+import com.iris.dto.Option;
+import com.iris.dto.Options;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.model.Currency;
+import com.iris.model.CurrencyLabel;
+import com.iris.service.impl.CurrencyMasterService;
+import com.iris.util.constant.ErrorCode;
+
+/**
+ * @author psawant
+ * @date 08/01/2020
+ * @version 1.0
+ */
+@RestController
+@RequestMapping("/service/currencyData")
+public class CurrencyMasterController {
+
+	private static final Logger Logger = LogManager.getLogger(CurrencyMasterController.class);
+	@Autowired
+	CurrencyMasterService currencyMasterService;
+
+	@RequestMapping(value = "/fetchActiveCurrencyData", method = RequestMethod.GET)
+	public ServiceResponse fetchActiveCurrencyData() {
+		Logger.info("fetch currency data controller started");
+		ServiceResponse serviceResponse = null;
+		Option option = null;
+		Options options = null;
+		List<Option> optionList = null;
+		List<Currency> listOfActiveCurrencyData = null;
+
+		listOfActiveCurrencyData = new ArrayList<>();
+		optionList = new ArrayList<>();
+		options = new Options();
+		listOfActiveCurrencyData = currencyMasterService.getActiveDataFor(Currency.class, null);
+
+		if (listOfActiveCurrencyData != null) {
+			for (Currency currencyMaster : listOfActiveCurrencyData) {
+				option = new Option();
+				option.setKey(currencyMaster.getCurrencyShortName().toUpperCase());
+				option.setValue(currencyMaster.getCurrencyShortName().toUpperCase());
+				optionList.add(option);
+			}
+			//options.setOptionList(optionList);
+			//return new ServiceResponseBuilder().setStatus(true).setResponse(new Gson().toJson(options)).build();
+			Gson gson = new Gson();
+			
+			Collections.sort(optionList, new Comparator<Option>() {
+				@Override
+				public int compare(Option o1, Option o2) {
+					return o1.getValue().compareTo(o2.getValue());
+				}
+			});
+			options.setOptionList(optionList);
+			String optionRes = new Gson().toJson(options);
+			Options optionResDetails = new Gson().fromJson(optionRes, Options.class);
+			return new ServiceResponseBuilder().setStatus(true).setResponse(optionResDetails).build();
+		}
+		return serviceResponse;
+	}
+	
+	@RequestMapping(value = "/getActiveCurrencyData", method = RequestMethod.GET)
+	public ServiceResponse getActiveCurrencyData() {
+		Logger.info("fetch currency data controller started");
+		try {
+		
+			List<Currency> listOfActiveCurrencyData = new ArrayList<>();
+			listOfActiveCurrencyData = currencyMasterService.getActiveDataFor(Currency.class, null);
+			if (listOfActiveCurrencyData == null) {
+				Logger.error("fetching Dynamic drop down, if Currency list not found");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0714.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0714.toString())).build();
+			}
+			Option option = null;
+			Options options = null;
+			List<Option> optionList = null;
+
+			optionList = new ArrayList<>();
+			options = new Options();
+			for (Currency currencyMaster : listOfActiveCurrencyData) {
+				option = new Option();
+				option.setKey(currencyMaster.getCurrencyISOCode());
+				CurrencyLabel currencyLabel = currencyMaster.getCurrLblSet().stream().filter(f -> f.getLangIdFk().getLanguageCode().equalsIgnoreCase("en")).findAny().orElse(null);
+				if(currencyLabel != null) {
+					option.setValue(currencyLabel.getCurrencyLabel());
+				} else {
+					option.setValue(currencyMaster.getCurrencyName());
+				}
+				optionList.add(option);
+			}
+			Collections.sort(optionList, new Comparator<Option>() {
+				@Override
+				public int compare(Option o1, Option o2) {
+					return o1.getValue().compareTo(o2.getValue());
+				}
+			});
+			
+			Gson gson = new Gson();
+			options.setOptionList(optionList);
+			String optionRes = new Gson().toJson(options);
+			Options optionResDetails = new Gson().fromJson(optionRes, Options.class);
+			return new ServiceResponseBuilder().setStatus(true).setResponse(optionResDetails).build();
+		} catch (Exception e) {
+			Logger.error("Exception while fetching Dynamic drop down");
+			return new ServiceResponseBuilder().setStatus(false).setResponse(null).build();
+		}	
+	}
+}

@@ -1,0 +1,43 @@
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.UserMaster;
+
+public interface UserMasterRepo extends JpaRepository<UserMaster, Long>{
+	
+	List<UserMaster> findByUserIdIn(@Param("userId") Long[] userIds);
+	
+	UserMaster findByUserId(@Param("userId") Long userId);
+	
+	@Query("select UM.userName from UserRole UR " 
+			+ " left join UserRoleMaster URM on UR.userRoleId = URM.userRole.userRoleId" 
+			+ " left join UserMaster UM on UM.userId = URM.userMaster.userId " 
+			+ " where UR.roleDesc = :roleDesc")
+	List<String> getDataByName(@Param("roleDesc") String roleDesc);
+
+	List<UserMaster> getDataByPrimaryEmailInAndIsActiveTrue(List<String> emailIds);
+	
+	List<UserMaster> getDataByUserNameInAndIsActiveTrue(List<String> userNamwe);
+	
+	boolean existsByUserName(String userName);
+	
+	UserMaster findByUserIdAndIsActiveTrue(Long id);
+
+	@Query("FROM UserMaster um where um.isActive = 1 and um.userName in(:userNameList)")
+	List<UserMaster> getDataByUserName(@Param("userNameList") List<String> userNameList);
+	
+	@Query("SELECT um.userName FROM UserMaster um where um.isActive = 1 and um.userId =:userId")
+	String getUserNameByUserId(@Param("userId") Long userId);
+	
+	List<UserMaster> findByUserIdInAndIsActiveIn(List<Long> userIds, List<Boolean> isActive);
+	
+	List<UserMaster> findByDepartmentIdFkRegulatorIdInAndIsActiveTrue(List<Long> regulatorId);
+	
+	@Query("FROM UserMaster um where um.isActive = 1 and um.roleType.roleTypeId = 3")
+	List<UserMaster> getAuditorList();
+}

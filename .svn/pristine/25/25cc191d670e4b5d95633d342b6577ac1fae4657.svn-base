@@ -1,0 +1,205 @@
+package com.iris.sdmx.codelist.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.ebr.metadata.flow.constant.EbrMetadataFlowContstant;
+import com.iris.ebr.metadata.flow.service.EbrMetadataFlowService;
+import com.iris.exception.ApplicationException;
+import com.iris.model.RoleType;
+import com.iris.model.UserMaster;
+import com.iris.sdmx.codelist.bean.CodeListModBean;
+import com.iris.sdmx.codelist.bean.CodelListMasterRequestBean;
+import com.iris.sdmx.codelist.service.CodeListApprovalService;
+import com.iris.sdmx.codelist.validator.CodeListApprovalValidator;
+import com.iris.sdmx.userMangement.bean.ApprovalInputBean;
+import com.iris.service.GenericService;
+import com.iris.util.JsonUtility;
+import com.iris.util.UtilMaster;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.GeneralConstants;
+
+
+/**
+ * @author vjadhav
+ *
+ */
+@RestController
+@RequestMapping("/service/sdmx/approval")
+public class CodeListApprovalController {
+	/**
+	 * 
+	 */
+	private static final Logger LOGGER = LogManager.getLogger(CodeListApprovalController.class);
+	
+	@Autowired
+	private CodeListApprovalValidator codeListApprovalValidator;
+	
+	@Autowired
+	private CodeListApprovalService codeListApprovalService;
+	
+	@Autowired
+	private GenericService<UserMaster, Long> userMasterService;
+	
+	@Autowired
+	EbrMetadataFlowService ebrMetadataFlowService;
+	
+	@PostMapping("/user/codeList")
+	public ServiceResponse fetchApprovalRequest(@RequestHeader("JobProcessingId") String jobProcessId,
+			@RequestBody ApprovalInputBean approvalInputBean) {
+		LOGGER.info("START - Fetch approval request received with Job Processing ID : " + jobProcessId);
+		ServiceResponse serviceResponse = null;
+		ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+		serviceResponseBuilder.setStatus(true);
+		
+		ApprovalInputBean validInputBean = new ApprovalInputBean();
+		List<CodeListModBean> codeListModBeanList = new ArrayList<>();
+	
+		try {
+			codeListApprovalValidator.validateFetchApprovalRequest(approvalInputBean, validInputBean, jobProcessId);
+			codeListModBeanList = codeListApprovalService.getRequests(validInputBean);
+			serviceResponseBuilder.setResponse(codeListModBeanList);
+			
+		} catch(ApplicationException applicationException) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + " Transaction ID : " + jobProcessId
+					+ ", Error Code - " + applicationException.getErrorCode() + ", Error Msg - " + applicationException.getErrorMsg(), applicationException);
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + " Transaction ID : " + jobProcessId, applicationException);
+			serviceResponseBuilder.setStatus(false);
+			serviceResponseBuilder.setStatusCode(applicationException.getErrorCode());
+			serviceResponseBuilder.setStatusMessage(applicationException.getErrorMsg());
+		}catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId, e);
+			serviceResponseBuilder = new ServiceResponseBuilder().setStatus(false)
+					.setStatusCode(ErrorCode.EC0013.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString()));
+			
+		}	
+		serviceResponse = serviceResponseBuilder.build();
+		LOGGER.info("End - Fetch approval request completed with Job Processing ID : " + jobProcessId);
+		return serviceResponse;
+	
+	}
+	
+	@PostMapping("/user/codeList/approveReject")
+	public ServiceResponse approveRejectCodeList(@RequestHeader("JobProcessingId") String jobProcessId,
+			@RequestBody ApprovalInputBean approvalInputBean) {
+		LOGGER.info("START - codelist approve/reject request received with Job Processing ID : " + jobProcessId);
+		ServiceResponse serviceResponse = null;
+		ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+		serviceResponseBuilder.setStatus(true);
+		ApprovalInputBean validInputBean = new ApprovalInputBean();
+		try {
+			codeListApprovalValidator.validateApproveRejectCodeListRequest(approvalInputBean, validInputBean, jobProcessId);
+			codeListApprovalService.approveRejectCodeListRecord(validInputBean);
+			ebrMetadataFlowService.ctlEntryForEbrMetadata(EbrMetadataFlowContstant.DIMENSION.getConstantVal());
+		} catch(ApplicationException applicationException) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + " Transaction ID : " + jobProcessId
+					+ ", Error Code - " + applicationException.getErrorCode() + ", Error Msg - " + applicationException.getErrorMsg(), applicationException);
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + " Transaction ID : " + jobProcessId, applicationException);
+			serviceResponseBuilder.setStatus(false);
+			serviceResponseBuilder.setStatusCode(applicationException.getErrorCode());
+			serviceResponseBuilder.setStatusMessage(applicationException.getErrorMsg());
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId, e);
+			serviceResponseBuilder = new ServiceResponseBuilder().setStatus(false)
+					.setStatusCode(ErrorCode.EC0013.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString()));
+		}
+		
+		serviceResponse = serviceResponseBuilder.build();
+		LOGGER.info("End - codelist approve/reject request received with Job Processing ID : " + jobProcessId);
+		return serviceResponse;
+	}
+	
+	
+	@PostMapping(value = "/isCodeListRecordPending")
+	public ServiceResponse isCodeListRecordPending(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody CodelListMasterRequestBean codeListMasterRequestBean) {
+		LOGGER.info("Request received to check code list master pending or not for job processing Id : " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(codeListMasterRequestBean));
+		
+		try {
+			validateInputRequestForRecordPending(jobProcessId, codeListMasterRequestBean);
+
+			UserMaster userMaster = userMasterService.getDataById(codeListMasterRequestBean.getUserId());
+			if(userMaster == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			} else if(userMaster.getRoleType() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			RoleType roleType = userMaster.getRoleType();
+			
+			if(GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().equals(roleType.getRoleTypeId())) {
+				//Don't have access to this module
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0613.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0613.toString())).build();
+			}
+			
+			return new ServiceResponseBuilder().setStatus(true).setResponse(codeListApprovalService.isCodeListPending(codeListMasterRequestBean.getClCode(),codeListMasterRequestBean.getClVersion(),codeListMasterRequestBean.getAgencyMasterCode())).build();
+		}catch(ApplicationException e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(e.getErrorCode()).setStatusMessage(ObjectCache.getErrorCodeKey(e.getErrorCode())).build();
+		}catch(Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+	
+	@PostMapping(value = "/user/{userId}/isCodeListArrayPending")
+	public ServiceResponse isCodeListArrayPending(@RequestHeader(name = "JobProcessingId") String jobProcessId, 
+			@RequestBody List<CodelListMasterRequestBean> codeListMasterRequestBean,
+			@PathVariable("userId") Long userId) {
+		LOGGER.info("Request received to check code list master pending or not for job processing Id : " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(codeListMasterRequestBean));
+		
+		try {
+			validateInputRequestForPendingArray(jobProcessId, codeListMasterRequestBean);
+
+			UserMaster userMaster = userMasterService.getDataById(userId);
+			if(userMaster == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			} else if(userMaster.getRoleType() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			RoleType roleType = userMaster.getRoleType();
+			
+			if(GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().equals(roleType.getRoleTypeId())) {
+				//Don't have access to this module
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0613.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0613.toString())).build();
+			}
+			
+			return new ServiceResponseBuilder().setStatus(true).setResponse(codeListApprovalService.isCodeListArrayPending(codeListMasterRequestBean)).build();
+		}catch(ApplicationException e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(e.getErrorCode()).setStatusMessage(ObjectCache.getErrorCodeKey(e.getErrorCode())).build();
+		}catch(Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+	
+	private void validateInputRequestForRecordPending(String jobProcessingId, CodelListMasterRequestBean codeListMasterRequestBean) throws ApplicationException {
+		if (UtilMaster.isEmpty(jobProcessingId) || UtilMaster.isEmpty(codeListMasterRequestBean.getClCode())
+				|| UtilMaster.isEmpty(codeListMasterRequestBean.getClVersion()) || UtilMaster.isEmpty(codeListMasterRequestBean.getUserId())
+				|| UtilMaster.isEmpty(codeListMasterRequestBean.getRoleId())) {
+			throw new ApplicationException(ErrorCode.E0889.toString(),ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString()));
+		}
+	}
+	
+	private void validateInputRequestForPendingArray(String jobProcessingId, List<CodelListMasterRequestBean> codeListMasterRequestBean) throws ApplicationException {
+		if (UtilMaster.isEmpty(jobProcessingId) || UtilMaster.isEmpty(codeListMasterRequestBean)) {
+			throw new ApplicationException(ErrorCode.E0889.toString(),ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString()));
+		}
+	}
+
+}

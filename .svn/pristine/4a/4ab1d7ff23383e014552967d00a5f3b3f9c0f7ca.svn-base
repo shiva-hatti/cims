@@ -1,0 +1,499 @@
+/**
+ * 
+ */
+package com.iris.sdmx.exceltohtml.helper;
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.iris.caching.ObjectCache;
+import com.iris.exception.ApplicationException;
+import com.iris.model.UserMaster;
+import com.iris.sdmx.dimesnsion.entity.DimensionMaster;
+import com.iris.sdmx.dimesnsion.entity.Regex;
+import com.iris.sdmx.dimesnsion.repo.DimensionRepo;
+import com.iris.sdmx.element.bean.SdmxElementBean;
+import com.iris.sdmx.element.entity.SdmxElementEntity;
+import com.iris.sdmx.element.service.SdmxElementService;
+import com.iris.sdmx.elementdimensionmapping.bean.DimCombination;
+import com.iris.sdmx.elementdimensionmapping.bean.ElementDimensionStoredJson;
+import com.iris.sdmx.elementdimensionmapping.entity.ElementDimension;
+import com.iris.sdmx.elementdimensionmapping.repo.ElementDimensionRepo;
+import com.iris.sdmx.exceltohtml.bean.DimensionCodeListValueBean;
+import com.iris.sdmx.exceltohtml.bean.DimensionDetailCategories;
+import com.iris.sdmx.exceltohtml.bean.ModelCodeInputBean;
+import com.iris.sdmx.exceltohtml.bean.RegexDetails;
+import com.iris.sdmx.exceltohtml.bean.SdmxDimensionDetail;
+import com.iris.sdmx.exceltohtml.bean.SdmxEleDimTypeMapBean;
+import com.iris.sdmx.exceltohtml.bean.SdmxModelCodesBean;
+import com.iris.sdmx.exceltohtml.entity.SdmxEleDimTypeMapEntity;
+import com.iris.sdmx.exceltohtml.entity.SdmxModelCodesEntity;
+import com.iris.sdmx.exceltohtml.service.SdmxEleDimTypeMapService;
+import com.iris.sdmx.exceltohtml.service.SdmxModelCodesService;
+import com.iris.sdmx.util.SDMXConstants;
+import com.iris.util.JsonUtility;
+import com.iris.util.Validations;
+import com.iris.util.constant.ErrorCode;
+
+/**
+ * @author apagaria
+ *
+ */
+@Component
+public class SdmxModelCodesHelper {
+
+	/**
+	 * 
+	 */
+	@Autowired
+	private SdmxElementService sdmxElementService;
+
+	/**
+	 * 
+	 */
+	@Autowired
+	private SdmxModelCodesService modelCodesService;
+
+	/**
+	 * DMID Grouping
+	 */
+	@Autowired
+	private SdmxEleDimTypeMapService sdmxEleDimTypeMapService;
+
+	/**
+	 * 
+	 */
+	@Autowired
+	private ElementDimensionRepo elementDimensionRepo;
+
+	/**
+	 * 
+	 */
+	@Autowired
+	private DimensionRepo dimensionRepo;
+
+	private static final Logger LOGGER = LogManager.getLogger(SdmxModelCodesHelper.class);
+
+	private SdmxModelCodesHelper() {
+	}
+
+	/**
+	 * @param sdmxModelCodesEntity
+	 * @param sdmxModelCodesBean
+	 */
+	public static void convertEntityToBean(SdmxModelCodesEntity sdmxModelCodesEntity, SdmxModelCodesBean sdmxModelCodesBean) {
+		BeanUtils.copyProperties(sdmxModelCodesEntity, sdmxModelCodesBean);
+
+		// Return Template
+		if (sdmxModelCodesEntity.getElementIdFk() != null) {
+			SdmxElementEntity sdmxElementEntity = sdmxModelCodesEntity.getElementIdFk();
+			sdmxModelCodesBean.setDsdCode(sdmxElementEntity.getDsdCode());
+			sdmxModelCodesBean.setElementLabel(sdmxElementEntity.getElementLabel());
+			sdmxModelCodesBean.setElementVer(sdmxElementEntity.getElementVer());
+			sdmxModelCodesBean.setElementIdFk(sdmxElementEntity.getElementId());
+		}
+
+		// Created By
+		if (sdmxModelCodesEntity.getCreatedBy() != null) {
+			sdmxModelCodesBean.setCreatedBy(sdmxModelCodesEntity.getCreatedBy().getUserId());
+			sdmxModelCodesBean.setCreatedByName(sdmxModelCodesEntity.getCreatedBy().getUserName());
+		}
+
+		// Regex
+		if (sdmxModelCodesEntity.getRegexIdFk() != null) {
+			Regex regex = sdmxModelCodesEntity.getRegexIdFk();
+			sdmxModelCodesBean.setRegexIdFk(regex.getRegexId());
+			sdmxModelCodesBean.setRegexPattern(regex.getRegex());
+		}
+
+		if (!StringUtils.isEmpty(sdmxModelCodesEntity.getModelDim())) {
+			DimensionDetailCategories dimensionDetailCategories = new Gson().fromJson(sdmxModelCodesBean.getModelDim(), DimensionDetailCategories.class);
+			if (dimensionDetailCategories.getRegexDetails() != null) {
+				RegexDetails regexDetails = dimensionDetailCategories.getRegexDetails();
+				sdmxModelCodesBean.setRegexMinLength(regexDetails.getMinLength());
+				sdmxModelCodesBean.setRegexMaxLength(regexDetails.getMaxLength());
+			}
+		}
+
+	}
+
+	/**
+	 * @param sdmxModelCodesBean
+	 * @param sdmxModelCodesEntity
+	 * @param userId
+	 */
+	public static void convertBeanToEntity(SdmxModelCodesBean sdmxModelCodesBean, SdmxModelCodesEntity sdmxModelCodesEntity, Long userId) {
+		BeanUtils.copyProperties(sdmxModelCodesBean, sdmxModelCodesEntity);
+
+		// User Master Created By
+		if (userId != null) {
+			UserMaster userMaster = new UserMaster();
+			userMaster.setUserId(userId);
+			sdmxModelCodesEntity.setCreatedBy(userMaster);
+			// Created On
+			sdmxModelCodesEntity.setCreatedOn(new Date());
+		}
+
+		// Element id
+		if (sdmxModelCodesBean.getElementIdFk() != null) {
+			SdmxElementEntity sdmxElementEntity = new SdmxElementEntity();
+			sdmxElementEntity.setElementId(sdmxModelCodesBean.getElementIdFk());
+			sdmxModelCodesEntity.setElementIdFk(sdmxElementEntity);
+		}
+
+		// Regex
+		if (sdmxModelCodesBean.getRegexIdFk() != null) {
+			Regex regex = new Regex(sdmxModelCodesBean.getRegexIdFk());
+			sdmxModelCodesEntity.setRegexIdFk(regex);
+		}
+	}
+
+	/**
+	 * @param commonDimension
+	 * @param clValueCode
+	 * @param dimConceptId
+	 */
+	public void setCommonDimension(List<DimensionCodeListValueBean> commonDimension, String clValueCode, String dimConceptId) {
+		clValueCode = Validations.trimInput(clValueCode);
+		dimConceptId = Validations.trimInput(dimConceptId);
+		DimensionCodeListValueBean dimensionCodeListValueBean = new DimensionCodeListValueBean();
+		if (!StringUtils.isBlank(clValueCode)) {
+			dimensionCodeListValueBean.setClValueCode(clValueCode);
+		}
+		dimensionCodeListValueBean.setDimConceptId(dimConceptId);
+		commonDimension.add(dimensionCodeListValueBean);
+	}
+
+	/**
+	 * @param openDimension
+	 * @param clValueCode
+	 * @param dimConceptId
+	 * @param openDimensionForHash Set Open Dimension
+	 */
+	public void setOpenDimension(List<DimensionCodeListValueBean> openDimension, String clValueCode, String dimConceptId, List<DimensionCodeListValueBean> openDimensionForHash, List<String> openDimList) {
+		clValueCode = Validations.trimInput(clValueCode);
+		dimConceptId = Validations.trimInput(dimConceptId);
+		DimensionCodeListValueBean dimensionCodeListValueBean = new DimensionCodeListValueBean();
+		dimensionCodeListValueBean.setDimConceptId(dimConceptId);
+		if (!StringUtils.isBlank(clValueCode)) {
+			dimensionCodeListValueBean.setClValueCode(clValueCode);
+			if (!(clValueCode.equalsIgnoreCase(SDMXConstants.ITEM_FREE_TEXT) || clValueCode.equalsIgnoreCase(SDMXConstants.FILER_TO_SELECT))) {
+				openDimensionForHash.add(dimensionCodeListValueBean);
+				openDimList.add(dimConceptId);
+			}
+		} else {
+			dimensionCodeListValueBean.setClValueCode("N_A");
+			openDimensionForHash.add(dimensionCodeListValueBean);
+			openDimList.add(dimConceptId);
+		}
+		openDimension.add(dimensionCodeListValueBean);
+
+	}
+
+	/**
+	 * DMID Grouping
+	 * 
+	 * @param sdmxEleDimTypeMapBean
+	 * @param gson
+	 */
+	public void saveDMIDGrouping(SdmxEleDimTypeMapBean sdmxEleDimTypeMapBean, Gson gson) {
+
+		// Checking the group is already exist or not
+		String eleDimHashString = gson.toJson(sdmxEleDimTypeMapBean);
+		eleDimHashString = sortJsonStr(eleDimHashString, gson);
+		eleDimHashString = Base64.encodeBase64String(eleDimHashString.getBytes());
+		Boolean isEleDimExist = sdmxEleDimTypeMapService.checkEleDimHashExist(eleDimHashString);
+
+		if (!isEleDimExist) {
+			// If group not exist fetch the max group num of element
+			Integer maxGroupNum = sdmxEleDimTypeMapService.fetchMaxGroupNumByEleNVersion(sdmxEleDimTypeMapBean.getDsdCode(), sdmxEleDimTypeMapBean.getElementVer());
+
+			// Setting up the group number
+			if (maxGroupNum == null || maxGroupNum <= 0) {
+				maxGroupNum = 1;
+			} else {
+				maxGroupNum = maxGroupNum + 1;
+			}
+
+			List<SdmxEleDimTypeMapEntity> sdmxEleDimTypeMapEntityList = new ArrayList<>();
+			// Processing Closed Dim
+			List<String> closeDimList = sdmxEleDimTypeMapBean.getClosedDim();
+			if (!CollectionUtils.isEmpty(closeDimList)) {
+				processDimGroupList(closeDimList, sdmxEleDimTypeMapBean, "CLOSED", eleDimHashString, maxGroupNum, sdmxEleDimTypeMapEntityList);
+			}
+
+			// Processing Open Dim
+			List<String> openDimList = sdmxEleDimTypeMapBean.getOpenDim();
+			if (!CollectionUtils.isEmpty(openDimList)) {
+				processDimGroupList(openDimList, sdmxEleDimTypeMapBean, "OPEN", eleDimHashString, maxGroupNum, sdmxEleDimTypeMapEntityList);
+			}
+
+			// Save the DMID Group
+			sdmxEleDimTypeMapService.add(sdmxEleDimTypeMapEntityList);
+		}
+	}
+
+	/**
+	 * @param dimValueList
+	 * @param sdmxEleDimTypeMapBean
+	 * @param dimType
+	 * @param eleDimHashString
+	 * @param maxGroupNum
+	 * @param sdmxEleDimTypeMapEntityList
+	 */
+	public void processDimGroupList(List<String> dimValueList, SdmxEleDimTypeMapBean sdmxEleDimTypeMapBean, String dimType, String eleDimHashString, Integer maxGroupNum, List<SdmxEleDimTypeMapEntity> sdmxEleDimTypeMapEntityList) {
+		if (!CollectionUtils.isEmpty(dimValueList)) {
+			for (String dimValue : dimValueList) {
+				SdmxEleDimTypeMapEntity sdmxEleDimTypeMapEntity = new SdmxEleDimTypeMapEntity();
+				sdmxEleDimTypeMapEntity.setDsdCode(sdmxEleDimTypeMapBean.getDsdCode());
+				sdmxEleDimTypeMapEntity.setElementVer(sdmxEleDimTypeMapBean.getElementVer());
+				sdmxEleDimTypeMapEntity.setDimCode(dimValue);
+				sdmxEleDimTypeMapEntity.setDimType(dimType);
+				sdmxEleDimTypeMapEntity.setEleDimHash(eleDimHashString);
+				sdmxEleDimTypeMapEntity.setGroupNum(maxGroupNum);
+				sdmxEleDimTypeMapEntityList.add(sdmxEleDimTypeMapEntity);
+			}
+		}
+	}
+
+	/**
+	 * @param closedDim
+	 * @param clValueCode
+	 * @param dimConceptId
+	 * @param closedDimForHash
+	 */
+	public void setClosedDimension(List<DimensionCodeListValueBean> closedDim, String clValueCode, String dimConceptId, List<DimensionCodeListValueBean> closedDimForHash, List<String> closeDimList) {
+		clValueCode = Validations.trimInput(clValueCode);
+		dimConceptId = Validations.trimInput(dimConceptId);
+		DimensionCodeListValueBean dimensionCodeListValueBean = new DimensionCodeListValueBean();
+		dimensionCodeListValueBean.setDimConceptId(dimConceptId);
+		if (!StringUtils.isBlank(clValueCode)) {
+			dimensionCodeListValueBean.setClValueCode(clValueCode);
+			if (!(clValueCode.equalsIgnoreCase(SDMXConstants.ITEM_FREE_TEXT) || clValueCode.equalsIgnoreCase(SDMXConstants.FILER_TO_SELECT))) {
+				closedDimForHash.add(dimensionCodeListValueBean);
+				closeDimList.add(dimConceptId);
+			}
+		}
+		closedDim.add(dimensionCodeListValueBean);
+	}
+
+	/**
+	 * @param modelCodeInputBean
+	 * @param userId
+	 * @param sdmxModelCodesBean
+	 * @throws ApplicationException
+	 */
+	@SuppressWarnings("unchecked")
+	public Long fetchBeanFromRequest(ModelCodeInputBean modelCodeInputBean, Long userId, SdmxModelCodesBean sdmxModelCodesBean, SdmxEleDimTypeMapBean sdmxEleDimTypeMapBean) throws ApplicationException {
+		Long modelCodeId = 0L;
+		Gson gson = new Gson();
+		BeanUtils.copyProperties(modelCodeInputBean, sdmxModelCodesBean);
+
+		// JSON Model Data
+		Type type = new TypeToken<List<SdmxDimensionDetail>>() {
+		}.getType();
+		List<SdmxDimensionDetail> sdmxDimensionDetailList = (List<SdmxDimensionDetail>) new Gson().fromJson(new String(Base64.decodeBase64(modelCodeInputBean.getModelDim().getBytes())), type);
+		Long elementIdFk = modelCodeInputBean.getElementIdFk();
+		SdmxElementEntity elementEntity = new SdmxElementEntity();
+		elementEntity.setElementId(elementIdFk);
+		ElementDimension elementDimension = elementDimensionRepo.findByElement(elementEntity);
+		Map<String, String> dimConceptIdNConceptVersion = new HashMap<String, String>();
+		if (elementDimension != null) {
+			ElementDimensionStoredJson elementDimensionStoredJson = JsonUtility.getGsonObject().fromJson(elementDimension.getElementDimensionJson(), ElementDimensionStoredJson.class);
+			for (DimCombination dimCombination : elementDimensionStoredJson.getDimCombination()) {
+				dimConceptIdNConceptVersion.put(dimCombination.getDimConceptId(), dimCombination.getConceptVersion());
+			}
+		}
+		SdmxElementBean sdmxElementBean = sdmxElementService.findEntityByActiveStatus(elementIdFk, true, false);
+		if (sdmxElementBean != null) {
+			DimensionDetailCategories dimensionDetailCategories = new DimensionDetailCategories();
+			// Element
+			dimensionDetailCategories.setDsdId(sdmxElementBean.getDsdCode());
+			dimensionDetailCategories.setElementVersion(sdmxElementBean.getElementVer());
+
+			// DMID Grouping
+			sdmxEleDimTypeMapBean.setDsdCode(sdmxElementBean.getDsdCode());
+			sdmxEleDimTypeMapBean.setElementVer(sdmxElementBean.getElementVer());
+
+			// Dimension
+			List<DimensionCodeListValueBean> closedDim = new ArrayList<>();
+			List<DimensionCodeListValueBean> closedDimForHash = new ArrayList<>();
+			List<DimensionCodeListValueBean> commonDimension = new ArrayList<>();
+			List<DimensionCodeListValueBean> openDimension = new ArrayList<>();
+			List<DimensionCodeListValueBean> openDimensionForHash = new ArrayList<>();
+
+			// DMID Grouping
+			List<String> closeDimList = new ArrayList<>();
+			List<String> openDimList = new ArrayList<>();
+
+			for (SdmxDimensionDetail sdmxDimensionDetail : sdmxDimensionDetailList) {
+				DimensionMaster dimensionMaster = dimensionRepo.getEntityUsingDimCode(sdmxDimensionDetail.getDimensionCode(), true, false, dimConceptIdNConceptVersion.get(sdmxDimensionDetail.getDimensionCode()), sdmxElementBean.getSdmxAgencyMasterBean().getAgencyMasterCode());
+				if (dimensionMaster != null && (dimensionMaster.getCodeListMaster() == null || (!dimensionMaster.getCodeListMaster().getIsPending()))) {
+					if (sdmxDimensionDetail.getIsCommon() != null && sdmxDimensionDetail.getIsCommon()) {
+						// Set Common dimension
+						setCommonDimension(commonDimension, sdmxDimensionDetail.getSelectedCodeListId(), sdmxDimensionDetail.getDimensionCode());
+					} else if (sdmxDimensionDetail.getDimensionType().equalsIgnoreCase("OPEN")) {
+						// Set Open Dimension
+						setOpenDimension(openDimension, sdmxDimensionDetail.getSelectedCodeListId(), sdmxDimensionDetail.getDimensionCode(), openDimensionForHash, openDimList);
+
+					} else {
+						// Set Closed Dimension
+						setClosedDimension(closedDim, sdmxDimensionDetail.getSelectedCodeListId(), sdmxDimensionDetail.getDimensionCode(), closedDimForHash, closeDimList);
+					}
+				} else {
+					throw new ApplicationException(ErrorCode.E1619.name(), ObjectCache.getErrorCodeKey(ErrorCode.E1619.toString()), ObjectCache.getErrorCodeKey(ErrorCode.E1619.toString()));
+				}
+
+				// }
+			}
+
+			// DMID Grouping
+			sdmxEleDimTypeMapBean.setClosedDim(closeDimList);
+			sdmxEleDimTypeMapBean.setOpenDim(openDimList);
+
+			if (!CollectionUtils.isEmpty(closedDim)) {
+				closedDim.sort((DimensionCodeListValueBean s1, DimensionCodeListValueBean s2) -> s1.getDimConceptId().compareTo(s2.getDimConceptId()));
+			}
+			if (!CollectionUtils.isEmpty(closedDimForHash)) {
+				closedDimForHash.sort((DimensionCodeListValueBean s1, DimensionCodeListValueBean s2) -> s1.getDimConceptId().compareTo(s2.getDimConceptId()));
+			}
+			dimensionDetailCategories.setClosedDim(closedDimForHash);
+
+			// DMID common dimension
+			/*
+			 * DimensionCodeListValueBean dimensionCodeListValueBean = new
+			 * DimensionCodeListValueBean();
+			 * dimensionCodeListValueBean.setDimConceptId("DMID");
+			 * commonDimension.add(dimensionCodeListValueBean);
+			 */
+			if (!CollectionUtils.isEmpty(commonDimension)) {
+				commonDimension.sort((DimensionCodeListValueBean s1, DimensionCodeListValueBean s2) -> s1.getDimConceptId().compareTo(s2.getDimConceptId()));
+			}
+
+			if (!CollectionUtils.isEmpty(openDimension)) {
+				openDimension.sort((DimensionCodeListValueBean s1, DimensionCodeListValueBean s2) -> s1.getDimConceptId().compareTo(s2.getDimConceptId()));
+			}
+
+			if (!CollectionUtils.isEmpty(openDimensionForHash)) {
+				openDimensionForHash.sort((DimensionCodeListValueBean s1, DimensionCodeListValueBean s2) -> s1.getDimConceptId().compareTo(s2.getDimConceptId()));
+				dimensionDetailCategories.setOpenDimension(openDimensionForHash);
+			}
+
+			String modelDimHashJson = gson.toJson(dimensionDetailCategories);
+			modelDimHashJson = sortJsonStr(modelDimHashJson, gson);
+			LOGGER.debug("Model Code Dim Hash Json - " + modelDimHashJson);
+			dimensionDetailCategories.setClosedDim(closedDim);
+			dimensionDetailCategories.setOpenDimension(openDimension);
+			dimensionDetailCategories.setCommonDimension(commonDimension);
+			// Set Regex
+			RegexDetails regexDetails = null;
+			if (!StringUtils.isEmpty(modelCodeInputBean.getRegexPatternWithId())) {
+				regexDetails = new RegexDetails();
+				String[] regex = modelCodeInputBean.getRegexPatternWithId().split("@Sidd");
+				regexDetails.setRegex(regex[0]);
+				sdmxModelCodesBean.setRegexIdFk(Integer.parseInt(regex[1]));
+				regexDetails.setMinLength(modelCodeInputBean.getRegexMinLength());
+				regexDetails.setMaxLength(modelCodeInputBean.getRegexMaxLength());
+				dimensionDetailCategories.setRegexDetails(regexDetails);
+			}
+			String modelDimJson = gson.toJson(dimensionDetailCategories);
+			modelDimJson = sortJsonStr(modelDimJson, gson);
+			LOGGER.debug("Model Code Dim Json - " + modelDimJson);
+			sdmxModelCodesBean.setModelDim(modelDimJson);
+			sdmxModelCodesBean.setModelDimHash(Base64.encodeBase64String(modelDimHashJson.getBytes()));
+			LOGGER.debug("Model Code Dim Base 64- " + sdmxModelCodesBean.getModelDimHash());
+			SdmxModelCodesBean oldSdmxModelCodesBean = null;
+			boolean isDmExist = false;
+			SdmxModelCodesBean sdmxModelCodesBean2 = modelCodesService.findEntityByModelCodeHash(sdmxModelCodesBean.getModelDimHash());
+			if (sdmxModelCodesBean2 != null) {
+				isDmExist = true;
+				modelCodeId = sdmxModelCodesBean2.getModelCodesId();
+				oldSdmxModelCodesBean = sdmxModelCodesBean2;
+				if (!sdmxModelCodesBean2.getIsActive()) {
+					sdmxModelCodesBean2.setIsActive(true);
+					modelCodesService.saveEntityByBean(sdmxModelCodesBean2, userId);
+				}
+			}
+			if (isDmExist && oldSdmxModelCodesBean != null) {
+				sdmxModelCodesBean.setModelCode(oldSdmxModelCodesBean.getModelCode());
+			} else {
+				// DM Generation Logic
+				// if (!CollectionUtils.isEmpty(openDimension)) {
+				sdmxModelCodesBean.setModelCode(generateDMISeq(modelCodesService.findMaxDMIModelCodes("DMI")));
+				// } else {
+				// sdmxModelCodesBean.setModelCode(generateDMSeq(modelCodesService.findMaxDMModelCodes("DMI")));
+				// }
+			}
+
+			sdmxModelCodesBean.setIsActive(true);
+		} else {
+			throw new ApplicationException(ErrorCode.E1569.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E1569.toString()));
+		}
+		return modelCodeId;
+	}
+
+	private String sortJsonStr(String jsonString, Gson gson) {
+		SortedMap<String, Object> retMap = gson.fromJson(jsonString, new TypeToken<TreeMap<String, Object>>() {
+		}.getType());
+		return gson.toJson(retMap);
+	}
+
+	public String generateDMSeq(String dmVal) {
+		if (StringUtils.isBlank(dmVal)) {
+			return "DM000001";
+		}
+		int dmNum = Integer.parseInt(dmVal.substring(2));
+		dmNum++;
+		String dmNumStr = "" + dmNum;
+		if (dmNumStr.length() == 1) {
+			dmNumStr = "00000" + dmNumStr;
+		} else if (dmNumStr.length() == 2) {
+			dmNumStr = "0000" + dmNumStr;
+		} else if (dmNumStr.length() == 3) {
+			dmNumStr = "000" + dmNumStr;
+		} else if (dmNumStr.length() == 4) {
+			dmNumStr = "00" + dmNumStr;
+		} else if (dmNumStr.length() == 5) {
+			dmNumStr = "0" + dmNumStr;
+		}
+		return "DM" + dmNumStr;
+	}
+
+	public static String generateDMISeq(String dmVal) {
+		if (StringUtils.isBlank(dmVal)) {
+			return "DMI000001";
+		}
+		int dmNum = Integer.parseInt(dmVal.substring(3));
+		dmNum++;
+		String dmNumStr = "" + dmNum;
+		if (dmNumStr.length() == 1) {
+			dmNumStr = "00000" + dmNumStr;
+		} else if (dmNumStr.length() == 2) {
+			dmNumStr = "0000" + dmNumStr;
+		} else if (dmNumStr.length() == 3) {
+			dmNumStr = "000" + dmNumStr;
+		} else if (dmNumStr.length() == 4) {
+			dmNumStr = "00" + dmNumStr;
+		} else if (dmNumStr.length() == 5) {
+			dmNumStr = "0" + dmNumStr;
+		}
+		return "DMI" + dmNumStr;
+	}
+}

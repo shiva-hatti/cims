@@ -1,0 +1,139 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+import java.util.List;
+import java.util.Set;
+
+import com.iris.model.Return;
+import com.iris.model.ReturnGroupMapping;
+import com.iris.model.UserRoleReturnMapping;
+
+/**
+ * @author pmohite
+ */
+public class ReturnGroupListForRegulatorRequest implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	private List<ReturnGroupMapping> returnGroupMappingList;
+	private List<UserRoleReturnMapping> userRoleReturnMappingList;
+	private ReturnGroupMappingRequest returnGroupMappingRequest;
+	private String jobProcessId;
+	private Long langId;
+	private List<Return> returnlist;
+	private Set<ReturnGroupMapping> returnGrouplist;
+	private List<Long> returnGroupIds;
+
+	/**
+	 * @return the returnGroupMappingList
+	 */
+	public List<ReturnGroupMapping> getReturnGroupMappingList() {
+		return returnGroupMappingList;
+	}
+
+	/**
+	 * @param returnGroupMappingList the returnGroupMappingList to set
+	 */
+	public void setReturnGroupMappingList(List<ReturnGroupMapping> returnGroupMappingList) {
+		this.returnGroupMappingList = returnGroupMappingList;
+	}
+
+	/**
+	 * @return the userRoleReturnMappingList
+	 */
+	public List<UserRoleReturnMapping> getUserRoleReturnMappingList() {
+		return userRoleReturnMappingList;
+	}
+
+	/**
+	 * @param userRoleReturnMappingList the userRoleReturnMappingList to set
+	 */
+	public void setUserRoleReturnMappingList(List<UserRoleReturnMapping> userRoleReturnMappingList) {
+		this.userRoleReturnMappingList = userRoleReturnMappingList;
+	}
+
+	/**
+	 * @return the returnGroupMappingRequest
+	 */
+	public ReturnGroupMappingRequest getReturnGroupMappingRequest() {
+		return returnGroupMappingRequest;
+	}
+
+	/**
+	 * @param returnGroupMappingRequest the returnGroupMappingRequest to set
+	 */
+	public void setReturnGroupMappingRequest(ReturnGroupMappingRequest returnGroupMappingRequest) {
+		this.returnGroupMappingRequest = returnGroupMappingRequest;
+	}
+
+	/**
+	 * @return the jobProcessId
+	 */
+	public String getJobProcessId() {
+		return jobProcessId;
+	}
+
+	/**
+	 * @param jobProcessId the jobProcessId to set
+	 */
+	public void setJobProcessId(String jobProcessId) {
+		this.jobProcessId = jobProcessId;
+	}
+
+	/**
+	 * @return the langId
+	 */
+	public Long getLangId() {
+		return langId;
+	}
+
+	/**
+	 * @param langId the langId to set
+	 */
+	public void setLangId(Long langId) {
+		this.langId = langId;
+	}
+
+	/**
+	 * @return the returnlist
+	 */
+	public List<Return> getReturnlist() {
+		return returnlist;
+	}
+
+	/**
+	 * @param returnlist the returnlist to set
+	 */
+	public void setReturnlist(List<Return> returnlist) {
+		this.returnlist = returnlist;
+	}
+
+	/**
+	 * @return the returnGrouplist
+	 */
+	public Set<ReturnGroupMapping> getReturnGrouplist() {
+		return returnGrouplist;
+	}
+
+	/**
+	 * @param returnGrouplist the returnGrouplist to set
+	 */
+	public void setReturnGrouplist(Set<ReturnGroupMapping> returnGrouplist) {
+		this.returnGrouplist = returnGrouplist;
+	}
+
+	/**
+	 * @return the returnGroupIds
+	 */
+	public List<Long> getReturnGroupIds() {
+		return returnGroupIds;
+	}
+
+	/**
+	 * @param returnGroupIds the returnGroupIds to set
+	 */
+	public void setReturnGroupIds(List<Long> returnGroupIds) {
+		this.returnGroupIds = returnGroupIds;
+	}
+
+}

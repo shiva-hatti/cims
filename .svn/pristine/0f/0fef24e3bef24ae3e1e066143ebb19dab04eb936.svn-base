@@ -1,0 +1,50 @@
+/**
+ * 
+ */
+package com.iris.sdmx.fusion.bean;
+
+import java.io.Serializable;
+
+/**
+ * @author sajadhav
+ *
+ */
+public class TextFormat implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -4861378101162357442L;
+
+	private String textType;
+	
+	private String pattern;
+
+	/**
+	 * @return the textType
+	 */
+	public String getTextType() {
+		return textType;
+	}
+
+	/**
+	 * @param textType the textType to set
+	 */
+	public void setTextType(String textType) {
+		this.textType = textType;
+	}
+
+	/**
+	 * @return the pattern
+	 */
+	public String getPattern() {
+		return pattern;
+	}
+
+	/**
+	 * @param pattern the pattern to set
+	 */
+	public void setPattern(String pattern) {
+		this.pattern = pattern;
+	}
+}

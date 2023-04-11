@@ -1,0 +1,200 @@
+/**
+ * 
+ */
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.EntityMasterDto;
+import com.iris.dto.NotificationCount;
+import com.iris.dto.RequestApprovalBean;
+import com.iris.dto.ReturnDto;
+import com.iris.dto.ReturnGroupMappingDto;
+import com.iris.dto.ReturnGroupMappingRequest;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.dto.UserDto;
+import com.iris.model.EntityBean;
+import com.iris.service.NotificationService;
+import com.iris.util.ResourceUtil;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.ErrorConstants;
+
+/**
+ * @author sajadhav
+ *
+ */
+@RestController
+@RequestMapping("/service/notificationService")
+public class NotificationController {
+
+	@Autowired
+	private NotificationService notificationService;
+
+	private static final String WEB_SOCKER_BROKER_NAME = "webSockerBrokerName";
+
+	private static final String REVISION_REQUEST_COUNT_STRING = "revisionRequestCount";
+
+	private static final String UNLOCK_REQUEST_COUNT_STRING = "unlockRequestCount";
+
+	private static final String FILING_COUNT_STRING = "filingCount";
+
+	private static final String SLASH = "/";
+
+	private SimpMessagingTemplate template;
+
+	private static final Logger LOGGER = LogManager.getLogger(NotificationController.class);
+
+	@Autowired
+	private UnlockRequestController unlockRequestController;
+
+	@Autowired
+	private RevisionRequestController revisionRequestController;
+
+	@Autowired
+	private ApprovalController approvalController;
+
+	@Autowired
+	private ReturnGroupController returnGroupController;
+
+	@Autowired
+	EntityMasterController entityMasterController;
+
+	@Autowired
+	public NotificationController(SimpMessagingTemplate template) {
+		this.template = template;
+	}
+
+	@GetMapping(value = "/sendFilingApprovalNotificationToUsers/{uploadId}/{returnApprovalDetailId}/{userId}/{isSendNotification}")
+	public ServiceResponse sendFilingApprovalNotificationToUsers(@PathVariable("uploadId") Long uploadId, @PathVariable("returnApprovalDetailId") Long returnApprovalDetailId, @PathVariable("userId") Long userId, @PathVariable("isSendNotification") boolean isSendNotification) {
+		try {
+			List<NotificationCount> notificationCountList = notificationService.getNotificationCountForFilingApproval(uploadId, returnApprovalDetailId, userId);
+			if (isSendNotification) {
+				if (!CollectionUtils.isEmpty(notificationCountList)) {
+					for (NotificationCount outputMessage : notificationCountList) {
+						this.template.convertAndSend(SLASH + ResourceUtil.getKeyValue(WEB_SOCKER_BROKER_NAME) + SLASH + outputMessage.getRoleId() + SLASH + outputMessage.getUserId() + SLASH + FILING_COUNT_STRING, outputMessage);
+					}
+				}
+				return new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(notificationCountList).build();
+			} else {
+				return new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(notificationCountList).build();
+			}
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_CONTROLLER.getErrorMessage(), e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0013.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString())).build();
+		}
+	}
+
+	@GetMapping(value = "/sendRevisionRequestNotificationToUsers/{revisionRequestId}/{isApprovedOrRejectedRecord}")
+	public ServiceResponse sendRevisionRequestNotificationToUsers(@PathVariable("revisionRequestId") Long revisionRequestId, @PathVariable("isApprovedOrRejectedRecord") boolean isApprovedOrRejectedRecord) {
+		try {
+			List<NotificationCount> notificationCountList = notificationService.getNotificationCountForRevisionRequest(revisionRequestId, isApprovedOrRejectedRecord);
+			if (!CollectionUtils.isEmpty(notificationCountList)) {
+				for (NotificationCount outputMessage : notificationCountList) {
+					this.template.convertAndSend(SLASH + ResourceUtil.getKeyValue(WEB_SOCKER_BROKER_NAME) + SLASH + outputMessage.getRoleId() + SLASH + outputMessage.getUserId() + SLASH + REVISION_REQUEST_COUNT_STRING, outputMessage);
+				}
+			}
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(notificationCountList).build();
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_CONTROLLER.getErrorMessage(), e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0013.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString())).build();
+		}
+	}
+
+	@GetMapping(value = "/sendUnlockRequestNotificationToUsers/{unlockRequestId}/{isApprovedOrRejectedRecord}")
+	public ServiceResponse sendUnlockRequestNotificationToUsers(@PathVariable("unlockRequestId") Long unlockRequestId, @PathVariable("isApprovedOrRejectedRecord") boolean isApprovedOrRejectedRecord) {
+		try {
+			List<NotificationCount> notificationCountList = notificationService.getNotificationCountForUnlockRequest(unlockRequestId, isApprovedOrRejectedRecord);
+			if (!CollectionUtils.isEmpty(notificationCountList)) {
+				for (NotificationCount outputMessage : notificationCountList) {
+					this.template.convertAndSend(SLASH + ResourceUtil.getKeyValue(WEB_SOCKER_BROKER_NAME) + SLASH + outputMessage.getRoleId() + SLASH + outputMessage.getUserId() + SLASH + UNLOCK_REQUEST_COUNT_STRING, outputMessage);
+				}
+			}
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(notificationCountList).build();
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_CONTROLLER.getErrorMessage(), e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0013.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString())).build();
+		}
+	}
+
+	@GetMapping(value = "/notificationTesting/{userId}/{roleId}/{count}")
+	public ServiceResponse getNextUserForApproval(@PathVariable("userId") Long userId, @PathVariable("roleId") Long roleId, @PathVariable("count") Long count) {
+		NotificationCount notificationCount = new NotificationCount();
+		notificationCount.setMessage(count + "");
+		this.template.convertAndSend(SLASH + ResourceUtil.getKeyValue(WEB_SOCKER_BROKER_NAME) + SLASH + roleId + SLASH + userId + SLASH + FILING_COUNT_STRING, notificationCount);
+		return new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+	}
+
+	@PostMapping(value = "/getNotificationCount")
+	public ServiceResponse getNotificationCount(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody UserDto userDto) {
+		try {
+			ServiceResponse serviceResponse = null;
+
+			RequestApprovalBean requestApprovalBean = new RequestApprovalBean();
+			requestApprovalBean.setUserId(userDto.getUserId());
+			requestApprovalBean.setIsCount(Boolean.TRUE);
+			requestApprovalBean.setRoleId(userDto.getRoleId());
+			requestApprovalBean.setIsActive(Boolean.TRUE);
+			requestApprovalBean.setLangId(userDto.getLangId());
+			requestApprovalBean.setLangCode(userDto.getLangCode());
+
+			Map<String, Integer> countMap = new HashMap<>();
+
+			// Get Return List Mapped to user
+			ReturnGroupMappingRequest returnGroupMappingRequest = new ReturnGroupMappingRequest();
+			returnGroupMappingRequest.setIsActive(true);
+			returnGroupMappingRequest.setUserId(userDto.getUserId());
+			returnGroupMappingRequest.setLangId(userDto.getLangId());
+			returnGroupMappingRequest.setRoleId(userDto.getRoleId());
+
+			List<ReturnGroupMappingDto> returnGroupDtoList = (List<ReturnGroupMappingDto>) returnGroupController.getReturnGroups(jobProcessId, returnGroupMappingRequest).getResponse();
+
+			// Get Entity List Mapped to user
+			EntityMasterDto entityMasterDto = new EntityMasterDto();
+			entityMasterDto.setActive(true);
+			entityMasterDto.setRoleId(userDto.getRoleId());
+			entityMasterDto.setUserId(userDto.getUserId());
+			entityMasterDto.setLanguageCode(userDto.getLangCode());
+
+			List<EntityBean> entityList = (List<EntityBean>) entityMasterController.getEntityMasterList(jobProcessId, entityMasterDto).getResponse();
+
+			serviceResponse = unlockRequestController.getPendingUnlockRequest(jobProcessId, requestApprovalBean, returnGroupDtoList, entityList);
+			if (serviceResponse.isStatus()) {
+				countMap.put(UNLOCK_REQUEST_COUNT_STRING, (Integer) serviceResponse.getResponse());
+			}
+
+			serviceResponse = revisionRequestController.getPendingRevisionRequest(jobProcessId, requestApprovalBean, returnGroupDtoList, entityList);
+			if (serviceResponse.isStatus()) {
+				countMap.put(REVISION_REQUEST_COUNT_STRING, (Integer) serviceResponse.getResponse());
+			}
+
+			userDto.setIsCount(Boolean.TRUE);
+			userDto.setIsActive(Boolean.TRUE);
+			serviceResponse = approvalController.getPendingRecords(jobProcessId, userDto, returnGroupDtoList, entityList);
+			if (serviceResponse.isStatus()) {
+				countMap.put(FILING_COUNT_STRING, (Integer) serviceResponse.getResponse());
+			}
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(countMap).build();
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_CONTROLLER.getErrorMessage(), e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0013.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString())).build();
+		}
+	}
+}

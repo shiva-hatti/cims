@@ -1,0 +1,63 @@
+package com.iris.nbfc.model;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+/**
+ * @author Shivabasava Hatti
+ */
+@Entity
+@Table(name = "TBL_NBFC_PANMASTER")
+public class NbfcPanMasterBean {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "ID")
+	private int panId;
+
+	@Column(name = "PAN_NUMBER")
+	private String panNumber;
+
+	@Column(name = "BORROWER_NAME")
+	private String borrowerName;
+
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	public String getPanNumber() {
+		return panNumber;
+	}
+
+	public void setPanNumber(String panNumber) {
+		this.panNumber = panNumber;
+	}
+
+	public String getBorrowerName() {
+		return borrowerName;
+	}
+
+	public void setBorrowerName(String borrowerName) {
+		this.borrowerName = borrowerName;
+	}
+
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	public int getPanId() {
+		return panId;
+	}
+
+	public void setPanId(int panId) {
+		this.panId = panId;
+	}
+
+}

@@ -1,0 +1,34 @@
+package com.iris.sdmx.dimesnsion.bean;
+
+import java.io.Serializable;
+
+public class DimensionBean implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	private String dimConceptId;
+	
+	private String attachmentType;
+
+	public String getDimConceptId() {
+		return dimConceptId;
+	}
+
+	public void setDimConceptId(String dimConceptId) {
+		this.dimConceptId = dimConceptId;
+	}
+
+	public String getAttachmentType() {
+		return attachmentType;
+	}
+
+	public void setAttachmentType(String attachmentType) {
+		this.attachmentType = attachmentType;
+	}
+	
+	
+
+}

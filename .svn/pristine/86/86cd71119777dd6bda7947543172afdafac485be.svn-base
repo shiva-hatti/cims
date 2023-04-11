@@ -1,0 +1,218 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import com.iris.util.Validations;
+
+/**
+ * This is the Entity Label bean class with Hibernate mapping.
+ */
+@Entity
+@Table(name = "TBL_ENTITY_LABEL")
+public class EntityLabelBean implements Serializable {
+
+	@Id
+	@Column(name = "ENTITY_LABEL_ID")
+	private Long entityLabelId;
+
+	@ManyToOne
+	@JoinColumn(name = "LANGUAGE_ID_FK")
+	private LanguageMaster languageMaster;
+
+	@ManyToOne
+	@JoinColumn(name = "ENTITY_ID_FK")
+	private EntityBean entityBean;
+
+	@Column(name = "ENTITY_NAME_LABEL")
+	private String entityNameLabel;
+
+	@Column(name = "LAST_MODIFIED_ON")
+	private Date lastModifiedOn;
+
+	@ManyToOne
+	@JoinColumn(name = "LAST_MODIFIED_BY_FK")
+	private UserMaster lastModifiedBy;
+
+	@ManyToOne
+	@JoinColumn(name = "LAST_APPROVED_BY_FK")
+	private UserMaster lastApprovedBy;
+
+	@Column(name = "LAST_APPROVED_ON")
+	private Date lastApprovedOn;
+
+	@Column(name = "LAST_UPDATED_ON")
+	private Date lastUpdatedOn;
+
+	@Transient
+	private Long roleIdKey;
+
+	@Transient
+	private String entityLblNameAndCode;
+
+	private static final long serialVersionUID = -5536176407550071566L;
+
+	/**
+	 * @return the entityLabelId
+	 */
+	public Long getEntityLabelId() {
+		return entityLabelId;
+	}
+
+	/**
+	 * @param entityLabelId the entityLabelId to set
+	 */
+	public void setEntityLabelId(Long entityLabelId) {
+		this.entityLabelId = entityLabelId;
+	}
+
+	/**
+	 * @return the languageMaster
+	 */
+	public LanguageMaster getLanguageMaster() {
+		return languageMaster;
+	}
+
+	/**
+	 * @param languageMaster the languageMaster to set
+	 */
+	public void setLanguageMaster(LanguageMaster languageMaster) {
+		this.languageMaster = languageMaster;
+	}
+
+	/**
+	 * @return the entityBean
+	 */
+	public EntityBean getEntityBean() {
+		return entityBean;
+	}
+
+	/**
+	 * @param entityBean the entityBean to set
+	 */
+	public void setEntityBean(EntityBean entityBean) {
+		this.entityBean = entityBean;
+	}
+
+	/**
+	 * @return the entityNameLabel
+	 */
+	public String getEntityNameLabel() {
+		return entityNameLabel;
+	}
+
+	/**
+	 * @param entityNameLabel the entityNameLabel to set
+	 */
+	public void setEntityNameLabel(String entityNameLabel) {
+		this.entityNameLabel = Validations.trimInput(entityNameLabel);
+	}
+
+	/**
+	 * @return the lastModifiedOn
+	 */
+	public Date getLastModifiedOn() {
+		return lastModifiedOn;
+	}
+
+	/**
+	 * @param lastModifiedOn the lastModifiedOn to set
+	 */
+	public void setLastModifiedOn(Date lastModifiedOn) {
+		this.lastModifiedOn = lastModifiedOn;
+	}
+
+	/**
+	 * @return the lastModifiedBy
+	 */
+	public UserMaster getLastModifiedBy() {
+		return lastModifiedBy;
+	}
+
+	/**
+	 * @param lastModifiedBy the lastModifiedBy to set
+	 */
+	public void setLastModifiedBy(UserMaster lastModifiedBy) {
+		this.lastModifiedBy = lastModifiedBy;
+	}
+
+	/**
+	 * @return the lastApprovedBy
+	 */
+	public UserMaster getLastApprovedBy() {
+		return lastApprovedBy;
+	}
+
+	/**
+	 * @param lastApprovedBy the lastApprovedBy to set
+	 */
+	public void setLastApprovedBy(UserMaster lastApprovedBy) {
+		this.lastApprovedBy = lastApprovedBy;
+	}
+
+	/**
+	 * @return the lastApprovedOn
+	 */
+	public Date getLastApprovedOn() {
+		return lastApprovedOn;
+	}
+
+	/**
+	 * @param lastApprovedOn the lastApprovedOn to set
+	 */
+	public void setLastApprovedOn(Date lastApprovedOn) {
+		this.lastApprovedOn = lastApprovedOn;
+	}
+
+	/**
+	 * @return the lastUpdatedOn
+	 */
+	public Date getLastUpdatedOn() {
+		return lastUpdatedOn;
+	}
+
+	/**
+	 * @param lastUpdatedOn the lastUpdatedOn to set
+	 */
+	public void setLastUpdatedOn(Date lastUpdatedOn) {
+		this.lastUpdatedOn = lastUpdatedOn;
+	}
+
+	/**
+	 * @return the roleIdKey
+	 */
+	public Long getRoleIdKey() {
+		return roleIdKey;
+	}
+
+	/**
+	 * @param roleIdKey the roleIdKey to set
+	 */
+	public void setRoleIdKey(Long roleIdKey) {
+		this.roleIdKey = roleIdKey;
+	}
+
+	/**
+	 * @return the entityLblNameAndCode
+	 */
+	public String getEntityLblNameAndCode() {
+		entityLblNameAndCode = this.entityNameLabel + " (" + this.entityBean.getEntityCode() + ")";
+		return entityLblNameAndCode;
+	}
+
+	/**
+	 * @param entityLblNameAndCode the entityLblNameAndCode to set
+	 */
+	public void setEntityLblNameAndCode(String entityLblNameAndCode) {
+		this.entityLblNameAndCode = entityLblNameAndCode;
+	}
+
+}

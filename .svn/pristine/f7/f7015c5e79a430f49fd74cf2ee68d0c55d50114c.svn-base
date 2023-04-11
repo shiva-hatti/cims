@@ -1,0 +1,401 @@
+package com.iris.sdmx.upload.controller;
+
+import java.io.File;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.google.gson.JsonObject;
+import com.iris.caching.ObjectCache;
+import com.iris.controller.FileMetaDataValidateController;
+import com.iris.dto.FileDetailsBeanLimitedField;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.exception.ApplicationException;
+import com.iris.model.FileDetails;
+import com.iris.model.Scheduler;
+import com.iris.sdmx.status.bean.SdmxActivityDetailLogRequest;
+import com.iris.sdmx.status.service.SdmxFileActivityLogService;
+import com.iris.sdmx.upload.bean.EBRFileUploadService;
+import com.iris.sdmx.upload.bean.EbrFileDetailsBean;
+import com.iris.sdmx.upload.bean.ElementAuditBean;
+import com.iris.sdmx.upload.bean.SdmxFileAuditRecordStatusUpdateRequest;
+import com.iris.sdmx.upload.service.SdmxElementAuditService;
+import com.iris.sdmx.upload.validation.EbrFileAuditValidator;
+import com.iris.sdmx.util.SDMXConstants;
+import com.iris.service.impl.FileDetailsService;
+import com.iris.util.FileManager;
+import com.iris.util.JsonUtility;
+import com.iris.util.ResourceUtil;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.FilingStatusConstants;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.util.constant.MetaDataCheckConstants;
+import com.iris.util.constant.SchedulerConstants;
+
+/**
+ * @author apagaria
+ *
+ */
+@Controller
+@RestController
+@RequestMapping(value = "/service/sdmx/upload")
+public class EbrFileUploadController {
+
+	static final Logger LOGGER = LogManager.getLogger(EbrFileUploadController.class);
+
+	private static final String EBR_METADATA_PROCESS_CODE = "EBR_METADATA_VALIDATION";
+	private static final Long ADMIN_USER_ID = 3L;
+
+	@Autowired
+	private EBRFileUploadService ebrFileUploadService;
+
+	@Autowired
+	private EbrFileAuditValidator ebrFileAuditValidator;
+
+	@Autowired
+	private SdmxElementAuditService sdmxElementAuditService;
+
+	@Autowired
+	private FileMetaDataValidateController fileMetaDataValidateController;
+
+	@Autowired
+	private FileDetailsService fileDetailsService;
+
+	@Autowired
+	private SdmxFileActivityLogService activityDetailLogService;
+
+	@Value("${scheduler.code.ebrMetaData}")
+	private String schedulerCode;
+
+	//@Scheduled(cron = "${cron.ebrMetaDataScheduler}")
+	public void validateEBRFileMetaDataValidation() {
+		String jobProcessingId = UUID.randomUUID().toString();
+		LOGGER.info("Scheduler started with Job processing ID {}", jobProcessingId);
+		List<FileDetails> fileDetailsList = null;
+		Long schedulerLogId = null;
+		Scheduler scheduler = fileMetaDataValidateController.getSchedulerStatus(jobProcessingId, schedulerCode);
+
+		if (scheduler != null) {
+			if (scheduler.getIsRunning().equals(Boolean.TRUE)) {
+				LOGGER.error("Error while starting scheduler GET_UNPROCESSED_EBR_FILING_DATA_AND_UPDATE_PROCESSING_FLAG -> Reason : Schduler is alrady running ");
+				return;
+			}
+			try {
+				fileDetailsList = fileDetailsService.getEbrFilingDataForMetaDataValidation(scheduler.getRecordsToBeProcessed());
+				LOGGER.info("Total Taken records size by meta data scheduler: {}", fileDetailsList.size());
+				schedulerLogId = fileMetaDataValidateController.makeSchedulerStartEntry(Long.valueOf(fileDetailsList.size()), scheduler.getSchedulerId(), jobProcessingId);
+				if (StringUtils.isEmpty(schedulerLogId)) {
+					LOGGER.error("Error while starting scheduler GET_UNPROCESSED_EBR_FILING_DATA_AND_UPDATE_PROCESSING_FLAG  -> Reason : Schduler Log ID not received ");
+					return;
+				}
+			} catch (Exception e) {
+				LOGGER.error(ErrorConstants.DEFAULT_ERROR.getConstantVal(), e);
+				return;
+			}
+
+			String ipAddress = null;
+			try {
+				ipAddress = InetAddress.getLocalHost().getHostAddress();
+			} catch (UnknownHostException e1) {
+				LOGGER.error("Error while getting IP address");
+			}
+
+			int successfullyProcessedRecord = 0;
+			boolean isValidationFailed;
+			Map<String, Map<Boolean, Set<String>>> fieldCheckListMap;
+			for (FileDetails fileDetails : fileDetailsList) {
+				SdmxActivityDetailLogRequest sdmxFileActivityLog = getSdmxFileActivityLog(fileDetails, ipAddress);
+
+				LOGGER.info("EBR Meta data validation started for ApplicationProcess Id : " + fileDetails.getApplicationProcessId() + "Job processing Id : " + jobProcessingId);
+				fieldCheckListMap = new LinkedHashMap<>();
+				EbrFileDetailsBean ebrFileAuditBean = null;
+				try {
+					ebrFileAuditBean = domainToDtoConverter(fileDetails);
+					isValidationFailed = ebrFileUploadService.processDocument(ebrFileAuditBean, fieldCheckListMap, jobProcessingId);
+				} catch (Exception e) {
+					LOGGER.error("Exception occured while doing metadata validation for Application process ID : " + fileDetails.getApplicationProcessId() + "  Job processing Id : " + jobProcessingId, e);
+					isValidationFailed = false;
+					ebrFileUploadService.insertValueIntoStatusMap(MetaDataCheckConstants.TECHNICAL_ERROR_CHECK.getConstantVal(), false, ErrorCode.E0786.toString(), fieldCheckListMap);
+				}
+
+				try {
+					if (isValidationFailed) {
+						sdmxFileActivityLog.setIsSuccess(false);
+						LOGGER.info("Meta data failed for Application process ID : " + fileDetails.getApplicationProcessId() + " Job processing Id : " + jobProcessingId);
+						fileDetailsService.updateFileDetailsWithMetaDataFailed(JsonUtility.getGsonObject().toJson(prepareJsonOfFailure(fieldCheckListMap)), fileDetails.getId(), FilingStatusConstants.FILE_STATUS_META_DATA_FAILED_ID.getConstantIntVal());
+
+						// Move file to Validate metadata failed folder
+						boolean isFiledMoved = FileManager.moveFile(new File(ebrFileAuditBean.getFilePath()), new File(ResourceUtil.getKeyValue("filepath.root") + File.separator + ResourceUtil.getKeyValue("filePath.validate.meta.failed.path") + File.separator + fileDetails.getFileName()));
+
+						LOGGER.info("File Moved status to Validate Meta failed folder folder : " + isFiledMoved + " For Application process ID Id : " + fileDetails.getApplicationProcessId() + "Job processing Id : " + jobProcessingId);
+					} else {
+						sdmxFileActivityLog.setIsSuccess(true);
+						successfullyProcessedRecord++;
+						boolean fileDeletedStatus = FileManager.forceDelete(new File(ResourceUtil.getKeyValue("filepath.root") + File.separator + ResourceUtil.getKeyValue("filePath.system.dest.path") + File.separator + fileDetails.getFileName()));
+						LOGGER.info("File deletion status from VALIDATE_META_DATA folder :" + fileDeletedStatus);
+					}
+
+					sdmxFileActivityLog.setProcessEndTimeLong(new Date().getTime());
+
+					activityDetailLogService.saveActivityDetailLog(sdmxFileActivityLog, jobProcessingId, ADMIN_USER_ID);
+				} catch (Exception e) {
+					LOGGER.error("Exception occured while updating meta data failed status for Application process ID : " + fileDetails.getApplicationProcessId() + " Job processing Id : " + jobProcessingId, e);
+				}
+				LOGGER.info("EBR Meta data validation completed for ApplicationProcess Id : " + fileDetails.getApplicationProcessId() + " Job processing Id : " + jobProcessingId);
+			}
+			fileMetaDataValidateController.makeSchedulerStopEntry(successfullyProcessedRecord, schedulerLogId, scheduler.getSchedulerId(), jobProcessingId);
+		} else {
+			LOGGER.error(ErrorConstants.SCHEDULER_INFO_NOT_PRESENT.getConstantVal() + " For Scheduler Code GET_UNPROCESSED_EBR_FILING_DATA_AND_UPDATE_PROCESSING_FLAG");
+		}
+	}
+
+	private SdmxActivityDetailLogRequest getSdmxFileActivityLog(FileDetails fileDetails, String ipAddress) {
+		SdmxActivityDetailLogRequest sdmxFileActivityLog = new SdmxActivityDetailLogRequest();
+		sdmxFileActivityLog.setFileDetailId(fileDetails.getId());
+		sdmxFileActivityLog.setProcessStartTimeLong(new Date().getTime());
+		sdmxFileActivityLog.setProcessCode(EBR_METADATA_PROCESS_CODE);
+		JsonObject jsonObject = new JsonObject();
+		jsonObject.addProperty("ipAddress", ipAddress);
+		sdmxFileActivityLog.setOtherDetails(jsonObject.toString());
+		return sdmxFileActivityLog;
+	}
+
+	private EbrFileDetailsBean domainToDtoConverter(FileDetails fileDetails) {
+
+		EbrFileDetailsBean ebrFileDetailsBean = new EbrFileDetailsBean();
+
+		ebrFileDetailsBean.setUploadChannelIdFk(fileDetails.getUploadChannelIdFk().getUploadChannelId());
+		ebrFileDetailsBean.setEntityCode(fileDetails.getEntityCode());
+		if (fileDetails.getUserMaster() != null) {
+			ebrFileDetailsBean.setUserIdFk(fileDetails.getUserMaster().getUserId());
+		}
+		if (fileDetails.getUserRole() != null) {
+			ebrFileDetailsBean.setRoleIdFk(fileDetails.getUserRole().getUserRoleId());
+		}
+		ebrFileDetailsBean.setLangCode(fileDetails.getLangCode());
+		ebrFileDetailsBean.setFilePath(ResourceUtil.getKeyValue("filepath.root") + File.separator + ResourceUtil.getKeyValue("filePath.system.dest.path") + File.separator + fileDetails.getFileName());
+		ebrFileDetailsBean.setLangCode(GeneralConstants.ENG_LANG.getConstantVal());
+		ebrFileDetailsBean.setEbrFileAuditId(fileDetails.getId());
+		return ebrFileDetailsBean;
+	}
+
+	@PostMapping(value = "/addSdmxmlFileAuditData")
+	public ServiceResponse uploadEBRFile(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody EbrFileDetailsBean ebrFileAuditBean) {
+		LOGGER.info("START - uploadEBRFile functionality for Job Processing ID : " + jobProcessId);
+		Map<String, Map<Boolean, Set<String>>> fieldCheckListMap = new LinkedHashMap<>();
+		try {
+			boolean isValidationFailed = validateInputRequest(ebrFileAuditBean, fieldCheckListMap);
+
+			if (isValidationFailed) {
+				LOGGER.info("Input request validation failed in uploadEBRFile for Job Processing ID : " + jobProcessId + " input bean : " + JsonUtility.getGsonObject().toJson(ebrFileAuditBean));
+				return new ServiceResponse.ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0809.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0809.toString())).setResponse(prepareJsonOfFailure(fieldCheckListMap)).build();
+			}
+
+			isValidationFailed = ebrFileUploadService.processDocument(ebrFileAuditBean, fieldCheckListMap, jobProcessId);
+			if (isValidationFailed) {
+				return new ServiceResponse.ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0809.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0809.toString())).setResponse(prepareJsonOfFailure(fieldCheckListMap)).build();
+			} else {
+				return new ServiceResponseBuilder().setStatus(true).setStatusMessage(GeneralConstants.SUCCESS.getConstantVal()).build();
+			}
+		} catch (ApplicationException applicationException) {
+			ebrFileUploadService.insertValueIntoStatusMap(MetaDataCheckConstants.TECHNICAL_ERROR_CHECK.getConstantVal(), false, ErrorCode.E0786.toString(), fieldCheckListMap);
+			LOGGER.error("Exception occured in uploadEBRFile for job processing Id : " + jobProcessId + "", applicationException);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(applicationException.getErrorCode()).setResponse(prepareJsonOfFailure(fieldCheckListMap)).setStatusMessage(applicationException.getErrorMsg()).build();
+		} catch (Exception e) {
+			ebrFileUploadService.insertValueIntoStatusMap(MetaDataCheckConstants.TECHNICAL_ERROR_CHECK.getConstantVal(), false, ErrorCode.E0786.toString(), fieldCheckListMap);
+			LOGGER.error("Exception occured in uploadEBRFile for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setResponse(prepareJsonOfFailure(fieldCheckListMap)).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+
+	private Map<String, List<String>> prepareJsonOfFailure(Map<String, Map<Boolean, Set<String>>> fieldCheckListMap) {
+		Map<String, List<String>> responseObject = new LinkedHashMap<>();
+		try {
+			if (fieldCheckListMap != null) {
+				for (Map.Entry<String, Map<Boolean, Set<String>>> key : fieldCheckListMap.entrySet()) {
+					Map<Boolean, Set<String>> statusMap = fieldCheckListMap.get(key.getKey());
+					for (Map.Entry<Boolean, Set<String>> booleanKey : statusMap.entrySet()) {
+						if (booleanKey.getKey().equals(Boolean.FALSE)) {
+							List<String> errorListWithKey = new ArrayList<>();
+							if (statusMap.get(booleanKey.getKey()) != null) {
+								statusMap.get(booleanKey.getKey()).forEach(f -> {
+									if (f.split(":").length > 1) {
+										errorListWithKey.add(ObjectCache.getErrorCodeKey(f.split(":")[0]) + ":" + ObjectCache.getErrorCodeKey(f.split(":")[1]));
+									} else {
+										errorListWithKey.add(ObjectCache.getErrorCodeKey(f));
+									}
+								});
+							}
+							responseObject.put(key.getKey(), errorListWithKey);
+						} else {
+							responseObject.put(key.getKey(), new ArrayList<String>());
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error("Exception", e);
+		}
+		return responseObject;
+	}
+
+	private boolean validateInputRequest(EbrFileDetailsBean ebrFileAuditBean, Map<String, Map<Boolean, Set<String>>> fieldCheckListMap) {
+
+		boolean isValidationFailed = false;
+
+		if (StringUtils.isEmpty(ebrFileAuditBean.getFilePath())) {
+			isValidationFailed = true;
+			ebrFileUploadService.insertValueIntoStatusMap(MetaDataCheckConstants.TECHNICAL_ERROR_CHECK.getConstantVal(), false, ErrorCode.E0794.toString(), fieldCheckListMap);
+		} else {
+			File file = new File(ebrFileAuditBean.getFilePath());
+			if (!file.exists()) {
+				LOGGER.error("File Not exist having path : " + ebrFileAuditBean.getFilePath());
+				isValidationFailed = true;
+				ebrFileUploadService.insertValueIntoStatusMap(MetaDataCheckConstants.TECHNICAL_ERROR_CHECK.getConstantVal(), false, ErrorCode.E0793.toString(), fieldCheckListMap);
+			}
+		}
+
+		if (StringUtils.isEmpty(ebrFileAuditBean.getUploadChannelIdFk())) {
+			isValidationFailed = true;
+			ebrFileUploadService.insertValueIntoStatusMap(MetaDataCheckConstants.TECHNICAL_ERROR_CHECK.getConstantVal(), false, ErrorCode.E0788.toString(), fieldCheckListMap);
+		}
+
+		if (StringUtils.isEmpty(ebrFileAuditBean.getEntityCode())) {
+			isValidationFailed = true;
+			ebrFileUploadService.insertValueIntoStatusMap(MetaDataCheckConstants.TECHNICAL_ERROR_CHECK.getConstantVal(), false, ErrorCode.E0792.toString(), fieldCheckListMap);
+		}
+
+		if (StringUtils.isEmpty(ebrFileAuditBean.getUserIdFk())) {
+			isValidationFailed = true;
+			ebrFileUploadService.insertValueIntoStatusMap(MetaDataCheckConstants.TECHNICAL_ERROR_CHECK.getConstantVal(), false, ErrorCode.E0789.toString(), fieldCheckListMap);
+		}
+
+		if (StringUtils.isEmpty(ebrFileAuditBean.getRoleIdFk())) {
+			isValidationFailed = true;
+			ebrFileUploadService.insertValueIntoStatusMap(MetaDataCheckConstants.TECHNICAL_ERROR_CHECK.getConstantVal(), false, ErrorCode.E0777.toString(), fieldCheckListMap);
+		}
+
+		if (StringUtils.isEmpty(ebrFileAuditBean.getLangCode())) {
+			isValidationFailed = true;
+			ebrFileUploadService.insertValueIntoStatusMap(MetaDataCheckConstants.TECHNICAL_ERROR_CHECK.getConstantVal(), false, ErrorCode.E0774.toString(), fieldCheckListMap);
+		}
+
+		if (isValidationFailed) {
+			LOGGER.info("Input Request Bean : " + JsonUtility.getGsonObject().toJson(ebrFileAuditBean));
+		}
+
+		return isValidationFailed;
+	}
+
+	/**
+	 * @param jobProcessId
+	 * @param userId
+	 * @param roleId
+	 * @param langCode
+	 * @param statusId
+	 * @return
+	 */
+	@GetMapping(value = "/user/{userId}/role/{roleId}/lang/{langCode}/fetchSdmxFileAuditRecords/status/{statusId}/record/{recordToProcess}")
+	public ServiceResponse fetchSdmxFileAuditRecords(@RequestHeader(name = "JobProcessingId") String jobProcessId, @PathVariable("userId") Long userId, @PathVariable(name = "roleId") Long roleId, @PathVariable("langCode") String langCode, @PathVariable("statusId") Integer statusId, @PathVariable("recordToProcess") Integer recordToProcess) {
+		LOGGER.info("START - Fetch sdmx file audit records request received with Job Processing ID : " + jobProcessId);
+		ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+		serviceResponseBuilder.setStatus(false);
+		try {
+			// Validation START
+			LOGGER.info("Validation start for fetch sdmx file audit records with job processing id " + jobProcessId);
+			ebrFileAuditValidator.validateFetchSdmxFileAuditRequest(jobProcessId, userId, statusId);
+			LOGGER.info("Validation end for fetch sdmx file audit records with job processing id " + jobProcessId);
+
+			// Fetch Records from Table
+			LOGGER.info("fetch sdmx file audit records from table with job processing id " + jobProcessId);
+			List<FileDetailsBeanLimitedField> fileDetailsBeanLimitedFieldList = ebrFileUploadService.fetchSdmxAuditRecords(statusId, jobProcessId, recordToProcess);
+			if (!CollectionUtils.isEmpty(fileDetailsBeanLimitedFieldList)) {
+				List<FileDetailsBeanLimitedField> returnFileDetailsBeanLimitedFieldList = new ArrayList<>();
+				for (FileDetailsBeanLimitedField fileDetailsBeanLimitedField : fileDetailsBeanLimitedFieldList) {
+					// Fetch Records from Table
+					LOGGER.info("fetch sdmx Element audit records from table with job processing id " + jobProcessId);
+					List<ElementAuditBean> elementAuditBeanList = sdmxElementAuditService.fetchSdmxAuditRecords(statusId, fileDetailsBeanLimitedField.getId(), jobProcessId);
+					LOGGER.info("Records fetch from table sucessfully with job processing id " + jobProcessId);
+					fileDetailsBeanLimitedField.setElementAuditBeanList(elementAuditBeanList);
+					returnFileDetailsBeanLimitedFieldList.add(fileDetailsBeanLimitedField);
+				}
+				LOGGER.info("Records fetch from table sucessfully with job processing id " + jobProcessId);
+				serviceResponseBuilder.setStatus(true);
+				serviceResponseBuilder.setStatusCode(SDMXConstants.SUCCESS_CODE);
+				serviceResponseBuilder.setStatusMessage(SDMXConstants.SUCCESS_MESSAGE);
+				serviceResponseBuilder.setResponse(returnFileDetailsBeanLimitedFieldList);
+			} else {
+				LOGGER.info("No record found " + jobProcessId);
+				serviceResponseBuilder.setStatus(false);
+				serviceResponseBuilder.setStatusCode(SDMXConstants.FAILURE_CODE);
+				serviceResponseBuilder.setStatusMessage(SDMXConstants.FAILURE_MESSAGE);
+			}
+		} catch (ApplicationException applicationException) {
+			LOGGER.error("Exception occured while fetching sdmx file audit records " + ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId, applicationException);
+			serviceResponseBuilder.setStatusCode(applicationException.getErrorCode());
+			serviceResponseBuilder.setStatusMessage(applicationException.getErrorMsg());
+		} catch (Exception e) {
+			LOGGER.error("Exception occured while fetching sdmx file audit records for job processing Id : " + jobProcessId + "", e);
+			serviceResponseBuilder.setStatusCode(ErrorCode.EC0033.toString());
+			serviceResponseBuilder.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString()));
+		}
+		LOGGER.info("END - Fetch sdmx file audit records request received with Job Processing ID : " + jobProcessId);
+		return serviceResponseBuilder.build();
+	}
+
+	@PutMapping(value = "/user/{userId}/role/{roleId}/lang/{langCode}/updateSdmxFileAuditRecords")
+	public ServiceResponse updateStatusSdmxFileAuditRecords(@RequestHeader(name = "JobProcessingId") String jobProcessId, @PathVariable("userId") Long userId, @PathVariable(name = "roleId") Long roleId, @PathVariable("langCode") String langCode, @RequestBody SdmxFileAuditRecordStatusUpdateRequest sdmxFileAuditRecordStatusUpdateRequest) {
+		LOGGER.info("START - Update status of sdmx file audit records request received with Job Processing ID : " + jobProcessId);
+		ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+		serviceResponseBuilder.setStatus(false);
+		try {
+			// Validation START
+			LOGGER.info("Validation start for updating status of sdmx file audit records with job processing id " + jobProcessId);
+			ebrFileAuditValidator.validateSdmxFileAuditRequestUpdateStatus(jobProcessId, userId, sdmxFileAuditRecordStatusUpdateRequest.getStatusId());
+			LOGGER.info("Validation end for updating status of sdmx file audit records with job processing id " + jobProcessId);
+
+			LOGGER.info("Update the status of sdmx file audit records with job processing id " + jobProcessId + ", and status id - " + sdmxFileAuditRecordStatusUpdateRequest.getStatusId());
+			ebrFileUploadService.updateStatusOfSdmxFileAuditRecords(sdmxFileAuditRecordStatusUpdateRequest.getSdmxEbrFileDetailsRecordId(), sdmxFileAuditRecordStatusUpdateRequest.getStatusId(), jobProcessId);
+			LOGGER.info("Updation complete for sdmx file audit records with job processing id " + jobProcessId + ", and status id - " + sdmxFileAuditRecordStatusUpdateRequest.getStatusId());
+			serviceResponseBuilder.setStatus(true);
+			serviceResponseBuilder.setStatusCode(SDMXConstants.SUCCESS_CODE);
+			serviceResponseBuilder.setStatusMessage(SDMXConstants.SUCCESS_MESSAGE);
+		} catch (ApplicationException applicationException) {
+			LOGGER.error("Exception occured while updating status of sdmx file audit records " + ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + ", with job Processing ID : " + jobProcessId, applicationException);
+			serviceResponseBuilder.setStatusCode(applicationException.getErrorCode());
+			serviceResponseBuilder.setStatusMessage(applicationException.getErrorMsg());
+		} catch (Exception e) {
+			LOGGER.error("Exception occured while updating status of sdmx file audit records for job processing Id : " + jobProcessId + "", e);
+			serviceResponseBuilder.setStatusCode(ErrorCode.EC0033.toString());
+			serviceResponseBuilder.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString()));
+		}
+		LOGGER.info("END - Update status of sdmx file audit records request received with Job Processing ID : " + jobProcessId);
+		return serviceResponseBuilder.build();
+	}
+
+}

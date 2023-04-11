@@ -1,0 +1,202 @@
+package com.iris.sdmx.element.validator;
+
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
+import com.iris.caching.ObjectCache;
+import com.iris.exception.ApplicationException;
+import com.iris.model.UserMaster;
+import com.iris.model.UserRole;
+import com.iris.model.UserRoleMaster;
+import com.iris.sdmx.element.bean.ElementApprovalInputBean;
+import com.iris.sdmx.element.bean.SdmxElementBeanForTemp;
+import com.iris.sdmx.element.entity.SdmxElementEntity;
+import com.iris.sdmx.element.entity.SdmxElementTempEntity;
+import com.iris.sdmx.element.repo.SdmxElementRepo;
+import com.iris.sdmx.element.repo.SdmxElementTempRepo;
+import com.iris.sdmx.status.repo.ActionStatusRepo;
+import com.iris.sdmx.status.repo.AdminStatusRepo;
+import com.iris.sdmx.userMangement.UserManagementValidator;
+import com.iris.service.impl.UserMasterService;
+import com.iris.util.UtilMaster;
+import com.iris.util.constant.ErrorCode;
+import com.iris.repository.RegulatorRepo;
+import com.iris.repository.UserRoleMasterRepo;
+import com.iris.repository.UserRoleRepo;
+
+/**
+ * @author vjadhav
+ *
+ */
+@Component
+public class ElementApprovalValidator {
+
+	private static final Logger LOGGER = LogManager.getLogger(ElementApprovalValidator.class);
+	
+	@Autowired
+	private UserMasterService userMasterService;
+	
+	@Autowired
+	private UserRoleMasterRepo userRoleMasterRepo;
+	
+	@Autowired
+	private UserRoleRepo userRoleRepo;
+	
+	@Autowired
+	private RegulatorRepo regulatorRepo;
+	
+	@Autowired
+	private ActionStatusRepo actionStatusRepo;
+	
+	@Autowired
+	private AdminStatusRepo adminStatusRepo;
+	
+	@Autowired
+	private UserManagementValidator userManagementValidator;
+	
+	@Autowired
+	private SdmxElementTempRepo sdmxElementTempRepo;
+	
+	@Autowired
+	private SdmxElementRepo sdmxElementRepo;
+	
+	private static final Object lock1 = new Object();
+	
+	public void validateFetchApprovalRequest(ElementApprovalInputBean inputBean, ElementApprovalInputBean validInputBean,
+			String jobProcessId) throws ApplicationException {
+	
+		LOGGER.info("START - Validation request for fetch Element approval requests with Job Processing ID : " + jobProcessId);
+		
+		userManagementValidator.validateApprovalRequest(inputBean, validInputBean, jobProcessId);
+		
+		validateAdminStatusId(inputBean.getAdminStatusId(), validInputBean);
+		
+		
+		LOGGER.info("END - Validation request for fetch Element approval requests with Job Processing ID : " + jobProcessId);
+
+		
+		
+	}
+	
+	public void validateApproveRejectElementRequest(ElementApprovalInputBean inputBean, ElementApprovalInputBean validInputBean,
+			String jobProcessId) throws ApplicationException {
+	
+		LOGGER.info("START - Validation request for approve/reject element requests with Job Processing ID : " + jobProcessId);
+		
+		userManagementValidator.validateApproveRejectRequest(inputBean, validInputBean, jobProcessId);
+		
+		validateAdminStatusId(inputBean.getAdminStatusId(), validInputBean);
+		
+		validateTempId(inputBean.getElementTempId(), validInputBean.getIsMainDept(),
+				inputBean,validInputBean);
+		
+		validateComment(inputBean.getComment(), inputBean.getAdminStatusId(), validInputBean);
+		
+		validateElementOwnerDeptCode(inputBean, validInputBean);
+		
+		syncValidateMethod(validInputBean.getElementTempId());
+		LOGGER.info("END - Validation request for approve/reject element requests with Job Processing ID : " + jobProcessId);
+
+		
+		
+	}
+	
+	
+	private void validateAdminStatusId(Long adminStatusId, ElementApprovalInputBean validInputBean) throws ApplicationException {
+		if(adminStatusId == null) {
+			throw new ApplicationException(ErrorCode.E1557.toString(),
+					ObjectCache.getErrorCodeKey(ErrorCode.E1557.toString()));
+		} else if(adminStatusRepo.findByAdminStatusId(adminStatusId) == null) {
+			throw new ApplicationException(ErrorCode.E0889.toString(),
+					ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString()));
+		} else {
+			validInputBean.setAdminStatusId(adminStatusId);
+		}
+		
+		
+	}
+	
+	private void validateTempId(Long tempId,boolean isMainDept,ElementApprovalInputBean inputBean, ElementApprovalInputBean validInputBean) throws ApplicationException {
+		
+		if(tempId == null) {
+			throw new ApplicationException(ErrorCode.E1558.toString(),
+					ObjectCache.getErrorCodeKey(ErrorCode.E1558.toString()));
+		}
+		
+		SdmxElementTempEntity SdmxElementTempObj = sdmxElementTempRepo.findByElementTempId(tempId);
+		
+		if(SdmxElementTempObj == null) {
+			throw new ApplicationException(ErrorCode.E1559.toString(),
+					ObjectCache.getErrorCodeKey(ErrorCode.E1559.toString()));
+		} else if(isMainDept == false && 
+				SdmxElementTempObj.getActionStatusFk().getActionId() == 1) {
+			throw new ApplicationException(ErrorCode.E1560.toString(),
+					ObjectCache.getErrorCodeKey(ErrorCode.E1560.toString()));
+		} else if(inputBean.getAdminStatusId() == 1 ||
+				inputBean.getAdminStatusId() == 2){
+			throw new ApplicationException(ErrorCode.E1561.toString(),
+					ObjectCache.getErrorCodeKey(ErrorCode.E1561.toString()));
+		}else {
+			validInputBean.setElementTempId(tempId);
+			validInputBean.setActionIdFk(SdmxElementTempObj.getActionStatusFk().getActionId());
+			if(!UtilMaster.isEmpty(SdmxElementTempObj.getElementIdFk())) {
+				validInputBean.setElementId(SdmxElementTempObj.getElementIdFk().getElementId());
+			}
+			
+		}
+		
+	}
+	
+	private void validateComment(String comment, Long adminStatusid, ElementApprovalInputBean validInputBean) throws ApplicationException {
+		if(adminStatusid == 3 && UtilMaster.isEmpty(comment)) {
+			throw new ApplicationException(ErrorCode.E1562.toString(),
+					ObjectCache.getErrorCodeKey(ErrorCode.E1562.toString()));
+		}else {
+			validInputBean.setComment(comment);
+		}
+	}
+	
+	private void validateElementOwnerDeptCode(ElementApprovalInputBean inputBean, ElementApprovalInputBean validInputBean) throws ApplicationException {
+		 String ownerDeptCode = null;
+		if (validInputBean.getActionIdFk() == 1) {
+			
+			validInputBean.setElementOwnerDeptCode(inputBean.getElementOwnerDeptCode());
+			
+		} else if(validInputBean.getActionIdFk() == 2 || validInputBean.getActionIdFk() == 3) {
+			 SdmxElementEntity sdmxElementBean = sdmxElementRepo.findByElementId(validInputBean.getElementId());
+				
+			 if(!UtilMaster.isEmpty(sdmxElementBean)) {
+				 ownerDeptCode = sdmxElementBean.getRegulatorOwnerIdFk().getRegulatorCode();
+				 if(!ownerDeptCode.equalsIgnoreCase(validInputBean.getDeptCode()) ) {
+					 throw new ApplicationException(ErrorCode.E1563.toString(),
+								ObjectCache.getErrorCodeKey(ErrorCode.E1563.toString()));
+					 
+				 }
+				 
+			 }
+			 validInputBean.setElementOwnerDeptCode(ownerDeptCode);
+		}
+		
+		
+	}
+	
+	private void syncValidateMethod(Long tempId) throws ApplicationException {
+		Long adminStatusId = null;
+		synchronized (lock1) {
+		
+				 
+			adminStatusId = sdmxElementTempRepo.findByElementTempId(tempId).getSdmxStatusEntity().getAdminStatusId();
+			sdmxElementTempRepo.findByElementTempId(tempId).getSdmxStatusEntity().getAdminStatusId();
+			 if(adminStatusId != 1) {
+				 throw new ApplicationException(ErrorCode.E1564.toString(),
+							ObjectCache.getErrorCodeKey(ErrorCode.E1564.toString()));
+			 }
+			 
+		}
+	}
+}

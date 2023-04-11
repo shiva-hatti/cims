@@ -1,0 +1,90 @@
+/**
+ * 
+ */
+package com.iris.validator;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.ReturnTemplateDto;
+import com.iris.exception.ApplicationException;
+import com.iris.util.constant.ErrorCode;
+
+/**
+ * @author apagaria
+ *
+ */
+@Component
+public class ReturnTemplateUploadValidator {
+	
+	/**
+	 * 
+	 */
+	private static final Logger LOGGER = LogManager.getLogger(ReturnTemplateUploadValidator.class);
+
+	@Autowired
+	CIMSCommonValidator cimsCommonValidator;
+
+	public void validateFindReturnByReturnTypeAndSectionIdRequest(ReturnTemplateDto returnTemplateDto,
+			String jobProcessId, Long userId) throws ApplicationException {
+		// Job Processing Id
+		cimsCommonValidator.validateJobProcessingId(jobProcessId);
+
+		// User Id
+		cimsCommonValidator.validateUser(userId);
+
+		// Return Type
+		validateReturnTypeId(returnTemplateDto.getReturnType());
+
+		// Return Section Id
+		validateReturnSectionId(returnTemplateDto.getReturnSectionId());
+	}
+	
+	public void validateFindAllTemplateVersionByReturnTypeRequest(ReturnTemplateDto returnTemplateDto,
+			String jobProcessId, Long userId) throws ApplicationException {
+		// Job Processing Id
+		cimsCommonValidator.validateJobProcessingId(jobProcessId);
+
+		// User Id
+		cimsCommonValidator.validateUser(userId);
+
+		// Return Type
+		validateReturnTypeId(returnTemplateDto.getReturnType());
+
+	}
+
+	/**
+	 * @param returnTypeId
+	 * @throws ApplicationException
+	 */
+	private void validateReturnTypeId(String returnTypeId) throws ApplicationException {
+		if (StringUtils.isBlank(returnTypeId)) {
+			LOGGER.error("Return Type can't be blank");
+			throw new ApplicationException(ErrorCode.E0698.toString(),
+					ObjectCache.getErrorCodeKey(ErrorCode.E0698.toString()));
+		} else {
+			if(!NumberUtils.isParsable(returnTypeId)) {
+				LOGGER.error("Return Type don't have numeric value");
+				throw new ApplicationException(ErrorCode.E0698.toString(),
+						ObjectCache.getErrorCodeKey(ErrorCode.E0698.toString()));
+			}
+		}
+	}
+
+	/**
+	 * @param returnSectionId
+	 * @throws ApplicationException
+	 */
+	private void validateReturnSectionId(int returnSectionId) throws ApplicationException {
+		if (returnSectionId <= 0) {
+			LOGGER.error("Return Section Id can't be blank");
+			throw new ApplicationException(ErrorCode.E1451.toString(),
+					ObjectCache.getErrorCodeKey(ErrorCode.E1451.toString()));
+		}
+	}
+}

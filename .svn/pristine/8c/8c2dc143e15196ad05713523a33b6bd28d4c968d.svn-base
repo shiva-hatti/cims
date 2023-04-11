@@ -1,0 +1,133 @@
+/**
+ * 
+ */
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+/**
+ * @author Siddique H Khan
+ *
+ */
+
+@Entity
+@Table(name = "TBL_BRANCH_MASTER_DOMESTIC")
+public class BranchMasterDomestic implements Serializable {
+
+	private static final long serialVersionUID = 7627133585004013329L;
+
+	@Id
+	@Column(name = "ID")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+
+	@Column(name = "BRANCH")
+	private String branch;
+
+	@Column(name = "V_BK_WRK_CD")
+	private String branchWorkingCode;
+
+	@Column(name = "BRANCH_CODE")
+	private String branchCode;
+
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "CREATED_BY_FK")
+	private UserMaster createdBy;
+
+	@Column(name = "LOADDATE")
+	private Date loadDate;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "LAST_MODIFIED_BY_FK")
+	private UserMaster modifiedBy;
+
+	@Column(name = "LAST_MODIFIED_ON")
+	private Date lastModifiedOn;
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String getBranch() {
+		return branch;
+	}
+
+	public void setBranch(String branch) {
+		this.branch = branch;
+	}
+
+	public String getBranchWorkingCode() {
+		return branchWorkingCode;
+	}
+
+	public void setBranchWorkingCode(String branchWorkingCode) {
+		this.branchWorkingCode = branchWorkingCode;
+	}
+
+	public String getBranchCode() {
+		return branchCode;
+	}
+
+	public void setBranchCode(String branchCode) {
+		this.branchCode = branchCode;
+	}
+
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	public Date getLoadDate() {
+		return loadDate;
+	}
+
+	public void setLoadDate(Date loadDate) {
+		this.loadDate = loadDate;
+	}
+
+	public UserMaster getModifiedBy() {
+		return modifiedBy;
+	}
+
+	public void setModifiedBy(UserMaster modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+
+	public Date getLastModifiedOn() {
+		return lastModifiedOn;
+	}
+
+	public void setLastModifiedOn(Date lastModifiedOn) {
+		this.lastModifiedOn = lastModifiedOn;
+	}
+
+}

@@ -1,0 +1,124 @@
+package com.iris.service.impl;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import javax.transaction.Transactional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.dto.RetUploadDetBean;
+import com.iris.dto.RevisionRequestDto;
+import com.iris.exception.ServiceException;
+import com.iris.model.EntityBean;
+import com.iris.model.FrequencyDescription;
+import com.iris.model.Return;
+import com.iris.model.UserMaster;
+import com.iris.model.UserRole;
+import com.iris.model.UserRoleModified;
+import com.iris.repository.UserRoleModifiedRepo;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.MethodConstants;
+
+@Service
+public class UserRoleModifiedService implements GenericService<UserRoleModified, Long> {
+
+	@Autowired
+	private UserRoleModifiedRepo userRoleModifiedRepo;
+
+	@Override
+	public UserRoleModified add(UserRoleModified entity) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public boolean update(UserRoleModified entity) throws ServiceException {
+		try {
+			userRoleModifiedRepo.save(entity);
+			return true;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<UserRoleModified> getDataByIds(Long[] ids) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<UserRoleModified> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName) throws ServiceException {
+		try {
+			return null;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<UserRoleModified> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName) throws ServiceException {
+
+		return null;
+	}
+
+	@Override
+	public List<UserRoleModified> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<UserRoleModified> getAllDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void deleteData(UserRoleModified bean) throws ServiceException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public UserRoleModified getDataById(Long id) throws ServiceException {
+		Optional<UserRoleModified> userRoleOptional = userRoleModifiedRepo.findById(id);
+		if (userRoleOptional.isPresent()) {
+			return userRoleOptional.get();
+		} else {
+			return null;
+		}
+	}
+
+	@Override
+	public List<UserRoleModified> getDataByObject(Map<String, Object> columnValueMap, String methodName) throws ServiceException {
+		try {
+			Long langId = null;
+			Long regulatorId = null;
+			Long entityId = null;
+			List<Long> returnList = null;
+			String langCode = null;
+			Long userId = null;
+
+			if (methodName.equalsIgnoreCase(MethodConstants.GET_PENDING_USER_ROLE_DATA.getConstantVal())) {
+				return userRoleModifiedRepo.getDataByLangIdAndRegId();
+			}
+			if (methodName.equalsIgnoreCase(MethodConstants.GET_PREVIOUS_USER_ROLE_DATA.getConstantVal())) {
+				return userRoleModifiedRepo.getPreviousRoleById(Long.valueOf(columnValueMap.get(ColumnConstants.ROLEID.getConstantVal()).toString()));
+			}
+			return null;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Transactional(rollbackOn = Exception.class)
+	public Boolean saveRevisionRequest(RevisionRequestDto revisionRequest, EntityBean entityObj, Return returnObj, FrequencyDescription frequencyDescription, RetUploadDetBean retUploadBean, UserMaster user) {
+		return true;
+
+	}
+
+}

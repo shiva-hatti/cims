@@ -1,0 +1,496 @@
+package com.iris.model;
+
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.iris.util.Validations;
+
+/**
+ * This is the subCategory bean class with Hibernate mapping.
+ * 
+ * @author sgoswami
+ * @date 03/06/2015
+ */
+@Entity
+@Table(name = "TBL_SUB_CATEGORY")
+@JsonInclude(Include.NON_NULL)
+public class SubCategory implements Serializable {
+
+	private static final long serialVersionUID = 3792829603038680363L;
+
+	@Id
+	@Column(name = "SUB_CATEGORY_ID")
+	private Long subCategoryId;
+
+	@Column(name = "SUB_CATEGORY_NAME")
+	private String subCategoryName;
+
+	@Column(name = "SUB_CATEGORY_CODE")
+	private String subCategoryCode;
+
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "CREATED_BY_FK")
+	private UserMaster createdBy;
+
+	@Column(name = "LAST_MODIFIED_ON")
+	private Date lastModifiedOn;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "LAST_MODIFIED_BY_FK")
+	private UserMaster modifiedBy;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "LAST_APPROVED_BY_FK")
+	private UserMaster lastApprovedBy;
+
+	@Column(name = "LAST_APPROVED_ON")
+	private Date lastApprovedOn;
+
+	@Column(name = "LAST_UPDATE_ON")
+	private Date lastUpdateOn;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "CATEGORY_ID_FK")
+	private Category category;
+
+	@Transient
+	private Long roleIdKey;
+
+	@OneToMany(mappedBy = "subCategory")
+	@OrderBy("entityName")
+	@Transient
+	private Set<EntityBean> entity;
+
+	@OneToMany(mappedBy = "subCatIdFk")
+	private Set<SubCategoryLabel> subCatLblSet;
+
+	@Column(name = "IS_BULK_UPLOAD")
+	private Boolean isBulkUpload;
+
+	@Column(name = "IS_ISLAMIC")
+	private Boolean isIslamic;
+
+	@Column(name = "IS_LICENSE_TYPE")
+	private Boolean isLicense;
+
+	@Transient
+	private int singleLanguage;
+
+	@Column(name = "EXCLUDE_LICENSE_TYPE_ID")
+	private String excludeLicTypeId;
+	
+	@Transient
+	private String uniqueIdentifier;
+	
+	@Transient
+	private String subCategoryNameBil;
+	
+	@Transient
+	private String categoryCode;
+	
+	@Transient
+	private List<Return> returnList;
+	
+	@Transient
+	private Long categoryId;
+
+	@Transient
+	private Integer entityCount;
+	
+	
+	public SubCategory() {
+
+	}
+	
+	public SubCategory(Long subCategoryId, String subCategoryName, Long categoryId, String subCategoryCode) {
+		this.subCategoryId = subCategoryId;
+		this.subCategoryName = subCategoryName;
+		this.categoryId = categoryId;
+		this.subCategoryCode = subCategoryCode;
+	}
+	
+	public SubCategory(Long subCategoryId, Integer entityCount) {
+		this.subCategoryId = subCategoryId;
+		this.entityCount = entityCount;
+	}
+
+	public Long getCategoryId() {
+		return categoryId;
+	}
+
+	public void setCategoryId(Long categoryId) {
+		this.categoryId = categoryId;
+	}
+
+	public List<Return> getReturnList() {
+		return returnList;
+	}
+
+	public void setReturnList(List<Return> returnList) {
+		this.returnList = returnList;
+	}
+
+	/**
+	 * @return the subCatLblSet
+	 */
+	public Set<SubCategoryLabel> getSubCatLblSet() {
+		return subCatLblSet;
+	}
+
+	/**
+	 * @param subCatLblSet the subCatLblSet to set
+	 */
+	public void setSubCatLblSet(Set<SubCategoryLabel> subCatLblSet) {
+		this.subCatLblSet = subCatLblSet;
+	}
+
+	/**
+	 * @return the roleIdKey
+	 */
+	public Long getRoleIdKey() {
+		return roleIdKey;
+	}
+	
+	/**
+	 * @param roleIdKey the roleIdKey to set
+	 */
+	public void setRoleIdKey(Long roleIdKey) {
+		this.roleIdKey = roleIdKey;
+	}
+	
+	/**
+	 * @return the subCategoryId
+	 */
+	public Long getSubCategoryId() {
+		return subCategoryId;
+	}
+	
+	/**
+	 * @param subCategoryId the subCategoryId to set
+	 */
+	public void setSubCategoryId(Long subCategoryId) {
+		this.subCategoryId = subCategoryId;
+	}
+	
+	/**
+	 * @return the subCategoryName
+	 */
+	public String getSubCategoryName() {
+		return subCategoryName;
+	}
+	
+	/**
+	 * @param subCategoryName the subCategoryName to set
+	 */
+	public void setSubCategoryName(String subCategoryName) {
+		this.subCategoryName = Validations.trimInput(subCategoryName);
+	}
+	
+	/**
+	 * @return the subCategoryCode
+	 */
+	public String getSubCategoryCode() {
+		return subCategoryCode;
+	}
+	
+	/**
+	 * @param subCategoryCode the subCategoryCode to set
+	 */
+	public void setSubCategoryCode(String subCategoryCode) {
+		this.subCategoryCode = Validations.trimInput(subCategoryCode);
+	}
+	
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+	
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+	
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+	
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+	
+	/**
+	 * @return the createdBy
+	 */
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+	
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+	
+	/**
+	 * @return the lastModifiedOn
+	 */
+	public Date getLastModifiedOn() {
+		return lastModifiedOn;
+	}
+	
+	/**
+	 * @param lastModifiedOn the lastModifiedOn to set
+	 */
+	public void setLastModifiedOn(Date lastModifiedOn) {
+		this.lastModifiedOn = lastModifiedOn;
+	}
+	
+	/**
+	 * @return the modifiedBy
+	 */
+	public UserMaster getModifiedBy() {
+		return modifiedBy;
+	}
+	
+	/**
+	 * @param modifiedBy the modifiedBy to set
+	 */
+	public void setModifiedBy(UserMaster modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+	
+	/**
+	 * @return the lastApprovedOn
+	 */
+	public Date getLastApprovedOn() {
+		return lastApprovedOn;
+	}
+	
+	/**
+	 * @param lastApprovedOn the lastApprovedOn to set
+	 */
+	public void setLastApprovedOn(Date lastApprovedOn) {
+		this.lastApprovedOn = lastApprovedOn;
+	}
+	
+	/**
+	 * @return the category
+	 */
+	public Category getCategory() {
+		return category;
+	}
+	
+	/**
+	 * @param category the category to set
+	 */
+	public void setCategory(Category category) {
+		this.category = category;
+	}
+	
+	/**
+	 * @return the lastApprovedBy
+	 */
+	public UserMaster getLastApprovedBy() {
+		return lastApprovedBy;
+	}
+	
+	/**
+	 * @param lastApprovedBy the lastApprovedBy to set
+	 */
+	public void setLastApprovedBy(UserMaster lastApprovedBy) {
+		this.lastApprovedBy = lastApprovedBy;
+	}
+	
+	/**
+	 * @return the lastUpdateOn
+	 */
+	public Date getLastUpdateOn() {
+		return lastUpdateOn;
+	}
+	
+	/**
+	 * @param lastUpdateOn the lastUpdateOn to set
+	 */
+	public void setLastUpdateOn(Date lastUpdateOn) {
+		this.lastUpdateOn = lastUpdateOn;
+	}
+
+	public Set<EntityBean> getEntity() {
+		return entity;
+	}
+
+	public void setEntity(Set<EntityBean> entity) {
+		this.entity = entity;
+	}
+
+	/**
+	 * @return the singleLanguage
+	 */
+	public int getSingleLanguage() {
+		return singleLanguage;
+	}
+
+	/**
+	 * @param singleLanguage the singleLanguage to set
+	 */
+	public void setSingleLanguage(int singleLanguage) {
+		this.singleLanguage = singleLanguage;
+	}
+	
+	/**
+	 * @return the isBulkUpload
+	 */
+	public Boolean getIsBulkUpload() {
+		return isBulkUpload;
+	}
+
+	/**
+	 * @param isBulkUpload the isBulkUpload to set
+	 */
+	public void setIsBulkUpload(Boolean isBulkUpload) {
+		this.isBulkUpload = isBulkUpload;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((subCategoryId == null) ? 0 : subCategoryId.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		SubCategory other = (SubCategory) obj;
+		if (subCategoryId == null) {
+			if (other.subCategoryId != null) {
+				return false;
+			}
+		} else if (!subCategoryId.equals(other.subCategoryId)) {
+			return false;
+		}
+		return true;
+	}
+
+	public Boolean getIsIslamic() {
+		return isIslamic;
+	}
+
+	public void setIsIslamic(Boolean isIslamic) {
+		this.isIslamic = isIslamic;
+	}
+
+	public Boolean getIsLicense() {
+		return isLicense;
+	}
+
+	public void setIsLicense(Boolean isLicense) {
+		this.isLicense = isLicense;
+	}
+
+	/**
+	 * @return the excludeLicTypeId
+	 */
+	public String getExcludeLicTypeId() {
+		return excludeLicTypeId;
+	}
+
+	/**
+	 * @param excludeLicTypeId the excludeLicTypeId to set
+	 */
+	public void setExcludeLicTypeId(String excludeLicTypeId) {
+		this.excludeLicTypeId = Validations.trimInput(excludeLicTypeId);
+	}
+
+	/**
+	 * @return the uniqueIdentifier
+	 */
+	public String getUniqueIdentifier() {
+		return uniqueIdentifier;
+	}
+
+	/**
+	 * @param uniqueIdentifier the uniqueIdentifier to set
+	 */
+	public void setUniqueIdentifier(String uniqueIdentifier) {
+		this.uniqueIdentifier = Validations.trimInput(uniqueIdentifier);
+	}
+
+	/**
+	 * @return the subCategoryNameBil
+	 */
+	public String getSubCategoryNameBil() {
+		return subCategoryNameBil;
+	}
+
+	/**
+	 * @param subCategoryNameBil the subCategoryNameBil to set
+	 */
+	public void setSubCategoryNameBil(String subCategoryNameBil) {
+		this.subCategoryNameBil = Validations.trimInput(subCategoryNameBil);
+	}
+
+	/**
+	 * @return the categoryCode
+	 */
+	public String getCategoryCode() {
+		return categoryCode;
+	}
+
+	/**
+	 * @param categoryCode the categoryCode to set
+	 */
+	public void setCategoryCode(String categoryCode) {
+		this.categoryCode = Validations.trimInput(categoryCode);
+	}
+
+	public Integer getEntityCount() {
+		return entityCount;
+	}
+
+	public void setEntityCount(Integer entityCount) {
+		this.entityCount = entityCount;
+	}
+}

@@ -1,0 +1,25 @@
+/**
+ * 
+ */
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.iris.model.GroupMasterDetails;
+
+/**
+ * @author Siddique
+ *
+ */
+public interface GroupMasterDetailsRepo extends JpaRepository<GroupMasterDetails, Integer>{
+
+	@Query(value ="From GroupMasterDetails order by Id desc")
+	List<GroupMasterDetails> getDataOrderByCreatedOnDesc();
+
+	@Query(value ="From GroupMasterDetails where status IN ('2','3') order by Id desc")
+	List<GroupMasterDetails> getPanMasterData();
+
+}

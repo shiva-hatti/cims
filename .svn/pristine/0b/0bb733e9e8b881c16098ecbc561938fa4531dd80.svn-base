@@ -1,0 +1,217 @@
+package com.iris.sdmx.upload.history.dto;
+
+import java.io.Serializable;
+import java.util.List;
+
+public class SdmxFilingHitoryRequestBean implements Serializable {
+
+	/**
+	 * sdhone
+	 */
+	private static final long serialVersionUID = 3350855651451956688L;
+
+	private Long userId;
+
+	private Long roleId;
+
+	private Long fileDetailsId;
+
+	private String langCode;
+
+	private String entityIdList;
+
+	private int categoryId;
+
+	private String subCategoryIdList;
+
+	private String fromDate;
+
+	private String toDate;
+
+	private String status;
+
+	private int filingStatusId;
+
+	private String dateFormat;
+
+	private Long toDateLong;
+
+	private Long fromDateLong;
+
+	private int uploadChannelId;
+
+	private String entitycode;
+
+	private Long roleTypeID;
+
+	private int uploadId;
+
+	public Long getUserId() {
+		return userId;
+	}
+
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	public Long getRoleId() {
+		return roleId;
+	}
+
+	public void setRoleId(Long roleId) {
+		this.roleId = roleId;
+	}
+
+	public String getLangCode() {
+		return langCode;
+	}
+
+	public void setLangCode(String langCode) {
+		this.langCode = langCode;
+	}
+
+	public int getCategoryId() {
+		return categoryId;
+	}
+
+	public void setCategoryId(int categoryId) {
+		this.categoryId = categoryId;
+	}
+
+	public String getFromDate() {
+		return fromDate;
+	}
+
+	public void setFromDate(String fromDate) {
+		this.fromDate = fromDate;
+	}
+
+	public String getToDate() {
+		return toDate;
+	}
+
+	public void setToDate(String toDate) {
+		this.toDate = toDate;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	public int getFilingStatusId() {
+		return filingStatusId;
+	}
+
+	public void setFilingStatusId(int filingStatusId) {
+		this.filingStatusId = filingStatusId;
+	}
+
+	public String getEntityIdList() {
+		return entityIdList;
+	}
+
+	public void setEntityIdList(String entityIdList) {
+		this.entityIdList = entityIdList;
+	}
+
+	public String getSubCategoryIdList() {
+		return subCategoryIdList;
+	}
+
+	public void setSubCategoryIdList(String subCategoryIdList) {
+		this.subCategoryIdList = subCategoryIdList;
+	}
+
+	public Long getFileDetailsId() {
+		return fileDetailsId;
+	}
+
+	public void setFileDetailsId(Long fileDetailsId) {
+		this.fileDetailsId = fileDetailsId;
+	}
+
+	public String getDateFormat() {
+		return dateFormat;
+	}
+
+	public void setDateFormat(String dateFormat) {
+		this.dateFormat = dateFormat;
+	}
+
+	public Long getToDateLong() {
+		return toDateLong;
+	}
+
+	public void setToDateLong(Long toDateLong) {
+		this.toDateLong = toDateLong;
+	}
+
+	public Long getFromDateLong() {
+		return fromDateLong;
+	}
+
+	public void setFromDateLong(Long fromDateLong) {
+		this.fromDateLong = fromDateLong;
+	}
+
+	/**
+	 * @return the uploadChannelId
+	 */
+	public int getUploadChannelId() {
+		return uploadChannelId;
+	}
+
+	/**
+	 * @param uploadChannelId the uploadChannelId to set
+	 */
+	public void setUploadChannelId(int uploadChannelId) {
+		this.uploadChannelId = uploadChannelId;
+	}
+
+	/**
+	 * @return the entitycode
+	 */
+	public String getEntitycode() {
+		return entitycode;
+	}
+
+	/**
+	 * @param entitycode the entitycode to set
+	 */
+	public void setEntitycode(String entitycode) {
+		this.entitycode = entitycode;
+	}
+
+	/**
+	 * @return the roleTypeID
+	 */
+	public Long getRoleTypeID() {
+		return roleTypeID;
+	}
+
+	/**
+	 * @param roleTypeID the roleTypeID to set
+	 */
+	public void setRoleTypeID(Long roleTypeID) {
+		this.roleTypeID = roleTypeID;
+	}
+
+	/**
+	 * @return the uploadId
+	 */
+	public int getUploadId() {
+		return uploadId;
+	}
+
+	/**
+	 * @param uploadId the uploadId to set
+	 */
+	public void setUploadId(int uploadId) {
+		this.uploadId = uploadId;
+	}
+
+}

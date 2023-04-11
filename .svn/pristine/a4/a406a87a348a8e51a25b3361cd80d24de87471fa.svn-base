@@ -1,0 +1,102 @@
+package com.iris.sdmx.codelist.bean;
+
+import java.io.Serializable;
+
+public class CodelListMasterRequestBean implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -8988013267117699753L;
+
+	private Long userId;
+	
+	private Long roleId;
+	
+	private Boolean isApprovedRecord;
+	
+	private String clCode;
+	
+	private String clVersion;
+	
+	private boolean fetchClMasterRecord = false;
+	/**
+	 * @return the clCode
+	 */
+	public String getClCode() {
+		return clCode;
+	}
+
+	/**
+	 * @param clCode the clCode to set
+	 */
+	public void setClCode(String clCode) {
+		this.clCode = clCode;
+	}
+
+	/**
+	 * @return the clVersion
+	 */
+	public String getClVersion() {
+		return clVersion;
+	}
+
+	/**
+	 * @param clVersion the clVersion to set
+	 */
+	public void setClVersion(String clVersion) {
+		this.clVersion = clVersion;
+	}
+
+	/**
+	 * @return the userId
+	 */
+	public Long getUserId() {
+		return userId;
+	}
+
+	/**
+	 * @param userId the userId to set
+	 */
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	/**
+	 * @return the roleId
+	 */
+	public Long getRoleId() {
+		return roleId;
+	}
+
+	/**
+	 * @param roleId the roleId to set
+	 */
+	public void setRoleId(Long roleId) {
+		this.roleId = roleId;
+	}
+
+	/**
+	 * @return the isApprovedRecord
+	 */
+	public Boolean getIsApprovedRecord() {
+		return isApprovedRecord;
+	}
+
+	/**
+	 * @param isApprovedRecord the isApprovedRecord to set
+	 */
+	public void setIsApprovedRecord(Boolean isApprovedRecord) {
+		this.isApprovedRecord = isApprovedRecord;
+	}
+
+	public Boolean getFetchClMasterRecord() {
+		return fetchClMasterRecord;
+	}
+
+	public void setFetchClMasterRecord(Boolean fetchClMasterRecord) {
+		this.fetchClMasterRecord = fetchClMasterRecord;
+	}
+	
+	
+}

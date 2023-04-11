@@ -1,0 +1,219 @@
+package com.iris.service.impl;
+
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import javax.transaction.Transactional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import com.iris.dateutility.enums.DateConstants;
+import com.iris.dateutility.util.DateManip;
+import com.iris.dto.RetUploadDetBean;
+import com.iris.dto.UnlockingRequestDto;
+import com.iris.exception.ServiceException;
+import com.iris.model.EntityBean;
+import com.iris.model.FrequencyDescription;
+import com.iris.model.Return;
+import com.iris.model.ReturnPropertyValue;
+import com.iris.model.UnlockingRequest;
+import com.iris.model.UserMaster;
+import com.iris.repository.ReturnPropertyValueRepository;
+import com.iris.repository.UnlockRequestRepository;
+import com.iris.repository.UserMasterRepo;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.MethodConstants;
+
+@Service
+public class UnlockRequestService implements GenericService<UnlockingRequest, Long> {
+
+	@Autowired
+	private UnlockRequestRepository unlockingRequestRepo;
+
+	@Autowired
+	private UserMasterRepo userMasterRepo;
+
+	@Autowired
+	private ReturnPropertyValueRepository returnPropertyValueRepository;
+
+	@Override
+	public UnlockingRequest add(UnlockingRequest entity) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public boolean update(UnlockingRequest entity) throws ServiceException {
+		try {
+			unlockingRequestRepo.save(entity);
+			return true;
+		}catch(Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<UnlockingRequest> getDataByIds(Long[] ids) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<UnlockingRequest> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+		try {
+			List<String> entityIds  = null;
+			List<String> returnIds  = null;
+			Date startDate = null;
+			Date endDate = null;
+			List<String> returnPropertyValIds  = null;
+
+			for (String columnName : columnValueMap.keySet()) {
+				if(columnValueMap.get(columnName)!= null && columnValueMap.get(columnName).size() > 0) {
+					if(columnName.equalsIgnoreCase(ColumnConstants.ENTITYID.getConstantVal())) {
+						entityIds = columnValueMap.get(columnName);
+					}else if(columnName.equalsIgnoreCase(ColumnConstants.RETURNID.getConstantVal())) {
+						returnIds = columnValueMap.get(columnName);
+					}else if(columnName.equalsIgnoreCase(ColumnConstants.STARTDATE.getConstantVal())) {
+						startDate = DateManip.convertStringToDate(columnValueMap.get(columnName).get(0), DateConstants.DD_MM_YYYY.getDateConstants());
+					}else if(columnName.equalsIgnoreCase(ColumnConstants.ENDDATE.getConstantVal())) {
+						endDate = DateManip.convertStringToDate(columnValueMap.get(columnName).get(0), DateConstants.DD_MM_YYYY.getDateConstants());
+					}else if(columnName.equalsIgnoreCase(ColumnConstants.RETURN_PROPERTY_VAL_ID.getConstantVal())) {
+						returnPropertyValIds = columnValueMap.get(columnName);
+					}
+				}
+			}
+			if(methodName.equalsIgnoreCase(MethodConstants.GET_UNLOCKING_REAQUEST.getConstantVal()) && returnIds != null && !returnIds.isEmpty()) {
+				return unlockingRequestRepo.getNonRejectedUnlockRequest(Long.parseLong(returnIds.get(0)), Long.parseLong(entityIds.get(0)), endDate);
+			}else if(methodName.equalsIgnoreCase(MethodConstants.GET_UNLOCKING_REAQUEST_BY_RETURN_STATUS.getConstantVal()) && returnIds != null && !returnIds.isEmpty() && returnPropertyValIds != null && !returnPropertyValIds.isEmpty()) {
+				return unlockingRequestRepo.getNonRejectedUnlockRequest(Long.parseLong(returnIds.get(0)), Long.parseLong(entityIds.get(0)), endDate,Integer.parseInt(returnPropertyValIds.get(0)));
+			}
+			return null;
+		}catch(Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<UnlockingRequest> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName)
+			throws ServiceException {
+
+		return null;
+	}
+
+	@Override
+	public List<UnlockingRequest> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<UnlockingRequest> getAllDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void deleteData(UnlockingRequest bean) throws ServiceException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public UnlockingRequest getDataById(Long id) throws ServiceException {
+		try {
+			// TODO Auto-generated method stub
+			return unlockingRequestRepo.findAllById(Arrays.asList(id)).get(0);
+		}catch(Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<UnlockingRequest> getDataByObject(Map<String, Object> columnValueMap, String methodName) throws ServiceException {
+		try {
+			Long langId = null;
+			Long regulatorId = null;
+			String entityCode = null;
+			String langCode = null;
+			Long roleId = null;
+			Long entityId = null;
+			List<Long> returnList = null;
+			Long userId = null;
+
+			for (String columnName : columnValueMap.keySet()) {
+				if (columnName.equalsIgnoreCase(ColumnConstants.LANG_ID.getConstantVal())) {
+					langId = (Long) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.REGULATORID.getConstantVal())) {
+					regulatorId = (Long) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.ENT_CODE.getConstantVal())) {
+					entityCode = (String) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.ROLEID.getConstantVal())) {
+					roleId = (Long) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.LANG_CODE.getConstantVal())) {
+					langCode = (String) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.ENTITYID.getConstantVal())) {
+					entityId = (Long) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.RETURN_ID_LIST.getConstantVal())) {
+					returnList = (List<Long>) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.USER_ID.getConstantVal())) {
+					userId = (Long) columnValueMap.get(columnName);
+				} 
+			}
+			if (methodName.equalsIgnoreCase(MethodConstants.GET_PENDING_UNLOCK_REQUEST.getConstantVal())) {
+				return unlockingRequestRepo.getDataByLangIdAndRegId(langId, regulatorId, userId);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_UNLOCK_REQUEST_LIST_FOR_REG_USER.getConstantVal())) {
+				return unlockingRequestRepo.getDataByEntCodeAndLangCodeAndRoleId(entityCode, roleId, langCode);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_UNLOCK_REQUEST_DATA.getConstantVal())) {
+				if(entityId != null) {
+				return unlockingRequestRepo.getUnlockRequestDataByLangCodeAndEntityId(returnList, entityId, langCode);
+				}else {
+					return unlockingRequestRepo.getUnlockRequestDataByLangCodeAndReturnIdList(returnList, langCode);
+				}
+			}
+			return null;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Transactional(rollbackOn = Exception.class)
+	public Boolean saveUnlockRequest(UnlockingRequestDto unlockingRequest, EntityBean entityObj, Return returnObj, FrequencyDescription frequencyDescription, RetUploadDetBean retUploadBean) {
+		Date currentDate = new Date();
+		UnlockingRequest entity = new UnlockingRequest();
+		entity.setEndDate(unlockingRequest.getEndDate());
+		entity.setEntity(entityObj);
+		entity.setReasonForUnlocking(unlockingRequest.getReasonOfNotProcessed());
+		entity.setReportingDate(currentDate);
+		if(unlockingRequest.getReturnPropertyValId()!=null) {
+			ReturnPropertyValue returnPropertyVal = returnPropertyValueRepository.getPropValInfo(unlockingRequest.getReturnPropertyValId());
+
+			entity.setReturnPropertyVal(returnPropertyVal);
+		}
+		entity.setUnlockStatus("OPEN");
+		entity.setFrequencyDesc(frequencyDescription);
+		entity.setReturns(returnObj);
+		entity.setStartDate(unlockingRequest.getReportingPeriodStartDate());
+		entity.setEndDate(unlockingRequest.getReportingPeriodEndDate());
+		entity.setYear(Long.valueOf(retUploadBean.getFinancialYear()));
+		entity.setMonth(Integer.valueOf(retUploadBean.getFinancialMonth()));
+		entity.setActionIdFk(1);
+		entity.setAdminStatusIdFk(1);
+		Optional<UserMaster> userMasterOptional = userMasterRepo.findById(unlockingRequest.getUserId());
+		UserMaster user = null;
+		if(userMasterOptional.isPresent()) {
+			user = userMasterOptional.get();
+		}
+		entity.setCreatedBy(user);
+		entity.setCreatedOn(currentDate);
+		update(entity);
+		unlockingRequest.setUnlockingReqId(entity.getUnlockingReqId());
+		return true;
+	}
+
+}

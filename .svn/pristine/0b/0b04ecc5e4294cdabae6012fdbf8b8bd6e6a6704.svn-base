@@ -1,0 +1,204 @@
+package com.iris.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.exception.ServiceException;
+import com.iris.model.FileDetails;
+import com.iris.repository.FileDetailsRepo;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.MethodConstants;
+
+@Service
+public class FileDetailsService implements GenericService<FileDetails, Long> {
+
+	@Autowired
+	FileDetailsRepo fileDetailsRepo;
+	
+	@Override
+	public FileDetails add(FileDetails entity) throws ServiceException {
+		try{
+			return fileDetailsRepo.save(entity);
+		}catch(Exception e) {
+			throw new ServiceException("Exception : ", e);
+		}
+	}
+
+	@Override
+	public boolean update(FileDetails entity) throws ServiceException {
+		try{
+			 fileDetailsRepo.save(entity);
+			 return true;
+		}catch(Exception e) {
+			throw new ServiceException("Exception : ", e);
+		}
+	}
+
+	@Override
+	public List<FileDetails> getDataByIds(Long[] ids) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	@org.springframework.transaction.annotation.Transactional(rollbackFor = ServiceException.class)
+	public List<FileDetails> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+		try {
+			List<String> statusList  = null;
+			List<String> uploadChannelList  = null;
+			if(columnValueMap!= null) {
+				for (String columnName : columnValueMap.keySet()) {
+					if(columnValueMap.get(columnName)!= null && columnValueMap.get(columnName).size() > 0) {
+						if(columnName.equalsIgnoreCase(ColumnConstants.STATUS.getConstantVal())) {
+							statusList = columnValueMap.get(columnName);
+						}else if(columnName.equalsIgnoreCase(ColumnConstants.UPLOAD_CHANNEL.getConstantVal())) {
+							uploadChannelList = columnValueMap.get(columnName);
+						}
+					}
+				}
+			}
+			if(methodName.equalsIgnoreCase(MethodConstants.GET_ACTIVE_FILE_DETAILS_DATA_BY_STATUS.getConstantVal())) {
+				return fileDetailsRepo.getAciveFileDetailsDataByStatus(statusList, uploadChannelList);
+			}else if(methodName.equalsIgnoreCase(MethodConstants.GET_UNPROCESSED_DATA_AND_UPDATE_PROCESSING_FLAG.getConstantVal())) {
+				List<FileDetails> list =  fileDetailsRepo.getUnProcessedData();
+				for (FileDetails fileDetailsBean : list) {
+					fileDetailsBean.setProcessingFlag(true);
+					fileDetailsRepo.save(fileDetailsBean);
+				}
+				return list;
+			}
+			return null;
+		}catch(Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<FileDetails> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName)
+			throws ServiceException {
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<FileDetails> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<FileDetails> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public void deleteData(FileDetails bean) throws ServiceException {
+		
+	}
+
+	@Override
+	public FileDetails getDataById(Long id) throws ServiceException {
+		try {
+			return fileDetailsRepo.getDataById(id);
+		} catch (Exception e) {
+			throw new ServiceException("Exception : ", e);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<FileDetails> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		try {
+			Object status  = null;
+			Object uploadChannelList  = null;
+			Object returnCode  = null;
+			Object ifscCode  = null;
+			Object unMappedReturns  = null;
+			if(columnValueMap!= null) {
+				for (String columnName : columnValueMap.keySet()) {
+					if(columnValueMap.get(columnName)!= null) {
+						if(columnName.equalsIgnoreCase(ColumnConstants.STATUS.getConstantVal())) {
+							status = columnValueMap.get(columnName);
+						} else if(columnName.equalsIgnoreCase(ColumnConstants.UPLOAD_CHANNEL.getConstantVal())) {
+							uploadChannelList = columnValueMap.get(columnName);
+						} else if(columnName.equalsIgnoreCase(ColumnConstants.RETURN_CODE.getConstantVal())) {
+							returnCode = columnValueMap.get(columnName);
+						} else if(columnName.equalsIgnoreCase(ColumnConstants.IFSC_CODE.getConstantVal())) {
+							ifscCode = columnValueMap.get(columnName);
+						} else if(columnName.equalsIgnoreCase(ColumnConstants.UNMAPPED_RETURN.getConstantVal())) {
+							unMappedReturns = columnValueMap.get(columnName);
+						}
+					}
+				}
+			}
+			if(methodName.equalsIgnoreCase("getFileDetailsData")) {
+				List<Long> uploadChannelsList =  (List<Long>) uploadChannelList;
+				List<Long> statusList =  (List<Long>) status;
+				String startsDate = columnValueMap.get(ColumnConstants.STARTDATE.getConstantVal()).toString();
+				String endsDate = columnValueMap.get(ColumnConstants.ENDDATE.getConstantVal()).toString();
+				return fileDetailsRepo.getFileDetailsData(uploadChannelsList,statusList,startsDate,endsDate );
+			} else if(methodName.equalsIgnoreCase("getFileDetailsDataByEntityCode")) {
+				List<Long> uploadChannelsList =  (List<Long>) uploadChannelList;
+				List<Long> statusList =  (List<Long>) status;
+				List<String> ifscCodeList =  (List<String>) ifscCode;
+				if(ifscCodeList != null) {
+					ifscCodeList.replaceAll(String::toUpperCase);
+				}
+				String startsDate = columnValueMap.get(ColumnConstants.STARTDATE.getConstantVal()).toString();
+				String endsDate = columnValueMap.get(ColumnConstants.ENDDATE.getConstantVal()).toString();
+				if((boolean) unMappedReturns) {
+					return fileDetailsRepo.getFileDetailsDataWithEntityAndUnMappedReturn(uploadChannelsList,statusList,ifscCodeList,startsDate,endsDate );
+				} else {
+					return fileDetailsRepo.getFileDetailsDataByEntityCode(uploadChannelsList,statusList,ifscCodeList,startsDate,endsDate );
+				}
+			} else if(methodName.equalsIgnoreCase("getFileDetailsDataByEntityCodeAndReturnCode")) {
+				List<Long> uploadChannelsList =  (List<Long>) uploadChannelList;
+				List<Long> statusList =  (List<Long>) status;
+				List<String> returnCodeList =  (List<String>) returnCode;
+				if(returnCodeList != null) {
+					returnCodeList.replaceAll(String::toUpperCase);
+				}
+				List<String> ifscCodeList =  (List<String>) ifscCode;
+				if(ifscCodeList != null) {
+					ifscCodeList.replaceAll(String::toUpperCase);
+				}
+				String startsDate = columnValueMap.get(ColumnConstants.STARTDATE.getConstantVal()).toString();
+				String endsDate = columnValueMap.get(ColumnConstants.ENDDATE.getConstantVal()).toString();
+				if((boolean) unMappedReturns) {
+					return fileDetailsRepo.getFileDetailsDataWithUnMappedReturns(uploadChannelsList,statusList,returnCodeList,ifscCodeList,startsDate,endsDate );
+				} else {
+					return fileDetailsRepo.getFileDetailsDataByEntityCodeAndReturnCode(uploadChannelsList,statusList,returnCodeList,ifscCodeList,startsDate,endsDate );
+				}
+			}
+			return null;
+		}catch(Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+	
+//	@SuppressWarnings("rawtypes")
+//	public List<FileDetailsBean> executeHQL(Class bean, Object obj, Map<String, Object> paramMap) throws ServiceException {
+//		String hqlQuery = null;
+//			StringBuilder builder = new StringBuilder("select * FROM FileDetailsBean fd where fd.isActive = '1'");
+//			if (paramMap.get(ColumnConstants.ENTITY_CODE.getConstantVal()) != null) {
+//				builder.append(" AND fd.entityCode IN (:entityCodeList)");
+//			} else if (paramMap.get(ColumnConstants.RETURN_CODE.getConstantVal()) != null) {
+//				builder.append("AND fd.returnCode IN (:returnCodeList) ");
+//			} else if (paramMap.get(ColumnConstants.STATUS.getConstantVal()) != null) {
+//				builder.append(" AND fd.status IN (:statusList)");
+//			} else if (paramMap.get(ColumnConstants.UPLOAD_CHANNEL.getConstantVal()) != null) {
+//				builder.append("AND fd.uploadChannelIdFk.uploadChannelId IN (:uploadChannelList)");
+//			} else if (paramMap.get(ColumnConstants.STARTDATE.getConstantVal()) != null && paramMap.get(ColumnConstants.ENDDATE.getConstantVal()) != null) {
+//				builder.append(" AND fd.creationDate between date(:startsDate) and date(:endsDate)");
+//			} 
+//			builder.append("ORDER BY 1 DESC");
+//			hqlQuery = builder.toString();
+//			return fileDetailsDao.executeHQL(hqlQuery, paramMap);
+//		}
+}

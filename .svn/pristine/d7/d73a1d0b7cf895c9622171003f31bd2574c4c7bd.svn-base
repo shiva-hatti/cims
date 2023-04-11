@@ -1,0 +1,101 @@
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.dto.XbrlWebFormDto;
+import com.iris.service.impl.XbrlWebFormService;
+import com.iris.util.ResourceUtil;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.util.constant.UploadFilingConstants;
+
+@RestController
+@RequestMapping("/service/xbrlWebForm")
+public class XbrlWebFormController {
+	static final Logger logger = LogManager.getLogger(XbrlWebFormController.class);
+	
+	private static final String WEB_SOCKER_BROKER_NAME = "webSockerBrokerName";
+
+	private static final String VERIFY_XBRL_SESSION_STRING = "verifyXbrlSession";
+	
+	private static final String SLASH = "/";
+	
+	@Autowired
+	private XbrlWebFormService xbrlWebFormService;
+	
+	private SimpMessagingTemplate template;
+	
+	@Autowired
+    public XbrlWebFormController(SimpMessagingTemplate template) {
+    	this.template = template;
+    }
+	
+	
+	
+	@PostMapping(value = "/saveOrSubmitData")
+	public ServiceResponse savePartialData(@RequestBody XbrlWebFormDto xbrlWebFormDto) {
+		ServiceResponse serviceResponse = xbrlWebFormService.saveDataToPartialTable(xbrlWebFormDto);
+		if (serviceResponse.isStatus() && xbrlWebFormDto.getFilingStatus().equals(UploadFilingConstants.UPLOAD_FILING_STATUS.getName())) {
+			serviceResponse = xbrlWebFormService.submitXbrlDocument(xbrlWebFormDto);
+		}
+		this.template.convertAndSend(SLASH + ResourceUtil.getKeyValue(WEB_SOCKER_BROKER_NAME) + SLASH + xbrlWebFormDto.getRoleId() + SLASH + xbrlWebFormDto.getUserId() + SLASH  + VERIFY_XBRL_SESSION_STRING, true);
+		return serviceResponse;
+	}
+	
+	@PostMapping(value = "/submitXbrlData")
+	public ServiceResponse submitXbrlData(@RequestBody XbrlWebFormDto xbrlWebFormDto) {
+		ServiceResponse serviceResponse = xbrlWebFormService.saveDataToPartialTable(xbrlWebFormDto);
+		if (serviceResponse.isStatus()) {
+			//Update the frequency
+			//Call web service to save the file to a particular location and update file details in the partial data record 
+		}
+		
+		return serviceResponse;
+	}
+	
+	@PostMapping(value = "/verifyJwtToken")
+	public ServiceResponse verifyJWTToken(@RequestBody XbrlWebFormDto xbrlWebFormDto) {
+		ServiceResponse serviceResponse;
+		if (xbrlWebFormService.verifyJWTToken(xbrlWebFormDto)) {
+			serviceResponse = new ServiceResponseBuilder().setStatus(true).setStatusCode("200").setStatusMessage(GeneralConstants.JWT_TOKEN_VALID.getConstantVal()).build();
+			if (serviceResponse.isStatus()) {
+				ServiceResponse serviceResponseSessionChk = xbrlWebFormService.startXbrlWebFormSession(xbrlWebFormDto);
+				if (!serviceResponseSessionChk.isStatus()) {
+					return serviceResponseSessionChk;
+				}
+			}
+		} else {
+			Map<String, List<String>> responseObject = new HashMap<>();
+			List<String> errorResponseList = new ArrayList<>();
+			errorResponseList.add(ObjectCache.getErrorCodeKey(ErrorCode.E0888.toString()));
+			responseObject.put("en", errorResponseList);
+			serviceResponse = new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0888.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0888.toString()))
+					.setResponse(responseObject).build();
+		}
+		this.template.convertAndSend(SLASH + ResourceUtil.getKeyValue(WEB_SOCKER_BROKER_NAME) + SLASH + xbrlWebFormDto.getRoleId() + SLASH + xbrlWebFormDto.getUserId() + SLASH  + VERIFY_XBRL_SESSION_STRING, true);
+		return serviceResponse;
+	}
+	
+	
+	@PostMapping(value = "/startXbrlWebFormSession") 
+	public ServiceResponse startXbrlSession(@RequestBody XbrlWebFormDto xbrlWebFormDto) {
+		return xbrlWebFormService.startXbrlWebFormSession(xbrlWebFormDto);
+	}
+	 
+	
+}

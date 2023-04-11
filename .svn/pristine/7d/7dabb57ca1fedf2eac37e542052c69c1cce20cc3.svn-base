@@ -1,0 +1,179 @@
+package com.iris.service.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import com.iris.exception.ServiceException;
+import com.iris.model.EntityBean;
+import com.iris.model.Return;
+import com.iris.model.UserRoleEntityMapping;
+import com.iris.model.UserRoleReturnMapping;
+import com.iris.repository.UserRoleEntityMappingRepo;
+import com.iris.repository.UserRoleReturnMappingRepo;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.MethodConstants;
+
+/**
+ * @author Siddique
+ */
+@Service
+public class UserRoleReturnMappingService implements GenericService<UserRoleReturnMapping, Long> {
+
+	@Autowired
+	private UserRoleReturnMappingRepo userRoleReturnMappingRepo;
+
+	@Autowired
+	private UserRoleEntityMappingRepo userRoleEntitynMappingRepo;
+
+	@Override
+	public UserRoleReturnMapping add(UserRoleReturnMapping entity) throws ServiceException {
+		return userRoleReturnMappingRepo.save(entity);
+	}
+
+	@Override
+	public boolean update(UserRoleReturnMapping entity) throws ServiceException {
+		return false;
+	}
+
+	@Override
+	public List<UserRoleReturnMapping> getDataByIds(Long[] ids) throws ServiceException {
+		return userRoleReturnMappingRepo.getReturnListByRoleId(ids);
+	}
+
+	@Override
+	public UserRoleReturnMapping getDataById(Long id) throws ServiceException {
+		return userRoleReturnMappingRepo.getDataByRoleReturnId(id);
+	}
+
+	@Override
+	public List<UserRoleReturnMapping> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<UserRoleReturnMapping> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<UserRoleReturnMapping> getDataByObject(Map<String, Object> columnValueMap, String methodName) throws ServiceException {
+		try {
+			Long roleId = null;
+			Boolean isActive = false;
+			String entCode = null;
+			Long returnId = null;
+
+			for (String columnName : columnValueMap.keySet()) {
+				if (columnName.equalsIgnoreCase(ColumnConstants.ROLEID.getConstantVal())) {
+					roleId = (Long) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.IS_ACTIVE.getConstantVal())) {
+					isActive = (Boolean) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.ENT_CODE.getConstantVal())) {
+					entCode = (String) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.RETURNID.getConstantVal())) {
+					returnId = (Long) columnValueMap.get(columnName);
+				}
+			}
+			if (methodName.equalsIgnoreCase(MethodConstants.GET_USER_ROLE_RETURN_DATA_BY_ROLE_ID_ACTIVE_FLAG.getConstantVal())) {
+				return userRoleReturnMappingRepo.getUserRoleReturnDataByRoleIdAndActiveFlag(roleId, isActive);
+			} else if (methodName.equalsIgnoreCase("getUserRoleReturnMappingByUserId")) {
+				return userRoleReturnMappingRepo.findByRoleIdFkUserRoleIdAndIsActiveTrue(roleId);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_USER_ROLE_RETURN_DATA_BY_ROLE_ID.getConstantVal())) {
+				return userRoleReturnMappingRepo.getUserRoleReturnMappingByRoleId(roleId);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_USER_ROLE_RETURN_MAPP_DATA_BY_ROLE_ID.getConstantVal())) {
+				return userRoleReturnMappingRepo.findByRoleIdFkUserRoleId(roleId);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_UNMAPPED_RETURN_LIST_BY_REGULATOR_ID.getConstantVal())) {
+				if (isActive == null) {
+					return userRoleReturnMappingRepo.getUnMappedReturnListByRegulatorId(roleId);
+				} else {
+					return userRoleReturnMappingRepo.getUnMappedReturnListByRegulatorIdAndIsActive(roleId, isActive);
+				}
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_RETURN_LIST_BY_ROLE_ID.getConstantVal())) {
+				return userRoleReturnMappingRepo.getReturnDataByRoleId(roleId, entCode);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_USER_ROLE_RETURN_MAPPING_BY_RETURN_ID.getConstantVal())) {
+				return userRoleReturnMappingRepo.getUserRolesOnReturnId(returnId);
+			}
+			return null;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<UserRoleReturnMapping> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		List<UserRoleReturnMapping> userRoleReturnMappingList = null;
+		try {
+			if (bean.isInstance(UserRoleReturnMapping.class) && id == null) {
+				userRoleReturnMappingList = userRoleReturnMappingRepo.getAllActiveData();
+			}
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+		return userRoleReturnMappingList;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<UserRoleReturnMapping> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public void deleteData(UserRoleReturnMapping bean) throws ServiceException {
+	}
+
+	public Map<Long, Map<Return, Boolean>> getRoleRetunMap(Long[] ids) {
+		try {
+			List<UserRoleReturnMapping> userRoleReturnMappings = userRoleReturnMappingRepo.getLightWeightUserRoleReturnByRoleId(ids);
+			if (!CollectionUtils.isEmpty(userRoleReturnMappings)) {
+				Map<Long, Map<Return, Boolean>> userRoleReturnMap = new HashMap<>();
+				userRoleReturnMappings.forEach(f -> {
+					if (userRoleReturnMap.get(f.getRoleIdFk().getUserRoleId()) != null) {
+						userRoleReturnMap.get(f.getRoleIdFk().getUserRoleId());
+						userRoleReturnMap.get(f.getRoleIdFk().getUserRoleId()).put(f.getReturnIdFk(), f.getIsActive());
+					} else {
+						Map<Return, Boolean> returnMap = new HashMap<>();
+						returnMap.put(f.getReturnIdFk(), f.getIsActive());
+						userRoleReturnMap.put(f.getRoleIdFk().getUserRoleId(), returnMap);
+					}
+				});
+				return userRoleReturnMap;
+			}
+			return new HashMap<>();
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	public Map<Long, Map<EntityBean, Boolean>> getRoleEntityMap(Long[] roleIds) {
+		try {
+			List<UserRoleEntityMapping> userRoleEntityMappings = userRoleEntitynMappingRepo.getLightWeightUserRoleEntityByRoleId(roleIds);
+			if (!CollectionUtils.isEmpty(userRoleEntityMappings)) {
+				Map<Long, Map<EntityBean, Boolean>> userRoleEntityMap = new HashMap<>();
+				userRoleEntityMappings.forEach(f -> {
+					if (userRoleEntityMap.get(f.getUserRole().getUserRoleId()) != null) {
+						userRoleEntityMap.get(f.getUserRole().getUserRoleId());
+						userRoleEntityMap.get(f.getUserRole().getUserRoleId()).put(f.getEntity(), f.isActive());
+					} else {
+						Map<EntityBean, Boolean> entityMap = new HashMap<>();
+						entityMap.put(f.getEntity(), f.isActive());
+						userRoleEntityMap.put(f.getUserRole().getUserRoleId(), entityMap);
+					}
+				});
+				return userRoleEntityMap;
+			}
+			return new HashMap<>();
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+}

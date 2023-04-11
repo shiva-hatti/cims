@@ -1,0 +1,43 @@
+package com.iris.interceptor;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.iris.JwtTokenUtil.JwtTokenUtil.JWTTokenUtility;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.util.Validations;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.GeneralConstants;
+
+@Component
+public class JWTTokenInterceptor extends HandlerInterceptorAdapter {
+
+	private final String JWT_TOKEN_EXPIRED_TIME_IN_HR = null;
+	private final String JWT_TOKEN_EXPIRED_TIME_IN_MIN = "2";
+
+	public boolean preHandle(HttpServletRequest arg0, HttpServletResponse arg1, Object arg2) throws Exception {
+		System.out.println("In JWTTokenInterceptor");
+		if (Validations.isEmpty(arg0.getHeader(GeneralConstants.JWT_TOKEN.getConstantVal()))) {
+			ServiceResponse response = new ServiceResponseBuilder().setStatus(true).setStatusCode(ErrorConstants.E001.getConstantVal()).setStatusMessage(ErrorConstants.ERROR_NO_JWTTOKEN_SET_IN_HEADER.getConstantVal()).build();
+			arg1.getWriter().write(new ObjectMapper().writeValueAsString(response));
+			return false;
+		}
+
+		String jwtToken = arg0.getHeader(GeneralConstants.JWT_TOKEN.getConstantVal());
+
+		JWTTokenUtility jwtTokenUtility = new JWTTokenUtility();
+
+		if (jwtTokenUtility.isJWTTokenExpired(jwtToken, 0, Integer.parseInt(JWT_TOKEN_EXPIRED_TIME_IN_MIN))) {
+			ServiceResponse response = new ServiceResponseBuilder().setStatus(true).setStatusCode(ErrorConstants.E001.getConstantVal()).setStatusMessage(ErrorConstants.ERROR_JWTTOKEN_EXPIRED.getConstantVal()).build();
+			arg1.getWriter().write(new ObjectMapper().writeValueAsString(response));
+			return false;
+		} else {
+			return true;
+		}
+	}
+}

@@ -1,0 +1,133 @@
+package com.iris.sdmx.returnentmapp.bean;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import com.iris.model.EntityBean;
+import com.iris.model.Return;
+import com.iris.model.UserMaster;
+
+/**
+ * @author sajadhav
+ *
+ */
+@Entity
+@Table(name = "TBL_SDMX_RETURN_ENTITY_MAPP")
+public class SDMXReturnEntityMapp implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 7363219159545005029L;
+
+	@Id
+	@Column(name = "RET_ENT_MAP_ID")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long retEntMapId;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "RETURN_ID_FK")
+	private Return returnObj;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "ENTITY_ID_FK")
+	private EntityBean entity;
+
+	@Column(name = "IS_ACTIVE")
+	private boolean isActive;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "CREATED_BY_FK")
+	private UserMaster createdBy;
+
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+
+	@Transient
+	private Integer returnPropertyId;
+
+	public SDMXReturnEntityMapp() {
+
+	}
+
+	public SDMXReturnEntityMapp(Long returnId, String returnCode, Long entityId, String entityCode, Integer returnPropertyId) {
+
+		this.returnObj = new Return();
+		returnObj.setReturnId(returnId);
+		returnObj.setReturnCode(returnCode);
+
+		this.entity = new EntityBean();
+		this.entity.setEntityId(entityId);
+		this.entity.setEntityCode(entityCode);
+
+		this.returnPropertyId = returnPropertyId;
+	}
+
+	public Integer getReturnPropertyId() {
+		return returnPropertyId;
+	}
+
+	public void setReturnPropertyId(Integer returnPropertyId) {
+		this.returnPropertyId = returnPropertyId;
+	}
+
+	public void setActive(boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	public Long getRetEntMapId() {
+		return retEntMapId;
+	}
+
+	public void setRetEntMapId(Long retEntMapId) {
+		this.retEntMapId = retEntMapId;
+	}
+
+	public Return getReturnObj() {
+		return returnObj;
+	}
+
+	public void setReturnObj(Return returnObj) {
+		this.returnObj = returnObj;
+	}
+
+	public EntityBean getEntity() {
+		return entity;
+	}
+
+	public void setEntity(EntityBean entity) {
+		this.entity = entity;
+	}
+
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	public boolean isActive() {
+		return isActive;
+	}
+
+}

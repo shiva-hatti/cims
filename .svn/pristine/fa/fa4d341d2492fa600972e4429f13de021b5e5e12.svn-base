@@ -1,0 +1,62 @@
+package com.iris.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import com.iris.exception.ServiceException;
+import com.iris.model.DynamicHeader;
+import com.iris.service.GenericService;
+
+public class DynamicHeaderService implements GenericService<DynamicHeader, Long> {
+
+	@Override
+	public DynamicHeader add(DynamicHeader entity) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public boolean update(DynamicHeader entity) throws ServiceException {
+		return false;
+	}
+
+	@Override
+	public List<DynamicHeader> getDataByIds(Long[] ids) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public DynamicHeader getDataById(Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<DynamicHeader> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<DynamicHeader> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<DynamicHeader> getDataByObject(Map<String, Object> columnValueMap, String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<DynamicHeader> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<DynamicHeader> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public void deleteData(DynamicHeader bean) throws ServiceException {
+
+	}
+
+}

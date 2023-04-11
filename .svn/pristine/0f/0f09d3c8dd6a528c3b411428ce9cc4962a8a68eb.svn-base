@@ -1,0 +1,981 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.OrderBy;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.iris.util.Validations;
+
+/**
+ * This is the Return bean class with Hibernate mapping.
+ * 
+ * @author psawant
+ * @date 15/10/2015 version 1.0
+ */
+@Entity
+@Table(name = "TBL_RETURN")
+@JsonInclude(Include.NON_NULL)
+public class Return implements Serializable {
+
+	private static final long serialVersionUID = 8262415709009662785L;
+
+	private static final Logger LOGGER = LogManager.getLogger(Return.class);
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "RETURN_ID")
+	private Long returnId;
+
+	@Column(name = "RETURN_NAME")
+	private String returnName;
+
+	@Column(name = "RETURN_CODE")
+	private String returnCode;
+
+	@Column(name = "IS_PARENT")
+	private Boolean isParent;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "IS_PARENT_ID_FK")
+	private Return isParentIdFk;
+
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	@Column(name = "ALLOW_REVISION")
+	private Boolean allowRevision;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "CREATED_BY_FK")
+	private UserMaster createdBy;
+
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "LAST_MODIFIED_BY_FK")
+	private UserMaster lastmodifiedBy;
+
+	@Column(name = "LAST_MODIFIED_ON")
+	private Date lastModifiedOn;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "LAST_APPROVED_BY_FK")
+	private UserMaster lastApprovedBy;
+
+	@Column(name = "LAST_APPROVED_ON")
+	private Date lastApprovedOn;
+
+	@Column(name = "LAST_UPDATE_ON")
+	private Date lastUpdateOn;
+
+	@Column(name = "IS_BULK_UPLOAD")
+	private Boolean isBulkUpload;
+
+	@Transient
+	private Long roleIdKey;
+
+	@Column(name = "ERROR_COUNT")
+	private Integer errorCount;
+
+	@Column(name = "WARNING_COUNT")
+	private Integer warningCount;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "FREQUENCY_ID_FK")
+	private Frequency frequency;
+
+	@OneToMany(mappedBy = "returnObj")
+	@OrderBy("validFromDate ASC")
+	private Set<ReturnTemplate> taxonomy;
+
+	@Column(name = "EXCEL_READ_JSON")
+	private String excelReadJson;
+
+	@Column(name = "RETURN_DOC_ID")
+	private String returnDocId;
+
+	@OneToMany(mappedBy = "returnIdFk")
+	private Set<ReturnLabel> returnLblSet;
+
+	@OneToMany(mappedBy = "isParentIdFk")
+	private Set<Return> ChildReturn;
+
+	@Transient
+	private String finYearFormat;
+
+	@Transient
+	private Long finYearFormatId;
+
+	@Transient
+	private int singleLanguage;
+
+	@Column(name = "IS_NON_XBRL")
+	private Boolean isNonXbrl;
+
+	@Column(name = "APPLICABLE_FOR_DYNAMIC_WEBFORM")
+	private Boolean isApplicableForDynamicWebForm;
+
+	@Column(name = "FORMULA_FILE_NAME")
+	private String formulaFileName;
+
+	@Column(name = "DELAY_CRITERIA_FILE_NAME")
+	private String delayCriteriaFileName;
+
+	@Column(name = "RETURN_TEMPLATE_NAME")
+	private String retunTemplateName;
+
+	@Transient
+	private String uniqueIdentifier;
+
+	@Transient
+	private String returnNameBil;
+
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "returnBean")
+	private List<ReturnFileFormatMap> returnFileFormatMapList;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "RETURN_GROUP_MAP_ID_FK")
+	private ReturnGroupMapping returnGroupMapIdFk;
+
+	@OneToMany(mappedBy = "returnObj")
+	private List<ReturnEntityMappingNew> returnEntityMappingNewList;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "RETURN_PROPERTY_ID_FK")
+	private ReturnProperty returnPropertyIdFk;
+
+	@Column(name = "MAX_REVISION_COUNT")
+	private Integer maxRevisionCount;
+
+	@Column(name = "OLD_RETURN_CODE")
+	private String oldReturnCode;
+
+	@OneToMany(mappedBy = "returnIdFk")
+	private List<ReturnRegulatorMapping> returnRegulatorMapping;
+
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "returnIdFk")
+	private List<ReturnReturnTypeMapping> returnReturnTypeMapping;
+
+	@Transient
+	private boolean isMultipleChannelFound;
+
+	@Transient
+	private boolean uploadChannel;
+
+	@Transient
+	private boolean apiChannel;
+
+	@Transient
+	private boolean webChannel;
+
+	@Transient
+	private boolean emailChannel;
+
+	@Transient
+	private boolean stsChannel;
+
+	@Transient
+	private Long returnGroupId;
+
+	@Transient
+	private String returnGroupName;
+
+	@Transient
+	private String jsonStringToReadFile;
+
+	@Transient
+	private boolean isDeptMapped;
+
+	@Transient
+	private String emailIds;
+
+	@Transient
+	private boolean isRoleReturnMappingActive;
+
+	@OneToOne(mappedBy = "returnObj")
+	private ErrorCodeBeautificationJson errorCodeBeauJsonObj;
+
+	@Transient
+	private String errorCodeBeauJson;
+
+	public Return() {
+
+	}
+
+	public Return(Long returnId, String returnCode, String returnName) {
+		this.returnId = returnId;
+		this.returnCode = returnCode;
+		this.returnName = returnName;
+	}
+
+	public Return(Long returnId, String returnCode, String returnName, Frequency frequency) {
+		this.returnId = returnId;
+		this.returnCode = returnCode;
+		this.returnName = returnName;
+		this.frequency = frequency;
+	}
+
+	public Return(Long returnId, String returnCode, String returnName, Long returnGroupId, String returnGroupName) {
+		this.returnId = returnId;
+		this.returnCode = returnCode;
+		this.returnName = returnName;
+		this.returnGroupName = returnGroupName;
+		this.returnGroupId = returnGroupId;
+	}
+
+	public Return(Long returnId, String returnCode, String returnName, boolean isRoleReturnMappingActive) {
+		this.returnId = returnId;
+		this.returnCode = returnCode;
+		this.returnName = returnName;
+		this.isRoleReturnMappingActive = isRoleReturnMappingActive;
+	}
+
+	public Return(Long returnId, String returnCode, String returnName, String returnGroupName, Long returnGroupMapId) {
+		this.returnId = returnId;
+		this.returnCode = returnCode;
+		this.returnName = returnName;
+		this.returnGroupMapIdFk = new ReturnGroupMapping();
+		returnGroupMapIdFk.setReturnGroupMapId(returnGroupMapId);
+		returnGroupMapIdFk.setDefaultGroupName(returnGroupName);
+		this.returnGroupName = returnGroupName;
+		this.isDeptMapped = Boolean.FALSE;
+	}
+
+	public Return(Long returnId, String returnCode, String returnName, Long returnGroupId, String emailIds, String returnGroupName) {
+		this.returnId = returnId;
+		this.returnCode = returnCode;
+		this.returnName = returnName;
+		this.returnGroupMapIdFk = new ReturnGroupMapping();
+		returnGroupMapIdFk.setReturnGroupMapId(returnGroupId);
+		returnGroupMapIdFk.setDefaultGroupName(returnGroupName);
+		this.emailIds = emailIds;
+		this.isDeptMapped = Boolean.TRUE;
+	}
+
+	/**
+	 * @return the maxRevisionCount
+	 */
+	public Integer getMaxRevisionCount() {
+		if (StringUtils.isEmpty(maxRevisionCount)) {
+			return 0;
+		} else {
+			return maxRevisionCount;
+		}
+	}
+
+	/**
+	 * @param maxRevisionCount the maxRevisionCount to set
+	 */
+	public void setMaxRevisionCount(Integer maxRevisionCount) {
+		this.maxRevisionCount = maxRevisionCount;
+	}
+
+	/**
+	 * @return the jsonSTringToReadFile
+	 */
+	public String getJsonStringToReadFile() {
+		return jsonStringToReadFile;
+	}
+
+	/**
+	 * @param jsonSTringToReadFile the jsonSTringToReadFile to set
+	 */
+	public void setJsonStringToReadFile(String jsonSTringToReadFile) {
+		this.jsonStringToReadFile = jsonSTringToReadFile;
+	}
+
+	public Long getReturnGroupId() {
+		return returnGroupId;
+	}
+
+	public void setReturnGroupId(Long returnGroupId) {
+		this.returnGroupId = returnGroupId;
+	}
+
+	public String getReturnGroupName() {
+		return returnGroupName;
+	}
+
+	public void setReturnGroupName(String returnGroupName) {
+		this.returnGroupName = returnGroupName;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj != null) {
+			if (this.getClass() != obj.getClass()) {
+				LOGGER.info("Return Bean Class not matched");
+			}
+			Return returnObj = (Return) obj;
+			if (returnObj.getReturnId().equals(this.returnId)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return this.returnId.intValue();
+	}
+
+	public boolean isUploadChannel() {
+		return uploadChannel;
+	}
+
+	public void setUploadChannel(boolean uploadChannel) {
+		this.uploadChannel = uploadChannel;
+	}
+
+	public boolean isApiChannel() {
+		return apiChannel;
+	}
+
+	public void setApiChannel(boolean apiChannel) {
+		this.apiChannel = apiChannel;
+	}
+
+	public boolean isWebChannel() {
+		return webChannel;
+	}
+
+	public void setWebChannel(boolean webChannel) {
+		this.webChannel = webChannel;
+	}
+
+	public boolean isEmailChannel() {
+		return emailChannel;
+	}
+
+	public void setEmailChannel(boolean emailChannel) {
+		this.emailChannel = emailChannel;
+	}
+
+	public boolean isStsChannel() {
+		return stsChannel;
+	}
+
+	public void setStsChannel(boolean stsChannel) {
+		this.stsChannel = stsChannel;
+	}
+
+	public boolean isMultipleChannelFound() {
+		return isMultipleChannelFound;
+	}
+
+	public void setMultipleChannelFound(boolean isMultipleChannelFound) {
+		this.isMultipleChannelFound = isMultipleChannelFound;
+	}
+
+	public List<ReturnEntityMappingNew> getReturnEntityMappingNewList() {
+		return returnEntityMappingNewList;
+	}
+
+	public void setReturnEntityMappingNewList(List<ReturnEntityMappingNew> returnEntityMappingNewList) {
+		this.returnEntityMappingNewList = returnEntityMappingNewList;
+	}
+
+	public List<ReturnFileFormatMap> getReturnFileFormatMapList() {
+		return returnFileFormatMapList;
+	}
+
+	public void setReturnFileFormatMapList(List<ReturnFileFormatMap> returnFileFormatMapList) {
+		this.returnFileFormatMapList = returnFileFormatMapList;
+	}
+
+	public String getExcelReadJson() {
+		return excelReadJson;
+	}
+
+	public void setExcelReadJson(String excelReadJson) {
+		this.excelReadJson = excelReadJson;
+	}
+
+	public Set<ReturnTemplate> getTaxonomy() {
+		return taxonomy;
+	}
+
+	public void setTaxonomy(Set<ReturnTemplate> taxonomy) {
+		this.taxonomy = taxonomy;
+	}
+
+	public Frequency getFrequency() {
+		return frequency;
+	}
+
+	public void setFrequency(Frequency frequency) {
+		this.frequency = frequency;
+	}
+
+	public Integer getErrorCount() {
+		return errorCount;
+	}
+
+	public void setErrorCount(Integer errorCount) {
+		this.errorCount = errorCount;
+	}
+
+	public Integer getWarningCount() {
+		return warningCount;
+	}
+
+	public void setWarningCount(Integer warningCount) {
+		this.warningCount = warningCount;
+	}
+
+	/**
+	 * @return the returnId
+	 */
+	public Long getReturnId() {
+		return returnId;
+	}
+
+	/**
+	 * @param returnId the returnId to set
+	 */
+	public void setReturnId(Long returnId) {
+		this.returnId = returnId;
+	}
+
+	/**
+	 * @return the returnName
+	 */
+	public String getReturnName() {
+		return returnName;
+	}
+
+	/**
+	 * @param returnName the returnName to set
+	 */
+	public void setReturnName(String returnName) {
+		this.returnName = Validations.trimInput(returnName);
+	}
+
+	/**
+	 * @return the returnCode
+	 */
+	public String getReturnCode() {
+		return returnCode;
+	}
+
+	/**
+	 * @param returnCode the returnCode to set
+	 */
+	public void setReturnCode(String returnCode) {
+		this.returnCode = Validations.trimInput(returnCode);
+	}
+
+	/**
+	 * @return the isParent
+	 */
+	public Boolean getIsParent() {
+		return isParent;
+	}
+
+	/**
+	 * @param isParent the isParent to set
+	 */
+	public void setIsParent(Boolean isParent) {
+		this.isParent = isParent;
+	}
+
+	/**
+	 * @return the isParentIdFk
+	 */
+	public Return getIsParentIdFk() {
+		return isParentIdFk;
+	}
+
+	/**
+	 * @param isParentIdFk the isParentIdFk to set
+	 */
+	public void setIsParentIdFk(Return isParentIdFk) {
+		this.isParentIdFk = isParentIdFk;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the allowRevision
+	 */
+	public Boolean getAllowRevision() {
+		return allowRevision;
+	}
+
+	/**
+	 * @param allowRevision the allowRevision to set
+	 */
+	public void setAllowRevision(Boolean allowRevision) {
+		this.allowRevision = allowRevision;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the lastmodifiedBy
+	 */
+	public UserMaster getLastmodifiedBy() {
+		return lastmodifiedBy;
+	}
+
+	/**
+	 * @param lastmodifiedBy the lastmodifiedBy to set
+	 */
+	public void setLastmodifiedBy(UserMaster lastmodifiedBy) {
+		this.lastmodifiedBy = lastmodifiedBy;
+	}
+
+	/**
+	 * @return the lastModifiedOn
+	 */
+	public Date getLastModifiedOn() {
+		return lastModifiedOn;
+	}
+
+	/**
+	 * @param lastModifiedOn the lastModifiedOn to set
+	 */
+	public void setLastModifiedOn(Date lastModifiedOn) {
+		this.lastModifiedOn = lastModifiedOn;
+	}
+
+	/**
+	 * @return the lastApprovedBy
+	 */
+	public UserMaster getLastApprovedBy() {
+		return lastApprovedBy;
+	}
+
+	/**
+	 * @param lastApprovedBy the lastApprovedBy to set
+	 */
+	public void setLastApprovedBy(UserMaster lastApprovedBy) {
+		this.lastApprovedBy = lastApprovedBy;
+	}
+
+	/**
+	 * @return the lastApprovedOn
+	 */
+	public Date getLastApprovedOn() {
+		return lastApprovedOn;
+	}
+
+	/**
+	 * @param lastApprovedOn the lastApprovedOn to set
+	 */
+	public void setLastApprovedOn(Date lastApprovedOn) {
+		this.lastApprovedOn = lastApprovedOn;
+	}
+
+	/**
+	 * @return the lastUpdateOn
+	 */
+	public Date getLastUpdateOn() {
+		return lastUpdateOn;
+	}
+
+	/**
+	 * @param lastUpdateOn the lastUpdateOn to set
+	 */
+	public void setLastUpdateOn(Date lastUpdateOn) {
+		this.lastUpdateOn = lastUpdateOn;
+	}
+
+	/**
+	 * @return the roleIdKey
+	 */
+	public Long getRoleIdKey() {
+		return roleIdKey;
+	}
+
+	/**
+	 * @param roleIdKey the roleIdKey to set
+	 */
+	public void setRoleIdKey(Long roleIdKey) {
+		this.roleIdKey = roleIdKey;
+	}
+
+	/**
+	 * @return the returnLblSet
+	 */
+	public Set<ReturnLabel> getReturnLblSet() {
+		return returnLblSet;
+	}
+
+	/**
+	 * @param returnLblSet the returnLblSet to set
+	 */
+	public void setReturnLblSet(Set<ReturnLabel> returnLblSet) {
+		this.returnLblSet = returnLblSet;
+	}
+
+	/**
+	 * @return the finYearFormat
+	 */
+	public String getFinYearFormat() {
+		return finYearFormat;
+	}
+
+	/**
+	 * @param finYearFormat the finYearFormat to set
+	 */
+	public void setFinYearFormat(String finYearFormat) {
+		this.finYearFormat = Validations.trimInput(finYearFormat);
+	}
+
+	/**
+	 * @return the finYearFormatId
+	 */
+	public Long getFinYearFormatId() {
+		return finYearFormatId;
+	}
+
+	/**
+	 * @param finYearFormatId the finYearFormatId to set
+	 */
+	public void setFinYearFormatId(Long finYearFormatId) {
+		this.finYearFormatId = finYearFormatId;
+	}
+
+	/**
+	 * @return the childReturn
+	 */
+	public Set<Return> getChildReturn() {
+		return ChildReturn;
+	}
+
+	/**
+	 * @param childReturn the childReturn to set
+	 */
+	public void setChildReturn(Set<Return> childReturn) {
+		ChildReturn = childReturn;
+	}
+
+	/**
+	 * @return the isBulkUpload
+	 */
+	public Boolean getIsBulkUpload() {
+		return isBulkUpload;
+	}
+
+	/**
+	 * @param isBulkUpload the isBulkUpload to set
+	 */
+	public void setIsBulkUpload(Boolean isBulkUpload) {
+		this.isBulkUpload = isBulkUpload;
+	}
+
+	/**
+	 * @return the singleLanguage
+	 */
+	public int getSingleLanguage() {
+		return singleLanguage;
+	}
+
+	/**
+	 * @param singleLanguage the singleLanguage to set
+	 */
+	public void setSingleLanguage(int singleLanguage) {
+		this.singleLanguage = singleLanguage;
+	}
+
+	/**
+	 * @return the isNonXbrl
+	 */
+	public Boolean getIsNonXbrl() {
+		return isNonXbrl;
+	}
+
+	/**
+	 * @param isNonXbrl the isNonXbrl to set
+	 */
+	public void setIsNonXbrl(Boolean isNonXbrl) {
+		this.isNonXbrl = isNonXbrl;
+	}
+
+	/**
+	 * @return the isApplicableForDynamicWebForm
+	 */
+	public Boolean getIsApplicableForDynamicWebForm() {
+		return isApplicableForDynamicWebForm;
+	}
+
+	/**
+	 * @param isApplicableForDynamicWebForm the isApplicableForDynamicWebForm to set
+	 */
+	public void setIsApplicableForDynamicWebForm(Boolean isApplicableForDynamicWebForm) {
+		this.isApplicableForDynamicWebForm = isApplicableForDynamicWebForm;
+	}
+
+	/**
+	 * @return the formulaFileName
+	 */
+	public String getFormulaFileName() {
+		return formulaFileName;
+	}
+
+	/**
+	 * @param formulaFileName the formulaFileName to set
+	 */
+	public void setFormulaFileName(String formulaFileName) {
+		this.formulaFileName = Validations.trimInput(formulaFileName);
+	}
+
+	/**
+	 * @return the delayCriteriaFileName
+	 */
+	public String getDelayCriteriaFileName() {
+		return delayCriteriaFileName;
+	}
+
+	/**
+	 * @param delayCriteriaFileName the delayCriteriaFileName to set
+	 */
+	public void setDelayCriteriaFileName(String delayCriteriaFileName) {
+		this.delayCriteriaFileName = Validations.trimInput(delayCriteriaFileName);
+	}
+
+	/**
+	 * @return the retunTemplateName
+	 */
+	public String getRetunTemplateName() {
+		return retunTemplateName;
+	}
+
+	/**
+	 * @param retunTemplateName the retunTemplateName to set
+	 */
+	public void setRetunTemplateName(String retunTemplateName) {
+		this.retunTemplateName = Validations.trimInput(retunTemplateName);
+	}
+
+	/**
+	 * @return the uniqueIdentifier
+	 */
+	public String getUniqueIdentifier() {
+		return uniqueIdentifier;
+	}
+
+	/**
+	 * @param uniqueIdentifier the uniqueIdentifier to set
+	 */
+	public void setUniqueIdentifier(String uniqueIdentifier) {
+		this.uniqueIdentifier = Validations.trimInput(uniqueIdentifier);
+	}
+
+	/**
+	 * @return the returnNameBil
+	 */
+	public String getReturnNameBil() {
+		return returnNameBil;
+	}
+
+	/**
+	 * @param returnNameBil the returnNameBil to set
+	 */
+	public void setReturnNameBil(String returnNameBil) {
+		this.returnNameBil = Validations.trimInput(returnNameBil);
+	}
+
+	/**
+	 * @return the returnGroupMapIdFk
+	 */
+	public ReturnGroupMapping getReturnGroupMapIdFk() {
+		return returnGroupMapIdFk;
+	}
+
+	/**
+	 * @param returnGroupMapIdFk the returnGroupMapIdFk to set
+	 */
+	public void setReturnGroupMapIdFk(ReturnGroupMapping returnGroupMapIdFk) {
+		this.returnGroupMapIdFk = returnGroupMapIdFk;
+	}
+
+	/**
+	 * @return the returnPropertyIDFk
+	 */
+	public ReturnProperty getReturnPropertyIdFk() {
+		return returnPropertyIdFk;
+	}
+
+	/**
+	 * @param returnPropertyIdFk the returnPropertyIDFk to set
+	 */
+	public void setReturnPropertyIdFk(ReturnProperty returnPropertyIdFk) {
+		this.returnPropertyIdFk = returnPropertyIdFk;
+	}
+
+	/**
+	 * @return the oldReturnCode
+	 */
+	public String getOldReturnCode() {
+		return oldReturnCode;
+	}
+
+	/**
+	 * @param oldReturnCode the oldReturnCode to set
+	 */
+	public void setOldReturnCode(String oldReturnCode) {
+		this.oldReturnCode = Validations.trimInput(oldReturnCode);
+	}
+
+	/**
+	 * @return the isDeptMapped
+	 */
+	public boolean isDeptMapped() {
+		return isDeptMapped;
+	}
+
+	/**
+	 * @param isDeptMapped the isDeptMapped to set
+	 */
+	public void setDeptMapped(boolean isDeptMapped) {
+		this.isDeptMapped = isDeptMapped;
+	}
+
+	/**
+	 * @return the emailIds
+	 */
+	public String getEmailIds() {
+		return emailIds;
+	}
+
+	/**
+	 * @param emailIds the emailIds to set
+	 */
+	public void setEmailIds(String emailIds) {
+		this.emailIds = Validations.trimInput(emailIds);
+	}
+
+	/**
+	 * @return the isRoleReturnMappingActive
+	 */
+	public boolean isRoleReturnMappingActive() {
+		return isRoleReturnMappingActive;
+	}
+
+	/**
+	 * @param isRoleReturnMappingActive the isRoleReturnMappingActive to set
+	 */
+	public void setRoleReturnMappingActive(boolean isRoleReturnMappingActive) {
+		this.isRoleReturnMappingActive = isRoleReturnMappingActive;
+	}
+
+	/**
+	 * @return the returnRegulatorMapping
+	 */
+	public List<ReturnRegulatorMapping> getReturnRegulatorMapping() {
+		return returnRegulatorMapping;
+	}
+
+	/**
+	 * @param returnRegulatorMapping the returnRegulatorMapping to set
+	 */
+	public void setReturnRegulatorMapping(List<ReturnRegulatorMapping> returnRegulatorMapping) {
+		this.returnRegulatorMapping = returnRegulatorMapping;
+	}
+
+	/**
+	 * @return the returnReturnTypeMapping
+	 */
+	public List<ReturnReturnTypeMapping> getReturnReturnTypeMapping() {
+		return returnReturnTypeMapping;
+	}
+
+	/**
+	 * @param returnReturnTypeMapping the returnReturnTypeMapping to set
+	 */
+	public void setReturnReturnTypeMapping(List<ReturnReturnTypeMapping> returnReturnTypeMapping) {
+		this.returnReturnTypeMapping = returnReturnTypeMapping;
+	}
+
+	public String getReturnDocId() {
+		return returnDocId;
+	}
+
+	public void setReturnDocId(String returnDocId) {
+		this.returnDocId = Validations.trimInput(returnDocId);
+	}
+
+	public String getErrorCodeBeauJson() {
+		return errorCodeBeauJson;
+	}
+
+	public void setErrorCodeBeauJson(String errorCodeBeauJson) {
+		this.errorCodeBeauJson = Validations.trimInput(errorCodeBeauJson);
+	}
+
+	public ErrorCodeBeautificationJson getErrorCodeBeauJsonObj() {
+		return errorCodeBeauJsonObj;
+	}
+
+	public void setErrorCodeBeauJsonObj(ErrorCodeBeautificationJson errorCodeBeauJsonObj) {
+		this.errorCodeBeauJsonObj = errorCodeBeauJsonObj;
+	}
+
+	@Override
+	public String toString() {
+		return "Return [returnId=" + returnId + ", returnName=" + returnName + ", returnCode=" + returnCode + ", isParent=" + isParent + ", isParentIdFk=" + isParentIdFk + ", isActive=" + isActive + ", allowRevision=" + allowRevision + ", createdBy=" + createdBy + ", createdOn=" + createdOn + ", lastmodifiedBy=" + lastmodifiedBy + ", lastModifiedOn=" + lastModifiedOn + ", lastApprovedBy=" + lastApprovedBy + ", lastApprovedOn=" + lastApprovedOn + ", lastUpdateOn=" + lastUpdateOn + ", isBulkUpload=" + isBulkUpload + ", roleIdKey=" + roleIdKey + ", errorCount=" + errorCount + ", warningCount=" + warningCount + ", frequency=" + frequency + ", taxonomy=" + taxonomy + ", excelReadJson=" + excelReadJson + ", returnDocId=" + returnDocId + ", returnLblSet=" + returnLblSet + ", ChildReturn=" + ChildReturn + ", finYearFormat=" + finYearFormat + ", finYearFormatId=" + finYearFormatId + ", singleLanguage=" + singleLanguage + ", isNonXbrl=" + isNonXbrl + ", isApplicableForDynamicWebForm=" + isApplicableForDynamicWebForm + ", formulaFileName=" + formulaFileName + ", delayCriteriaFileName=" + delayCriteriaFileName + ", retunTemplateName=" + retunTemplateName + ", uniqueIdentifier=" + uniqueIdentifier + ", returnNameBil=" + returnNameBil + ", returnFileFormatMapList=" + returnFileFormatMapList + ", returnGroupMapIdFk=" + returnGroupMapIdFk + ", returnEntityMappingNewList=" + returnEntityMappingNewList + ", returnPropertyIdFk=" + returnPropertyIdFk + ", maxRevisionCount=" + maxRevisionCount + ", oldReturnCode=" + oldReturnCode + ", returnRegulatorMapping=" + returnRegulatorMapping + ", returnReturnTypeMapping=" + returnReturnTypeMapping + ", isMultipleChannelFound=" + isMultipleChannelFound + ", uploadChannel=" + uploadChannel + ", apiChannel=" + apiChannel + ", webChannel=" + webChannel + ", emailChannel=" + emailChannel + ", stsChannel=" + stsChannel + ", returnGroupId=" + returnGroupId + ", returnGroupName=" + returnGroupName + ", jsonStringToReadFile=" + jsonStringToReadFile + ", isDeptMapped=" + isDeptMapped + ", emailIds=" + emailIds + ", isRoleReturnMappingActive=" + isRoleReturnMappingActive + ", errorCodeBeauJsonObj=" + errorCodeBeauJsonObj + ", errorCodeBeauJson=" + errorCodeBeauJson + "]";
+	}
+
+}

@@ -1,0 +1,270 @@
+package com.iris.service.impl;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
+
+import com.iris.dateutility.enums.DateConstants;
+import com.iris.dateutility.util.DateManip;
+import com.iris.exception.ServiceException;
+import com.iris.model.FilingStatus;
+import com.iris.model.ReturnProperty;
+import com.iris.model.ReturnsUploadDetails;
+import com.iris.repository.FileDetailsRepo;
+import com.iris.repository.FilingStatusRepo;
+import com.iris.repository.ReturnUploadDetailsRepository;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.util.constant.MethodConstants;
+
+@Service
+public class ReturnUploadDetailsService implements GenericService<ReturnsUploadDetails, Long> {
+
+	@Autowired
+	private ReturnUploadDetailsRepository returnUploadDetailsRepository;
+
+	@Autowired
+	private FilingStatusRepo filingStatusRepo;
+
+	@Autowired
+	private FileDetailsRepo fileDetailsRepo;
+
+	static final Logger LOGGER = LogManager.getLogger(ReturnUploadDetailsService.class);
+
+	@Override
+	public ReturnsUploadDetails add(ReturnsUploadDetails entity) throws ServiceException {
+		return returnUploadDetailsRepository.save(entity);
+	}
+
+	@Override
+	public boolean update(ReturnsUploadDetails entity) throws ServiceException {
+		return false;
+	}
+
+	@Override
+	public List<ReturnsUploadDetails> getDataByIds(Long[] ids) throws ServiceException {
+		try {
+			return returnUploadDetailsRepository.getReturnUploadDetailsByUploadIdInIsActiveTrue(ids);
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<ReturnsUploadDetails> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName) throws ServiceException {
+		try {
+			List<String> entityIds = new ArrayList<>();
+			List<String> returnIds = new ArrayList<>();
+			List<String> finYearFreqDescIds = null;
+			List<Integer> statusIds = null;
+			Date startDate = null;
+			Date endDate = null;
+			String filedetailsId = null;
+			List<String> returnIdList = null;
+			List<String> entityIdList = null;
+			List<String> subCatIdList = null;
+			List<Long> conRetIdList = new ArrayList<>();
+			List<Long> conEntIdList = new ArrayList<>();
+			List<Date> endDateList = new ArrayList<>(); 
+			List<Long> conSubCatIdList = new ArrayList<>();
+			List<Integer> conReturnPropertyIdList = new ArrayList<>();
+			int returnPropertyId = 0 ;
+			String misReportType = null ;
+
+			for (String columnName : columnValueMap.keySet()) {
+				if (columnValueMap.get(columnName) != null && !columnValueMap.get(columnName).isEmpty()) {
+					if (columnName.equalsIgnoreCase(ColumnConstants.ENTITYID.getConstantVal())) {
+						entityIds = columnValueMap.get(columnName);
+					} else if (columnName.equalsIgnoreCase(ColumnConstants.RETURNID.getConstantVal())) {
+						returnIds = columnValueMap.get(columnName);
+					} else if (columnName.equalsIgnoreCase(ColumnConstants.FIN_YEAR_FREQ_DESC_ID.getConstantVal())) {
+						finYearFreqDescIds = columnValueMap.get(columnName);
+					} else if (columnName.equalsIgnoreCase(ColumnConstants.STARTDATE.getConstantVal())) {
+						startDate = DateManip.convertStringToDate(columnValueMap.get(columnName).get(0), DateConstants.DD_MM_YYYY.getDateConstants());
+					} else if (columnName.equalsIgnoreCase(ColumnConstants.ENDDATE.getConstantVal())) {
+						endDate = DateManip.convertStringToDate(columnValueMap.get(columnName).get(0), DateConstants.DD_MM_YYYY.getDateConstants());
+					} else if (columnName.equalsIgnoreCase(ColumnConstants.FILE_DETAILS.getConstantVal())) {
+						filedetailsId = columnValueMap.get(columnName).get(0);
+					} else if (columnName.equalsIgnoreCase(ColumnConstants.STATUS.getConstantVal())) {
+						List<String> list = columnValueMap.get(columnName);
+						statusIds = list.stream().map(s -> Integer.parseInt(s)).collect(Collectors.toList());
+					} else if (columnName.equalsIgnoreCase(ColumnConstants.RETURN_ID_LIST.getConstantVal())) {
+						returnIdList = columnValueMap.get(columnName);
+						for (String str : returnIdList) {
+							conRetIdList.add(Long.valueOf(str));
+						}
+					} else if (columnName.equalsIgnoreCase(ColumnConstants.ENTITY_ID_LIST.getConstantVal())) {
+						entityIdList = columnValueMap.get(columnName);
+						for (String str : entityIdList) {
+							conEntIdList.add(Long.valueOf(str));
+						}
+					} else if(columnName.equalsIgnoreCase(ColumnConstants.RETURN_PROPERTY_VAL_ID.getConstantVal())) {
+						returnPropertyId = Integer.parseInt(columnValueMap.get(columnName).get(0));
+						if(returnPropertyId == 0) {
+							conReturnPropertyIdList.add(1);
+							conReturnPropertyIdList.add(4);
+						} else if(returnPropertyId == 1) {
+							conReturnPropertyIdList.add(2);
+							conReturnPropertyIdList.add(3);
+						}
+					} else if(columnName.equalsIgnoreCase(ColumnConstants.MIS_REPORT_TYPE.getConstantVal())) {
+						misReportType = columnValueMap.get(columnName).get(0);
+					}else if (columnName.equalsIgnoreCase(ColumnConstants.END_DATE_LIST.getConstantVal())) {
+						List<String> tempEndDateList = columnValueMap.get(columnName);
+						 
+						for (String endDates : tempEndDateList) {
+							endDateList.add(DateManip.convertStringToDate(endDates, DateConstants.DD_MM_YYYY.getDateConstants()));
+						}
+					}else if (columnName.equalsIgnoreCase(ColumnConstants.SUB_CATEGORY_ID_LIST.getConstantVal())) {
+						subCatIdList = columnValueMap.get(columnName);
+						for (String str : subCatIdList) {
+							conSubCatIdList.add(Long.valueOf(str));
+						}
+					}
+				}
+			}
+			if (methodName.equalsIgnoreCase(MethodConstants.GET_EXISTING_UPLOAD_DATA.getConstantVal()) && returnIds != null && entityIds != null && !CollectionUtils.isEmpty(returnIds) && !CollectionUtils.isEmpty(entityIds)) {
+				return returnUploadDetailsRepository.getExistingUploadInfo(Long.parseLong(returnIds.get(0)), Long.parseLong(entityIds.get(0)), startDate, endDate);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_EXISTING_UPLOAD_DATA_WITHOUT_BUSINESS_VALIDATION_FAILED.getConstantVal()) && returnIds != null && entityIds != null && !CollectionUtils.isEmpty(returnIds) && !CollectionUtils.isEmpty(entityIds)) {
+				return returnUploadDetailsRepository.getExistingUploadInfoData(Long.parseLong(returnIds.get(0)), Long.parseLong(entityIds.get(0)), endDate, statusIds);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_RETURN_UPLOAD_DETAILS_BY_FILE_DETAILS_ID.getConstantVal())) {
+				return returnUploadDetailsRepository.getReturnUploadDetailsByFileDetailsId(Long.parseLong(filedetailsId));
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_RETURN_UPLOAD_DETAILS_BY_ENTITY_WISE.getConstantVal())) {
+				
+				if(returnPropertyId == 0 && entityIds != null) {
+					return returnUploadDetailsRepository.getSubmitedDataEntityWiseAudited(conRetIdList, conEntIdList, startDate, endDate , conSubCatIdList , conReturnPropertyIdList);
+				} else if(returnPropertyId == 1 && entityIds != null) {
+					return returnUploadDetailsRepository.getSubmitedDataEntityWiseUnAudited(conRetIdList, conEntIdList, startDate, endDate , conSubCatIdList , conReturnPropertyIdList);
+				}
+				
+
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_RETURN_UPLOAD_DETAILS_BY_RETURN_WISE.getConstantVal())) {
+				if(returnPropertyId == 0) {
+					return returnUploadDetailsRepository.getSubmitedDataReturnWiseAudited(conRetIdList, conEntIdList, startDate, endDate , conReturnPropertyIdList);
+				} else if(returnPropertyId == 1){
+					return returnUploadDetailsRepository.getSubmitedDataReturnWiseUnAudited(conRetIdList, conEntIdList, startDate, endDate , conReturnPropertyIdList);
+				} 
+				
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_FILING_RETURN_ENTITY_WISE.getConstantVal()) && entityIds != null && returnIds != null ) {
+				return returnUploadDetailsRepository.getFilingReturnEntityWise(Long.parseLong(returnIds.get(0)), Long.parseLong(entityIds.get(0)));
+			}
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+		return null;
+	}
+
+	@Override
+	public List<ReturnsUploadDetails> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<ReturnsUploadDetails> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<ReturnsUploadDetails> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public void deleteData(ReturnsUploadDetails bean) throws ServiceException {
+	}
+
+	@Override
+	public ReturnsUploadDetails getDataById(Long id) throws ServiceException {
+		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	@org.springframework.transaction.annotation.Transactional(rollbackFor = ServiceException.class)
+	public List<ReturnsUploadDetails> getDataByObject(Map<String, Object> columnValueMap, String methodName) throws ServiceException {
+		try {
+			Long filedetailsId = null;
+			List<Integer> fillingStatusIdList = null;
+			List<String> fileTypeList = null;
+			Integer changedFIllingStatus = null;
+			Integer totalRecordCount = null;
+			List<String> returnCodeList = null;
+
+			for (String columnName : columnValueMap.keySet()) {
+				if (columnValueMap.get(columnName) != null) {
+					if (columnName.equalsIgnoreCase(ColumnConstants.FILE_DETAILS.getConstantVal())) {
+						filedetailsId = (Long) columnValueMap.get(columnName);
+					} else if (columnName.equalsIgnoreCase(ColumnConstants.FILLING_STATUS_ID.getConstantVal())) {
+						fillingStatusIdList = (List<Integer>) columnValueMap.get(columnName);
+					} else if (columnName.equalsIgnoreCase(ColumnConstants.CHANGED_FILLING_STATUS_ID.getConstantVal())) {
+						changedFIllingStatus = (Integer) columnValueMap.get(columnName);
+					} else if (columnName.equalsIgnoreCase(ColumnConstants.TOTAL_RECORD_COUNT.getConstantVal())) {
+						totalRecordCount = (Integer) columnValueMap.get(columnName);
+					} else if (columnName.equalsIgnoreCase(ColumnConstants.FILE_TYPE.getConstantVal())) {
+						fileTypeList = (List<String>) columnValueMap.get(columnName);
+					} else if (columnName.equalsIgnoreCase(ColumnConstants.RETURN_CODE.getConstantVal())) {
+						returnCodeList = (List<String>) columnValueMap.get(columnName);
+					}
+				}
+			}
+
+			if (methodName.equalsIgnoreCase(MethodConstants.GET_RETURN_UPLOAD_DETAILS_BY_FILE_DETAILS_ID.getConstantVal())) {
+				return returnUploadDetailsRepository.getReturnUploadDetailsByFileDetailsId(filedetailsId);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_RETURNS_UPLOAD_DETALS_RECORD_BY_STATUS_AND_TYPE.getConstantVal())) {
+				return returnUploadDetailsRepository.getReturnUploadDetailsRecordByStatus(fillingStatusIdList, fileTypeList, returnCodeList, PageRequest.of(0, totalRecordCount));
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_RETURNS_UPLOAD_DETALS_RECORD_BY_STATUS_AND_UPDATE_NEW_STATUS.getConstantVal())) {
+				FilingStatus filingStatus = filingStatusRepo.getDataByFilingStatusId(changedFIllingStatus);
+				if (filingStatus != null) {
+					List<ReturnsUploadDetails> returnUploadDetailsList = returnUploadDetailsRepository.getReturnUploadDetailsRecordByStatusForUpdate(fillingStatusIdList, fileTypeList, returnCodeList, PageRequest.of(0, totalRecordCount));
+					long[] uploadId = returnUploadDetailsList.stream().mapToLong(p -> p.getUploadId()).toArray();
+					// update file details table, added this condition for filing history (filing status related changes) on 23-11-2020 by siddique
+
+					long[] fileDetailId = returnUploadDetailsList.stream().mapToLong(p -> p.getFileDetailsBean().getId()).toArray();
+
+					if (fileDetailId.length > 0) {
+						int updateFileDetailsRecordCount = fileDetailsRepo.updateRecordStatus(fileDetailId, filingStatus);
+						LOGGER.info("Updated record count in file details: " + updateFileDetailsRecordCount);
+					}
+
+					if (uploadId.length > 0) {
+						int updatedRecordCount = returnUploadDetailsRepository.updateReturnUploadDetailsRecordStatus(uploadId, filingStatus, new Date());
+						LOGGER.info("Updated record count : " + updatedRecordCount + "Size of fetched record " + returnUploadDetailsList.size());
+					}
+					return returnUploadDetailsList;
+				} else {
+					throw new ServiceException("Status to update the record not found");
+				}
+			}
+			return null;
+		} catch (Exception e) {
+			throw new ServiceException(e.getMessage(), e);
+		}
+	}
+
+	/**
+	 * @param uploadId
+	 */
+	public ReturnsUploadDetails getReturnUploadDetailsByUploadIdNActive(Long uploadId) {
+		return returnUploadDetailsRepository.getReturnUploadDetailsByUploadIdNActive(uploadId);
+	}
+
+	public List<ReturnsUploadDetails> getReturnUploadDetailsByReturnId(Date endDate, Long returnId, ReturnProperty returnPropertyObj) {
+		if (returnPropertyObj == null) {
+			return returnUploadDetailsRepository.getReturnUploadDetailsByReturnIdWithoutProp(endDate, returnId);
+		} else {
+			return returnUploadDetailsRepository.getReturnUploadDetailsByReturnId(endDate, returnId, returnPropertyObj.getReturnProprtyId());
+		}
+	}
+
+}

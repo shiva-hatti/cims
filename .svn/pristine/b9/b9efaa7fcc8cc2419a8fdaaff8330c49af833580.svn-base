@@ -1,0 +1,259 @@
+/**
+ * 
+ */
+package com.iris.sdmx.exceltohtml.bean;
+
+import java.io.Serializable;
+import java.util.Date;
+
+/**
+ * @author apagaria
+ *
+ */
+public class SdmxReturnPreviewBean implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	private Long returnPreviewTypeId;
+
+	private Long returnTemplateIdFk;
+
+	private String returnName;
+
+	private String returnCode;
+
+	private Long returnId;
+
+	private String returnTemplateVer;
+
+	private String htmlFilePath;
+
+	private String xlsxFilePath;
+
+	private Date lastUpdatedOn;
+
+	private Long createdBy;
+
+	private String createdByName;
+
+	private Date createdOn;
+
+	private Long modifyBy;
+
+	private String modifyByName;
+
+	private Date modifyOn;
+
+	/**
+	 * @return the returnPreviewTypeId
+	 */
+	public Long getReturnPreviewTypeId() {
+		return returnPreviewTypeId;
+	}
+
+	/**
+	 * @param returnPreviewTypeId the returnPreviewTypeId to set
+	 */
+	public void setReturnPreviewTypeId(Long returnPreviewTypeId) {
+		this.returnPreviewTypeId = returnPreviewTypeId;
+	}
+
+	/**
+	 * @return the returnTemplateIdFk
+	 */
+	public Long getReturnTemplateIdFk() {
+		return returnTemplateIdFk;
+	}
+
+	/**
+	 * @param returnTemplateIdFk the returnTemplateIdFk to set
+	 */
+	public void setReturnTemplateIdFk(Long returnTemplateIdFk) {
+		this.returnTemplateIdFk = returnTemplateIdFk;
+	}
+
+	/**
+	 * @return the returnName
+	 */
+	public String getReturnName() {
+		return returnName;
+	}
+
+	/**
+	 * @param returnName the returnName to set
+	 */
+	public void setReturnName(String returnName) {
+		this.returnName = returnName;
+	}
+
+	/**
+	 * @return the returnCode
+	 */
+	public String getReturnCode() {
+		return returnCode;
+	}
+
+	/**
+	 * @param returnCode the returnCode to set
+	 */
+	public void setReturnCode(String returnCode) {
+		this.returnCode = returnCode;
+	}
+
+	/**
+	 * @return the returnId
+	 */
+	public Long getReturnId() {
+		return returnId;
+	}
+
+	/**
+	 * @param returnId the returnId to set
+	 */
+	public void setReturnId(Long returnId) {
+		this.returnId = returnId;
+	}
+
+	/**
+	 * @return the returnTemplateVer
+	 */
+	public String getReturnTemplateVer() {
+		return returnTemplateVer;
+	}
+
+	/**
+	 * @param returnTemplateVer the returnTemplateVer to set
+	 */
+	public void setReturnTemplateVer(String returnTemplateVer) {
+		this.returnTemplateVer = returnTemplateVer;
+	}
+
+	/**
+	 * @return the htmlFilePath
+	 */
+	public String getHtmlFilePath() {
+		return htmlFilePath;
+	}
+
+	/**
+	 * @param htmlFilePath the htmlFilePath to set
+	 */
+	public void setHtmlFilePath(String htmlFilePath) {
+		this.htmlFilePath = htmlFilePath;
+	}
+
+	/**
+	 * @return the xlsxFilePath
+	 */
+	public String getXlsxFilePath() {
+		return xlsxFilePath;
+	}
+
+	/**
+	 * @param xlsxFilePath the xlsxFilePath to set
+	 */
+	public void setXlsxFilePath(String xlsxFilePath) {
+		this.xlsxFilePath = xlsxFilePath;
+	}
+
+	/**
+	 * @return the lastUpdatedOn
+	 */
+	public Date getLastUpdatedOn() {
+		return lastUpdatedOn;
+	}
+
+	/**
+	 * @param lastUpdatedOn the lastUpdatedOn to set
+	 */
+	public void setLastUpdatedOn(Date lastUpdatedOn) {
+		this.lastUpdatedOn = lastUpdatedOn;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public Long getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(Long createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the createdByName
+	 */
+	public String getCreatedByName() {
+		return createdByName;
+	}
+
+	/**
+	 * @param createdByName the createdByName to set
+	 */
+	public void setCreatedByName(String createdByName) {
+		this.createdByName = createdByName;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the modifyBy
+	 */
+	public Long getModifyBy() {
+		return modifyBy;
+	}
+
+	/**
+	 * @param modifyBy the modifyBy to set
+	 */
+	public void setModifyBy(Long modifyBy) {
+		this.modifyBy = modifyBy;
+	}
+
+	/**
+	 * @return the modifyByName
+	 */
+	public String getModifyByName() {
+		return modifyByName;
+	}
+
+	/**
+	 * @param modifyByName the modifyByName to set
+	 */
+	public void setModifyByName(String modifyByName) {
+		this.modifyByName = modifyByName;
+	}
+
+	/**
+	 * @return the modifyOn
+	 */
+	public Date getModifyOn() {
+		return modifyOn;
+	}
+
+	/**
+	 * @param modifyOn the modifyOn to set
+	 */
+	public void setModifyOn(Date modifyOn) {
+		this.modifyOn = modifyOn;
+	}
+}

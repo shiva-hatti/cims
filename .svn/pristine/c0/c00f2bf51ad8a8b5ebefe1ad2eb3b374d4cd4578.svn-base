@@ -1,0 +1,29 @@
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.UserRolePlatFormMap;
+
+/**
+ * 
+ * @author svishwakarma
+ *
+ */
+public interface UserRolePortalMapRepo extends JpaRepository<UserRolePlatFormMap, Long> {
+	
+	public List<UserRolePlatFormMap> findByIsActiveTrue();
+	
+	public List<UserRolePlatFormMap> findAllByUserRoleUserRoleIdAndIsActiveTrue(Long userRoleId);
+	
+	public List<UserRolePlatFormMap> findAllByUserRoleUserRoleId(Long userRoleId);
+	
+	@Modifying
+	@Query("update UserRolePlatFormMap u set u.isActive = false where u.userRole.userRoleId=:userRoleId")
+	void cancelRolePortalMap(@Param("userRoleId") Long userRoleId);
+
+}

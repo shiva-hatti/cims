@@ -1,0 +1,216 @@
+package com.iris.service.impl;
+
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import javax.transaction.Transactional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import com.iris.dateutility.enums.DateConstants;
+import com.iris.dateutility.util.DateManip;
+import com.iris.dto.RetUploadDetBean;
+import com.iris.dto.RevisionRequestDto;
+import com.iris.exception.ServiceException;
+import com.iris.model.EntityBean;
+import com.iris.model.FrequencyDescription;
+import com.iris.model.Return;
+import com.iris.model.ReturnPropertyValue;
+import com.iris.model.RevisionRequest;
+import com.iris.model.UserMaster;
+import com.iris.repository.ReturnPropertyValueRepository;
+import com.iris.repository.RevisionRequestRepository;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.MethodConstants;
+
+@Service
+public class RevisionRequestService implements GenericService<RevisionRequest, Long> {
+
+	@Autowired
+	private RevisionRequestRepository revisionRequestRepo;
+	
+	@Autowired
+	private ReturnPropertyValueRepository returnPropertyValueRepository;
+	
+	@Override
+	public RevisionRequest add(RevisionRequest entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean update(RevisionRequest entity) throws ServiceException {
+
+		try {
+			revisionRequestRepo.save(entity);
+			return true;
+		}catch(Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<RevisionRequest> getDataByIds(Long[] ids) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<RevisionRequest> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+		try {
+			List<String> entityIds  = null;
+			List<String> returnIds  = null;
+			Date startDate = null;
+			Date endDate = null;
+			List<String> returnPropertyValIds  = null;
+			
+			for (String columnName : columnValueMap.keySet()) {
+				if(columnValueMap.get(columnName)!= null && columnValueMap.get(columnName).size() > 0) {
+					if(columnName.equalsIgnoreCase(ColumnConstants.ENTITYID.getConstantVal())) {
+						entityIds = columnValueMap.get(columnName);
+					}else if(columnName.equalsIgnoreCase(ColumnConstants.RETURNID.getConstantVal())) {
+						returnIds = columnValueMap.get(columnName);
+					}else if(columnName.equalsIgnoreCase(ColumnConstants.STARTDATE.getConstantVal())) {
+						startDate = DateManip.convertStringToDate(columnValueMap.get(columnName).get(0), DateConstants.DD_MM_YYYY.getDateConstants());
+					}else if(columnName.equalsIgnoreCase(ColumnConstants.ENDDATE.getConstantVal())) {
+						endDate = DateManip.convertStringToDate(columnValueMap.get(columnName).get(0), DateConstants.DD_MM_YYYY.getDateConstants());
+					}else if(columnName.equalsIgnoreCase(ColumnConstants.RETURN_PROPERTY_VAL_ID.getConstantVal())) {
+						returnPropertyValIds = columnValueMap.get(columnName);
+					}
+				}
+			}
+			if(methodName.equalsIgnoreCase(MethodConstants.GET_REVISION_REAQUEST.getConstantVal()) && returnIds != null && !returnIds.isEmpty()) {
+				return revisionRequestRepo.getNonRejectedRevisionRequest(Long.parseLong(returnIds.get(0)), Long.parseLong(entityIds.get(0)), endDate);
+			}else if(methodName.equalsIgnoreCase(MethodConstants.GET_REVISION_REAQUEST_BY_RETURN_STATUS.getConstantVal()) && returnIds != null && !returnIds.isEmpty() && returnPropertyValIds != null && !returnPropertyValIds.isEmpty()) {
+				return revisionRequestRepo.getNonRejectedRevisionRequest(Long.parseLong(returnIds.get(0)), Long.parseLong(entityIds.get(0)), endDate,Integer.parseInt(returnPropertyValIds.get(0)));
+			}
+			return null;
+		}catch(Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<RevisionRequest> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName)
+			throws ServiceException {
+		
+		return null;
+	}
+
+	@Override
+	public List<RevisionRequest> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<RevisionRequest> getAllDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void deleteData(RevisionRequest bean) throws ServiceException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public RevisionRequest getDataById(Long id) throws ServiceException {
+		try {
+			// TODO Auto-generated method stub
+			return revisionRequestRepo.findAllById(Arrays.asList(id)).get(0);
+		}catch(Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<RevisionRequest> getDataByObject(Map<String, Object> columnValueMap, String methodName) throws ServiceException {
+		try {
+			Long langId = null;
+			Long regulatorId = null;
+			Long entityId = null;
+			List<Long> returnList = null;
+			String langCode = null;
+			Long userId = null;
+			Date startDate = null;
+			Date endDate = null;
+			List<Integer> revisionIdList = null;
+			
+			for (String columnName : columnValueMap.keySet()) {
+				if (columnName.equalsIgnoreCase(ColumnConstants.LANG_ID.getConstantVal())) {
+					langId = (Long) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.REGULATORID.getConstantVal())) {
+					regulatorId = (Long) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.LANG_CODE.getConstantVal())) {
+					langCode = (String) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.ENTITYID.getConstantVal())) {
+					entityId = (Long) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.RETURN_ID_LIST.getConstantVal())) {
+					returnList = (List<Long>) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.USER_ID.getConstantVal())) {
+					userId = (Long) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.STARTDATE.getConstantVal())) {
+					startDate = DateManip.convertStringToDate(columnValueMap.get(columnName).toString(), DateConstants.YYYY_MM_DD.getDateConstants());
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.ENDDATE.getConstantVal())) {
+					endDate = DateManip.convertStringToDate(columnValueMap.get(columnName).toString(), DateConstants.YYYY_MM_DD.getDateConstants());
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.REVISION_STATUS_ID_LIST.getConstantVal())) {
+					revisionIdList = (List<Integer>) columnValueMap.get(columnName);
+				}
+			}
+			if (methodName.equalsIgnoreCase(MethodConstants.GET_PENDING_REVISION_REQUEST.getConstantVal())) {
+				return revisionRequestRepo.getDataByLangIdAndRegId(langId, regulatorId, userId);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_REVISION_REQUEST_DATA.getConstantVal())) {
+				if(entityId != null) {
+				//return revisionRequestRepo.getUnlockRequestDataByLangCodeAndEntityId(returnList, entityId, langCode);
+				return revisionRequestRepo.getUnlockRequestDataByLangCodeAndEntityIdAndStartDateAndEndDate(returnList, entityId, langCode, startDate, endDate, revisionIdList);
+				}else {
+					//return revisionRequestRepo.getUnlockRequestDataByLangCodeAndReturnIdList(returnList, langCode);
+					return revisionRequestRepo.getUnlockRequestDataByLangCodeAndReturnIdListAndStartDateAndEndDate(returnList, langCode, startDate, endDate, revisionIdList);
+				}
+			}
+			return null;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+	
+	@Transactional(rollbackOn = Exception.class)
+	public Boolean saveRevisionRequest(RevisionRequestDto revisionRequest, EntityBean entityObj, Return returnObj, FrequencyDescription frequencyDescription, RetUploadDetBean retUploadBean,UserMaster user) {
+		Date currentDate = new Date();
+		RevisionRequest entity = new RevisionRequest();
+		entity.setEndDate(revisionRequest.getEndDate());
+		entity.setEntity(entityObj);
+		entity.setReasonForRequest(revisionRequest.getReasonOfNotProcessed());
+		entity.setReportingDate(currentDate);
+		if(revisionRequest.getReturnPropertyValId()!=null) {
+			ReturnPropertyValue returnPropertyVal = returnPropertyValueRepository.getPropValInfo(revisionRequest.getReturnPropertyValId());
+
+			entity.setReturnPropertyVal(returnPropertyVal);
+		}
+		entity.setRevisionStatus("OPEN");
+		entity.setFrequencyDesc(frequencyDescription);
+		entity.setReturns(returnObj);
+		entity.setStartDate(revisionRequest.getReportingPeriodStartDate());
+		entity.setEndDate(revisionRequest.getReportingPeriodEndDate());
+		entity.setYear(Long.valueOf(retUploadBean.getFinancialYear()));
+		entity.setMonth(Integer.valueOf(retUploadBean.getFinancialMonth()));
+		entity.setActionIdFk(1);
+		entity.setAdminStatusIdFk(1);
+		entity.setCreatedBy(user);
+		entity.setCreatedOn(currentDate);
+		update(entity);
+		revisionRequest.setRevisionReqId(entity.getRevisionRequestId());
+		return true;
+
+	}
+	
+}

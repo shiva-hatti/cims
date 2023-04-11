@@ -1,0 +1,23 @@
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.AuditFirmMod;
+import com.iris.model.UserRoleModified;
+
+public interface UserRoleModifiedRepo extends JpaRepository<UserRoleModified, Long> {
+
+	@Query("From UserRoleModified userRoleModified where adminStatusId_FK = 1 order by userRoleModified.userRoleModifiedId asc")
+	List<UserRoleModified> getDataByLangIdAndRegId();
+
+	@Query(value = "SELECT * FROM TBL_USER_ROLE_MODIFIED where USER_ROLE_ID_FK =:userRoleId ORDER BY  USER_ROLE_MODIFIED_ID DESC LIMIT 1", nativeQuery = true)
+	List<UserRoleModified> getPreviousRoleById(@Param("userRoleId") Long userRoleId);
+
+	@Query("From UserRoleModified userRoleModified where adminStatusId_FK = :status order by userRoleModified.userRoleModifiedId asc")
+	List<UserRoleModified> getDataByStatus(@Param("status") Integer status);
+
+}

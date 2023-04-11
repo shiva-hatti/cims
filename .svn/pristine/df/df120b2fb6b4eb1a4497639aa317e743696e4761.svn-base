@@ -1,0 +1,57 @@
+package com.iris.sdmx.element.repo;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.iris.sdmx.element.entity.SdmxElementNatureEntity;
+
+/**
+ * @author apagaria
+ *
+ */
+public interface SdmxElementNatureRepo extends JpaRepository<SdmxElementNatureEntity, Long> {
+
+	/**
+	 * @param isActive
+	 * @return
+	 */
+	@Query("from SdmxElementNatureEntity where isActive =:isActive")
+	List<SdmxElementNatureEntity> findByActiveStatus(Boolean isActive);
+
+	/**
+	 * @param classificationName
+	 * @return
+	 */
+	@Query("SELECT COUNT(u) FROM SdmxElementNatureEntity u WHERE u.natureName=:natureName")
+	int isDataExistWithNatureName(String natureName);
+
+	/**
+	 * @param classificationId
+	 * @return
+	 */
+	@Query("SELECT COUNT(u) FROM SdmxElementNatureEntity u WHERE u.natureId=:natureId")
+	int isDataExistWithId(Long natureId);
+
+	/**
+	 * @param classificationName
+	 * @return
+	 */
+	@Query("FROM SdmxElementNatureEntity WHERE natureName=:natureName")
+	SdmxElementNatureEntity findByNatureName(String natureName);
+
+	/**
+	 * @param classificationId
+	 * @return
+	 */
+	@Query("FROM SdmxElementNatureEntity WHERE natureId=:natureId")
+	SdmxElementNatureEntity findByNatureId(Long natureId);
+
+	/**
+	 * @param sectorId
+	 * @return
+	 */
+	@Query("SELECT u.natureName FROM SdmxElementNatureEntity u WHERE u.natureId=:natureId")
+	String findNameByNatureId(Long natureId);
+}

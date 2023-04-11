@@ -1,0 +1,116 @@
+package com.iris.model;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+/**
+ * This bean represents Error, Version and channel mapping details for NON-XBRL returns
+ * 
+ * @author apagaria
+ */
+@Entity
+@Table(name = "TBL_ERROR_VERSION_CHANNEL_MAPPING")
+public class ErrorVersionChannelMapping implements Serializable {
+
+	private static final long serialVersionUID = -6305709526119023051L;
+
+	@Id
+	@Column(name = "ERROR_VERSION_CHANNEL_MAPPING_ID")
+	private Long errorVersionChannelMappingId;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "ERROR_CODE_DETAIL_ID_FK")
+	private ErrorCodeDetail errorCodeDetailIdFk;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "RETURN_TEMPLATE_ID_FK")
+	private ReturnTemplate returnTemplateIdFk;
+
+	@Column(name = "IS_ACTIVE_FOR_WEB_FORM_BASED_FILING")
+	private Boolean isActiveForWebFormBasedFiling;
+
+	@Column(name = "IS_ACTIVE_FOR_FILE_BASED_FILING")
+	private Boolean isActiveForFileBasedFiling;
+
+	/**
+	 * @return the errorVersionChannelMappingId
+	 */
+	public Long getErrorVersionChannelMappingId() {
+		return errorVersionChannelMappingId;
+	}
+
+	/**
+	 * @param errorVersionChannelMappingId the errorVersionChannelMappingId to set
+	 */
+	public void setErrorVersionChannelMappingId(Long errorVersionChannelMappingId) {
+		this.errorVersionChannelMappingId = errorVersionChannelMappingId;
+	}
+
+	/**
+	 * @return the errorCodeDetailIdFk
+	 */
+	public ErrorCodeDetail getErrorCodeDetailIdFk() {
+		return errorCodeDetailIdFk;
+	}
+
+	/**
+	 * @param errorCodeDetailIdFk the errorCodeDetailIdFk to set
+	 */
+	public void setErrorCodeDetailIdFk(ErrorCodeDetail errorCodeDetailIdFk) {
+		this.errorCodeDetailIdFk = errorCodeDetailIdFk;
+	}
+
+	/**
+	 * @return the returnTemplateIdFk
+	 */
+	public ReturnTemplate getReturnTemplateIdFk() {
+		return returnTemplateIdFk;
+	}
+
+	/**
+	 * @param returnTemplateIdFk the returnTemplateIdFk to set
+	 */
+	public void setReturnTemplateIdFk(ReturnTemplate returnTemplateIdFk) {
+		this.returnTemplateIdFk = returnTemplateIdFk;
+	}
+
+	/**
+	 * @return the isActiveForWebFormBasedFiling
+	 */
+	public Boolean getIsActiveForWebFormBasedFiling() {
+		return isActiveForWebFormBasedFiling;
+	}
+
+	/**
+	 * @param isActiveForWebFormBasedFiling the isActiveForWebFormBasedFiling to set
+	 */
+	public void setIsActiveForWebFormBasedFiling(Boolean isActiveForWebFormBasedFiling) {
+		this.isActiveForWebFormBasedFiling = isActiveForWebFormBasedFiling;
+	}
+
+	/**
+	 * @return the isActiveForFileBasedFiling
+	 */
+	public Boolean getIsActiveForFileBasedFiling() {
+		return isActiveForFileBasedFiling;
+	}
+
+	/**
+	 * @param isActiveForFileBasedFiling the isActiveForFileBasedFiling to set
+	 */
+	public void setIsActiveForFileBasedFiling(Boolean isActiveForFileBasedFiling) {
+		this.isActiveForFileBasedFiling = isActiveForFileBasedFiling;
+	}
+
+	@Override
+	public String toString() {
+		return "ErrorVersionChannelMapping [errorVersionChannelMappingId=" + errorVersionChannelMappingId + ", errorCodeDetailIdFk=" + errorCodeDetailIdFk + ", returnTemplateIdFk=" + returnTemplateIdFk + ", isActiveForWebFormBasedFiling=" + isActiveForWebFormBasedFiling + ", isActiveForFileBasedFiling=" + isActiveForFileBasedFiling + "]";
+	}
+}

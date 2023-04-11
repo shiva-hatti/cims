@@ -1,0 +1,22 @@
+/**
+ * 
+ */
+package com.iris.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.ReturnFileFormatMap;
+
+
+/**
+ * @author Siddique
+ *
+ */
+public interface ReturnFileFormatMapRepo extends JpaRepository<ReturnFileFormatMap, Long>{
+
+	@Query("FROM ReturnFileFormatMap where fileFormat.fileFormatId = 5 and returnBean.returnId =:id ")
+	ReturnFileFormatMap getDataByid(@Param("id") Long id);
+
+}

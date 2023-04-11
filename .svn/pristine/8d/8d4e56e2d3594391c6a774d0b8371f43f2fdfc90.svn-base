@@ -1,0 +1,268 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import com.iris.util.Validations;
+
+/**
+ * This is the LANGUAGE MASTER bean class with Hibernate mapping.
+ */
+@Entity
+@Table(name = "TBL_LANGUAGE_MASTER")
+public class LanguageMaster implements Serializable {
+
+	private static final long serialVersionUID = -219175540170525460L;
+
+	@Id
+	@Column(name = "LANGUAGE_ID")
+	private Long languageId;
+
+	@Column(name = "LANGUAGE_NAME")
+	private String languageName;
+
+	@Column(name = "LANGUAGE_CODE")
+	private String languageCode;
+
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	@Column(name = "DIRECTION")
+	private String direction;
+
+	@Column(name = "DEFAULT_LANG_NAME")
+	private String defaultLangName;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "CREATED_BY_FK")
+	private UserMaster createdBy;
+
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "LAST_MODIFIED_BY_FK")
+	private UserMaster userModify;
+
+	@Column(name = "LAST_MODIFIED_ON")
+	private Date modifiedOn;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "LAST_APPROVED_BY_FK")
+	private UserMaster approvedBy;
+
+	@Column(name = "LAST_APPROVED_ON")
+	private Date approvedOn;
+
+	@Column(name = "LAST_UPDATE_ON")
+	private Date lasUpdateOn;
+
+	@Transient
+	private Long roleIdKey;
+
+	/**
+	 * @return the modifiedOn
+	 */
+	public Date getModifiedOn() {
+		return modifiedOn;
+	}
+
+	/**
+	 * @param modifiedOn the modifiedOn to set
+	 */
+	public void setModifiedOn(Date modifiedOn) {
+		this.modifiedOn = modifiedOn;
+	}
+
+	/**
+	 * @return the languageId
+	 */
+	public Long getLanguageId() {
+		return languageId;
+	}
+
+	/**
+	 * @param languageId the languageId to set
+	 */
+	public void setLanguageId(Long languageId) {
+		this.languageId = languageId;
+	}
+
+	/**
+	 * @return the languageName
+	 */
+	public String getLanguageName() {
+		return languageName;
+	}
+
+	/**
+	 * @param languageName the languageName to set
+	 */
+	public void setLanguageName(String languageName) {
+		this.languageName = Validations.trimInput(languageName);
+	}
+
+	/**
+	 * @return the languageCode
+	 */
+	public String getLanguageCode() {
+		return languageCode;
+	}
+
+	/**
+	 * @param languageCode the languageCode to set
+	 */
+	public void setLanguageCode(String languageCode) {
+		this.languageCode = Validations.trimInput(languageCode);
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the direction
+	 */
+	public String getDirection() {
+		return direction;
+	}
+
+	/**
+	 * @param direction the direction to set
+	 */
+	public void setDirection(String direction) {
+		this.direction = Validations.trimInput(direction);
+	}
+
+	/**
+	 * @return the userModify
+	 */
+	public UserMaster getUserModify() {
+		return userModify;
+	}
+
+	/**
+	 * @param userModify the userModify to set
+	 */
+	public void setUserModify(UserMaster userModify) {
+		this.userModify = userModify;
+	}
+
+	/**
+	 * @return the defaultLangName
+	 */
+	public String getDefaultLangName() {
+		return defaultLangName;
+	}
+
+	/**
+	 * @param defaultLangName the defaultLangName to set
+	 */
+	public void setDefaultLangName(String defaultLangName) {
+		this.defaultLangName = Validations.trimInput(defaultLangName);
+	}
+
+	/**
+	 * @return the approvedBy
+	 */
+	public UserMaster getApprovedBy() {
+		return approvedBy;
+	}
+
+	/**
+	 * @param approvedBy the approvedBy to set
+	 */
+	public void setApprovedBy(UserMaster approvedBy) {
+		this.approvedBy = approvedBy;
+	}
+
+	/**
+	 * @return the approvedOn
+	 */
+	public Date getApprovedOn() {
+		return approvedOn;
+	}
+
+	/**
+	 * @param approvedOn the approvedOn to set
+	 */
+	public void setApprovedOn(Date approvedOn) {
+		this.approvedOn = approvedOn;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the lasUpdateOn
+	 */
+	public Date getLasUpdateOn() {
+		return lasUpdateOn;
+	}
+
+	/**
+	 * @param lasUpdateOn the lasUpdateOn to set
+	 */
+	public void setLasUpdateOn(Date lasUpdateOn) {
+		this.lasUpdateOn = lasUpdateOn;
+	}
+
+	/**
+	 * @return the roleIdKey
+	 */
+	public Long getRoleIdKey() {
+		return roleIdKey;
+	}
+
+	/**
+	 * @param roleIdKey the roleIdKey to set
+	 */
+	public void setRoleIdKey(Long roleIdKey) {
+		this.roleIdKey = roleIdKey;
+	}
+
+}

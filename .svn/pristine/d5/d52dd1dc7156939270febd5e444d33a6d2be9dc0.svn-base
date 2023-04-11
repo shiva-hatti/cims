@@ -1,0 +1,81 @@
+/**
+ * 
+ */
+package com.iris.util.constant;
+
+
+/**
+ * @author sajadhav
+ *
+ */
+public enum ReturnPropertyVal {
+
+	AUDITED("field.returnProperty.audited", "Audited","A",1), 
+	UN_AUITED("field.returnProperty.unaudited", "Un-Audited","U",2), 
+	PROVISIONAL("field.returnProperty.provisional", "Provisional","P",3),
+	FINAL("field.returnProperty.final", "Final","F",4);
+	String returnPropertykey;
+	String xbrlReturnPropertyString;
+	String csvReturnPropertyString;
+	Integer returnPropertyId;
+
+
+	private ReturnPropertyVal(String returnPropertykey, String xbrlReturnPropertyString, String csvReturnPropertyString, Integer returnPropertyId) {
+		this.returnPropertykey = returnPropertykey;
+		this.xbrlReturnPropertyString = xbrlReturnPropertyString;
+		this.csvReturnPropertyString = csvReturnPropertyString;
+		this.returnPropertyId = returnPropertyId;
+	}
+	
+	/**
+	 * @return the returnPropertykey
+	 */
+	public String getReturnPropertykey() {
+		return returnPropertykey;
+	}
+
+
+
+	/**
+	 * @return the xbrlReturnPropertyString
+	 */
+	public String getXbrlReturnPropertyString() {
+		return xbrlReturnPropertyString;
+	}
+
+
+	/**
+	 * @return the csvReturnPropertyString
+	 */
+	public String getCsvReturnPropertyString() {
+		return csvReturnPropertyString;
+	}
+
+	/**
+	 * @return the returnPropertyId
+	 */
+	public Integer getReturnPropertyId() {
+		return returnPropertyId;
+	}
+
+
+	public static Integer getReturnPropertyIdByXBRLReturnPropertyString(String xbrlReturnPropertyString) {
+		for (ReturnPropertyVal returnroperty : ReturnPropertyVal.values()) {
+			if (returnroperty.getXbrlReturnPropertyString().equalsIgnoreCase(xbrlReturnPropertyString)) {
+				return returnroperty.getReturnPropertyId();
+			}
+		}
+		return null;
+	}
+
+	public static Integer getReturnPropertyIdByCSVReturnPropertyString(String csvReturnPropertyString) {
+		for (ReturnPropertyVal returnroperty : ReturnPropertyVal.values()) {
+			if (returnroperty.getCsvReturnPropertyString().equalsIgnoreCase(csvReturnPropertyString)) {
+				return returnroperty.getReturnPropertyId();
+			}
+		}
+		return null;
+	}
+	
+
+}

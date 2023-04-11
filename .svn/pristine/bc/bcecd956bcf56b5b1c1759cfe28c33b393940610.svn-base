@@ -1,0 +1,502 @@
+/**
+ * 
+ */
+package com.iris.sdmx.lockrecord.controller;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.iris.caching.ObjectCache;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.exception.ApplicationException;
+import com.iris.sdmx.exceltohtml.bean.CellRefLockLogsBean;
+import com.iris.sdmx.lockrecord.bean.SdmxLockRecordBean;
+import com.iris.sdmx.lockrecord.bean.SdmxLockRecordSetBean;
+import com.iris.sdmx.lockrecord.bean.SdmxLockRecordStatusCheckBean;
+import com.iris.sdmx.lockrecord.bean.SdmxReturnTemplateLockCheck;
+import com.iris.sdmx.lockrecord.entity.SdmxLockRecordEntity;
+import com.iris.sdmx.lockrecord.helper.SdmxLockRecordHelper;
+import com.iris.sdmx.lockrecord.service.SdmxLockRecordService;
+import com.iris.sdmx.lockrecord.validator.SdmxLockRecordValidator;
+import com.iris.sdmx.util.SDMXConstants;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.ErrorConstants;
+
+/**
+ * @author apagaria
+ *
+ */
+@RestController
+@RequestMapping("/service/sdmx/lockRecord")
+public class SdmxLockRecordController implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	@Autowired
+	private SdmxLockRecordService sdmxLockRecordService;
+
+	@Autowired
+	private SdmxLockRecordValidator sdmxLockRecordValidator;
+
+	private static final Logger LOGGER = LogManager.getLogger(SdmxLockRecordController.class);
+
+	@PostMapping("/user/{userId}")
+	public ServiceResponse setLockOnRecord(@RequestHeader("JobProcessingId") String jobProcessId,
+			@PathVariable("userId") Long userId, @RequestBody SdmxLockRecordSetBean sdmxLockRecordSetBean) {
+		LOGGER.info("START - Set Lock on Record request received with Job Processing ID : " + jobProcessId);
+		LOGGER.debug("Set Lock on Record request : " + sdmxLockRecordSetBean);
+		ServiceResponse serviceResponse = null;
+		ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+		serviceResponseBuilder.setStatus(true);
+		try {
+			// Validation
+			sdmxLockRecordValidator.validateSetLockOnRecord(userId, jobProcessId, sdmxLockRecordSetBean);
+			
+
+			// Sorting and Base 64 conversion
+			String recordDetailEncodedStr = SdmxLockRecordHelper.sortingNBase64FromRecordDetailJsonString(
+					sdmxLockRecordSetBean.getRecordDetailEncodedJson(), jobProcessId);
+			
+			// Check Lock Status
+			SdmxLockRecordBean sdmxLockRecordBean = sdmxLockRecordService
+					.findByRecordDetailEncode(recordDetailEncodedStr, jobProcessId);
+			Long recordLockId = null;
+			if (sdmxLockRecordBean != null) {
+				if (!sdmxLockRecordBean.getIsActive()) {
+					recordLockId = sdmxLockRecordBean.getLockRecordId();
+				} else {
+					throw new ApplicationException("ER001", "Record already locked");
+				}
+			}
+			// Save lock record
+			sdmxLockRecordService.setLockOnRecord(sdmxLockRecordSetBean, jobProcessId, userId, recordLockId,
+					recordDetailEncodedStr);
+			serviceResponseBuilder.setStatusCode(SDMXConstants.SUCCESS_CODE);
+			serviceResponseBuilder.setStatusMessage(SDMXConstants.SUCCESS_MESSAGE);
+		} catch (ApplicationException applicationException) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId,
+					applicationException);
+			serviceResponseBuilder.setStatus(false);
+			serviceResponseBuilder.setStatusCode(applicationException.getErrorCode());
+			serviceResponseBuilder.setStatusMessage(applicationException.getErrorMsg());
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId, e);
+			serviceResponseBuilder = new ServiceResponseBuilder().setStatus(false)
+					.setStatusCode(ErrorCode.EC0013.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString()));
+		}
+		serviceResponse = serviceResponseBuilder.build();
+		LOGGER.info("END - Set Lock on Record request received with Job Processing ID : " + jobProcessId);
+		return serviceResponse;
+	}
+
+	@PutMapping("/user/{userId}/status")
+	public ServiceResponse updateLockOnRecordStatus(@RequestHeader("JobProcessingId") String jobProcessId,
+			@PathVariable("userId") Long userId,
+			@RequestBody SdmxLockRecordStatusCheckBean sdmxLockRecordStatusCheckBean) {
+		LOGGER.info("START - update lock record status request received with Job Processing ID : " + jobProcessId);
+		ServiceResponse serviceResponse = null;
+		ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+		serviceResponseBuilder.setStatus(true);
+		try {
+			// Validation
+			sdmxLockRecordValidator.validateCheckLockRecordStatus(userId, jobProcessId,
+					sdmxLockRecordStatusCheckBean.getRecordDetailEncodedJson());
+
+			// Sorting and Base 64 conversion
+			String recordDetailEncodedStr = SdmxLockRecordHelper.sortingNBase64FromRecordDetailJsonString(
+					sdmxLockRecordStatusCheckBean.getRecordDetailEncodedJson(), jobProcessId);
+
+			// Check Lock Status
+			sdmxLockRecordService.findNSaveByRecordDetailEncodeNActive(recordDetailEncodedStr, Boolean.TRUE,
+					userId,jobProcessId);
+			serviceResponseBuilder.setStatusCode(SDMXConstants.SUCCESS_CODE);
+			serviceResponseBuilder.setStatusMessage(SDMXConstants.SUCCESS_MESSAGE);
+		} catch (ApplicationException applicationException) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId,
+					applicationException);
+			serviceResponseBuilder.setStatus(false);
+			serviceResponseBuilder.setStatusCode(applicationException.getErrorCode());
+			serviceResponseBuilder.setStatusMessage(applicationException.getErrorMsg());
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId, e);
+			serviceResponseBuilder = new ServiceResponseBuilder().setStatus(false)
+					.setStatusCode(ErrorCode.EC0013.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString()));
+		}
+		serviceResponse = serviceResponseBuilder.build();
+		LOGGER.info("END - update lock record status request received with Job Processing ID : " + jobProcessId);
+		return serviceResponse;
+	}
+
+	@PutMapping("/user/{userId}/checkLockRecordStatus")
+	public ServiceResponse checkLockRecordStatus(@RequestHeader("JobProcessingId") String jobProcessId,
+			@PathVariable("userId") Long userId,
+			@RequestBody SdmxLockRecordStatusCheckBean sdmxLockRecordStatusCheckBean) {
+		LOGGER.info("START - Check lock record status request received with Job Processing ID : " + jobProcessId);
+		ServiceResponse serviceResponse = null;
+		ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+		serviceResponseBuilder.setStatus(true);
+		try {
+			// Validation
+			sdmxLockRecordValidator.validateCheckLockRecordStatus(userId, jobProcessId,
+					sdmxLockRecordStatusCheckBean.getRecordDetailEncodedJson());
+
+			// Sorting and Base 64 conversion
+			String recordDetailEncodedStr = SdmxLockRecordHelper.sortingNBase64FromRecordDetailJsonString(
+					sdmxLockRecordStatusCheckBean.getRecordDetailEncodedJson(), jobProcessId);
+
+			// Check Lock Status
+			SdmxLockRecordBean sdmxLockRecordBean = sdmxLockRecordService
+					.findByRecordDetailEncodeNActive(recordDetailEncodedStr, Boolean.TRUE, jobProcessId);
+			// Response
+			if (sdmxLockRecordBean != null) {
+				serviceResponseBuilder.setStatusCode(SDMXConstants.SUCCESS_CODE);
+				serviceResponseBuilder.setStatusMessage(SDMXConstants.SUCCESS_MESSAGE);
+				serviceResponseBuilder.setResponse(sdmxLockRecordBean);
+			} else {
+				serviceResponseBuilder.setStatus(false);
+				serviceResponseBuilder.setStatusCode(SDMXConstants.FAILURE_CODE);
+				serviceResponseBuilder.setStatusMessage(SDMXConstants.FAILURE_MESSAGE);
+			}
+		} catch (ApplicationException applicationException) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId,
+					applicationException);
+			serviceResponseBuilder.setStatus(false);
+			serviceResponseBuilder.setStatusCode(applicationException.getErrorCode());
+			serviceResponseBuilder.setStatusMessage(applicationException.getErrorMsg());
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId, e);
+			serviceResponseBuilder = new ServiceResponseBuilder().setStatus(false)
+					.setStatusCode(ErrorCode.EC0013.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString()));
+		}
+		serviceResponse = serviceResponseBuilder.build();
+		LOGGER.info("END - Check lock record status request received with Job Processing ID : " + jobProcessId);
+		return serviceResponse;
+	}
+
+	@PutMapping("/user/{userId}/returnTemplateLockCheck")
+	public ServiceResponse returnTemplateLockCheck(@RequestHeader("JobProcessingId") String jobProcessId,
+			@PathVariable("userId") Long userId, @RequestBody SdmxReturnTemplateLockCheck sdmxReturnTemplateLockCheck) {
+		LOGGER.info("START - Return Template lock check request received with Job Processing ID : " + jobProcessId);
+		ServiceResponse serviceResponse = null;
+		ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+		serviceResponseBuilder.setStatus(true);
+		boolean isReturnLocked = true;
+		try {
+
+			// Validation
+			sdmxLockRecordValidator.validateReturnTemplateLockCheck(userId, jobProcessId);
+
+			// Check Lock Status
+			
+			String uploadedReturnPreviewId = sdmxReturnTemplateLockCheck.getUploadedReturnPreviewId();
+			String relativeReturnPreviewId = sdmxReturnTemplateLockCheck.getRelativeReturnPreviewId();
+			if(uploadedReturnPreviewId != null && relativeReturnPreviewId == null) {
+				//datapoint 
+				
+				boolean isReturnCellRefLocked = true;
+				
+				isReturnCellRefLocked = sdmxLockRecordService.isReturnCellRefLocked(Long.parseLong(sdmxReturnTemplateLockCheck.getUploadedReturnPreviewId()), 
+						Long.parseLong(sdmxReturnTemplateLockCheck.getCellRef()));
+				if(isReturnCellRefLocked) {
+					serviceResponseBuilder.setStatusCode(SDMXConstants.FAILURE_CODE);
+					serviceResponseBuilder.setStatusMessage(SDMXConstants.FAILURE_MESSAGE);
+					serviceResponseBuilder
+							.setResponse(ObjectCache.getErrorCodeKey(ErrorCode.E1532.toString()));
+				} else {
+					serviceResponseBuilder.setStatusCode(SDMXConstants.SUCCESS_CODE);
+					serviceResponseBuilder.setStatusMessage(SDMXConstants.SUCCESS_MESSAGE);
+					serviceResponseBuilder.setResponse(isReturnCellRefLocked);
+				}
+				
+			} else if(uploadedReturnPreviewId == null && relativeReturnPreviewId != null) {
+				//reuse upload
+				
+				isReturnLocked = sdmxLockRecordService.isReturnTemplateLocked(
+						Long.parseLong(sdmxReturnTemplateLockCheck.getUploadedReturnTemplateModule()),
+						Long.parseLong(sdmxReturnTemplateLockCheck.getRelativeReturnTemplateId()),
+						Long.parseLong(sdmxReturnTemplateLockCheck.getRelativeReturnPreviewId()));
+				if (!isReturnLocked) {
+					if (!StringUtils.isBlank(sdmxReturnTemplateLockCheck.getRelativeReturnTemplateModule())) {
+						isReturnLocked = sdmxLockRecordService.isReturnTemplateLocked(
+								Long.parseLong(sdmxReturnTemplateLockCheck.getRelativeReturnTemplateModule()),
+								Long.parseLong(sdmxReturnTemplateLockCheck.getRelativeReturnTemplateId()),
+								Long.parseLong(sdmxReturnTemplateLockCheck.getRelativeReturnPreviewId()));
+						if (!isReturnLocked) {
+							serviceResponseBuilder.setStatusCode(SDMXConstants.SUCCESS_CODE);
+							serviceResponseBuilder.setStatusMessage(SDMXConstants.SUCCESS_MESSAGE);
+							serviceResponseBuilder.setResponse(isReturnLocked);
+						} else {
+							//FAIL
+							serviceResponseBuilder.setStatusCode(SDMXConstants.FAILURE_CODE);
+							serviceResponseBuilder.setStatusMessage(SDMXConstants.FAILURE_MESSAGE);
+							serviceResponseBuilder
+									.setResponse(ObjectCache.getErrorCodeKey(ErrorCode.E1535.toString()));
+							//relative return is locked
+						}
+					} else {
+						serviceResponseBuilder.setStatusCode(SDMXConstants.SUCCESS_CODE);
+						serviceResponseBuilder.setStatusMessage(SDMXConstants.SUCCESS_MESSAGE);
+						serviceResponseBuilder.setResponse(isReturnLocked);
+					}
+				} else {
+					serviceResponseBuilder.setStatusCode(SDMXConstants.FAILURE_CODE);
+					serviceResponseBuilder.setStatusMessage(SDMXConstants.FAILURE_MESSAGE);
+					serviceResponseBuilder
+							.setResponse(ObjectCache.getErrorCodeKey(ErrorCode.E1534.toString()));
+					
+					//relative return has some locked datapoint. please release then upload
+				}
+				
+			} else if(uploadedReturnPreviewId == null && relativeReturnPreviewId == null) {
+				// normal upload
+				serviceResponseBuilder.setStatusCode(SDMXConstants.SUCCESS_CODE);
+				serviceResponseBuilder.setStatusMessage(SDMXConstants.SUCCESS_MESSAGE);
+				serviceResponseBuilder.setResponse(isReturnLocked);
+				
+			} else {
+				serviceResponseBuilder.setStatusCode(SDMXConstants.FAILURE_CODE);
+				serviceResponseBuilder.setStatusMessage(SDMXConstants.FAILURE_MESSAGE);
+				serviceResponseBuilder
+						.setResponse(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString()));
+				
+				//unlikely scenario
+			}
+
+		} catch (ApplicationException applicationException) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId,
+					applicationException);
+			serviceResponseBuilder.setStatus(false);
+			serviceResponseBuilder.setStatusCode(applicationException.getErrorCode());
+			serviceResponseBuilder.setStatusMessage(applicationException.getErrorMsg());
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId, e);
+			serviceResponseBuilder = new ServiceResponseBuilder().setStatus(false)
+					.setStatusCode(ErrorCode.EC0013.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString()));
+		}
+		serviceResponse = serviceResponseBuilder.build();
+		LOGGER.info("END - Return Template lock check request received with Job Processing ID : " + jobProcessId);
+		return serviceResponse;
+	}
+	
+	@PutMapping("/user/{userId}/role/{roleId}/lang/{langCode}/releaseMultipleCellRefLock")
+	public ServiceResponse releaseMultipleCellRefLock(@RequestHeader("JobProcessingId") String jobProcessId,
+			@PathVariable("userId") Long userId,@PathVariable("roleId") Long roleId,@PathVariable("langCode") String langCode,
+			@RequestBody SdmxLockRecordStatusCheckBean sdmxLockRecordStatusCheckBean) {
+		LOGGER.info("START - Release multiple Cell Reference Lock request received with Job Processing ID : " + jobProcessId);
+		ServiceResponse serviceResponse = null;
+		ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+		serviceResponseBuilder.setStatus(true);
+		try {
+			// Validation
+			sdmxLockRecordValidator.validateCheckLockRecordStatus(userId, jobProcessId,
+					sdmxLockRecordStatusCheckBean.getRecordDetailEncodedJson());
+
+			//getting map
+			Gson gson = new Gson();
+			SortedMap<String, Long> retMap = gson.fromJson(new String(Base64.decodeBase64(sdmxLockRecordStatusCheckBean.getRecordDetailEncodedJson())),
+					new TypeToken<TreeMap<String, Long>>() {
+					}.getType());
+
+			
+			List<SdmxLockRecordEntity> sdmxLockRecordEntityList = sdmxLockRecordService.getMultipleCellRefLock(retMap.get("returnTemplateId"),retMap.get("returnPreviewId"),jobProcessId);
+			if(!sdmxLockRecordEntityList.isEmpty()) {
+				sdmxLockRecordService.releaseMultipleCellRefLock(sdmxLockRecordEntityList,userId,jobProcessId);
+			}
+			serviceResponseBuilder.setStatus(true);
+			serviceResponseBuilder.setStatusCode(SDMXConstants.SUCCESS_CODE);
+			serviceResponseBuilder.setStatusMessage(SDMXConstants.SUCCESS_MESSAGE);
+		} catch (ApplicationException applicationException) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId,
+					applicationException);
+			serviceResponseBuilder.setStatus(false);
+			serviceResponseBuilder.setStatusCode(applicationException.getErrorCode());
+			serviceResponseBuilder.setStatusMessage(applicationException.getErrorMsg());
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId, e);
+			serviceResponseBuilder = new ServiceResponseBuilder().setStatus(false)
+					.setStatusCode(ErrorCode.EC0013.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString()));
+		}
+		serviceResponse = serviceResponseBuilder.build();
+		LOGGER.info("END - Release multiple Cell Reference Lock request completed with Job Processing ID : " + jobProcessId);
+		return serviceResponse;
+	}
+	
+	@PutMapping("/user/{userId}/role/{roleId}/lang/{langCode}/returnPreview/{returnPreviewId}/getCellRefLockLogs")
+	public ServiceResponse getCellRefLockLogs(@RequestHeader("JobProcessingId") String jobProcessId,
+			@PathVariable("userId") Long userId,@PathVariable("roleId") Long roleId,@PathVariable("langCode") String langCode,
+			@PathVariable("returnPreviewId") Long returnPreviewId) {
+		LOGGER.info("START - Get Cell Reference Lock Logs request received with Job Processing ID : " + jobProcessId);
+		ServiceResponse serviceResponse = null;
+		ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+		serviceResponseBuilder.setStatus(true);
+		List<CellRefLockLogsBean> cellRefLockLogsBeanList = new ArrayList<>();
+		try {
+			sdmxLockRecordValidator.validateGetCellRefLockLogs(userId, jobProcessId, returnPreviewId);
+			cellRefLockLogsBeanList = sdmxLockRecordService.getCellRefLockLogs(returnPreviewId, jobProcessId);
+		
+			if(!cellRefLockLogsBeanList.isEmpty()) {
+				serviceResponseBuilder.setResponse(cellRefLockLogsBeanList);
+				serviceResponseBuilder.setStatusCode(SDMXConstants.SUCCESS_CODE);
+				serviceResponseBuilder.setStatusMessage(SDMXConstants.SUCCESS_MESSAGE);
+			} else {
+				LOGGER.debug("Job Processing id - " + jobProcessId
+						+ ", @getCellRefLockLogs no logs found");
+				serviceResponseBuilder.setResponse(null);
+				serviceResponseBuilder.setStatusCode(SDMXConstants.SUCCESS_CODE);
+				serviceResponseBuilder.setStatusMessage(SDMXConstants.SUCCESS_MESSAGE);
+			}
+			
+		} catch (ApplicationException applicationException) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId,
+					applicationException);
+			serviceResponseBuilder.setStatus(false);
+			serviceResponseBuilder.setStatusCode(applicationException.getErrorCode());
+			serviceResponseBuilder.setStatusMessage(applicationException.getErrorMsg());
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId, e);
+			serviceResponseBuilder = new ServiceResponseBuilder().setStatus(false)
+					.setStatusCode(ErrorCode.EC0013.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString()));
+		}
+		serviceResponse = serviceResponseBuilder.build();
+		LOGGER.info("END - Get Cell Reference Lock Logs request completed with Job Processing ID : " + jobProcessId);
+		return serviceResponse;
+	}
+	
+	@GetMapping("/user/{userId}/role/{roleId}/lang/{langCode}/module/{moduleId}/getModuleWiseLocks")
+	public ServiceResponse getModuleWiseLocks(@RequestHeader("JobProcessingId") String jobProcessId,
+			@PathVariable("userId") Long userId,@PathVariable("roleId") Long roleId,
+			@PathVariable("langCode") String langCode,@PathVariable("moduleId") Long moduleId) {
+		LOGGER.info("START - Get Modulewise locks request received with Job Processing ID : " + jobProcessId);
+		ServiceResponse serviceResponse = null;
+		ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+		serviceResponseBuilder.setStatus(true);
+		try {
+			sdmxLockRecordValidator.validateGetModuleWiseLocks(userId, jobProcessId, moduleId);	
+			List<SdmxLockRecordBean> sdmxLockRecordBeanList = new ArrayList<>();
+			sdmxLockRecordBeanList = sdmxLockRecordService.getModuleWiseLocks(moduleId, jobProcessId);
+			
+			serviceResponseBuilder.setResponse(sdmxLockRecordBeanList);
+		} catch (ApplicationException applicationException) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId,
+					applicationException);
+			serviceResponseBuilder.setStatus(false);
+			serviceResponseBuilder.setStatusCode(applicationException.getErrorCode());
+			serviceResponseBuilder.setStatusMessage(applicationException.getErrorMsg());
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId, e);
+			serviceResponseBuilder = new ServiceResponseBuilder().setStatus(false)
+					.setStatusCode(ErrorCode.EC0013.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString()));
+		}
+		
+		serviceResponse = serviceResponseBuilder.build();
+		LOGGER.info("END - Get Modulewise locks request received with Job Processing ID : " + jobProcessId);
+		return serviceResponse;
+	}
+	
+	@PutMapping("/user/{userId}/role/{roleId}/lang/{langCode}/module/{moduleId}/releaseModuleWiseLocks")
+	public ServiceResponse releaseModuleWiseLocks(@RequestHeader("JobProcessingId") String jobProcessId,
+			@PathVariable("userId") Long userId,@PathVariable("roleId") Long roleId,
+			@PathVariable("langCode") String langCode,@PathVariable("moduleId") Long moduleId,
+			@RequestBody List<Long> lockRecordIdList) {
+		LOGGER.info("START - Release Modulewise locks request received with Job Processing ID : " + jobProcessId);
+		ServiceResponse serviceResponse = null;
+		ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+		serviceResponseBuilder.setStatus(true);
+		try {
+			sdmxLockRecordValidator.validateReleaseModuleWiseLocks(moduleId,userId, jobProcessId);
+			if(!lockRecordIdList.isEmpty()) {
+				sdmxLockRecordService.releaseModuleWiseLocks(lockRecordIdList,moduleId,userId, jobProcessId);
+			} else {
+				LOGGER.debug("Job Processing id - " + jobProcessId
+						+ ", lock record list is empty");
+			}
+			serviceResponseBuilder.setResponse(true);
+		} catch (ApplicationException applicationException) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId,
+					applicationException);
+			serviceResponseBuilder.setStatus(false);
+			serviceResponseBuilder.setStatusCode(applicationException.getErrorCode());
+			serviceResponseBuilder.setStatusMessage(applicationException.getErrorMsg());
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId, e);
+			serviceResponseBuilder = new ServiceResponseBuilder().setStatus(false)
+					.setStatusCode(ErrorCode.EC0013.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString()));
+		}
+		serviceResponse = serviceResponseBuilder.build();
+		LOGGER.info("END - Release Modulewise locks request received with Job Processing ID : " + jobProcessId);
+		return serviceResponse;
+	}
+	
+	@PutMapping("/user/{userId}/role/{roleId}/lang/{langCode}/getReturnInfo")
+	public ServiceResponse getReturnInfo(@RequestHeader("JobProcessingId") String jobProcessId,
+			@PathVariable("userId") Long userId,@PathVariable("roleId") Long roleId,
+			@PathVariable("langCode") String langCode,@RequestBody List<Long> templateIdList) {
+		LOGGER.info("START - Get Return Info request received with Job Processing ID : " + jobProcessId);
+		ServiceResponse serviceResponse = null;
+		ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+		serviceResponseBuilder.setStatus(true);
+		try {
+			sdmxLockRecordValidator.validateGetReturnInfo(userId, jobProcessId);	
+			Map<Long,String> templateReturnInfoMap = new HashMap<>();
+			if(!templateIdList.isEmpty()) {
+				templateReturnInfoMap = sdmxLockRecordService.getReturnInfo(templateIdList,jobProcessId);
+			}
+			if(!templateReturnInfoMap.isEmpty()) {
+				serviceResponseBuilder.setResponse(templateReturnInfoMap);
+			}else {
+				serviceResponseBuilder.setStatus(false);
+				serviceResponseBuilder.setResponse(null);
+			}
+			
+		} catch (ApplicationException applicationException) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId,
+					applicationException);
+			serviceResponseBuilder.setStatus(false);
+			serviceResponseBuilder.setStatusCode(applicationException.getErrorCode());
+			serviceResponseBuilder.setStatusMessage(applicationException.getErrorMsg());
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId, e);
+			serviceResponseBuilder = new ServiceResponseBuilder().setStatus(false)
+					.setStatusCode(ErrorCode.EC0013.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString()));
+		}
+		
+		serviceResponse = serviceResponseBuilder.build();
+		LOGGER.info("END - Get Return Info request received with Job Processing ID : " + jobProcessId);
+		return serviceResponse;
+	}
+	
+}

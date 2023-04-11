@@ -1,0 +1,81 @@
+/**
+ * 
+ */
+package com.iris.util.constant;
+
+/**
+ * @author sajadhav
+ *
+ */
+public enum FrequencyEnum {
+	DAILY("freq.daily", "D", 7L), FORT_NIGHT("freq.fortnight", "F", 5L), WEEKLY("freq.weekly", "W", 6L),
+	MONTHLY("freq.monthly", "M", 4L), QUATERLY("freq.quarterly", "Q", 3L), HALF_YEARLY("freq.halfyearly", "H", 2L),
+	CUSTOMIZED_HALF_YEARLY("freq.customisedHalfyearly.jan-dec", "C", 23L),
+	ANNUALLY("freq.annually", "A", 1L),CUSTOMIZE_ANNUALLY("freq.customized.annually.janToDec", "B", 11L),
+	FIRST_HALF_MONTHLY_EXCLUDE_HOLIDAY("freq.firstHalfMonthly.excludeHoliday", "FHMEH", 12L),FORT_NIGHTLY_WITH_FIFTEEN_DAYS("freq.fortnight.15Days", "F15", 13L),
+	AS_AN_WHEN("freq.asAnWhen", "ANW", 14L),
+	QUATERLY_WITH_LAST_FORTNIGHT_OF_QUARTER("freq.quarterly.lastfortnightOfQuarter", "QLF", 15L),
+	MONTHLY_WITH_LAST_FORTNIGHT_OF_MONTH("freq.monthly.lastfortnightOfMonth", "MLF", 16L),
+	CUSTOMIZED_MONTHLY_WITH_LAST_FORTNIGHT_OF_MONTH("freq.monthly.customizedLastfortnightOfMonth", "CMLF", 17L),
+	CUSTOMIZED_QUATERLY_WITH_LAST_FORTNIGHT_OF_QUARTER("freq.quarterly.customizedLastfortnightOfQuarter", "CQLF", 18L),
+	CUSTOMIZED_MONTHLY_WITH_LAST_FRIDAY_OF_MONTH("freq.monthly.customizedLastfridayOfMonth", "CMLFR", 19L),
+	HALF_MONTHLY("freq.halfMonthly", "HM", 20L),
+	ADHOCK("freq.adhoc", "AD", 9L),
+	CUSTOMIZED_ANNUALY_WITH_LAST_FRIDAY_OF_FIN_YEAR("freq.quarterly.customizedLastfridayOfFinYear", "CALF", 21L),
+	CUSTOMIZED_ANNUALY_WITH_LAST_FRIDAY_OF_JUNE("freq.quarterly.customizedAnnualyWithLastFridayOfJune", "J", 22L);
+
+
+	
+	String frequencyName;
+	String frequencyCode;
+	Long frequencyId;
+
+	private FrequencyEnum(String frequencyName, String frequencyCode, Long frequencyId) {
+		this.frequencyName = frequencyName;
+		this.frequencyCode = frequencyCode;
+		this.frequencyId = frequencyId;
+	}
+
+	/**
+	 * @return the frequencyName
+	 */
+	public String getFrequencyName() {
+		return frequencyName;
+	}
+
+	/**
+	 * @return the frequencyCode
+	 */
+	public String getFrequencyCode() {
+		return frequencyCode;
+	}
+	public Long getFrequencyId() {
+		return frequencyId;
+	}
+	public static String getCodeByName(String freqName) {
+		for (FrequencyEnum feq : FrequencyEnum.values()) {
+			if (feq.getFrequencyName().equalsIgnoreCase(freqName)) {
+				return feq.getFrequencyCode();
+			}
+		}
+		return null;
+	}
+	
+	public static String getCodeById(Long freqId) {
+		for (FrequencyEnum feq : FrequencyEnum.values()) {
+			if (feq.getFrequencyId().equals(freqId)) {
+				return feq.getFrequencyCode();
+			}
+		}
+		return null;
+	}
+	
+	public static Long getIdByCode(String code) {
+		for (FrequencyEnum feq : FrequencyEnum.values()) {
+			if (feq.getFrequencyCode().equalsIgnoreCase(code)) {
+				return feq.getFrequencyId();
+			}
+		}
+		return null;
+	}
+}

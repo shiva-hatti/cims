@@ -1,0 +1,103 @@
+package com.iris.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.dto.RegulatorBean;
+import com.iris.exception.ServiceException;
+import com.iris.model.Regulator;
+import com.iris.repository.RegulatorRepo;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ErrorConstants;
+
+@Service
+public class RegulatorService implements GenericService<Regulator, Long> {
+
+	@Autowired
+	RegulatorRepo regulatorRepo;
+
+	@Override
+	public Regulator add(Regulator entity) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public boolean update(Regulator entity) throws ServiceException {
+		return false;
+	}
+
+	@Override
+	public List<Regulator> getDataByIds(Long[] ids) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public Regulator getDataById(Long id) throws ServiceException {
+		try {
+			return regulatorRepo.findByRegulatorIdAndIsActiveTrue(id);
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<Regulator> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<Regulator> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<Regulator> getDataByObject(Map<String, Object> columnValueMap, String methodName) throws ServiceException {
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<Regulator> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<Regulator> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public void deleteData(Regulator bean) throws ServiceException {
+
+	}
+
+	/**
+	 * @param regulatorCode
+	 * @param isActive
+	 * @return
+	 */
+	public String findNameByRegulatorCode(String regulatorCode, Boolean isActive) {
+		return regulatorRepo.findNameByRegulatorCode(regulatorCode, isActive);
+	}
+
+	/**
+	 * @param regulatorCode
+	 * @param isActive
+	 * @return
+	 */
+	public RegulatorBean findByRegulatorCode(String regulatorCode, Boolean isActive) {
+		RegulatorBean regulatorBean = null;
+		Regulator regulator = regulatorRepo.findByRegulatorCode(regulatorCode, isActive);
+		if (regulator != null) {
+			regulatorBean = new RegulatorBean();
+			regulatorBean.setRegulatorId(regulator.getRegulatorId());
+			regulatorBean.setRegulatorCode(regulator.getRegulatorCode());
+			regulatorBean.setRegulatorName(regulator.getRegulatorName());
+		}
+		return regulatorBean;
+	}
+}

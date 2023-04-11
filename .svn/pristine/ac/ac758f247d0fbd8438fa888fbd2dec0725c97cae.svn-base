@@ -1,0 +1,14 @@
+package com.iris.sdmx.upload.repo;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.iris.sdmx.upload.entity.EbrFileAudit;
+/**
+ * @author vjadhav
+ *
+ */
+@Repository
+public interface EbrFileAuditRepo extends JpaRepository<EbrFileAudit, Long>{
+
+}

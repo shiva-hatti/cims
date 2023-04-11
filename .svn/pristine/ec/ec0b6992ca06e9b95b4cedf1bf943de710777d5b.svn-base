@@ -1,0 +1,27 @@
+package com.iris.sdmx.lockrecord.repo;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.sdmx.lockrecord.entity.SdmxLockRecordEntity;
+
+/**
+ * @author apagaria
+ *
+ */
+public interface SdmxLockRecordRepo extends JpaRepository<SdmxLockRecordEntity, Long> {
+
+	@Query("FROM SdmxLockRecordEntity where recordDetailEncode=:recordDetailEncode and isActive =:isActive")
+	SdmxLockRecordEntity findByRecordDetailEncodeNActive(String recordDetailEncode, Boolean isActive);
+
+	@Query("FROM SdmxLockRecordEntity where recordDetailEncode=:recordDetailEncode")
+	SdmxLockRecordEntity findByRecordDetailEncode(String recordDetailEncode);
+
+	@Query(value = "SELECT * FROM TBL_SDMX_LOCK_RECORD where MODULE_ID=:moduleId and IS_ACTIVE=1 and JSON_EXTRACT(`RECORD_DETAIL_JSON` , '$.returnTemplateId') =:returnTemplateIdFk", nativeQuery = true)
+	List<SdmxLockRecordEntity> findEntityByModelDimNElementId(@Param("moduleId") Long moduleId,
+			@Param("returnTemplateIdFk") Long returnTemplateIdFk);
+
+}

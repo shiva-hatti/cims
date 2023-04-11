@@ -1,0 +1,450 @@
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.google.gson.Gson;
+import com.iris.caching.ObjectCache;
+import com.iris.dto.ReturnDto;
+import com.iris.dto.ReturnGroupMappingDto;
+import com.iris.dto.ReturnGroupMappingRequest;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.dto.WorkflowReturnMappingInfo;
+import com.iris.model.Return;
+import com.iris.model.WorkFlowMasterBean;
+import com.iris.model.WorkflowReturnMapping;
+import com.iris.repository.WorkFlowMasterRepo;
+import com.iris.service.impl.WorkflowMasterService;
+import com.iris.service.impl.WorkflowService;
+import com.iris.util.UtilMaster;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.util.constant.MethodConstants;
+import com.iris.workflow.WorkflowUtility;
+
+@RestController
+@RequestMapping("/service")
+public class WorkFlowController {
+
+	private static final Logger LOGGER = LogManager.getLogger(WorkFlowController.class);
+
+	@Autowired
+	private WorkflowService workflowService;
+	@Autowired
+	private WorkflowMasterService workflowMasterService;
+	@Autowired
+	private WorkFlowMasterRepo workFlowMasterRepo;
+	@Autowired
+	private ReturnGroupController returnGroupController;
+	@Autowired
+	private FileDetailsController fileDetailsController;
+
+	private List<ReturnDto> regulatorDataList = new ArrayList<>();
+
+	@PostMapping("/getWorkflowStepJsonByWorkflowIdAndStepId")
+	public ServiceResponse getWorkflowStepJsonByWorkflowIdAndStepId(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody List<WorkFlowMasterBean> ipWorkflowMasterBeanList) {
+		try {
+			List<Long> workflowMasterIds = ipWorkflowMasterBeanList.stream().map(f -> f.getWorkflowId()).collect(Collectors.toList());
+
+			Map<String, Object> valueMap = new HashMap<>();
+			valueMap.put(ColumnConstants.WORKFLOW_MASTER_IDS.getConstantVal(), workflowMasterIds);
+
+			List<WorkFlowMasterBean> workflowMasterBeanList = workflowMasterService.getDataByObject(valueMap, MethodConstants.GET_WORKFLOW_BY_WORKFLOW_ID.getConstantVal());
+			int stepNo = 0;
+			for (WorkFlowMasterBean workflowMasterBean : ipWorkflowMasterBeanList) {
+				WorkFlowMasterBean dbWorkflowMasterBean = workflowMasterBeanList.stream().filter(f -> f.getWorkflowId().equals(workflowMasterBean.getWorkflowId())).findAny().orElse(null);
+
+				if (dbWorkflowMasterBean != null) {
+					stepNo = workflowMasterBean.getStepNo();
+					workflowMasterBean.setWorkflowJsonBean(WorkflowUtility.getWorkflowJsonBeanOfCurrentStep(dbWorkflowMasterBean.getWorkFlowJson(), stepNo));
+				}
+			}
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(ipWorkflowMasterBeanList).build();
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorConstants.DEFAULT_ERROR.getConstantVal()).build();
+		}
+	}
+
+	@PostMapping("/fetchWorkflowObj")
+	public ServiceResponse getWorkflowDetailsByReturnId(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody WorkflowReturnMappingInfo workflow) {
+		try {
+			if (StringUtils.isEmpty(workflow)) {
+				return new ServiceResponse.ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorConstants.E001.getConstantVal()).setStatusMessage("Return ID not present in path variable").build();
+			}
+
+			Map<String, Object> valueMap = new HashMap<>();
+			valueMap.put(ColumnConstants.RETURNID.getConstantVal(), workflow.getReturnIdFk().getReturnId());
+			valueMap.put(ColumnConstants.CHANNEL_ID.getConstantVal(), workflow.getChannelIdFk().getUploadChannelId());
+
+			List<WorkflowReturnMapping> workflowList = workflowService.getDataByObject(valueMap, MethodConstants.GET_WORKFLOW_BY_RETURN_ID_AND_CHANNEL_ID.getConstantVal());
+
+			if (workflowList == null) {
+				return new ServiceResponse.ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorConstants.E001.getConstantVal()).setStatusMessage("Workflow not present").build();
+			} else {
+				return new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(workflowList).build();
+			}
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorConstants.DEFAULT_ERROR.getConstantVal()).setStatusMessage(ErrorConstants.DEFAULT_MSG.getConstantVal()).build();
+		}
+	}
+
+	//	/**
+	//	 * this method is to get workflowId by return and role wise
+	//	 * @param returnId
+	//	 * @param roleId
+	//	 * @return workflowId
+	//	 * @throws Exception
+	//	 */
+	//	public List<Workflow> getWorkflowList(Workflow workflow) throws Exception {
+	//		List<Workflow> outputWorkflowList = new ArrayList<Workflow>();
+	//		try {
+	//			List<Workflow> workflowList = workflowService.getActiveDataFor(null, null);
+	//
+	//			CopyOnWriteArrayList<Long> copyOnWriteArrayList = new CopyOnWriteArrayList<>(workflow.getReturnIds());
+	//
+	//			List<Long> returnIdList = null;
+	//
+	//			for (Workflow wf : workflowList) {
+	//				if (StringUtils.isEmpty(wf.getReturnList())) {
+	//					continue;
+	//				}
+	//
+	//				returnIdList = Stream.of(wf.getReturnList().split(",")).map(Long::valueOf).collect(Collectors.toList());
+	//
+	//				if (CollectionUtils.isEmpty(returnIdList)) {
+	//					continue;
+	//				}
+	//
+	//				if (workflow.isWebChannel()) {
+	//					if (wf.isWebChannel()) {
+	//						prepareWorkflowList(outputWorkflowList, copyOnWriteArrayList, returnIdList, wf);
+	//					}
+	//				} else if (workflow.isUploadChannel()) {
+	//					if (wf.isUploadChannel()) {
+	//						prepareWorkflowList(outputWorkflowList, copyOnWriteArrayList, returnIdList, wf);
+	//					}
+	//				} else if (workflow.isApiChannel()) {
+	//					if (wf.isApiChannel()) {
+	//						prepareWorkflowList(outputWorkflowList, copyOnWriteArrayList, returnIdList, wf);
+	//					}
+	//				} else if (workflow.isEmailChannel()) {
+	//					if (wf.isEmailChannel()) {
+	//						prepareWorkflowList(outputWorkflowList, copyOnWriteArrayList, returnIdList, wf);
+	//					}
+	//				} else if (workflow.isStsChannel()) {
+	//					if (wf.isStsChannel()) {
+	//						prepareWorkflowList(outputWorkflowList, copyOnWriteArrayList, returnIdList, wf);
+	//					}
+	//				}
+	//			}
+	//		} catch (Exception e) {
+	//			throw new Exception(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+	//		}
+	//		return outputWorkflowList;
+	//	}
+
+	//	private void prepareWorkflowList(List<Workflow> outputWorkflowList, CopyOnWriteArrayList<Long> copyOnWriteArrayList, List<Long> returnIdList, Workflow wf) {
+	//		for (Long returnId : copyOnWriteArrayList) {
+	//			if (!returnIdList.contains(returnId)) {
+	//				continue;
+	//			} else {
+	//				copyOnWriteArrayList.remove(copyOnWriteArrayList.indexOf(returnId));
+	//				Workflow workflow = new Workflow();
+	//				workflow.setJson(wf.getJson());
+	//			//	workflow.setReturnId(returnId);
+	//				workflow.setWorkflowId(wf.getWorkflowId());
+	//
+	//				outputWorkflowList.add(workflow);
+	//			}
+	//		}
+	//	}
+
+	@GetMapping(value = "/getWorkflowNameList")
+	public ServiceResponse getWorkflowNameList(@RequestHeader(name = "JobProcessingId") String jobProcessId) {
+		LOGGER.info("Request received to getWorkflowNameList for processing id" + jobProcessId);
+		try {
+			List<WorkFlowMasterBean> workflowNameList = workFlowMasterRepo.getWorkflowNameList();
+			List<WorkFlowMasterBean> workFlowList = new ArrayList<>();
+			WorkFlowMasterBean workFlowMasterBean;
+			for (WorkFlowMasterBean workFlowItr : workflowNameList) {
+				workFlowMasterBean = new WorkFlowMasterBean();
+				workFlowMasterBean.setWorkflowId(workFlowItr.getWorkflowId());
+				workFlowMasterBean.setWorkFlowName(workFlowItr.getWorkFlowName());
+				workFlowMasterBean.setWorkFlowJson(workFlowItr.getWorkFlowJson());
+				workFlowMasterBean.setDesc(workFlowItr.getDesc());
+				workFlowList.add(workFlowMasterBean);
+			}
+			if (CollectionUtils.isEmpty(workFlowList)) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0963.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0963.toString())).build();
+			}
+			return new ServiceResponseBuilder().setStatus(true).setResponse(workFlowList).build();
+		} catch (Exception e) {
+			LOGGER.error("Exception occoured while fatching getWorkflowNameList for processing id" + jobProcessId + "Exception is " + e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0963.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0963.toString())).build();
+		}
+	}
+
+	@PostMapping(value = "/fetchWorkflowData")
+	public ServiceResponse fetchWorkflowData(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody WorkflowReturnMappingInfo workflow) {
+		LOGGER.info("Request received to fetchWorkflowData for processing id " + jobProcessId);
+		WorkflowReturnMapping workflowBean = new WorkflowReturnMapping();
+
+		List<WorkflowReturnMapping> responseList = new ArrayList<WorkflowReturnMapping>();
+		try {
+			List<WorkflowReturnMapping> workFLowList = new ArrayList<>();
+			if (workflow != null) {
+				workFLowList = workflowService.fetchWorkFlowData(workflow.getWorkFlowMaster().getWorkflowId());
+			}
+			List<Long> returnIdList = new ArrayList<>();
+			for (WorkflowReturnMapping workflowItr : workFLowList) {
+				returnIdList.add(workflowItr.getReturnIdFk().getReturnId());
+			}
+			String jsonData = fileDetailsController.getActivityTrackerListExcludeFiling(workflow.getWorkFlowMaster().getWorkflowId());
+			if (!workflow.isStatusFlag()) {
+				regulatorDataList = new ArrayList<>();
+				ReturnGroupMappingRequest returnGroupMappingReq = new ReturnGroupMappingRequest();
+				returnGroupMappingReq.setRoleId(workflow.getLastUpdatedBy().getRoleIdKey());
+				returnGroupMappingReq.setUserId(workflow.getLastUpdatedBy().getUserId());
+				returnGroupMappingReq.setIsActive(true);
+				returnGroupMappingReq.setLangId(workflow.getLangId());
+				ServiceResponse returnGroupServiceResponse = returnGroupController.getReturnGroups(jobProcessId, returnGroupMappingReq);
+				List<ReturnDto> returnDtoList = new ArrayList<>();
+				if (returnGroupServiceResponse.isStatus()) {
+					@SuppressWarnings("unchecked")
+					List<ReturnGroupMappingDto> returnGroupMappingRtos = (List<ReturnGroupMappingDto>) returnGroupServiceResponse.getResponse();
+					for (ReturnGroupMappingDto returnGroupMappingDto : returnGroupMappingRtos) {
+						returnDtoList.addAll(returnGroupMappingDto.getReturnList());
+					}
+					for (ReturnDto returnDTO : returnDtoList) {
+						if (returnDTO.getRegulator() != null) {
+							regulatorDataList.add(returnDTO);
+						}
+					}
+				}
+				regulatorDataList.sort((ReturnDto p1, ReturnDto p2) -> p1.getReturnName().compareToIgnoreCase(p2.getReturnName()));
+				regulatorDataList.sort((ReturnDto p1, ReturnDto p2) -> p1.getRegulator().getRegulatorName().compareToIgnoreCase(p2.getRegulator().getRegulatorName()));
+			}
+			Return returnBean = new Return();
+			WorkFlowMasterBean workFlowMasterBean = new WorkFlowMasterBean();
+			for (ReturnDto returnDTO : regulatorDataList) {
+				workflowBean = new WorkflowReturnMapping();
+				returnBean = new Return();
+				workFlowMasterBean = new WorkFlowMasterBean();
+				if (returnIdList.contains(returnDTO.getReturnId())) {
+					returnBean.setReturnId(returnDTO.getReturnId());
+					returnBean.setReturnName(returnDTO.getReturnName());
+					returnBean.setReturnCode(returnDTO.getReturnCode());
+					workFlowMasterBean.setWorkFlowJson(jsonData);
+					workflowBean.setReturnIdFk(returnBean);
+					workflowBean.setRegulator(returnDTO.getRegulator());
+					workflowBean.setWorkFlowMaster(workFlowMasterBean);
+					for (WorkflowReturnMapping workflowItr1 : workFLowList) {
+						if (workflowItr1.getReturnIdFk().getReturnId().equals(returnDTO.getReturnId())) {
+							if (workflowItr1.getChannelIdFk().getUploadChannelId().equals(GeneralConstants.WEB_CHANNEL.getConstantLongVal())) {
+								workflowBean.setWebChannel(true);
+							}
+							if (workflowItr1.getChannelIdFk().getUploadChannelId().equals(GeneralConstants.UPLOAD_CHANNEL.getConstantLongVal())) {
+								workflowBean.setUploadChannel(true);
+							}
+							if (workflowItr1.getChannelIdFk().getUploadChannelId().equals(GeneralConstants.API_CHANNEL.getConstantLongVal())) {
+								workflowBean.setApiChannel(true);
+							}
+							if (workflowItr1.getChannelIdFk().getUploadChannelId().equals(GeneralConstants.EMAIL_CHANNEL.getConstantLongVal())) {
+								workflowBean.setEmailChannel(true);
+							}
+							if (workflowItr1.getChannelIdFk().getUploadChannelId().equals(GeneralConstants.SYSTEM_CHANNEL.getConstantLongVal())) {
+								workflowBean.setStsChannel(true);
+							}
+						}
+					}
+				} else {
+					returnBean.setReturnId(returnDTO.getReturnId());
+					returnBean.setReturnName(returnDTO.getReturnName());
+					returnBean.setReturnCode(returnDTO.getReturnCode());
+					workFlowMasterBean.setWorkFlowJson(jsonData);
+					workflowBean.setReturnIdFk(returnBean);
+					workflowBean.setRegulator(returnDTO.getRegulator());
+					workflowBean.setWorkFlowMaster(workFlowMasterBean);
+					workflowBean.setWebChannel(false);
+					workflowBean.setUploadChannel(false);
+					workflowBean.setApiChannel(false);
+					workflowBean.setEmailChannel(false);
+					workflowBean.setStsChannel(false);
+				}
+				responseList.add(workflowBean);
+			}
+			if (CollectionUtils.isEmpty(responseList)) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0964.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0964.toString())).build();
+			}
+			return new ServiceResponseBuilder().setStatus(true).setResponse(responseList).build();
+		} catch (Exception e) {
+			LOGGER.error("Exception occoured while fatching fetchWorkflowData for processing id " + jobProcessId + "Exception is " + e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0964.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0964.toString())).build();
+		}
+	}
+
+	@PostMapping(value = "/addWorkflowReturnMappingData")
+	public ServiceResponse addWorkflowReturnMappingData(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody WorkflowReturnMappingInfo workflowBean) {
+		LOGGER.info("Request received to addWorkflowReturnMappingData for processing id " + jobProcessId);
+		boolean status = false;
+		boolean activeFlag = true;
+		try {
+			if (!CollectionUtils.isEmpty(workflowBean.getActiveReturnChannelList())) {
+				activeFlag = getActiveReturnStatus(workflowBean.getActiveReturnChannelList());
+			}
+			if (!CollectionUtils.isEmpty(workflowBean.getReturnChannelList())) {
+				if (activeFlag) {
+					status = workflowService.addUpdateWorkflowData(workflowBean.getReturnChannelList());
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error("Exception occoured while addWorkflowReturnMappingData data for processing id " + jobProcessId + "Exception is " + e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0962.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0962.toString())).build();
+		}
+		if (status) {
+			ServiceResponse response = new ServiceResponse.ServiceResponseBuilder().setStatus(status).build();
+			response.setResponse(status);
+			return response;
+		} else {
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E1074.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0962.toString())).build();
+		}
+	}
+
+	private boolean getActiveReturnStatus(List<WorkflowReturnMappingInfo> activeReturnChannelList) {
+		boolean status = true;
+		try {
+			WorkflowReturnMappingInfo workflow = activeReturnChannelList.get(0);
+			List<WorkflowReturnMapping> workFLowList = new ArrayList<>();
+			Map<Long, String> activeReturnMap = new HashMap<>();
+			Map<Long, String> activeMap = new HashMap<>();
+			String frontData, backData;
+			List<String> fData;
+			workFLowList = workflowService.fetchWorkFlowData(workflow.getWorkFlowMaster().getWorkflowId());
+			for (WorkflowReturnMappingInfo activeWorkflowItr : activeReturnChannelList) {
+				String channelID = "";
+				if (activeWorkflowItr.isWebChannel()) {
+					channelID = GeneralConstants.WEB_CHANNEL.getConstantLongVal().toString();
+				}
+				if (activeWorkflowItr.isUploadChannel()) {
+					channelID = channelID + "," + GeneralConstants.UPLOAD_CHANNEL.getConstantLongVal();
+				}
+				if (activeWorkflowItr.isApiChannel()) {
+					channelID = channelID + "," + GeneralConstants.API_CHANNEL.getConstantLongVal();
+				}
+				if (activeWorkflowItr.isEmailChannel()) {
+					channelID = channelID + "," + GeneralConstants.EMAIL_CHANNEL.getConstantLongVal();
+				}
+				if (activeWorkflowItr.isStsChannel()) {
+					channelID = channelID + "," + GeneralConstants.SYSTEM_CHANNEL.getConstantLongVal();
+				}
+				if (channelID.startsWith(",")) {
+					channelID = channelID.substring(1);
+				}
+				activeMap.put(activeWorkflowItr.getReturnIdFk().getReturnId(), channelID);
+			}
+			activeReturnMap = new HashMap<>();
+			for (WorkflowReturnMapping workflowItr : workFLowList) {
+				if (activeReturnMap.containsKey(workflowItr.getReturnIdFk().getReturnId())) {
+					activeReturnMap.put(workflowItr.getReturnIdFk().getReturnId(), activeReturnMap.get(workflowItr.getReturnIdFk().getReturnId()) + "," + workflowItr.getChannelIdFk().getUploadChannelId());
+				} else {
+					activeReturnMap.put(workflowItr.getReturnIdFk().getReturnId(), workflowItr.getChannelIdFk().getUploadChannelId().toString());
+				}
+			}
+			for (Entry<Long, String> entry : activeMap.entrySet()) {
+				frontData = entry.getValue();
+				backData = activeReturnMap.get(entry.getKey());
+				if (backData != null) {
+					fData = Arrays.asList(frontData.split(","));
+					if (fData.size() > 0) {
+						for (String data : fData) {
+							if (backData.contains(data)) {
+								status = false;
+								break;
+							}
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error("Exception occoured while getActiveReturnStatus data Exception is " + e);
+		}
+		return status;
+	}
+
+	@GetMapping(value = "/getActiveWorkflowData")
+	public ServiceResponse getActiveWorkflowData(@RequestHeader(name = "JobProcessingId") String jobProcessId) {
+		LOGGER.info("Request received to getActiveWorkflowData for processing id" + jobProcessId);
+		try {
+			List<WorkflowReturnMapping> workflowList = workflowService.getActiveDataFor(null, null);
+			List<WorkflowReturnMapping> workFlowList = new ArrayList<>();
+			WorkflowReturnMapping workFlowBean;
+			Return returnObj = new Return();
+			for (WorkflowReturnMapping wf : workflowList) {
+				workFlowBean = new WorkflowReturnMapping();
+				returnObj = new Return();
+				workFlowBean.setWorkFlowMaster(wf.getWorkFlowMaster());
+				returnObj.setReturnId(wf.getReturnIdFk().getReturnId());
+				workFlowBean.setReturnIdFk(returnObj);
+				workFlowBean.setChannelIdFk(wf.getChannelIdFk());
+				workFlowList.add(workFlowBean);
+			}
+			if (CollectionUtils.isEmpty(workFlowList)) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0961.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0961.toString())).build();
+			}
+			return new ServiceResponseBuilder().setStatus(true).setResponse(workFlowList).build();
+		} catch (Exception e) {
+			LOGGER.error("Exception occoured while fatching getActiveWorkflowData for processing id" + jobProcessId + "Exception is " + e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0961.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0961.toString())).build();
+		}
+	}
+
+	@GetMapping(value = "/fetchReturnIdByWorkFlowId/{workflowId}")
+	public ServiceResponse fetchReturnIdByWorkFlowId(@RequestHeader(name = "JobProcessingId") String jobProcessId, @PathVariable Long workflowId) {
+		LOGGER.info("Request received to fetchReturnIdByWorkFlowId for processing id " + jobProcessId);
+
+		try {
+			List<WorkflowReturnMapping> workFLowList = new ArrayList<>();
+
+			workFLowList = workflowService.fetchWorkFlowData(workflowId);
+
+			List<Long> returnIdList = new ArrayList<>();
+			for (WorkflowReturnMapping workflowItr : workFLowList) {
+				returnIdList.add(workflowItr.getReturnIdFk().getReturnId());
+			}
+
+			String jsonResult = new Gson().toJson(returnIdList);
+			if (!UtilMaster.isEmpty(jsonResult)) {
+				return new ServiceResponseBuilder().setStatus(true).setResponse(jsonResult).build();
+			} else {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0964.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0964.toString())).build();
+			}
+		} catch (Exception e) {
+			LOGGER.error("Exception occoured while fetchReturnIdByWorkFlowId for processing id" + jobProcessId + "Exception is " + e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0964.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0964.toString())).build();
+
+		}
+	}
+}

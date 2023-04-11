@@ -1,0 +1,35 @@
+package com.iris.sdmx.fusion.bean;
+
+import java.util.List;
+
+/**
+ * @author apagaria
+ *
+ */
+public class Data {
+
+	private List<Contentconstraints> contentConstraints;
+
+	/**
+	 * @return the contentConstraints
+	 */
+	public List<Contentconstraints> getContentConstraints() {
+		return contentConstraints;
+	}
+
+	/**
+	 * @param contentConstraints the contentConstraints to set
+	 */
+	public void setContentConstraints(List<Contentconstraints> contentConstraints) {
+		this.contentConstraints = contentConstraints;
+	}
+
+	/**
+	 *
+	 */
+	@Override
+	public String toString() {
+		return "Data [contentConstraints=" + contentConstraints + "]";
+	}
+
+}

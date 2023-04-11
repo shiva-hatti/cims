@@ -1,0 +1,236 @@
+package com.iris.sdmx.menu.service;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.iris.exception.ServiceException;
+import com.iris.model.FieldKeyLabel;
+import com.iris.repository.FieldKeyLabelRepo;
+import com.iris.sdmx.menu.bean.MenuAccessInputBean;
+import com.iris.sdmx.menu.bean.SdmxActionMenuMappingBean;
+import com.iris.sdmx.menu.bean.SdmxMenuBean;
+import com.iris.sdmx.menu.entity.SdmxActionMenuMapping;
+import com.iris.sdmx.menu.entity.SdmxMenu;
+import com.iris.sdmx.menu.helper.SdmxMenuHelper;
+import com.iris.sdmx.menu.repo.SdmxActionMenuMappingRepo;
+import com.iris.sdmx.menu.repo.SdmxMenuRepo;
+import com.iris.service.GenericService;
+
+/**
+ * @author vjadhav
+ *
+ */
+@Service
+@Transactional(readOnly = true)
+public class SdmxMenuService implements GenericService<SdmxMenu, Long> {
+	
+	private static final Logger LOGGER = LogManager.getLogger(SdmxMenuService.class);
+
+	@Autowired
+	private SdmxMenuRepo sdmxMenuRepo;
+	
+	@Autowired
+	private SdmxMenuHelper sdmxMenuHelper;
+	
+	@Autowired
+	private SdmxActionMenuMappingRepo sdmxActionMenuMappingRepo;
+	
+	@Autowired
+	private FieldKeyLabelRepo fieldKeyLabelRepo;
+	
+	@Override
+	public SdmxMenu add(SdmxMenu entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean update(SdmxMenu entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public List<SdmxMenu> getDataByIds(Long[] ids) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public SdmxMenu getDataById(Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<SdmxMenu> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<SdmxMenu> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName)
+			throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<SdmxMenu> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<SdmxMenu> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<SdmxMenu> getAllDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void deleteData(SdmxMenu bean) throws ServiceException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public List<SdmxMenuBean> getMenuAccessList(String jobProcessId,MenuAccessInputBean menuAccessInputBean,String langCode) {
+		LOGGER.info("START - service @getMenuAccessList with Job Processing ID : " + jobProcessId);
+
+		List<SdmxMenu> SdmxMenuEntityList = new ArrayList<>();
+		List<SdmxMenu> activeSdmxMenuList = new ArrayList<>();
+		List<SdmxMenuBean> SdmxMenuBeanList = new ArrayList<>();
+		List<SdmxMenu> SdmxMenuEntityListCopy;
+		
+		if(langCode == null) {
+			langCode = "en";
+		}
+		
+		if(menuAccessInputBean.getRoleTypeId() != null) {
+			LOGGER.debug("START - service @getMenuAccessList getRoleTypeWiseActiveMenus with Job Processing ID : " + jobProcessId);
+			SdmxMenuEntityList = sdmxMenuRepo.getRoleTypeWiseActiveMenus(menuAccessInputBean.getRoleTypeId(), 
+					menuAccessInputBean.getIsAdmin(), menuAccessInputBean.getIsMainDept());
+			LOGGER.debug("END - service @getMenuAccessList getRoleTypeWiseActiveMenus with Job Processing ID : " + jobProcessId);
+
+			LOGGER.debug("START - service @getMenuAccessList getAllActiveMenus with Job Processing ID : " + jobProcessId);
+
+			activeSdmxMenuList = sdmxMenuRepo.getAllActiveMenus();
+			LOGGER.debug("END - service @getMenuAccessList getRoleTypeWiseActiveMenus with Job Processing ID : " + jobProcessId);
+			Set<Long> idSet = new HashSet<Long>();
+			
+			//copying arraylist
+			SdmxMenuEntityListCopy = new ArrayList<>(SdmxMenuEntityList);
+			addParentMenu(SdmxMenuEntityListCopy,activeSdmxMenuList,SdmxMenuEntityList,idSet,jobProcessId);
+		} else {
+			LOGGER.debug("START - service @getMenuAccessList getAllActiveMenus with Job Processing ID : " + jobProcessId);
+
+			SdmxMenuEntityList = sdmxMenuRepo.getAllActiveMenus();
+			LOGGER.debug("END - service @getMenuAccessList getRoleTypeWiseActiveMenus with Job Processing ID : " + jobProcessId);
+
+		}
+		Map<String, String> fieldKeyLabelMap = new TreeMap<>();
+		List<String> fieldKeyList = new ArrayList<>();
+		fieldKeyList = SdmxMenuEntityList.stream().map(f -> f.getMenuLabelKey()).collect(Collectors.toList());
+
+		fieldKeyLabelMap = getFieldKeyLabelMap(langCode,fieldKeyList,jobProcessId);
+		if (!SdmxMenuEntityList.isEmpty()) {
+			SdmxMenuBean sdmxMenuBean;
+			for(SdmxMenu sdmxMenu: SdmxMenuEntityList) {
+				
+				sdmxMenuBean = new SdmxMenuBean();
+				sdmxMenuHelper.convertEntityToBean(sdmxMenu, sdmxMenuBean, fieldKeyLabelMap, jobProcessId);
+				SdmxMenuBeanList.add(sdmxMenuBean);
+			}
+		}
+		
+		SdmxMenuBeanList.sort((SdmxMenuBean o1, SdmxMenuBean o2) -> Float.compare(o1.getOrderNo(), o2.getOrderNo()));
+		LOGGER.info("END - service @getMenuAccessList with Job Processing ID : " + jobProcessId);
+
+		return SdmxMenuBeanList;
+	}
+	
+	public List<SdmxActionMenuMappingBean> getMenuActionListById(String jobProcessId,List<Long> menuIdList) {
+		LOGGER.info("START - service @getMenuActionListById with Job Processing ID : " + jobProcessId);
+
+		List<SdmxActionMenuMapping> SdmxActionMenuMappingEntityList = new ArrayList<>();
+		List<SdmxActionMenuMappingBean> SdmxActionMenuMappingBeanList = new ArrayList<>();
+		LOGGER.debug("START - service @getMenuActionListById findBySdmxMenuId with Job Processing ID : " + jobProcessId);
+		if(!menuIdList.isEmpty()) {
+			SdmxActionMenuMappingEntityList = sdmxActionMenuMappingRepo.findBySdmxMenuIdList(menuIdList);
+			
+		}
+		
+		LOGGER.debug("START - service @getMenuActionListById findBySdmxMenuId with Job Processing ID : " + jobProcessId);
+
+		if(!SdmxActionMenuMappingEntityList.isEmpty()) {
+			SdmxActionMenuMappingBean sdmxActionMenuMappingBean;
+			for(SdmxActionMenuMapping sdmxActionMenuMapping: SdmxActionMenuMappingEntityList) {
+				sdmxActionMenuMappingBean = new SdmxActionMenuMappingBean();
+				sdmxMenuHelper.convertEntityToBean(sdmxActionMenuMapping, sdmxActionMenuMappingBean, jobProcessId);
+				SdmxActionMenuMappingBeanList.add(sdmxActionMenuMappingBean);
+			}
+
+		}
+		
+		LOGGER.info("START - service @getMenuActionListById with Job Processing ID : " + jobProcessId);
+
+		return SdmxActionMenuMappingBeanList;
+	}
+	
+	public Map<String, String> getFieldKeyLabelMap(String langCode,List<String> fieldKeyList,String jobProcessId) {
+		LOGGER.info("START - service @getMenuActionListById with Job Processing ID : " + jobProcessId);
+
+		List<FieldKeyLabel> fieldKeyLableList = new ArrayList<>();
+		List<String> langCodeList = new ArrayList<>();
+		langCodeList.add(langCode);
+		fieldKeyLableList = fieldKeyLabelRepo.getDataByLabelKeyAndLangCode(fieldKeyList, langCodeList);			
+		Map<String, String> fieldKeyLabelMap = new TreeMap<>();
+		if(!fieldKeyLableList.isEmpty()) {
+			fieldKeyLabelMap = fieldKeyLableList.stream().collect(Collectors.toMap(FieldKeyLabel::getFieldKey, FieldKeyLabel::getFieldKeyLable));
+		}
+		LOGGER.info("END - service @getMenuActionListById with Job Processing ID : " + jobProcessId);
+
+		return fieldKeyLabelMap;
+	}
+	
+	public void addParentMenu(List<SdmxMenu> SdmxMenuEntityListCopy,List<SdmxMenu> activeSdmxMenuList ,List<SdmxMenu> sdmxMenuEntityList,Set<Long> idSet,String jobProcessId) {
+		LOGGER.info("START - service @addParentMenu with Job Processing ID : " + jobProcessId);
+
+		List<SdmxMenu> parentSdmxMenuList = new ArrayList<>();
+		if(!SdmxMenuEntityListCopy.isEmpty() && !activeSdmxMenuList.isEmpty()) {
+			for(SdmxMenu sdmxMenu: SdmxMenuEntityListCopy) {
+				if(sdmxMenu.getLevel()!= 1 &&!idSet.contains(sdmxMenu.getParentMenuId().getSdmxMenuId())) {
+					SdmxMenu parentMenu = sdmxMenu.getParentMenuId();
+					parentSdmxMenuList.add(parentMenu);
+					idSet.add(sdmxMenu.getParentMenuId().getSdmxMenuId());
+					 
+				} 
+			}
+		}
+		
+		sdmxMenuEntityList.addAll(parentSdmxMenuList);
+		if(!parentSdmxMenuList.isEmpty()) {
+			addParentMenu(parentSdmxMenuList,activeSdmxMenuList,sdmxMenuEntityList,idSet,jobProcessId);
+		}
+		LOGGER.info("END - service @addParentMenu with Job Processing ID : " + jobProcessId);
+
+	}
+}

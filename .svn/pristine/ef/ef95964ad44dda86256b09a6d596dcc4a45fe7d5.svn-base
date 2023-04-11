@@ -1,0 +1,76 @@
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.google.gson.Gson;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.model.ProcessingTime;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ErrorConstants;
+
+/**
+ * @author Sajadhav
+ */
+@RestController
+@RequestMapping("/service/processingTimeController")
+public class ProcessingTimeController {
+
+	@Autowired
+	private GenericService<ProcessingTime, Long> processingTimeService;
+
+	static final Logger LOGGER = LogManager.getLogger(ProcessingTimeController.class);
+
+	@PostMapping(value = "/insertRecordProcessingTime")
+	public ServiceResponse insertRecordProcessingTime(@RequestHeader("JobProcessingId") String jobProcessingId, @RequestBody List<ProcessingTime> processingTimeList) {
+		try {
+			LOGGER.info("Request received for request transaction id :" + jobProcessingId);
+			boolean isExceptionOccured = false;
+			LOGGER.info(new Gson().toJson(processingTimeList));
+			List<ProcessingTime> outputProcessingTimeList = new ArrayList<>();
+			for (ProcessingTime processingTime : processingTimeList) {
+				try {
+					processingTime.setProcessEndTime(new Date(processingTime.getProcessEndTimeInLong()));
+					processingTime.setProcessStartTime(new Date(processingTime.getProcessStartTimeInLong()));
+					processingTimeService.add(processingTime);
+					processingTime.setStatus(true);
+				} catch (Exception e) {
+					processingTime.setStatus(false);
+					isExceptionOccured = true;
+					LOGGER.error("Exception for saving record for upload id" + processingTime.getReturnUploadDetails().getUploadId() + " Application process id :" + processingTime.getReturnUploadDetails().getApplicationProcessId());
+				}
+			}
+
+			processingTimeList.forEach(f -> {
+				f.setProcessStartTime(null);
+				f.setProcessEndTime(null);
+			});
+
+			if (isExceptionOccured) {
+				return new ServiceResponseBuilder().setStatus(true).setStatusCode(ErrorConstants.RECORD_SAVED_SUCCESSFULLY.getConstantVal()).setResponse(processingTimeList).build();
+			} else {
+				return new ServiceResponseBuilder().setStatus(true).setStatusCode(ErrorConstants.PARTAIL_RECORD_SAVED.getConstantVal()).setResponse(processingTimeList).build();
+			}
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorConstants.DEFAULT_ERROR.getConstantVal()).build();
+		}
+	}
+
+	//	public static void main(String[] args) {
+	//		System.out.println(new Date().getTime());
+	//		System.out.println(new Date(517635L));
+	//	}
+
+}

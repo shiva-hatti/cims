@@ -1,0 +1,144 @@
+/**
+ * 
+ */
+package com.iris.sdmx.exceltohtml.bean;
+
+import java.util.List;
+
+/**
+ * @author apagaria
+ *
+ */
+public class DimensionDetailCategories {
+	
+	/**
+	 * 
+	 */
+	private String dsdId;
+	
+	/**
+	 * 
+	 */
+	private List<DimensionCodeListValueBean> closedDim;
+	
+	/**
+	 * 
+	 */
+	private List<DimensionCodeListValueBean> commonDimension;
+	
+	/**
+	 * 
+	 */
+	private List<DimensionCodeListValueBean> openDimension;
+
+	/**
+	 * @return the dsdId
+	 */
+	public String getDsdId() {
+		return dsdId;
+	}
+
+	/**
+	 * @param dsdId the dsdId to set
+	 */
+	public void setDsdId(String dsdId) {
+		this.dsdId = dsdId;
+	}
+
+	/**
+	 * @return the closedDim
+	 */
+	public List<DimensionCodeListValueBean> getClosedDim() {
+		return closedDim;
+	}
+
+	/**
+	 * @param closedDim the closedDim to set
+	 */
+	public void setClosedDim(List<DimensionCodeListValueBean> closedDim) {
+		this.closedDim = closedDim;
+	}
+
+	/**
+	 * @return the commonDimension
+	 */
+	public List<DimensionCodeListValueBean> getCommonDimension() {
+		return commonDimension;
+	}
+
+	/**
+	 * @param commonDimension the commonDimension to set
+	 */
+	public void setCommonDimension(List<DimensionCodeListValueBean> commonDimension) {
+		this.commonDimension = commonDimension;
+	}
+
+	/**
+	 * @return the openDimension
+	 */
+	public List<DimensionCodeListValueBean> getOpenDimension() {
+		return openDimension;
+	}
+
+	/**
+	 * @param openDimension the openDimension to set
+	 */
+	public void setOpenDimension(List<DimensionCodeListValueBean> openDimension) {
+		this.openDimension = openDimension;
+	}
+	
+	
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((closedDim == null) ? 0 : closedDim.hashCode());
+		result = prime * result + ((commonDimension == null) ? 0 : commonDimension.hashCode());
+		result = prime * result + ((dsdId == null) ? 0 : dsdId.hashCode());
+		result = prime * result + ((openDimension == null) ? 0 : openDimension.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		DimensionDetailCategories other = (DimensionDetailCategories) obj;
+		if (closedDim == null) {
+			if (other.closedDim != null)
+				return false;
+		} else if (!closedDim.equals(other.closedDim))
+			return false;
+		if (commonDimension == null) {
+			if (other.commonDimension != null)
+				return false;
+		} else if (!commonDimension.equals(other.commonDimension))
+			return false;
+		if (dsdId == null) {
+			if (other.dsdId != null)
+				return false;
+		} else if (!dsdId.equals(other.dsdId))
+			return false;
+		if (openDimension == null) {
+			if (other.openDimension != null)
+				return false;
+		} else if (!openDimension.equals(other.openDimension))
+			return false;
+		return true;
+	}
+
+	/**
+	 *
+	 */
+	@Override
+	public String toString() {
+		return "DimensionDetailCategories [dsdId=" + dsdId + ", closedDim=" + closedDim + ", commonDimension="
+				+ commonDimension + ", openDimension=" + openDimension + "]";
+	}
+
+}

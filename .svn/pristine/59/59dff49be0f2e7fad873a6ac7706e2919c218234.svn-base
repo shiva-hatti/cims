@@ -1,0 +1,90 @@
+package com.iris.model;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "TBL_EMAIL_GROUP_MAPPING")
+public class EmailGroupMapping implements Serializable {
+
+	private static final long serialVersionUID = 3331007891720218816L;
+
+	@Id
+	@Column(name = "EMAIL_GROUP_MAPPING_ID")
+	private long emailGroupMapId;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn (name="EMAIL_ALERT_ID_FK")
+	private EmailAlert emailAlertIdFk;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn (name="EMAIL_GROUP_ID_FK")
+	private EmailGroup emailGroupIdFk;
+	
+	@Column (name="EMAIL_TYPE")
+	private Integer emailTypeId;
+
+	/**
+	 * @return the emailGroupMapId
+	 */
+	public long getEmailGroupMapId() {
+		return emailGroupMapId;
+	}
+
+	/**
+	 * @param emailGroupMapId the emailGroupMapId to set
+	 */
+	public void setEmailGroupMapId(long emailGroupMapId) {
+		this.emailGroupMapId = emailGroupMapId;
+	}
+
+	/**
+	 * @return the emailAlertIdFk
+	 */
+	public EmailAlert getEmailAlertIdFk() {
+		return emailAlertIdFk;
+	}
+
+	/**
+	 * @param emailAlertIdFk the emailAlertIdFk to set
+	 */
+	public void setEmailAlertIdFk(EmailAlert emailAlertIdFk) {
+		this.emailAlertIdFk = emailAlertIdFk;
+	}
+
+	/**
+	 * @return the emailTypeId
+	 */
+	public Integer getEmailTypeId() {
+		return emailTypeId;
+	}
+
+	/**
+	 * @param emailTypeId the emailTypeId to set
+	 */
+	public void setEmailTypeId(Integer emailTypeId) {
+		this.emailTypeId = emailTypeId;
+	}
+
+	/**
+	 * @return the emailGroupIdFk
+	 */
+	public EmailGroup getEmailGroupIdFk() {
+		return emailGroupIdFk;
+	}
+
+	/**
+	 * @param emailGroupIdFk the emailGroupIdFk to set
+	 */
+	public void setEmailGroupIdFk(EmailGroup emailGroupIdFk) {
+		this.emailGroupIdFk = emailGroupIdFk;
+	}
+	
+}

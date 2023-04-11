@@ -1,0 +1,141 @@
+/**
+ * 
+ */
+package com.iris.sdmx.fusion.bean.validation;
+
+import java.io.Serializable;
+import java.util.List;
+
+import com.google.gson.annotations.SerializedName;
+
+/**
+ * @author sajadhav
+ *
+ */
+public class FusionValErrors implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 273627193206804296L;
+	
+	@SerializedName(value = "ErrorCode")
+	private String errorCode;
+	
+	@SerializedName(value = "Message")
+	private String message;
+	
+	@SerializedName(value = "Dataset")
+	private String dataSet;
+	
+	@SerializedName(value = "ComponentId")
+	private String componentId;
+	
+	@SerializedName(value = "ReportedValue")
+	private String reportedValue;
+	
+	@SerializedName(value = "Position")
+	private String position;
+	
+	@SerializedName(value = "Keys")
+	private List<String> keys;
+
+	/**
+	 * @return the errorCode
+	 */
+	public String getErrorCode() {
+		return errorCode;
+	}
+
+	/**
+	 * @param errorCode the errorCode to set
+	 */
+	public void setErrorCode(String errorCode) {
+		this.errorCode = errorCode;
+	}
+
+	/**
+	 * @return the message
+	 */
+	public String getMessage() {
+		return message;
+	}
+
+	/**
+	 * @param message the message to set
+	 */
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
+	/**
+	 * @return the dataSet
+	 */
+	public String getDataSet() {
+		return dataSet;
+	}
+
+	/**
+	 * @param dataSet the dataSet to set
+	 */
+	public void setDataSet(String dataSet) {
+		this.dataSet = dataSet;
+	}
+
+	/**
+	 * @return the componentId
+	 */
+	public String getComponentId() {
+		return componentId;
+	}
+
+	/**
+	 * @param componentId the componentId to set
+	 */
+	public void setComponentId(String componentId) {
+		this.componentId = componentId;
+	}
+
+	/**
+	 * @return the reportedValue
+	 */
+	public String getReportedValue() {
+		return reportedValue;
+	}
+
+	/**
+	 * @param reportedValue the reportedValue to set
+	 */
+	public void setReportedValue(String reportedValue) {
+		this.reportedValue = reportedValue;
+	}
+
+	/**
+	 * @return the position
+	 */
+	public String getPosition() {
+		return position;
+	}
+
+	/**
+	 * @param position the position to set
+	 */
+	public void setPosition(String position) {
+		this.position = position;
+	}
+
+	/**
+	 * @return the keys
+	 */
+	public List<String> getKeys() {
+		return keys;
+	}
+
+	/**
+	 * @param keys the keys to set
+	 */
+	public void setKeys(List<String> keys) {
+		this.keys = keys;
+	}
+
+}

@@ -1,0 +1,158 @@
+/**
+ * 
+ */
+package com.iris.sdmx.exceltohtml.helper;
+
+import java.util.Date;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
+
+import com.iris.model.ReturnTemplate;
+import com.iris.model.UserMaster;
+import com.iris.sdmx.agency.master.entity.AgencyMaster;
+import com.iris.sdmx.exceltohtml.bean.SdmxReturnPreviewBean;
+import com.iris.sdmx.exceltohtml.entity.SdmxReturnPreviewEntity;
+import com.iris.sdmx.status.entity.SdmxModuleStatus;
+
+/**
+ * @author apagaria
+ *
+ */
+public class SdmxReturnPreviewHelper {
+
+	private SdmxReturnPreviewHelper() {
+	}
+
+	public static void convertEntityToBean(SdmxReturnPreviewEntity sdmxReturnPreviewEntity, SdmxReturnPreviewBean sdmxReturnPreviewBean) {
+		BeanUtils.copyProperties(sdmxReturnPreviewEntity, sdmxReturnPreviewBean);
+
+		// Return Template
+		if (sdmxReturnPreviewEntity.getReturnTemplateIdFk() != null) {
+			sdmxReturnPreviewBean.setReturnTemplateIdFk(sdmxReturnPreviewEntity.getReturnTemplateIdFk().getReturnTemplateId());
+			sdmxReturnPreviewBean.setReturnTemplateVer(sdmxReturnPreviewEntity.getReturnTemplateIdFk().getVersionNumber());
+			sdmxReturnPreviewBean.setReturnCode(sdmxReturnPreviewEntity.getReturnTemplateIdFk().getReturnObj().getReturnCode());
+			sdmxReturnPreviewBean.setReturnName(sdmxReturnPreviewEntity.getReturnTemplateIdFk().getReturnObj().getReturnName());
+		}
+
+		// Created By
+		if (sdmxReturnPreviewEntity.getCreatedBy() != null) {
+			sdmxReturnPreviewBean.setCreatedBy(sdmxReturnPreviewEntity.getCreatedBy().getUserId());
+			sdmxReturnPreviewBean.setCreatedByName(sdmxReturnPreviewEntity.getCreatedBy().getUserName());
+		}
+
+		// Modify By
+		if (sdmxReturnPreviewEntity.getModifyBy() != null) {
+			sdmxReturnPreviewBean.setModifyBy(sdmxReturnPreviewEntity.getModifyBy().getUserId());
+			sdmxReturnPreviewBean.setModifyByName(sdmxReturnPreviewEntity.getModifyBy().getUserName());
+		}
+
+		// Module Status Id
+		if (sdmxReturnPreviewEntity.getModuleStatusIdFk() != null) {
+			SdmxModuleStatus sdmxModuleStatus = sdmxReturnPreviewEntity.getModuleStatusIdFk();
+			sdmxReturnPreviewBean.setModuleStatusId(sdmxModuleStatus.getModuleStatusId());
+			sdmxReturnPreviewBean.setModuleStatusCode(sdmxModuleStatus.getModuleStatusCode());
+			sdmxReturnPreviewBean.setModuleStatusMessage(sdmxModuleStatus.getModuleStatusLabel());
+		}
+
+		// Ebr version
+		if (sdmxReturnPreviewEntity.getEbrVersion() != null) {
+			sdmxReturnPreviewBean.setEbrVersion(sdmxReturnPreviewEntity.getEbrVersion());
+		}
+
+		// is publish
+		if (sdmxReturnPreviewEntity.getIsPublished() != null) {
+			sdmxReturnPreviewBean.setIsPublished(sdmxReturnPreviewEntity.getIsPublished());
+		}
+
+		// valid from date
+		if (sdmxReturnPreviewEntity.getValidFromDate() != null) {
+			sdmxReturnPreviewBean.setValidFromDate(sdmxReturnPreviewEntity.getValidFromDate());
+			sdmxReturnPreviewBean.setValidFromDateInLong(sdmxReturnPreviewEntity.getValidFromDate().getTime());
+
+		}
+
+		// desc
+		if (sdmxReturnPreviewEntity.getDescription() != null) {
+			sdmxReturnPreviewBean.setDescription(sdmxReturnPreviewEntity.getDescription());
+
+		}
+
+		// user specific file name
+		if (sdmxReturnPreviewEntity.getUserSpecificFileName() != null) {
+			sdmxReturnPreviewBean.setUserSpecificFileName(sdmxReturnPreviewEntity.getUserSpecificFileName());
+		}
+
+		// excel file name
+		if (sdmxReturnPreviewEntity.getXlsxFilePath() != null) {
+			sdmxReturnPreviewBean.setXlsxFilePath(sdmxReturnPreviewEntity.getXlsxFilePath());
+		}
+
+		// Agency
+		if (sdmxReturnPreviewEntity.getAgencyMasterIdFk() != null) {
+			AgencyMaster agencyMaster = sdmxReturnPreviewEntity.getAgencyMasterIdFk();
+			sdmxReturnPreviewBean.setAgencyMasterIdFk(agencyMaster.getAgencyMasterId());
+			sdmxReturnPreviewBean.setAgencyMasterCode(agencyMaster.getAgencyMasterCode());
+			sdmxReturnPreviewBean.setAgencyMasterLable(agencyMaster.getAgencyMasterLabel());
+		}
+
+		// Validation Json
+		if (!StringUtils.isEmpty(sdmxReturnPreviewEntity.getValidationJson())) {
+			sdmxReturnPreviewBean.setValidationJson(sdmxReturnPreviewEntity.getValidationJson());
+		}
+	}
+
+	public static void convertBeanToEntity(SdmxReturnPreviewBean sdmxReturnPreviewBean, SdmxReturnPreviewEntity sdmxReturnPreviewEntity) {
+		BeanUtils.copyProperties(sdmxReturnPreviewBean, sdmxReturnPreviewEntity);
+
+		// User Master Created By
+		if (sdmxReturnPreviewBean.getCreatedBy() != null) {
+			UserMaster userMaster = new UserMaster();
+			userMaster.setUserId(sdmxReturnPreviewBean.getCreatedBy());
+			sdmxReturnPreviewEntity.setCreatedBy(userMaster);
+			// Created On
+			sdmxReturnPreviewEntity.setCreatedOn(new Date());
+			sdmxReturnPreviewEntity.setLastUpdatedOn(sdmxReturnPreviewEntity.getCreatedOn());
+		}
+
+		// Modify By
+		if (sdmxReturnPreviewBean.getModifyBy() != null) {
+			UserMaster userMaster = new UserMaster();
+			userMaster.setUserId(sdmxReturnPreviewBean.getModifyBy());
+			sdmxReturnPreviewEntity.setModifyBy(userMaster);
+			// Modify On
+			sdmxReturnPreviewEntity.setModifyOn(new Date());
+			sdmxReturnPreviewEntity.setLastUpdatedOn(sdmxReturnPreviewEntity.getModifyOn());
+		}
+
+		// Return Template id
+		if (sdmxReturnPreviewBean.getReturnTemplateIdFk() != null) {
+			ReturnTemplate returnTemplate = new ReturnTemplate();
+			returnTemplate.setReturnTemplateId(sdmxReturnPreviewBean.getReturnTemplateIdFk());
+			sdmxReturnPreviewEntity.setReturnTemplateIdFk(returnTemplate);
+		}
+
+		// Module Template Id
+		if (sdmxReturnPreviewBean.getModuleStatusId() != null) {
+			SdmxModuleStatus moduleStatusIdFk = new SdmxModuleStatus(sdmxReturnPreviewBean.getModuleStatusId());
+			sdmxReturnPreviewEntity.setModuleStatusIdFk(moduleStatusIdFk);
+		}
+
+		// Is published
+		if (sdmxReturnPreviewBean.getIsPublished() != null) {
+
+			sdmxReturnPreviewEntity.setIsPublished(sdmxReturnPreviewBean.getIsPublished());
+		}
+
+		// Agency Id
+		if (sdmxReturnPreviewBean.getAgencyMasterIdFk() != null) {
+			AgencyMaster agencyMaster = new AgencyMaster(sdmxReturnPreviewBean.getAgencyMasterIdFk());
+			sdmxReturnPreviewEntity.setAgencyMasterIdFk(agencyMaster);
+		}
+
+		// Validation Json
+		if (!StringUtils.isEmpty(sdmxReturnPreviewBean.getValidationJson())) {
+			sdmxReturnPreviewEntity.setValidationJson(sdmxReturnPreviewBean.getValidationJson());
+		}
+	}
+}

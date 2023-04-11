@@ -1,0 +1,255 @@
+package com.iris.ebr.business.technical.metadata.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.ebr.business.technical.metadata.bean.BusMetadatProcessBean;
+import com.iris.ebr.business.technical.metadata.bean.MetadataRequestBean;
+import com.iris.ebr.business.technical.metadata.bean.TechMetadatProcessBean;
+import com.iris.ebr.business.technical.metadata.service.MetadataService;
+import com.iris.exception.ApplicationException;
+import com.iris.model.RoleType;
+import com.iris.model.UserMaster;
+import com.iris.sdmx.dimesnsion.bean.DimensionRequestBean;
+import com.iris.sdmx.dimesnsion.controller.DimensionController;
+import com.iris.sdmx.dimesnsion.entity.DimensionMaster;
+import com.iris.sdmx.sdmxDataModelCodesDownloadBean.SdmxModelCodesDownloadBean;
+import com.iris.sdmx.sdmxDataModelCodesDownloadService.SdmxModelCodesDownloadService;
+import com.iris.service.GenericService;
+import com.iris.util.JsonUtility;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.util.constant.MethodConstants;
+
+@RestController
+@RequestMapping(value = "/service/metadataController")
+public class MetadataController {
+
+	@Autowired
+	private GenericService<UserMaster, Long> userMasterService;
+
+	@Autowired
+	private SdmxModelCodesDownloadService sdmxModelCodesDownloadService;
+
+	@Autowired
+	private MetadataService metadataService;
+
+	private static final Logger LOGGER = LogManager.getLogger(DimensionController.class);
+
+	@PostMapping(value = "/getAllActiveAndPublishVersionUsingReturnCode")
+	public ServiceResponse getAllActiveAndPublishVersionUsingReturnCode(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody MetadataRequestBean metadataRequestBean) {
+		LOGGER.info("Request To get All EBR Version Acording to Data Template: " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(metadataRequestBean));
+
+		try {
+
+			boolean isRBISuperUser = false;
+			UserMaster userMaster = userMasterService.getDataById(metadataRequestBean.getUserId());
+
+			if (userMaster == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			} else if (userMaster.getRoleType() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			RoleType roleType = userMaster.getRoleType();
+
+			if (GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().equals(roleType.getRoleTypeId())) {
+			}
+
+			if ((userMaster.getDepartmentIdFk() != null) && userMaster.getDepartmentIdFk().getIsMaster().equals(Boolean.TRUE)) {
+				isRBISuperUser = true;
+			}
+
+			List<SdmxModelCodesDownloadBean> sdmxModelCodesDownloadBeans = sdmxModelCodesDownloadService.fetchPublishTemplate(metadataRequestBean.getReturnIdList(), jobProcessId, false);
+			return new ServiceResponseBuilder().setStatus(true).setResponse(sdmxModelCodesDownloadBeans).build();
+
+		} catch (ApplicationException e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(e.getErrorCode()).setStatusMessage(ObjectCache.getErrorCodeKey(e.getErrorCode())).build();
+		} catch (Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+
+	@PostMapping(value = "/generateBusinessMetadataReturnWise")
+	public ServiceResponse generateBusinessMetadataReturnWise(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody MetadataRequestBean metadataRequestBean) {
+		LOGGER.info("Request To Generate Business Metadata: " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(metadataRequestBean));
+
+		try {
+
+			boolean isRBISuperUser = false;
+			UserMaster userMaster = userMasterService.getDataById(metadataRequestBean.getUserId());
+
+			if (userMaster == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			} else if (userMaster.getRoleType() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			RoleType roleType = userMaster.getRoleType();
+
+			if (GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().equals(roleType.getRoleTypeId())) {
+			}
+
+			if ((userMaster.getDepartmentIdFk() != null) && userMaster.getDepartmentIdFk().getIsMaster().equals(Boolean.TRUE)) {
+				isRBISuperUser = true;
+			}
+			List<BusMetadatProcessBean> busMetadatProcessBean = metadataService.sdmxDataMappingConvertToExcel(true, metadataRequestBean.getReturnCode(), metadataRequestBean.getReturnVersion(), metadataRequestBean.getCsvPathHavingEBRCellRef(), metadataRequestBean.getEbrVersion(), userMaster, metadataRequestBean.getFileName(), metadataRequestBean.getReturnName(), metadataRequestBean.getAgencyIDData());
+			return new ServiceResponseBuilder().setStatus(true).setResponse(busMetadatProcessBean).build();
+
+		} catch (ApplicationException e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(e.getErrorCode()).setStatusMessage(ObjectCache.getErrorCodeKey(e.getErrorCode())).build();
+		} catch (Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+
+	@PostMapping(value = "/validateBusinessMetadata")
+	public ServiceResponse validateBusinessMetadata(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody MetadataRequestBean metadataRequestBean) {
+		LOGGER.info("Request To Validate Business Metadata: " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(metadataRequestBean));
+
+		try {
+
+			boolean isRBISuperUser = false;
+			UserMaster userMaster = userMasterService.getDataById(metadataRequestBean.getUserId());
+
+			if (userMaster == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			} else if (userMaster.getRoleType() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			RoleType roleType = userMaster.getRoleType();
+
+			if (GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().equals(roleType.getRoleTypeId())) {
+			}
+
+			if ((userMaster.getDepartmentIdFk() != null) && userMaster.getDepartmentIdFk().getIsMaster().equals(Boolean.TRUE)) {
+				isRBISuperUser = true;
+			}
+			List<BusMetadatProcessBean> busMetadatProcessBean = metadataService.validateBusinessMetaDataSheet(metadataRequestBean.getFileName(), metadataRequestBean.getReturnCode(), metadataRequestBean.getEbrVersion(), metadataRequestBean.getMetadataProcessId(), metadataRequestBean.getReturnVersion());
+			return new ServiceResponseBuilder().setStatus(true).setResponse(busMetadatProcessBean).build();
+
+		} catch (ApplicationException e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(e.getErrorCode()).setStatusMessage(ObjectCache.getErrorCodeKey(e.getErrorCode())).build();
+		} catch (Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+
+	@PostMapping(value = "/insertBusinessMetadata")
+	public ServiceResponse insertBusinessMetadata(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody MetadataRequestBean metadataRequestBean) throws Exception {
+		LOGGER.info("Request To Insert Business Metadata: " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(metadataRequestBean));
+
+		try {
+
+			boolean isRBISuperUser = false;
+			UserMaster userMaster = userMasterService.getDataById(metadataRequestBean.getUserId());
+
+			if (userMaster == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			} else if (userMaster.getRoleType() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			RoleType roleType = userMaster.getRoleType();
+
+			if (GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().equals(roleType.getRoleTypeId())) {
+			}
+
+			if ((userMaster.getDepartmentIdFk() != null) && userMaster.getDepartmentIdFk().getIsMaster().equals(Boolean.TRUE)) {
+				isRBISuperUser = true;
+			}
+			List<BusMetadatProcessBean> busMetadatProcessBean = metadataService.insertBusinessMetadata(metadataRequestBean.getFileName(), metadataRequestBean.getReturnCode(), metadataRequestBean.getEbrVersion(), metadataRequestBean.getReturnVersion(), metadataRequestBean.getMetadataProcessId());
+			return new ServiceResponseBuilder().setStatus(true).setResponse(busMetadatProcessBean).build();
+
+		} catch (ApplicationException e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			List<BusMetadatProcessBean> busMetadatProcessBean = metadataService.getActiveBusinessMetadataWrapper(metadataRequestBean.getMetadataProcessId());
+			return new ServiceResponseBuilder().setStatus(true).setResponse(busMetadatProcessBean).build();
+
+		} catch (Exception e) {
+			List<BusMetadatProcessBean> busMetadatProcessBean = metadataService.getActiveBusinessMetadataWrapper(metadataRequestBean.getMetadataProcessId());
+			return new ServiceResponseBuilder().setStatus(true).setResponse(busMetadatProcessBean).build();
+
+		}
+	}
+
+	@PostMapping(value = "/generateAnddownloadTechnicalMetadata")
+	public ServiceResponse generateAnddownloadTechnicalMetadata(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody MetadataRequestBean metadataRequestBean) throws Exception {
+		LOGGER.info("Request To Generate Technical Metadata: " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(metadataRequestBean));
+
+		try {
+
+			boolean isRBISuperUser = false;
+			UserMaster userMaster = userMasterService.getDataById(metadataRequestBean.getUserId());
+
+			if (userMaster == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			} else if (userMaster.getRoleType() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			RoleType roleType = userMaster.getRoleType();
+
+			if (GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().equals(roleType.getRoleTypeId())) {
+			}
+
+			if ((userMaster.getDepartmentIdFk() != null) && userMaster.getDepartmentIdFk().getIsMaster().equals(Boolean.TRUE)) {
+				isRBISuperUser = true;
+			}
+			List<TechMetadatProcessBean> techMetadatProcessBeans = metadataService.generateAnddownloadTechnicalMetadata(userMaster, metadataRequestBean.getReturnCode(), metadataRequestBean.getFileName(), metadataRequestBean.getEbrVersion());
+			return new ServiceResponseBuilder().setStatus(true).setResponse(techMetadatProcessBeans).build();
+
+		} catch (Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+
+	@PostMapping(value = "/updateTechnicalMetadata")
+	public ServiceResponse updateTechnicalMetadata(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody MetadataRequestBean metadataRequestBean) throws Exception {
+		LOGGER.info("Request To Update Technical Metadata : " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(metadataRequestBean));
+
+		try {
+
+			boolean isRBISuperUser = false;
+			UserMaster userMaster = userMasterService.getDataById(metadataRequestBean.getUserId());
+
+			if (userMaster == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			} else if (userMaster.getRoleType() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			RoleType roleType = userMaster.getRoleType();
+
+			if (GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().equals(roleType.getRoleTypeId())) {
+			}
+
+			if ((userMaster.getDepartmentIdFk() != null) && userMaster.getDepartmentIdFk().getIsMaster().equals(Boolean.TRUE)) {
+				isRBISuperUser = true;
+			}
+			List<TechMetadatProcessBean> techMetadatProcessBeans = metadataService.updateTechnicalMetadata(userMaster, metadataRequestBean.getFileName());
+			return new ServiceResponseBuilder().setStatus(true).setResponse(techMetadatProcessBeans).build();
+
+		} catch (Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+
+}

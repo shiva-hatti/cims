@@ -1,0 +1,97 @@
+
+package com.iris.dynamicDropDown.model;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+import com.iris.util.Validations;
+
+/**
+ * @author BHAVANA
+ *
+ */
+@Entity
+@Table(name = "TBL_DROP_DOWN_TYPE_VALUES")
+public class DropDownValues implements Serializable {
+	private static final long serialVersionUID = 6532438437725520190L;
+	
+	@Id
+	@Column(name = "DROP_DOWN_TYPE_VALUE_ID")
+	private Long dropDownValueId;
+
+	@Column(name = "DROP_DOWN_LABEL_EN")
+	private String dropDownValueEn;
+	
+	@Column(name = "DROP_DOWN_LABEL_HI")
+	private String dropDownValueHi;
+	
+	@Column(name = "DROP_DOWN_VAL_CODE")
+	private String dropDownValueCode;
+	
+	@ManyToOne
+	@JoinColumn(name = "DROP_DOWN_TYPE_ID_FK")
+	private DropDownType dropDownTypeIdFk;
+	
+	
+	@ManyToOne
+	@JoinColumn(name = "DROP_DOWN_TYPE_VALUE_ID_FK")
+	private DropDownValues dropDownTypeValueIdFk;
+	
+	@Column(name = "IS_ACTIVE")
+	private boolean isActive;
+
+	public Long getDropDownValueId() {
+		return dropDownValueId;
+	}
+
+	public void setDropDownValueId(Long dropDownValueId) {
+		this.dropDownValueId = dropDownValueId;
+	}
+
+	public String getDropDownValueEn() {
+		return dropDownValueEn;
+	}
+
+	public void setDropDownValueEn(String dropDownValueEn) {
+		this.dropDownValueEn = Validations.trimInput(dropDownValueEn);
+	}
+
+	public String getDropDownValueHi() {
+		return dropDownValueHi;
+	}
+
+	public void setDropDownValueHi(String dropDownValueHi) {
+		this.dropDownValueHi = Validations.trimInput(dropDownValueHi);
+	}
+
+	public String getDropDownValueCode() {
+		return dropDownValueCode;
+	}
+
+	public void setDropDownValueCode(String dropDownValueCode) {
+		this.dropDownValueCode = Validations.trimInput(dropDownValueCode);
+	}
+
+	public DropDownType getDropDownTypeIdFk() {
+		return dropDownTypeIdFk;
+	}
+
+	public void setDropDownTypeIdFk(DropDownType dropDownTypeIdFk) {
+		this.dropDownTypeIdFk = dropDownTypeIdFk;
+	}
+
+	public boolean isActive() {
+		return isActive;
+	}
+
+	public void setActive(boolean isActive) {
+		this.isActive = isActive;
+	}
+
+}

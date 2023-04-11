@@ -1,0 +1,415 @@
+/**
+ * 
+ */
+package com.iris.controller;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.poi.ss.usermodel.BorderStyle;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.VerticalAlignment;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.streaming.SXSSFSheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFFont;
+import org.apache.tomcat.util.http.fileupload.FileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.google.common.collect.Lists;
+import com.google.gson.reflect.TypeToken;
+import com.iris.caching.ObjectCache;
+import com.iris.dateutility.util.DateManip;
+import com.iris.dto.GroupMasterDto;
+import com.iris.dto.ServiceResponse;
+import com.iris.exception.ServiceException;
+import com.iris.model.GroupMaster;
+import com.iris.model.GroupMasterDetails;
+import com.iris.model.Scheduler;
+import com.iris.model.SchedulerLog;
+import com.iris.model.WebServiceComponentUrl;
+import com.iris.repository.GroupMasterDetailsRepo;
+import com.iris.repository.GroupMasterRepo;
+import com.iris.repository.GroupMasterTempRepo;
+import com.iris.service.GenericService;
+import com.iris.util.JsonUtility;
+import com.iris.util.ResourceUtil;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.util.constant.MethodConstants;
+import com.iris.webservices.client.CIMSRestWebserviceClient;
+
+/**
+ * @author Siddique
+ *
+ */
+@RestController
+public class GroupMasterFileCreationScheduler {
+
+	static final Logger logger = LogManager.getLogger(GroupMasterFileCreationScheduler.class);
+
+	@Autowired
+	private GenericService<WebServiceComponentUrl, Long> webServiceComponentService;
+
+	@Autowired
+	private GroupMasterDetailsRepo groupMasterDetailsRepo;
+
+	@Autowired
+	private GroupMasterTempRepo groupMasterTempRepo;
+
+	@Autowired
+	private GroupMasterRepo groupMasterRepo;
+
+	private static String LANG_CODE = "en";
+	private static final String ROOT_PATH = "filepath.root";
+	private static final String FILE_PATH = "filePath.group.master.file.path";
+	private String jobProcessId;
+
+	@Value("${scheduler.code.groupMasterDownloadScheduler}")
+	private String schedulerCode;
+
+	//	private static final String SCHEDULER_CODE = "GROUP_MASTER_DOWNLOAD";
+
+	@Scheduled(cron = "${cron.groupMasterDownloadScheduler}")
+	public void groupMasterPrepareScheduler() {
+		jobProcessId = UUID.randomUUID().toString();
+		logger.info("Group Master prepare schedular started" + jobProcessId);
+		Long schedulerLogId = null;
+		List<GroupMasterDetails> groupMasterDetailsList = new ArrayList<>();
+		GroupMasterDetails groupMasterDetails = new GroupMasterDetails();
+		Date lastCreatedFileDate = null;
+		Date newlyAddedGroupApprovalDate = null;
+
+		Scheduler scheduler = getSchedulerStatus();
+		if (scheduler != null) {
+			if (scheduler.getIsRunning().equals(Boolean.TRUE)) {
+				logger.error("Error while starting Group Master Prepare scheduler -> Reason : Schduler is alrady running ");
+				return;
+			}
+			try {
+				// step 1 : if new records approve then start then make start entry in schedular and start the process
+				schedulerLogId = makeSchedulerStartEntry(0l, scheduler.getSchedulerId());
+				if (schedulerLogId == null) {
+					logger.error("Error while starting Group master download scheduler -> Reason : Schduler Log ID not received ");
+					return;
+				}
+
+				groupMasterDetailsList = groupMasterDetailsRepo.getDataOrderByCreatedOnDesc();
+
+				if (CollectionUtils.isEmpty(groupMasterDetailsList)) {
+					groupMasterDetails.setStatus(1); // status 1 for initial record
+				} else {
+					lastCreatedFileDate = groupMasterDetailsList.get(0).getCreatedOn();
+				}
+
+				logger.info("Last file creation date, group master scheduler:: " + lastCreatedFileDate);
+				// step 2 : check the last updated record from Group master temp table
+				newlyAddedGroupApprovalDate = groupMasterTempRepo.getMaxApprovedOnDate();
+
+				if (newlyAddedGroupApprovalDate == null) {
+					logger.info("No Records available , group master schedular");
+					makeSchedulerStopEntry(0l, schedulerLogId, scheduler.getSchedulerId());
+					return;
+				}
+
+				logger.info("Newly added records date, group master scheduler:: " + newlyAddedGroupApprovalDate);
+
+				if ((groupMasterDetails.getStatus() != null && groupMasterDetails.getStatus() == 1) || newlyAddedGroupApprovalDate.compareTo(lastCreatedFileDate) > 0) {
+
+					prepareFile();
+					logger.info("File Creation successful , Group master File prepare schedular");
+				} else {
+					logger.info("New Records were not added , Group master File prepare schedular");
+					makeSchedulerStopEntry(0l, schedulerLogId, scheduler.getSchedulerId());
+					return;
+				}
+
+			} catch (Exception e) {
+				logger.error("Exception occoured while processing Group master prepare schedular" + jobProcessId + "Exception is " + e);
+				makeSchedulerStopEntry(0l, schedulerLogId, scheduler.getSchedulerId());
+			}
+			logger.info("No Record available to process");
+			makeSchedulerStopEntry(0l, schedulerLogId, scheduler.getSchedulerId());
+		} else {
+			logger.error("Group Master Prepare Schedular Not Present");
+		}
+	}
+
+	private void makeSchedulerStopEntry(long successfullyProcessed, Long schedulerLogId, Long schedulerId) {
+		try {
+			if (schedulerLogId != null) {
+				SchedulerLog schedulerLog = new SchedulerLog();
+				schedulerLog.setSuccessfullyProcessedCount(Long.valueOf(successfullyProcessed));
+				schedulerLog.setId(schedulerLogId);
+				Scheduler scheduler = new Scheduler();
+				scheduler.setSchedulerId(schedulerId);
+				scheduler.setIsRunning(false);
+				schedulerLog.setSchedulerIdFk(scheduler);
+				CIMSRestWebserviceClient restServiceClient = new CIMSRestWebserviceClient();
+
+				WebServiceComponentUrl componentUrl = getWebServiceComponentURL(GeneralConstants.ADD_UPDATE_SCHEDULER_LOG.getConstantVal(), CIMSRestWebserviceClient.HTTP_METHOD_TYPE_POST);
+
+				Map<String, String> headerMap = new HashMap<>();
+				headerMap.put(GeneralConstants.JOB_PROCESSING_ID.getConstantVal(), jobProcessId);
+
+				String responsestring = restServiceClient.callRestWebServiceWithMultipleHeader(componentUrl, schedulerLog, null, headerMap);
+
+				ServiceResponse serviceResponse = JsonUtility.getGsonObject().fromJson(responsestring, ServiceResponse.class);
+
+				if (!serviceResponse.isStatus()) {
+					logger.info("Error while stopping scheduler -> Reason : Schduler is alrady stopped ");
+				} else {
+					logger.info("Scheduler stopped successfully ");
+				}
+			} else {
+				logger.error("Scheduler Log Id not found");
+			}
+		} catch (Exception e) {
+			logger.error(ErrorConstants.DEFAULT_ERROR.getConstantVal(), e);
+		}
+
+	}
+
+	private void prepareFile() {
+		try {
+			List<GroupMaster> groupMasterList = new ArrayList<>();
+			String modifiedFileName = "Group_Master" + DateManip.getCurrentDate("dd_MM_yyyy") + "_" + DateManip.getCurrentTime("HH_MM_SSSS") + ".xlsx";
+
+			String filePath = ResourceUtil.getKeyValue(ROOT_PATH) + File.separator + ResourceUtil.getKeyValue(FILE_PATH) + File.separator;
+			File directory = new File(filePath);
+
+			if (!directory.exists()) {
+				FileUtils.forceMkdir(new File(filePath));
+			}
+			filePath = filePath + modifiedFileName;
+			List<List<GroupMasterDto>> groupMasterDtoList = new ArrayList<>();
+			GroupMasterDetails groupMasterDetails = new GroupMasterDetails();
+			groupMasterDetails.setCreatedOn(new Date());
+
+			groupMasterDetails.setStatus(2);
+			groupMasterDetails.setProcessStartTime(new Date());
+
+			groupMasterList = groupMasterRepo.getGroupMasterData();
+			groupMasterDetails.setTotalRecords((long) groupMasterList.size());
+
+			if (CollectionUtils.isEmpty(groupMasterList)) {
+				logger.info("No Records available to process, Goup Master file creation");
+				return;
+			}
+			groupMasterDetailsRepo.save(groupMasterDetails);
+
+			groupMasterDtoList = convertDbObjToDto(groupMasterList);
+
+			List<String> headers = new ArrayList<>();
+			headers.add(ObjectCache.getLabelKeyValue(LANG_CODE, "field.groupMngt.GroupCode"));
+			headers.add(ObjectCache.getLabelKeyValue(LANG_CODE, "field.groupMngt.GroupName"));
+
+			try (Workbook workbook1 = buildExcelFile(headers, groupMasterDtoList); FileOutputStream outputStream = new FileOutputStream(filePath)) {
+				workbook1.write(outputStream);
+				logger.info("File Creation successful");
+				groupMasterDetails.setModifiedFileName(modifiedFileName);
+				groupMasterDetails.setFileName("Group_Master_" + DateManip.getCurrentDate("dd_MM_yyyy") + "_" + DateManip.getCurrentTime("HH") + "_" + groupMasterList.size() + ".xlsx");
+				groupMasterDetails.setProcessEndTime(new Date());
+				groupMasterDetails.setStatus(3);
+				groupMasterDetailsRepo.save(groupMasterDetails);
+			} catch (Exception e) {
+				logger.error("Error while writing excel sheet" + e);
+			}
+		} catch (Exception e) {
+			logger.error("Exception occoured in prepareFile, Group master schedular" + e);
+		}
+
+	}
+
+	private Workbook buildExcelFile(List<String> headers, List<List<GroupMasterDto>> groupMasterDtoList) {
+		Workbook workbook = new SXSSFWorkbook();
+		try {
+			XSSFFont font = (XSSFFont) workbook.createFont();
+			font.setFontHeightInPoints((short) 10);
+			font.setColor((short) Font.COLOR_NORMAL);
+
+			CellStyle headerCellStyle = workbook.createCellStyle();
+			headerCellStyle.setBorderBottom(BorderStyle.THIN);
+			headerCellStyle.setBottomBorderColor(IndexedColors.BLACK.getIndex());
+			headerCellStyle.setBorderRight(BorderStyle.THIN);
+			headerCellStyle.setRightBorderColor(IndexedColors.BLACK.getIndex());
+			headerCellStyle.setBorderTop(BorderStyle.THIN);
+			headerCellStyle.setTopBorderColor(IndexedColors.BLACK.getIndex());
+			headerCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+			font.setBold(true);
+			font.setColor(IndexedColors.BLUE.getIndex());
+			headerCellStyle.setFont(font);
+
+			// 2. Sheet creation
+			SXSSFSheet sheet = (SXSSFSheet) workbook.createSheet();
+			//			sheet.setColumnWidth((short) 0, (short) ((50 * 8) / ((double) 1 / 20)));
+			//			sheet.setColumnWidth((short) 1, (short) ((50 * 8) / ((double) 1 / 20)));
+			workbook.setSheetName(0, "Data");
+			sheet.setRandomAccessWindowSize(100);
+			int count = 0;
+			Cell headerCell = null;
+			Row row = null;
+			Cell cell = null;
+			Row headerRow = sheet.createRow(count);
+			for (String header : headers) {
+				headerCell = headerRow.createCell(count++);
+				headerCell.setCellValue(header);
+				headerCell.setCellStyle(headerCellStyle);
+			}
+			int rownum = 1;
+			count = 0;
+			for (List<GroupMasterDto> groupMasterDtoOuterLoop : groupMasterDtoList) {
+				for (GroupMasterDto groupMasterDto : groupMasterDtoOuterLoop) {
+					count = 0;
+					row = sheet.createRow(rownum++);
+					cell = row.createCell(count++);
+					cell.setCellValue(groupMasterDto.getGroupCode());
+					cell = row.createCell(count++);
+					cell.setCellValue(groupMasterDto.getGroupName());
+				}
+				//				Thread.sleep(10000);
+			}
+		} catch (Exception e) {
+			logger.error("Exception while setting bean value into excel" + e);
+		}
+		return workbook;
+	}
+
+	private List<List<GroupMasterDto>> convertDbObjToDto(List<GroupMaster> groupMasterList) {
+		List<List<GroupMasterDto>> groupMasterDtoList = new ArrayList<>();
+		List<GroupMasterDto> groupMasterDtoInnerList = new ArrayList<>();
+		GroupMasterDto groupMasterDto = null;
+		try {
+			if (!CollectionUtils.isEmpty(groupMasterList)) {
+				for (GroupMaster groupMaster : groupMasterList) {
+
+					groupMasterDto = new GroupMasterDto();
+					groupMasterDto.setGroupCode(groupMaster.getGroupCode());
+					groupMasterDto.setGroupName(groupMaster.getGroupName());
+					groupMasterDtoInnerList.add(groupMasterDto);
+				}
+			}
+
+			int partiotionData = 0;
+			if (groupMasterDtoInnerList.size() > 100000) {
+				partiotionData = groupMasterDtoInnerList.size() / 10;
+			} else {
+				partiotionData = 5;
+			}
+			groupMasterDtoList = Lists.partition(groupMasterDtoInnerList, partiotionData);
+		} catch (Exception e) {
+			logger.error("Exception occoured while extracting db object , Group master File Creation schedular");
+		}
+		return groupMasterDtoList;
+	}
+
+	private Long makeSchedulerStartEntry(long totalRecordCount, Long schedulerId) {
+		try {
+			SchedulerLog schedulerLog = new SchedulerLog();
+			schedulerLog.setTakedRecordsCount(totalRecordCount);
+			Scheduler scheduler = new Scheduler();
+			scheduler.setSchedulerId(schedulerId);
+			scheduler.setIsRunning(true);
+			schedulerLog.setSchedulerIdFk(scheduler);
+			CIMSRestWebserviceClient restServiceClient = new CIMSRestWebserviceClient();
+
+			WebServiceComponentUrl componentUrl = getWebServiceComponentURL(GeneralConstants.ADD_UPDATE_SCHEDULER_LOG.getConstantVal(), CIMSRestWebserviceClient.HTTP_METHOD_TYPE_POST);
+
+			Map<String, String> headerMap = new HashMap<>();
+			headerMap.put(GeneralConstants.JOB_PROCESSING_ID.getConstantVal(), jobProcessId);
+
+			String responsestring = restServiceClient.callRestWebServiceWithMultipleHeader(componentUrl, schedulerLog, null, headerMap);
+
+			Type listToken = new TypeToken<ServiceResponse>() {
+			}.getType();
+			ServiceResponse serviceResponse = JsonUtility.getGsonObject().fromJson(responsestring, listToken);
+			Long schedulerLogId = null;
+
+			if (!serviceResponse.isStatus()) {
+				logger.error("False status received from API with status message " + serviceResponse.getStatusCode());
+				return null;
+			} else {
+				listToken = new TypeToken<SchedulerLog>() {
+				}.getType();
+				SchedulerLog schedulerLog1 = JsonUtility.getGsonObject().fromJson(serviceResponse.getResponse() + "", listToken);
+				schedulerLogId = schedulerLog1.getId();
+			}
+			return schedulerLogId;
+		} catch (Exception e) {
+			logger.error(ErrorConstants.DEFAULT_ERROR.getConstantVal(), e);
+		}
+		return null;
+	}
+
+	private Scheduler getSchedulerStatus() {
+		try {
+			CIMSRestWebserviceClient restServiceClient = new CIMSRestWebserviceClient();
+
+			Map<String, String> headerMap = new HashMap<>();
+			headerMap.put(GeneralConstants.JOB_PROCESSING_ID.getConstantVal(), jobProcessId);
+			headerMap.put(GeneralConstants.SCHEDULER_CODE.getConstantVal(), schedulerCode);
+
+			WebServiceComponentUrl componentUrl = getWebServiceComponentURL(GeneralConstants.GET_ACTIVE_SCHEDULER_STATUS_BY_CODE.getConstantVal(), CIMSRestWebserviceClient.HTTP_METHOD_TYPE_GET);
+			String responsestring = restServiceClient.callRestWebServiceWithMultipleHeader(componentUrl, null, null, headerMap);
+
+			Type listToken = new TypeToken<ServiceResponse>() {
+			}.getType();
+			ServiceResponse serviceResponse = JsonUtility.getGsonObject().fromJson(responsestring, listToken);
+
+			if (!serviceResponse.isStatus()) {
+				logger.error("False status received from API with status message " + serviceResponse.getStatusCode());
+				return null;
+			} else {
+				if (serviceResponse.getResponse() != null) {
+					listToken = new TypeToken<Scheduler>() {
+					}.getType();
+					return JsonUtility.getGsonObject().fromJson(serviceResponse.getResponse() + "", listToken);
+				} else {
+					logger.error("response object not present in the response string, response received from API : {}" + responsestring);
+				}
+			}
+		} catch (Exception e) {
+			logger.error(ErrorConstants.DEFAULT_ERROR.getConstantVal(), e);
+		}
+		return null;
+	}
+
+	private WebServiceComponentUrl getWebServiceComponentURL(String componentName, String methodType) {
+		Map<String, List<String>> valueMap = new HashMap<>();
+
+		List<String> valueList = new ArrayList<>();
+		valueList.add(componentName);
+		valueMap.put(ColumnConstants.COMPONENTTYPE.getConstantVal(), valueList);
+
+		valueList = new ArrayList<>();
+		valueList.add(methodType);
+		valueMap.put(ColumnConstants.METHODTYPE.getConstantVal(), valueList);
+
+		WebServiceComponentUrl componentUrl = null;
+		try {
+			componentUrl = webServiceComponentService.getDataByColumnValue(valueMap, MethodConstants.GET_ACTIVE_DATA_BY_COMPONENTTYPE_METHODTYPE.getConstantVal()).get(0);
+		} catch (ServiceException e) {
+			logger.error(ErrorConstants.DEFAULT_ERROR.getConstantVal(), e);
+		}
+		return componentUrl;
+	}
+
+}

@@ -1,0 +1,109 @@
+/**
+ * 
+ */
+package com.iris.sdmx.status.service;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.exception.ServiceException;
+import com.iris.sdmx.status.entity.SdmxModuleDetailEntity;
+import com.iris.sdmx.status.repo.SdmxModuleDetailRepo;
+import com.iris.service.GenericService;
+
+/**
+ * @author apagaria
+ *
+ */
+@Service
+public class SdmxModuleDetailService implements GenericService<SdmxModuleDetailEntity, Long> {
+	
+	/**
+	 * 
+	 */
+	@Autowired
+	public SdmxModuleDetailRepo sdmxModuleDetailRepo;
+
+	@Override
+	public SdmxModuleDetailEntity add(SdmxModuleDetailEntity entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean update(SdmxModuleDetailEntity entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public List<SdmxModuleDetailEntity> getDataByIds(Long[] ids) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public SdmxModuleDetailEntity getDataById(Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<SdmxModuleDetailEntity> getDataByColumnValue(Map<String, List<String>> columnValueMap,
+			String methodName) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<SdmxModuleDetailEntity> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap,
+			String methodName) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<SdmxModuleDetailEntity> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<SdmxModuleDetailEntity> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<SdmxModuleDetailEntity> getAllDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void deleteData(SdmxModuleDetailEntity bean) throws ServiceException {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	/**
+	 * @return
+	 */
+	public List<SdmxModuleDetailEntity> findAll() {
+		return sdmxModuleDetailRepo.findAll();
+	}
+	
+	/**
+	 * @param moduleCode
+	 * @return
+	 */
+	public SdmxModuleDetailEntity findModuleByModuleCode(String moduleCode) {
+		return sdmxModuleDetailRepo.findModuleByModuleCode(moduleCode);
+	}
+}

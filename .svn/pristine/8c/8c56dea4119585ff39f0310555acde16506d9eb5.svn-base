@@ -1,0 +1,216 @@
+package com.iris.formula.gen.controller;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.stereotype.Component;
+
+import com.iris.formula.gen.FormulaBean;
+
+@Component
+public class FormulaConverter {
+
+	private static final String[] EQUATOR = {"=","<",">","<=",">=","-","+","*","/","=="};
+	private static final String[] LHS_DIVIDER = {"=","<",">","<=",">=","=="};
+
+	public FormulaBean convert(FormulaBean formula) {
+		Map<String,List<AutoCalFormulaParts>> result = new HashMap<>();
+		List<AutoCalFormulaParts> formulaList = new ArrayList<>();
+		String[] formulaArray = formula.getFormula().split(",");
+		if(formulaArray.length<2 ) {
+			return null;
+		}
+		String previousTableId = StringUtils.EMPTY; 
+		Boolean firstTime = true;
+		Boolean crossFormula = false;
+		Boolean validationType = false;
+		for(String item : formulaArray) {
+			if(!isSymbol(item)) {
+				String[] parts = item.split("-");
+				if(parts.length>2 && !Boolean.TRUE.equals(firstTime) && !StringUtils.equalsIgnoreCase(previousTableId,  parts[1])) {
+					crossFormula = true;
+				}
+				previousTableId = parts[1];
+			}else if(!StringUtils.equals(item, "=")){
+				validationType = true;
+			}
+			firstTime = false;
+		}
+		if(Boolean.TRUE.equals(validationType)) {
+			String[] itemparts = formulaArray[0].split("-");
+
+			if(crossFormula) {
+				formula.setIsCrossElr(true);
+				CrossFormulaParts formulaParts = prepareValidationFormulaCross(formulaArray,formula);
+				formulaParts.setErrorCode(formula.getTechnicalErrorCode());
+				formula.getCrossElrFormula().add(formulaParts);
+				formulaParts.setTableId(Integer.valueOf(itemparts[1]));
+				formulaParts.setRowId(0);
+			}else {
+				AutoCalFormulaParts formulaParts = prepareValidationFormula(formulaArray,formula);
+				formulaParts.setErrorCode(formula.getTechnicalErrorCode());
+				formulaParts.setTableId(itemparts[1]);
+				formulaParts.setRowId(0);
+				formulaList.add(formulaParts);
+				for(int i=2;i<formulaArray.length;i++) {
+
+					if(!isSymbol(formulaArray[i])) {
+						result.put(formulaArray[i], formulaList);
+					}
+				}
+				formula.setNormalFormua(result);
+			}
+
+			formula.setFormulaId(formula.getFormulaId());
+			return formula;
+		}
+		AutoCalFormulaParts part = new AutoCalFormulaParts();
+		String[] itemparts = formulaArray[0].split("-");
+		part.setFormulaCell(formulaArray[0]);
+		List<String> formulaToCreate = new ArrayList<>();
+		StringBuilder formulaLatsPart = new StringBuilder();
+		for(int i=2;i<formulaArray.length;i++) {
+
+			if(!isSymbol(formulaArray[i])) {
+				formulaLatsPart.append("#"+formulaArray[i]);
+				formulaToCreate.add(formulaArray[i]);
+			}else {
+				formulaLatsPart.append(formulaArray[i]+" ");
+			}
+		}
+
+		part.setFormula(formulaLatsPart.toString());
+		part.setTableId(itemparts[1]);
+		formulaList.add(part);
+		for(String item :formulaToCreate) {
+			result.put(item, formulaList);
+		}
+		formula.setNormalFormua(result);
+		return formula;
+
+	}
+
+	private Boolean isSymbol(String item) {
+		Boolean isSymbol = false;
+
+		for (String eq : EQUATOR) {
+			if (StringUtils.equalsIgnoreCase(eq, item)) {
+				isSymbol = true;
+				break;
+			}
+		}
+		return isSymbol;
+
+	}
+	/**
+	 * 
+	 * @param formulaArray
+	 * @param formula 
+	 * @param isCrossElr
+	 * @return
+	 */
+	private AutoCalFormulaParts prepareValidationFormula(String[] formulaArray, FormulaBean formula){
+		AutoCalFormulaParts validationFormula = new AutoCalFormulaParts();
+		validationFormula.setFormulaCell("NA");
+		if(StringUtils.equals(formula.getDataType(), "dateType")) {
+			validationFormula.setFormulaType("DATECHK");
+		}else {
+			validationFormula.setFormulaType("EQUATION");
+		}
+		StringBuilder tempLhsExp = new StringBuilder();
+		StringBuilder tempRhsExp = new StringBuilder();
+		Boolean skip = true;
+		Boolean lhsNotCreated = true;
+		for(String item : formulaArray) {
+			for(String eqItem : LHS_DIVIDER) {
+				if(StringUtils.equals(eqItem, item) && lhsNotCreated) {
+					validationFormula.setExp(item);
+					validationFormula.setLhs(tempLhsExp.toString());
+					lhsNotCreated = false;
+					continue;
+				}
+			}
+			if(lhsNotCreated) {
+				if(!isSymbol(item)) {
+					tempLhsExp.append("#").append(item);
+				}else {
+					tempLhsExp.append(" ").append(item).append(" ");
+				}
+			}else {
+				if(!skip) {
+					if(!isSymbol(item)) {
+						tempRhsExp.append("#").append(item);
+					}else {
+						tempRhsExp.append(" ").append(item).append(" ");
+					}
+				}
+				skip = false;
+			}
+		}
+		validationFormula.setRhs(tempRhsExp.toString());
+		return validationFormula;
+
+	}
+	/**
+	 * 
+	 * @param formulaArray
+	 * @param formula 
+	 * @param isCrossElr
+	 * @return
+	 */
+	private CrossFormulaParts prepareValidationFormulaCross(String[] formulaArray, FormulaBean formula){
+		CrossFormulaParts validationFormula = new CrossFormulaParts();
+		validationFormula.setFormulaCell("NA");
+		if(StringUtils.equals(formula.getDataType(), "dateType")) {
+			validationFormula.setFormulaType("DATECHK");
+		}else {
+			validationFormula.setFormulaType("EQUATION");
+		}
+		StringBuilder tempLhsExp = new StringBuilder();
+		StringBuilder tempRhsExp = new StringBuilder();
+		Boolean skip = true;
+		Boolean lhsNotCreated = true;
+		for(String item : formulaArray) {
+			for(String eqItem : LHS_DIVIDER) {
+				if(StringUtils.equals(eqItem, item) && lhsNotCreated) {
+					validationFormula.setExp(item);
+					validationFormula.setLhs(tempLhsExp.toString());
+					lhsNotCreated = false;
+					continue;
+				}
+			}
+			if(lhsNotCreated) {
+				if(!isSymbol(item)) {
+					tempLhsExp.append("#").append(item);
+				}else {
+					tempLhsExp.append(" ").append(item).append(" ");
+				}
+			}else {
+				if(!skip) {
+					if(!isSymbol(item)) {
+						tempRhsExp.append("#").append(item);
+					}else {
+						tempRhsExp.append(" ").append(item).append(" ");
+					}
+				}
+				skip = false;
+			}
+		}
+		validationFormula.setRhs(tempRhsExp.toString());
+		Map<String,Integer> elrMap = new HashMap<>();
+		//put elr info todo
+		if(StringUtils.isNotBlank(formula.getElrIdPair())) {
+			String[] elrPair = formula.getElrIdPair().split(",");
+			for(String elrItem : elrPair) {
+				String[] itemValue = elrItem.split(">");
+				elrMap.put("#"+itemValue[0], Integer.parseInt(itemValue[1]));
+			}
+			validationFormula.setElementElr(elrMap);
+		}
+		return validationFormula;
+
+	}
+}

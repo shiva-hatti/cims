@@ -1,0 +1,391 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+@JsonInclude(Include.NON_DEFAULT)
+public class UserDto implements Serializable {
+
+	private static final long serialVersionUID = -2322268070025314651L;
+
+	private String userName;
+
+	private Long userId;
+
+	private Long roleId;
+
+	private Boolean isActive;
+
+	private String langCode;
+
+	private Long langId;
+
+	private String dateFormat;
+
+	private String calendarFormat;
+
+	private boolean isCount;
+
+	private Long regulatorId;
+
+	private String regulatorName;
+
+	private Boolean isMaster;
+
+	private Long roleTypeId;
+
+	private String roleTypeDesc;
+
+	private Long entityId;
+
+	private Long activityId;
+
+	private List<Long> roleIds;
+
+	private List<String> categoryCodes;
+
+	private List<String> subCategoryCodes;
+
+	@JsonInclude(Include.NON_NULL)
+	private List<UserReturnChannelDto> userReturnChannelDtos;
+
+	private String entityNameLike;
+
+	private Integer page;
+
+	private Integer fetchSize;
+
+	private List<Long> userIds;
+
+	public UserDto() {
+
+	}
+
+	public UserDto(Long userId, String userName, Long regulatorId, Boolean isMaster, Long roleTypeId) {
+		this.userId = userId;
+		this.userName = userName;
+		this.regulatorId = regulatorId;
+		this.isMaster = isMaster;
+		this.roleTypeId = roleTypeId;
+	}
+
+	public UserDto(Long userId, String userName, Long roleTypeId, Long roleId, Long entityId, Long activityId) {
+		this.userId = userId;
+		this.userName = userName;
+		this.roleTypeId = roleTypeId;
+		this.roleId = roleId;
+		this.entityId = entityId;
+		this.activityId = activityId;
+	}
+
+	public UserDto(Long activityId, Long roleId, Long userId) {
+		this.userId = userId;
+		this.roleId = roleId;
+		this.activityId = activityId;
+	}
+
+	/**
+	 * @return the entityNameLike
+	 */
+	public String getEntityNameLike() {
+		return entityNameLike;
+	}
+
+	/**
+	 * @param entityNameLike the entityNameLike to set
+	 */
+	public void setEntityNameLike(String entityNameLike) {
+		this.entityNameLike = entityNameLike;
+	}
+
+	/**
+	 * @return the langId
+	 */
+	public Long getLangId() {
+		return langId;
+	}
+
+	/**
+	 * @param langId the langId to set
+	 */
+	public void setLangId(Long langId) {
+		this.langId = langId;
+	}
+
+	public String getLangCode() {
+		return langCode;
+	}
+
+	public void setLangCode(String langCode) {
+		this.langCode = langCode;
+	}
+
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	public Long getRoleId() {
+		return roleId;
+	}
+
+	public void setRoleId(Long roleId) {
+		this.roleId = roleId;
+	}
+
+	public Long getUserId() {
+		return userId;
+	}
+
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	public List<UserReturnChannelDto> getUserReturnChannelDtos() {
+		return userReturnChannelDtos;
+	}
+
+	public void setUserReturnChannelDtos(List<UserReturnChannelDto> userReturnChannelDtos) {
+		this.userReturnChannelDtos = userReturnChannelDtos;
+	}
+
+	/**
+	 * @return the dateFormat
+	 */
+	public String getDateFormat() {
+		return dateFormat;
+	}
+
+	/**
+	 * @param dateFormat the dateFormat to set
+	 */
+	public void setDateFormat(String dateFormat) {
+		this.dateFormat = dateFormat;
+	}
+
+	/**
+	 * @return the calendarFormat
+	 */
+	public String getCalendarFormat() {
+		return calendarFormat;
+	}
+
+	/**
+	 * @param calendarFormat the calendarFormat to set
+	 */
+	public void setCalendarFormat(String calendarFormat) {
+		this.calendarFormat = calendarFormat;
+	}
+
+	public boolean getIsCount() {
+		return isCount;
+	}
+
+	public void setIsCount(boolean isCount) {
+		this.isCount = isCount;
+	}
+
+	/**
+	 * @return the regulatorId
+	 */
+	public Long getRegulatorId() {
+		return regulatorId;
+	}
+
+	/**
+	 * @param regulatorId the regulatorId to set
+	 */
+	public void setRegulatorId(Long regulatorId) {
+		this.regulatorId = regulatorId;
+	}
+
+	/**
+	 * @return the regulatorName
+	 */
+	public String getRegulatorName() {
+		return regulatorName;
+	}
+
+	/**
+	 * @param regulatorName the regulatorName to set
+	 */
+	public void setRegulatorName(String regulatorName) {
+		this.regulatorName = regulatorName;
+	}
+
+	/**
+	 * @return the isMaster
+	 */
+	public Boolean getIsMaster() {
+		return isMaster;
+	}
+
+	/**
+	 * @param isMaster the isMaster to set
+	 */
+	public void setIsMaster(Boolean isMaster) {
+		this.isMaster = isMaster;
+	}
+
+	/**
+	 * @return the roleTypeId
+	 */
+	public Long getRoleTypeId() {
+		return roleTypeId;
+	}
+
+	/**
+	 * @param roleTypeId the roleTypeId to set
+	 */
+	public void setRoleTypeId(Long roleTypeId) {
+		this.roleTypeId = roleTypeId;
+	}
+
+	/**
+	 * @return the roleTypeDesc
+	 */
+	public String getRoleTypeDesc() {
+		return roleTypeDesc;
+	}
+
+	/**
+	 * @param roleTypeDesc the roleTypeDesc to set
+	 */
+	public void setRoleTypeDesc(String roleTypeDesc) {
+		this.roleTypeDesc = roleTypeDesc;
+	}
+
+	/**
+	 * @param isCount the isCount to set
+	 */
+	public void setCount(boolean isCount) {
+		this.isCount = isCount;
+	}
+
+	/**
+	 * @return the entityId
+	 */
+	public Long getEntityId() {
+		return entityId;
+	}
+
+	/**
+	 * @param entityId the entityId to set
+	 */
+	public void setEntityId(Long entityId) {
+		this.entityId = entityId;
+	}
+
+	/**
+	 * @return the activityId
+	 */
+	public Long getActivityId() {
+		return activityId;
+	}
+
+	/**
+	 * @param activityId the activityId to set
+	 */
+	public void setActivityId(Long activityId) {
+		this.activityId = activityId;
+	}
+
+	/**
+	 * @return the roleIds
+	 */
+	public List<Long> getRoleIds() {
+		return roleIds;
+	}
+
+	/**
+	 * @param roleIds the roleIds to set
+	 */
+	public void setRoleIds(List<Long> roleIds) {
+		this.roleIds = roleIds;
+	}
+
+	/**
+	 * @return the subCategoryCodes
+	 */
+	public List<String> getSubCategoryCodes() {
+		return subCategoryCodes;
+	}
+
+	/**
+	 * @param subCategoryCodes the subCategoryCodes to set
+	 */
+	public void setSubCategoryCodes(List<String> subCategoryCodes) {
+		this.subCategoryCodes = subCategoryCodes;
+	}
+
+	/**
+	 * @return the categoryCodes
+	 */
+	public List<String> getCategoryCodes() {
+		return categoryCodes;
+	}
+
+	/**
+	 * @param categoryCodes the categoryCodes to set
+	 */
+	public void setCategoryCodes(List<String> categoryCodes) {
+		this.categoryCodes = categoryCodes;
+	}
+
+	/**
+	 * @return the page
+	 */
+	public Integer getPage() {
+		return page;
+	}
+
+	/**
+	 * @param page the page to set
+	 */
+	public void setPage(Integer page) {
+		this.page = page;
+	}
+
+	/**
+	 * @return the fetchSize
+	 */
+	public Integer getFetchSize() {
+		return fetchSize;
+	}
+
+	/**
+	 * @param fetchSize the fetchSize to set
+	 */
+	public void setFetchSize(Integer fetchSize) {
+		this.fetchSize = fetchSize;
+	}
+
+	/**
+	 * @return the userIds
+	 */
+	public List<Long> getUserIds() {
+		return userIds;
+	}
+
+	/**
+	 * @param userIds the userIds to set
+	 */
+	public void setUserIds(List<Long> userIds) {
+		this.userIds = userIds;
+	}
+
+}

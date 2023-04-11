@@ -1,0 +1,708 @@
+/**
+ * 
+ */
+package com.iris.dto;
+
+import java.io.Serializable;
+
+import com.iris.dateutility.enums.DateConstants;
+
+/**
+ * @author sajadhav
+ *
+ */
+public class ReturnApprovalDataDto implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 6607666656494158457L;
+
+	private Long uploadId;
+
+	private Long returnApprovalDtlId;
+
+	private Long returnId;
+
+	private String returnName;
+
+	private Long entityId;
+
+	private String entityName;
+
+	private String entityCode;
+
+	private String startDate;
+
+	private String endDate;
+
+	private int filingStatusId;
+
+	private String filingStatus;
+
+	private Long roleId;
+
+	private Long uploadedUserId;
+
+	private String uploadedUserName;
+
+	private String uploadedDate;
+
+	private Long frequencyDescId;
+
+	private String frequencyDesc;
+
+	private Long previousUploadId;
+
+	private Long workflowId;
+
+	private int currentStep;
+
+	private Integer isApproved;
+
+	private String comment;
+
+	private Long approvalUserId;
+
+	private String frequency;
+
+	private String uploadChannel;
+
+	private Long uploadChannelId;
+
+	private String fileType;
+
+	private String instanceName;
+
+	private String fileName;
+
+	private String supportiveDocName;
+
+	private int fileStatusId;
+
+	private Long endDateInLong;
+
+	private Long startDateInLong;
+
+	private Long approvalRoleId;
+
+	private String originalSupportiveDocName;
+
+	private String datetFormat;
+
+	private String calendarFormat;
+
+	private String timeFormat;
+
+	private String returnCode;
+
+	private String returnPropertyVal;
+
+	private Long unlockRequestId;
+
+	private String activityTrackerJson;
+
+	private String templateVersionNo;
+
+	/**
+	 * @return the templateVersionNo
+	 */
+	public String getTemplateVersionNo() {
+		return templateVersionNo;
+	}
+
+	/**
+	 * @param templateVersionNo the templateVersionNo to set
+	 */
+	public void setTemplateVersionNo(String templateVersionNo) {
+		this.templateVersionNo = templateVersionNo;
+	}
+
+	/**
+	 * @return the activityTrackerJson
+	 */
+	public String getActivityTrackerJson() {
+		return activityTrackerJson;
+	}
+
+	/**
+	 * @param activityTrackerJson the activityTrackerJson to set
+	 */
+	public void setActivityTrackerJson(String activityTrackerJson) {
+		this.activityTrackerJson = activityTrackerJson;
+	}
+
+	/**
+	 * @return the startDateInLong
+	 */
+	public Long getStartDateInLong() {
+		return startDateInLong;
+	}
+
+	/**
+	 * @param startDateInLong the startDateInLong to set
+	 */
+	public void setStartDateInLong(Long startDateInLong) {
+		this.startDateInLong = startDateInLong;
+	}
+
+	/**
+	 * @param endDateInLong the endDateInLong to set
+	 */
+	public void setEndDateInLong(Long endDateInLong) {
+		this.endDateInLong = endDateInLong;
+	}
+
+	/**
+	 * @return the returnPropertyVal
+	 */
+	public String getReturnPropertyVal() {
+		return returnPropertyVal;
+	}
+
+	/**
+	 * @param returnPropertyVal the returnPropertyVal to set
+	 */
+	public void setReturnPropertyVal(String returnPropertyVal) {
+		this.returnPropertyVal = returnPropertyVal;
+	}
+
+	/**
+	 * @return the unlockRequestId
+	 */
+	public Long getUnlockRequestId() {
+		return unlockRequestId;
+	}
+
+	/**
+	 * @param unlockRequestId the unlockRequestId to set
+	 */
+	public void setUnlockRequestId(Long unlockRequestId) {
+		this.unlockRequestId = unlockRequestId;
+	}
+
+	/**
+	 * @return the returnCode
+	 */
+	public String getReturnCode() {
+		return returnCode;
+	}
+
+	/**
+	 * @param returnCode the returnCode to set
+	 */
+	public void setReturnCode(String returnCode) {
+		this.returnCode = returnCode;
+	}
+
+	/**
+	 * @return the datetFormat
+	 */
+	public String getDatetFormat() {
+		return datetFormat;
+	}
+
+	/**
+	 * @param datetFormat the datetFormat to set
+	 */
+	public void setDatetFormat(String datetFormat) {
+		this.datetFormat = datetFormat;
+	}
+
+	/**
+	 * @return the calendarFormat
+	 */
+	public String getCalendarFormat() {
+		return calendarFormat;
+	}
+
+	/**
+	 * @param calendarFormat the calendarFormat to set
+	 */
+	public void setCalendarFormat(String calendarFormat) {
+		this.calendarFormat = calendarFormat;
+	}
+
+	/**
+	 * @return the timeFormat
+	 */
+	public String getTimeFormat() {
+		return timeFormat;
+	}
+
+	/**
+	 * @param timeFormat the timeFormat to set
+	 */
+	public void setTimeFormat(String timeFormat) {
+		this.timeFormat = timeFormat;
+	}
+
+	/**
+	 * @return the originalSupportiveDocName
+	 */
+	public String getOriginalSupportiveDocName() {
+		return originalSupportiveDocName;
+	}
+
+	/**
+	 * @param originalSupportiveDocName the originalSupportiveDocName to set
+	 */
+	public void setOriginalSupportiveDocName(String originalSupportiveDocName) {
+		this.originalSupportiveDocName = originalSupportiveDocName;
+	}
+
+	/**
+	 * @return the approvalRoleId
+	 */
+	public Long getApprovalRoleId() {
+		return approvalRoleId;
+	}
+
+	/**
+	 * @param approvalRoleId the approvalRoleId to set
+	 */
+	public void setApprovalRoleId(Long approvalRoleId) {
+		this.approvalRoleId = approvalRoleId;
+	}
+
+	/**
+	 * @return the endDateInLong
+	 */
+	public Long getEndDateInLong() {
+		return endDateInLong;
+	}
+
+	/**
+	 * @return the fileStatusId
+	 */
+	public int getFileStatusId() {
+		return fileStatusId;
+	}
+
+	/**
+	 * @param fileStatusId the fileStatusId to set
+	 */
+	public void setFileStatusId(int fileStatusId) {
+		this.fileStatusId = fileStatusId;
+	}
+
+	/**
+	 * @return the frequency
+	 */
+	public String getFrequency() {
+		return frequency;
+	}
+
+	/**
+	 * @param frequency the frequency to set
+	 */
+	public void setFrequency(String frequency) {
+		this.frequency = frequency;
+	}
+
+	/**
+	 * @return the uploadChannel
+	 */
+	public String getUploadChannel() {
+		return uploadChannel;
+	}
+
+	/**
+	 * @param uploadChannel the uploadChannel to set
+	 */
+	public void setUploadChannel(String uploadChannel) {
+		this.uploadChannel = uploadChannel;
+	}
+
+	/**
+	 * @return the uploadChannelId
+	 */
+	public Long getUploadChannelId() {
+		return uploadChannelId;
+	}
+
+	/**
+	 * @param uploadChannelId the uploadChannelId to set
+	 */
+	public void setUploadChannelId(Long uploadChannelId) {
+		this.uploadChannelId = uploadChannelId;
+	}
+
+	/**
+	 * @return the fileType
+	 */
+	public String getFileType() {
+		return fileType;
+	}
+
+	/**
+	 * @param fileType the fileType to set
+	 */
+	public void setFileType(String fileType) {
+		this.fileType = fileType;
+	}
+
+	/**
+	 * @return the instanceName
+	 */
+	public String getInstanceName() {
+		return instanceName;
+	}
+
+	/**
+	 * @param instanceName the instanceName to set
+	 */
+	public void setInstanceName(String instanceName) {
+		this.instanceName = instanceName;
+	}
+
+	/**
+	 * @return the fileName
+	 */
+	public String getFileName() {
+		return fileName;
+	}
+
+	/**
+	 * @param fileName the fileName to set
+	 */
+	public void setFileName(String fileName) {
+		this.fileName = fileName;
+	}
+
+	/**
+	 * @return the attachementName
+	 */
+	public String getSupportiveDocName() {
+		return supportiveDocName;
+	}
+
+	/**
+	 * @param supportiveDocName the attachementName to set
+	 */
+	public void setSupportiveDocName(String supportiveDocName) {
+		this.supportiveDocName = supportiveDocName;
+	}
+
+	/**
+	 * @return the approvalUserId
+	 */
+	public Long getApprovalUserId() {
+		return approvalUserId;
+	}
+
+	/**
+	 * @param approvalUserId the approvalUserId to set
+	 */
+	public void setApprovalUserId(Long approvalUserId) {
+		this.approvalUserId = approvalUserId;
+	}
+
+	/**
+	 * @return the isApproved
+	 */
+	public Integer getIsApproved() {
+		return isApproved;
+	}
+
+	/**
+	 * @param isApproved the isApproved to set
+	 */
+	public void setIsApproved(Integer isApproved) {
+		this.isApproved = isApproved;
+	}
+
+	/**
+	 * @return the comment
+	 */
+	public String getComment() {
+		return comment;
+	}
+
+	/**
+	 * @param comment the comment to set
+	 */
+	public void setComment(String comment) {
+		this.comment = comment;
+	}
+
+	/**
+	 * @return the uploadId
+	 */
+	public Long getUploadId() {
+		return uploadId;
+	}
+
+	/**
+	 * @param uploadId the uploadId to set
+	 */
+	public void setUploadId(Long uploadId) {
+		this.uploadId = uploadId;
+	}
+
+	/**
+	 * @return the returnApprovalDtlId
+	 */
+	public Long getReturnApprovalDtlId() {
+		return returnApprovalDtlId;
+	}
+
+	/**
+	 * @param returnApprovalDtlId the returnApprovalDtlId to set
+	 */
+	public void setReturnApprovalDtlId(Long returnApprovalDtlId) {
+		this.returnApprovalDtlId = returnApprovalDtlId;
+	}
+
+	/**
+	 * @return the returnId
+	 */
+	public Long getReturnId() {
+		return returnId;
+	}
+
+	/**
+	 * @param returnId the returnId to set
+	 */
+	public void setReturnId(Long returnId) {
+		this.returnId = returnId;
+	}
+
+	/**
+	 * @return the returnName
+	 */
+	public String getReturnName() {
+		return returnName;
+	}
+
+	/**
+	 * @param returnName the returnName to set
+	 */
+	public void setReturnName(String returnName) {
+		this.returnName = returnName;
+	}
+
+	/**
+	 * @return the entityId
+	 */
+	public Long getEntityId() {
+		return entityId;
+	}
+
+	/**
+	 * @param entityId the entityId to set
+	 */
+	public void setEntityId(Long entityId) {
+		this.entityId = entityId;
+	}
+
+	/**
+	 * @return the entityName
+	 */
+	public String getEntityName() {
+		return entityName;
+	}
+
+	/**
+	 * @param entityName the entityName to set
+	 */
+	public void setEntityName(String entityName) {
+		this.entityName = entityName;
+	}
+
+	/**
+	 * @return the entityCode
+	 */
+	public String getEntityCode() {
+		return entityCode;
+	}
+
+	/**
+	 * @param entityCode the entityCode to set
+	 */
+	public void setEntityCode(String entityCode) {
+		this.entityCode = entityCode;
+	}
+
+	/**
+	 * @return the startDate
+	 */
+	public String getStartDate() {
+		return startDate;
+	}
+
+	/**
+	 * @param startDate the startDate to set
+	 */
+	public void setStartDate(String startDate) {
+		this.startDate = startDate;
+	}
+
+	/**
+	 * @return the endDate
+	 */
+	public String getEndDate() {
+		return endDate;
+	}
+
+	/**
+	 * @param endDate the endDate to set
+	 */
+	public void setEndDate(String endDate) {
+		this.endDate = endDate;
+	}
+
+	/**
+	 * @return the filingStatusId
+	 */
+	public int getFilingStatusId() {
+		return filingStatusId;
+	}
+
+	/**
+	 * @param filingStatusId the filingStatusId to set
+	 */
+	public void setFilingStatusId(int filingStatusId) {
+		this.filingStatusId = filingStatusId;
+	}
+
+	/**
+	 * @return the filingStatus
+	 */
+	public String getFilingStatus() {
+		return filingStatus;
+	}
+
+	/**
+	 * @param filingStatus the filingStatus to set
+	 */
+	public void setFilingStatus(String filingStatus) {
+		this.filingStatus = filingStatus;
+	}
+
+	/**
+	 * @return the roleId
+	 */
+	public Long getRoleId() {
+		return roleId;
+	}
+
+	/**
+	 * @param roleId the roleId to set
+	 */
+	public void setRoleId(Long roleId) {
+		this.roleId = roleId;
+	}
+
+	/**
+	 * @return the uploadedUserId
+	 */
+	public Long getUploadedUserId() {
+		return uploadedUserId;
+	}
+
+	/**
+	 * @param uploadedUserId the uploadedUserId to set
+	 */
+	public void setUploadedUserId(Long uploadedUserId) {
+		this.uploadedUserId = uploadedUserId;
+	}
+
+	/**
+	 * @return the uploadedUserName
+	 */
+	public String getUploadedUserName() {
+		return uploadedUserName;
+	}
+
+	/**
+	 * @param uploadedUserName the uploadedUserName to set
+	 */
+	public void setUploadedUserName(String uploadedUserName) {
+		this.uploadedUserName = uploadedUserName;
+	}
+
+	/**
+	 * @return the uploadedDate
+	 */
+	public String getUploadedDate() {
+		return uploadedDate;
+	}
+
+	/**
+	 * @param uploadedDate the uploadedDate to set
+	 */
+	public void setUploadedDate(String uploadedDate) {
+		this.uploadedDate = uploadedDate;
+	}
+
+	/**
+	 * @return the frequencyDescId
+	 */
+	public Long getFrequencyDescId() {
+		return frequencyDescId;
+	}
+
+	/**
+	 * @param frequencyDescId the frequencyDescId to set
+	 */
+	public void setFrequencyDescId(Long frequencyDescId) {
+		this.frequencyDescId = frequencyDescId;
+	}
+
+	/**
+	 * @return the frequencyDesc
+	 */
+	public String getFrequencyDesc() {
+		return frequencyDesc;
+	}
+
+	/**
+	 * @param frequencyDesc the frequencyDesc to set
+	 */
+	public void setFrequencyDesc(String frequencyDesc) {
+		this.frequencyDesc = frequencyDesc;
+	}
+
+	/**
+	 * @return the previousUploadId
+	 */
+	public Long getPreviousUploadId() {
+		return previousUploadId;
+	}
+
+	/**
+	 * @param previousUploadId the previousUploadId to set
+	 */
+	public void setPreviousUploadId(Long previousUploadId) {
+		this.previousUploadId = previousUploadId;
+	}
+
+	/**
+	 * @return the workflowId
+	 */
+	public Long getWorkflowId() {
+		return workflowId;
+	}
+
+	/**
+	 * @param workflowId the workflowId to set
+	 */
+	public void setWorkflowId(Long workflowId) {
+		this.workflowId = workflowId;
+	}
+
+	/**
+	 * @return the currentStep
+	 */
+	public int getCurrentStep() {
+		return currentStep;
+	}
+
+	/**
+	 * @param currentStep the currentStep to set
+	 */
+	public void setCurrentStep(int currentStep) {
+		this.currentStep = currentStep;
+	}
+}

@@ -1,0 +1,60 @@
+/**
+ * 
+ */
+package com.iris.sdmx.upload.bean;
+
+import java.io.Serializable;
+
+/**
+ * @author sajadhav
+ *
+ */
+public class StructureRef implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -796914304355163501L;
+	
+	private String code;
+	
+	private String version;
+	
+	private String agencyID;
+
+	private String sender;
+	
+	
+	public String getSender() {
+		return sender;
+	}
+
+	public void setSender(String sender) {
+		this.sender = sender;
+	}
+
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
+	}
+
+	public String getVersion() {
+		return version;
+	}
+
+	public void setVersion(String version) {
+		this.version = version;
+	}
+
+	public String getAgencyID() {
+		return agencyID;
+	}
+
+	public void setAgencyID(String agencyID) {
+		this.agencyID = agencyID;
+	}
+
+}

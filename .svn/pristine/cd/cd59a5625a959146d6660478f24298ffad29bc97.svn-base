@@ -1,0 +1,40 @@
+/**
+ * 
+ */
+package com.iris.sdmx.status.helper;
+
+import org.springframework.beans.BeanUtils;
+
+import com.iris.sdmx.status.bean.SdmxStatusBean;
+import com.iris.sdmx.status.entity.SdmxStatusEntity;
+
+/**
+ * @author apagaria
+ *
+ */
+public class SdmxStatusHelper {
+
+	private SdmxStatusHelper() {
+
+	}
+
+	/**
+	 * @param sdmxStatusEntity
+	 * @param sdmxStatusBean
+	 */
+	public static void convertEntityToBean(SdmxStatusEntity sdmxStatusEntity,
+			SdmxStatusBean sdmxStatusBean) {
+		BeanUtils.copyProperties(sdmxStatusEntity, sdmxStatusBean);
+		// Removing extra data from user master for created By field
+		if (sdmxStatusEntity.getCreatedBy() != null
+				&& sdmxStatusEntity.getCreatedBy().getUserId() != null) {
+			sdmxStatusBean.setCreatedBy(sdmxStatusEntity.getCreatedBy().getUserId());
+		}
+		// Removing extra data from user master for modify By field
+		if (sdmxStatusEntity.getModifyBy() != null
+				&& sdmxStatusEntity.getModifyBy().getUserId() != null) {
+			sdmxStatusBean.setModifyBy(sdmxStatusEntity.getModifyBy().getUserId());
+		}
+	}
+
+}

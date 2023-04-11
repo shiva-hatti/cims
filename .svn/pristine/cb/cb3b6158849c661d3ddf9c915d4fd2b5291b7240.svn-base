@@ -1,0 +1,53 @@
+package com.iris.util;
+
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.xml.XMLConstants;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.xml.sax.InputSource;
+import org.xml.sax.XMLReader;
+
+import com.iris.exception.SimpleErrorHandler;
+
+
+
+public class XmlValidate{
+	static final Logger logger = LogManager.getLogger(XmlValidate.class);
+
+	public static void main(String[] args) throws ParserConfigurationException, IOException { 
+		XmlValidate xmlValidate = new XmlValidate();
+		String filePath = "C:\\Users\\sajadhav\\Downloads\\HDFC191025R08601M.xml";
+		System.out.println(xmlValidate.isValidXmlDocument(filePath));
+	}
+	
+	public boolean isValidXmlDocument(String filePath){
+		try (InputStream inputStream = new FileInputStream(new File(filePath))) {
+			SAXParserFactory factory = SAXParserFactory.newInstance();
+			factory.setValidating(false);
+			factory.setNamespaceAware(true);
+			factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+			SAXParser parser = null;
+			InputSource inputSource = null;
+			XMLReader reader = null;
+			parser = factory.newSAXParser();
+			reader = parser.getXMLReader();
+			reader.setErrorHandler(new SimpleErrorHandler());
+			
+			inputSource = new InputSource(inputStream);
+			reader.parse(inputSource);
+			return true;
+		}catch(Exception e) {
+			logger.error("Exception :",e);
+			return false;
+		}
+	}
+}

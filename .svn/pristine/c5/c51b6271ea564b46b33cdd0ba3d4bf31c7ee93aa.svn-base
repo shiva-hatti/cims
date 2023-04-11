@@ -1,0 +1,30 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+import java.util.List;
+
+public class ReturnReturnTypeFileFormatMappingDTO implements Serializable {
+	private static final long serialVersionUID = -5773858463784804848L;
+	private Long returnIdFk;
+	private List<Long> returnTypeIdFk;
+	private List<Long> fileFormatIdFk;
+	public Long getReturnIdFk() {
+		return returnIdFk;
+	}
+	public void setReturnIdFk(Long returnIdFk) {
+		this.returnIdFk = returnIdFk;
+	}
+	public List<Long> getReturnTypeIdFk() {
+		return returnTypeIdFk;
+	}
+	public void setReturnTypeIdFk(List<Long> returnTypeIdFk) {
+		this.returnTypeIdFk = returnTypeIdFk;
+	}
+	public List<Long> getFileFormatIdFk() {
+		return fileFormatIdFk;
+	}
+	public void setFileFormatIdFk(List<Long> fileFormatIdFk) {
+		this.fileFormatIdFk = fileFormatIdFk;
+	}
+	
+}

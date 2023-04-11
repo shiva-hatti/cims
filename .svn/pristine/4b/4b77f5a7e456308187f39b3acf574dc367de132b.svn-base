@@ -1,0 +1,317 @@
+package com.iris.controller;
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.iris.caching.ObjectCache;
+import com.iris.dto.CsvMetaDataBean;
+import com.iris.dto.JsonMetaDataBean;
+import com.iris.dto.ReturnFileFormatMapDto;
+import com.iris.dto.ReturnMetaDataBean;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.dto.XmlMetaDataBean;
+import com.iris.model.FileFormat;
+import com.iris.model.Return;
+import com.iris.model.ReturnFileFormatMap;
+import com.iris.repository.ReturnFileFormatMapRepo;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.GeneralConstants;
+
+@RestController
+@RequestMapping("/service/returnFileFormatController")
+public class ReturnFileFormatController {
+
+	private static final Logger Logger = LogManager.getLogger(ReturnFileFormatController.class);
+
+	@Autowired
+	private GenericService<ReturnFileFormatMap, Long> returnFileFormatService;
+	@Autowired
+	private GenericService<Return, Long> returnService;
+	@Autowired
+	private ReturnFileFormatMapRepo returnFileFormatMapRepo;
+
+	/**
+	 * This method adds Mapping Between Return and File Format.
+	 * 
+	 * @param jobProcessId
+	 * @param returnRegulatorMappingDto
+	 * @return
+	 */
+	@PostMapping(value = "/addReturnFileFormatMapping")
+	public ServiceResponse addReturnDepartmentMapping(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody ReturnFileFormatMapDto returnFileFormatMapDto) {
+		ReturnFileFormatMap returnFileFormatMap = new ReturnFileFormatMap();
+		try {
+			Logger.debug("Request for Return mapping to File Format for job processingid" + jobProcessId);
+			Return ret = new Return();
+			ret.setReturnId(returnFileFormatMapDto.getReturnIdFk());
+			returnFileFormatMap.setReturnBean(ret);
+			returnFileFormatMap.setFileFormatIdString(returnFileFormatMapDto.getFileFormatIdString());
+			returnFileFormatMap = returnFileFormatService.add(returnFileFormatMap);
+
+		} catch (Exception e) {
+			Logger.error("Exception while mapping return to File Format for job processingid " + jobProcessId, e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+		}
+		ServiceResponse response;
+		if (returnFileFormatMap == null) {
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0772.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0772.toString())).build();
+			Logger.debug("Return mapping to File Format  Failed. for job processingid" + jobProcessId);
+		} else {
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(returnFileFormatMap).build();
+			Logger.info("request completed to add Return File Format mapping for job processingid" + jobProcessId);
+		}
+		return response;
+	}
+
+	@PostMapping(value = "/addReturnFormatJsonMapping")
+	public ServiceResponse addReturnFormatJsonMapping(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody ReturnFileFormatMapDto returnFileFormatMapDto) {
+		ReturnFileFormatMap returnFileFormatMap = new ReturnFileFormatMap();
+		List<ReturnFileFormatMap> updateFormatList = new ArrayList<ReturnFileFormatMap>();
+		try {
+			Logger.debug("Request for Return mapping to File Format for job processingid" + jobProcessId);
+			List<Long> list = new ArrayList<Long>();
+			Map<Long, List<ReturnFileFormatMap>> formatMap = new HashMap<Long, List<ReturnFileFormatMap>>();
+			Map<Long, List<String>> formatReturnIdMap = new HashMap<Long, List<String>>();
+			Map<String, Boolean> formatReturnValueMap = new HashMap<String, Boolean>();
+
+			for (String retFormatStr : returnFileFormatMapDto.getFileFormatDataString()) {
+				String data[] = retFormatStr.split("~");
+				Long id = Long.valueOf(data[0]);
+				list.add(id);
+				String metaDataField = data[1];
+
+				List<String> fieldList = new ArrayList<String>();
+				if (formatReturnIdMap.containsKey(id)) {//Map of return id key and meta data fields are value
+					fieldList = formatReturnIdMap.get(id);
+					fieldList.add(metaDataField);
+					formatReturnIdMap.put(id, fieldList);
+				} else {
+					fieldList = new ArrayList<String>();
+					fieldList.add(metaDataField);
+					formatReturnIdMap.put(id, fieldList);
+				}
+				formatReturnValueMap.put(data[0] + "~" + data[1], Boolean.valueOf(data[2]));
+			}
+			Long[] returnArray = null;
+			if (!CollectionUtils.isEmpty(list)) {
+				returnArray = list.toArray(new Long[list.size()]);
+			}
+			List<Return> returnList = returnService.getDataByIds(returnArray);
+
+			List<ReturnFileFormatMap> formatList = new ArrayList<ReturnFileFormatMap>();
+			for (Return retObj : returnList) {
+				for (ReturnFileFormatMap format : retObj.getReturnFileFormatMapList()) {
+					if (formatMap.containsKey(retObj.getReturnId())) {
+						formatList = formatMap.get(retObj.getReturnId());
+						formatList.add(format);
+						formatMap.put(retObj.getReturnId(), formatList);
+					} else {
+						formatList = new ArrayList<ReturnFileFormatMap>();
+						formatList.add(format);
+						formatMap.put(retObj.getReturnId(), formatList);
+					}
+				}
+			}
+			List<ReturnFileFormatMap> metaDataList = new ArrayList<ReturnFileFormatMap>();
+			CsvMetaDataBean csvMetaDataBean = new CsvMetaDataBean();
+			XmlMetaDataBean xmlMetaDataBean = new XmlMetaDataBean();
+			JsonMetaDataBean jsonMetaDataBean = new JsonMetaDataBean();
+
+			for (Entry<Long, List<String>> str : formatReturnIdMap.entrySet()) {
+				Long retKeyId = str.getKey();
+				List<ReturnFileFormatMap> formatMaplist = formatMap.get(retKeyId);
+				if (formatMaplist == null) {
+					continue;
+				}
+				for (ReturnFileFormatMap fileformatMap : formatMaplist) {
+					if (!fileformatMap.isActive()) {
+						continue;
+					}
+					String jsonStr = fileformatMap.getMetaDataJson();
+
+					Type listToken = new TypeToken<ReturnMetaDataBean>() {
+					}.getType();
+					Gson gson = new Gson();
+					ReturnMetaDataBean returnMetaDataBean = gson.fromJson(jsonStr, listToken);
+					if (fileformatMap.getFileFormat().getFileFormatId() == 3) { //xml File Type
+						String key = retKeyId + "~" + GeneralConstants.RETURN_CODE.getConstantVal();
+						if (formatReturnValueMap.containsKey(key)) {
+							if (formatReturnValueMap.get(key)) {
+								xmlMetaDataBean.setReturnCodeMatchCheck(true);
+							} else {
+								xmlMetaDataBean.setReturnCodeMatchCheck(false);
+							}
+						} else {
+							xmlMetaDataBean.setReturnCodeMatchCheck(returnMetaDataBean.isReturnCodeMatchCheck());
+						}
+
+						key = retKeyId + "~" + GeneralConstants.ENTITY_CODE.getConstantVal();
+						if (formatReturnValueMap.containsKey(key)) {
+							if (formatReturnValueMap.get(key)) {
+								xmlMetaDataBean.setEntityCodeMatchCheck(true);
+							} else {
+								xmlMetaDataBean.setEntityCodeMatchCheck(false);
+							}
+						} else {
+							xmlMetaDataBean.setEntityCodeMatchCheck(returnMetaDataBean.isEntityCodeMatchCheck());
+						}
+
+						key = retKeyId + "~" + GeneralConstants.START_DATE.getConstantVal();
+						if (formatReturnValueMap.containsKey(key)) {
+							if (formatReturnValueMap.get(key)) {
+								xmlMetaDataBean.setReportingStartDateCheck(true);
+							} else {
+								xmlMetaDataBean.setReportingStartDateCheck(false);
+							}
+						} else {
+							xmlMetaDataBean.setReportingStartDateCheck(returnMetaDataBean.isReportingStartDateCheck());
+						}
+
+						xmlMetaDataBean.setReportingStatusCheck(true);
+
+						String metaJson = gson.toJson(xmlMetaDataBean);
+
+						ReturnFileFormatMap returnMap = new ReturnFileFormatMap();
+						returnMap.setReturnFileFormatMapId(fileformatMap.getReturnFileFormatMapId());
+						returnMap.setMetaDataJson(metaJson);
+						returnMap.setFormulaFileName(fileformatMap.getFormulaFileName());
+						returnMap.setActive(fileformatMap.isActive());
+						returnMap.setJsonToReadFile(fileformatMap.getJsonToReadFile());
+						Return returnObj = new Return();
+						returnObj = fileformatMap.getReturnBean();
+						FileFormat format = new FileFormat();
+						format = fileformatMap.getFileFormat();
+						returnMap.setReturnBean(returnObj);
+						returnMap.setFileFormat(format);
+						metaDataList.add(returnMap);
+
+					} else if (fileformatMap.getFileFormat().getFileFormatId() == 5) { //txt
+						String key = retKeyId + "~" + GeneralConstants.RETURN_CODE.getConstantVal();
+						if (formatReturnValueMap.containsKey(key)) {
+							if (formatReturnValueMap.get(key)) {
+								csvMetaDataBean.setReturnCodeMatchCheck(true);
+							} else {
+								csvMetaDataBean.setReturnCodeMatchCheck(false);
+							}
+						} else {
+							csvMetaDataBean.setReturnCodeMatchCheck(returnMetaDataBean.isReturnCodeMatchCheck());
+						}
+
+						key = retKeyId + "~" + GeneralConstants.ENTITY_CODE.getConstantVal();
+						if (formatReturnValueMap.containsKey(key)) {
+							if (formatReturnValueMap.get(key)) {
+								csvMetaDataBean.setEntityCodeMatchCheck(true);
+							} else {
+								csvMetaDataBean.setEntityCodeMatchCheck(false);
+							}
+						} else {
+							csvMetaDataBean.setEntityCodeMatchCheck(returnMetaDataBean.isEntityCodeMatchCheck());
+						}
+
+						key = retKeyId + "~" + GeneralConstants.FREQUENCY.getConstantVal();
+						if (formatReturnValueMap.containsKey(key)) {
+							if (formatReturnValueMap.get(key)) {
+								csvMetaDataBean.setReportingFrequencyCheck(true);
+							} else {
+								csvMetaDataBean.setReportingFrequencyCheck(false);
+							}
+						} else {
+							csvMetaDataBean.setReportingFrequencyCheck(returnMetaDataBean.isReportingFrequencyCheck());
+						}
+						csvMetaDataBean.setReportingStatusCheck(true);
+
+						String metaJson = gson.toJson(csvMetaDataBean);
+
+						ReturnFileFormatMap returnMap = new ReturnFileFormatMap();
+						returnMap.setReturnFileFormatMapId(fileformatMap.getReturnFileFormatMapId());
+						returnMap.setMetaDataJson(metaJson);
+						returnMap.setFormulaFileName(fileformatMap.getFormulaFileName());
+						returnMap.setActive(fileformatMap.isActive());
+						returnMap.setJsonToReadFile(fileformatMap.getJsonToReadFile());
+						Return returnObj = new Return();
+						returnObj = fileformatMap.getReturnBean();
+						FileFormat format = new FileFormat();
+						format = fileformatMap.getFileFormat();
+						returnMap.setReturnBean(returnObj);
+						returnMap.setFileFormat(format);
+						metaDataList.add(returnMap);
+
+					} else if (fileformatMap.getFileFormat().getFileFormatId() == 9) { //json
+						String key = retKeyId + "~" + GeneralConstants.RETURN_CODE.getConstantVal();
+						if (formatReturnValueMap.containsKey(key)) {
+							if (formatReturnValueMap.get(key)) {
+								jsonMetaDataBean.setReturnCodeMatchCheck(true);
+							} else {
+								jsonMetaDataBean.setReturnCodeMatchCheck(false);
+							}
+						} else {
+							jsonMetaDataBean.setReturnCodeMatchCheck(returnMetaDataBean.isReturnCodeMatchCheck());
+						}
+
+						key = retKeyId + "~" + GeneralConstants.ENTITY_CODE.getConstantVal();
+						if (formatReturnValueMap.containsKey(key)) {
+							if (formatReturnValueMap.get(key)) {
+								jsonMetaDataBean.setEntityCodeMatchCheck(true);
+							} else {
+								jsonMetaDataBean.setEntityCodeMatchCheck(false);
+							}
+						} else {
+							jsonMetaDataBean.setEntityCodeMatchCheck(returnMetaDataBean.isEntityCodeMatchCheck());
+						}
+
+						jsonMetaDataBean.setReportingStatusCheck(true);
+
+						String metaJson = gson.toJson(jsonMetaDataBean);
+
+						ReturnFileFormatMap returnMap = new ReturnFileFormatMap();
+						returnMap.setReturnFileFormatMapId(fileformatMap.getReturnFileFormatMapId());
+						returnMap.setMetaDataJson(metaJson);
+						returnMap.setFormulaFileName(fileformatMap.getFormulaFileName());
+						returnMap.setActive(fileformatMap.isActive());
+						returnMap.setJsonToReadFile(fileformatMap.getJsonToReadFile());
+						Return returnObj = new Return();
+						returnObj = fileformatMap.getReturnBean();
+						FileFormat format = new FileFormat();
+						format = fileformatMap.getFileFormat();
+						returnMap.setReturnBean(returnObj);
+						returnMap.setFileFormat(format);
+						metaDataList.add(returnMap);
+					}
+				}
+			}
+
+			updateFormatList = returnFileFormatMapRepo.saveAll(metaDataList); //Add Final data in returnfileformatMap table 
+
+		} catch (Exception e) {
+			Logger.error("Exception while mapping return to File Format for job processingid " + jobProcessId, e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+		}
+		ServiceResponse response;
+		if (updateFormatList == null) {
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0772.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0772.toString())).build();
+			Logger.debug("Return mapping to File Format  Failed. for job processingid" + jobProcessId);
+		} else {
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(returnFileFormatMap).build();
+			Logger.info("request completed to add Return File Format mapping for job processingid" + jobProcessId);
+		}
+		return response;
+	}
+}

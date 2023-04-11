@@ -1,0 +1,141 @@
+package com.iris.util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+
+/**
+ * 
+ */
+
+/**
+ * @author apagaria
+ *
+ */
+public class CustomizeDateUtil {
+	public static final String BASE_DATE = "09-10-1998";
+
+	public static enum Frequency {
+		QUATERLY("Q", "Quaterly", -90), DAILY("D", "Daily", 0), FORT_NIGHTLY("F", "Fortnightly", -14), HALF_MONTHLY("HM", "Half monthly", -15), MONTHLY("M", "Monthly", -30), HALF_YEARLY("H", "Half yearly", -180), YEARLY("Y", "Yearly", -365), WEEKLY("W", "WEEKLY", -6), CUSTOMIZE_ANNUALLY("CA", "Customize Annualy", -365), CUSTOMIZE_HALF_YEARLY("CH", "Customize Half Yearly", -180);
+
+		String freqPeriod;
+		String description;
+		int days;
+
+		private Frequency(String freqPeriod, String description, int days) {
+			this.freqPeriod = freqPeriod;
+			this.description = description;
+			this.days = days;
+		}
+
+		/**
+		 * @return the freqPeriod
+		 */
+		public String getFreqPeriod() {
+			return freqPeriod;
+		}
+
+		/**
+		 * @return the description
+		 */
+		public String getDescription() {
+			return description;
+		}
+
+		/**
+		 * @return the days
+		 */
+		public int getDays() {
+			return days;
+		}
+
+		public static Frequency getEnumByfreqPeriod(String freqPeriod) {
+			for (Frequency freq : Frequency.values()) {
+				if (freq.getFreqPeriod().equalsIgnoreCase(freqPeriod)) {
+					return freq;
+				}
+			}
+			return null;
+		}
+	}
+
+	public static enum FinancialYear {
+		JAN_TO_DES(1, "January To Desember"), APR_TO_MAR(2, "April to March");
+
+		int id;
+		String description;
+
+		private FinancialYear(int id, String description) {
+			this.id = id;
+			this.description = description;
+		}
+
+		/**
+		 * @return the id
+		 */
+		public int getId() {
+			return id;
+		}
+
+		/**
+		 * @return the description
+		 */
+		public String getDescription() {
+			return description;
+		}
+	}
+
+	/**
+	 * Checking date is valid or not
+	 * 
+	 * @param dateToValidate
+	 * @param dateFromat
+	 * @return
+	 */
+	public static boolean isDateValidWithLength(String dateToValidate, String dateFromat) {
+		if (dateToValidate == null) {
+			return false;
+		}
+		SimpleDateFormat sdf = new SimpleDateFormat(dateFromat);
+		sdf.setLenient(false);
+		try {
+			// if not valid, it will throw ParseException
+			sdf.parse(dateToValidate);
+			if (dateToValidate.length() != 8) {
+				return false;
+			}
+		} catch (ParseException e) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * @param date
+	 * @param cal
+	 * @return
+	 * @throws ParseException
+	 */
+	public static String getStartDateInFormat(String date, Calendar cal) throws ParseException {
+		String finalDate = "" + date + "/" + (cal.get(Calendar.MONTH) + 2) + "/" + cal.get(Calendar.YEAR);
+		SimpleDateFormat format2 = new SimpleDateFormat("dd/MM/yyyy");
+		Date startDate = format2.parse(finalDate);
+		return format2.format(startDate);
+	}
+
+	public static String getHalfMonthlyStartDateInFormat(String date, Calendar cal) throws ParseException {
+		String finalDate = "" + date + "/" + (cal.get(Calendar.MONTH) + 1) + "/" + cal.get(Calendar.YEAR);
+		SimpleDateFormat format2 = new SimpleDateFormat("dd/MM/yyyy");
+		Date startDate = format2.parse(finalDate);
+		return format2.format(startDate);
+	}
+
+	public static Boolean isLeapYear(int year) {
+		Boolean isLeapYear = Boolean.FALSE;
+		if ((year % 400 == 0) || ((year % 4 == 0) && (year % 100 != 0))) {
+			isLeapYear = true;
+		}
+		return isLeapYear;
+	}
+}

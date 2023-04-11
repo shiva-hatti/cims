@@ -1,0 +1,93 @@
+package com.iris.sdmx.status.service;
+
+/**
+ * 
+ */
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.lang.reflect.Type;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.iris.sdmx.bean.DataSet;
+
+/**
+ * @author apagaria
+ *
+ */
+public class JsonToCsvProcessor {
+
+	static final Logger LOGGER = LogManager.getLogger(JsonToCsvProcessor.class);
+
+	public Map<String, String> processJsonToCsvConversion(String jsonStr, String csvPath) throws Exception {
+		Gson gson = new Gson();
+		Map<String, String> csvFileMap = new HashMap<String, String>();
+		Type listToken = new TypeToken<List<DataSet>>() {
+		}.getType();
+		List<DataSet> dataSetList = gson.fromJson(jsonStr, listToken);
+		if (!CollectionUtils.isEmpty(dataSetList)) {
+			//			LOGGER.info("Json to java bean - " + dataSetList);
+			for (DataSet dataSet : dataSetList) {
+				String dsdId = dataSet.getStructureRef().getAgencyID() + ":" + dataSet.getStructureRef().getCode() + "(" + dataSet.getStructureRef().getVersion() + ")";
+				LOGGER.info("DSD ID - " + dsdId);
+				List<Map<String, String>> dataMapList = dataSet.getData();
+				List<String> headerData = new ArrayList<>();
+				headerData.add("DSDID");
+				for (Map.Entry<String, String> entry : dataMapList.get(0).entrySet()) {
+					headerData.add(entry.getKey());
+				}
+				List<List<String>> dataList = new ArrayList<>();
+				for (Map<String, String> dataMap : dataMapList) {
+					List<String> dataStrList = new ArrayList<>();
+					dataStrList.add(dsdId);
+					for (Map.Entry<String, String> entry : dataMap.entrySet()) {
+						dataStrList.add(entry.getValue());
+					}
+					dataList.add(dataStrList);
+				}
+				LOGGER.info("Header Data - " + headerData);
+				LOGGER.info("Data List Data - " + dataList);
+
+				String csvFileName = "csvFile_" /* + dataSet.getStructureRef().getSender() + "_" */
+																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																				+ dataSet.getStructureRef().getCode()
+																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																				+ "_"
+																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																				+ System.currentTimeMillis()
+																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																				+ ".csv";
+				String outputFilePath = csvPath + File.separator + csvFileName;
+				csvFileMap.put(dataSet.getStructureRef().getCode(), csvFileName);
+				LOGGER.info("Output file path - " + outputFilePath);
+				BufferedWriter bufferedWriter = Files.newBufferedWriter(Paths.get(outputFilePath));
+				try (CSVPrinter csvPrinter = CSVFormat.DEFAULT.withHeader(headerData.toArray(new String[0])).print(bufferedWriter)) {
+					for (List<String> strList : dataList) {
+						csvPrinter.printRecord(strList.toArray(new String[0]));
+					}
+				}
+			}
+		}
+
+		return csvFileMap;
+	}
+
+	//	public static void main(String[] args) throws Exception {
+	//		String jsonStr = "[{\"structureRef\":{\"code\":\"STAN_ADV\",\"version\":\"1.0\",\"agencyID\":\"RBI\",\"sender\":\"997\"},\"attached_attributes\":{\"action\":\"Replace\",\"DEPENDENCY_TYPE\":\"DEPENDENT\",\"AUDST\":\"UNAUDITED\"},\"dataset_attributes\":{\"dimensionAtObservation\":\"AllDimensions\",\"SetId\":\"urn:sdmx:org.sdmx.infomodel.datastructure.DataStructure\\u003dRBI:STAN_ADV(1.0)\"},\"data\":[{\"Area_Operation\":\"DOM_OP\",\"DMID\":\"DMI018910\",\"Fixed_Assets\":\"N_A\",\"Other_Assets\":\"N_A\",\"COMMENT\":\"N_A\",\"COUNTRY\":\"N_A\",\"TIME_SPAN\":\"N_A\",\"Currency\":\"INR\",\"OBS_VALUE\":\"4746.92\",\"ASETTY\":\"N_A\",\"TIME_PERIOD\":\"2020-12-31T00:00:00\",\"Asset_List\":\"CIHBCA\",\"Measure_Type\":\"TOTAL\",\"FA_DET\":\"N_A\",\"BRNAME\":\"N_A\"},{\"Area_Operation\":\"DOM_OP\",\"DMID\":\"DMI018911\",\"Fixed_Assets\":\"N_A\",\"Other_Assets\":\"N_A\",\"COMMENT\":\"N_A\",\"COUNTRY\":\"N_A\",\"TIME_SPAN\":\"N_A\",\"Currency\":\"INR\",\"OBS_VALUE\":\"4446.92\",\"ASETTY\":\"N_A\",\"TIME_PERIOD\":\"2020-12-31T00:00:00\",\"Asset_List\":\"CIHBCA\",\"Measure_Type\":\"TOWHF\",\"FA_DET\":\"N_A\",\"BRNAME\":\"N_A\"},{\"Area_Operation\":\"DOM_OP\",\"DMID\":\"DMI018912\",\"Fixed_Assets\":\"N_A\",\"Other_Assets\":\"N_A\",\"COMMENT\":\"N_A\",\"COUNTRY\":\"N_A\",\"TIME_SPAN\":\"N_A\",\"Currency\":\"INR\",\"OBS_VALUE\":\"4746.92\",\"ASETTY\":\"N_A\",\"TIME_PERIOD\":\"2020-12-31T00:00:00\",\"Asset_List\":\"CIHBCA\",\"Measure_Type\":\"TOTAL\",\"FA_DET\":\"N_A\",\"BRNAME\":\"N_A\"},{\"Area_Operation\":\"DOM_OP\",\"DMID\":\"DMI018913\",\"Fixed_Assets\":\"N_A\",\"Other_Assets\":\"N_A\",\"COMMENT\":\"N_A\",\"COUNTRY\":\"N_A\",\"TIME_SPAN\":\"N_A\",\"Currency\":\"INR\",\"OBS_VALUE\":\"4446.92\",\"ASETTY\":\"N_A\",\"TIME_PERIOD\":\"2020-12-31T00:00:00\",\"Asset_List\":\"CIHBCA\",\"Measure_Type\":\"TOWHF\",\"FA_DET\":\"N_A\",\"BRNAME\":\"N_A\"},{\"Area_Operation\":\"DOM_OP\",\"DMID\":\"DMI018914\",\"Fixed_Assets\":\"N_A\",\"Other_Assets\":\"N_A\",\"COMMENT\":\"N_A\",\"COUNTRY\":\"N_A\",\"TIME_SPAN\":\"N_A\",\"Currency\":\"INR\",\"OBS_VALUE\":\"4746.92\",\"ASETTY\":\"N_A\",\"TIME_PERIOD\":\"2020-12-31T00:00:00\",\"Asset_List\":\"CIHBCA\",\"Measure_Type\":\"TOTAL\",\"FA_DET\":\"N_A\",\"BRNAME\":\"N_A\"},{\"Area_Operation\":\"DOM_OP\",\"DMID\":\"DMI018915\",\"Fixed_Assets\":\"N_A\",\"Other_Assets\":\"N_A\",\"COMMENT\":\"N_A\",\"COUNTRY\":\"N_A\",\"TIME_SPAN\":\"N_A\",\"Currency\":\"INR\",\"OBS_VALUE\":\"4446.92\",\"ASETTY\":\"N_A\",\"TIME_PERIOD\":\"2020-12-31T00:00:00\",\"Asset_List\":\"CIHBCA\",\"Measure_Type\":\"TOWHF\",\"FA_DET\":\"N_A\",\"BRNAME\":\"N_A\"},{\"Area_Operation\":\"DOM_OP\",\"DMID\":\"DMI018916\",\"Fixed_Assets\":\"N_A\",\"Other_Assets\":\"N_A\",\"COMMENT\":\"N_A\",\"COUNTRY\":\"N_A\",\"TIME_SPAN\":\"N_A\",\"Currency\":\"INR\",\"OBS_VALUE\":\"4746.92\",\"ASETTY\":\"N_A\",\"TIME_PERIOD\":\"2020-12-31T00:00:00\",\"Asset_List\":\"CIHBCA\",\"Measure_Type\":\"TOTAL\",\"FA_DET\":\"N_A\",\"BRNAME\":\"N_A\"},{\"Area_Operation\":\"DOM_OP\",\"DMID\":\"DMI018917\",\"Fixed_Assets\":\"N_A\",\"Other_Assets\":\"N_A\",\"COMMENT\":\"N_A\",\"COUNTRY\":\"N_A\",\"TIME_SPAN\":\"N_A\",\"Currency\":\"INR\",\"OBS_VALUE\":\"4446.92\",\"ASETTY\":\"N_A\",\"TIME_PERIOD\":\"2020-12-31T00:00:00\",\"Asset_List\":\"CIHBCA\",\"Measure_Type\":\"TOWHF\",\"FA_DET\":\"N_A\",\"BRNAME\":\"N_A\"},{\"Area_Operation\":\"DOM_OP\",\"DMID\":\"DMI018918\",\"Fixed_Assets\":\"N_A\",\"Other_Assets\":\"N_A\",\"COMMENT\":\"N_A\",\"COUNTRY\":\"N_A\",\"TIME_SPAN\":\"N_A\",\"Currency\":\"INR\",\"OBS_VALUE\":\"4746.92\",\"ASETTY\":\"N_A\",\"TIME_PERIOD\":\"2020-12-31T00:00:00\",\"Asset_List\":\"CIHBCA\",\"Measure_Type\":\"TOTAL\",\"FA_DET\":\"N_A\",\"BRNAME\":\"N_A\"},{\"Area_Operation\":\"DOM_OP\",\"DMID\":\"DMI018919\",\"Fixed_Assets\":\"N_A\",\"Other_Assets\":\"N_A\",\"COMMENT\":\"N_A\",\"COUNTRY\":\"N_A\",\"TIME_SPAN\":\"N_A\",\"Currency\":\"INR\",\"OBS_VALUE\":\"4446.92\",\"ASETTY\":\"N_A\",\"TIME_PERIOD\":\"2020-12-31T00:00:00\",\"Asset_List\":\"CIHBCA\",\"Measure_Type\":\"TOWHF\",\"FA_DET\":\"N_A\",\"BRNAME\":\"N_A\"},{\"Area_Operation\":\"DOM_OP\",\"DMID\":\"DMI018920\",\"Fixed_Assets\":\"N_A\",\"Other_Assets\":\"N_A\",\"COMMENT\":\"N_A\",\"COUNTRY\":\"N_A\",\"TIME_SPAN\":\"N_A\",\"Currency\":\"INR\",\"OBS_VALUE\":\"4746.92\",\"ASETTY\":\"N_A\",\"TIME_PERIOD\":\"2020-12-31T00:00:00\",\"Asset_List\":\"CIHBCA\",\"Measure_Type\":\"TOTAL\",\"FA_DET\":\"N_A\",\"BRNAME\":\"N_A\"}]}]";
+	//		String csvPath = "C:\\iFileProd\\INSTANCE\\EBR_UPLOADED\\020\\30-03-2021\\1_010_3_30-03-2021_17-31-47-706";
+	//		LOGGER.info("Json to CSV process START");
+	//		JsonToCsvProcessor jsonToCsvProcessor = new JsonToCsvProcessor();
+	//		jsonToCsvProcessor.processJsonToCsvConversion(jsonStr, csvPath);
+	//		LOGGER.info("Json to CSV process END");
+	//	}
+
+}

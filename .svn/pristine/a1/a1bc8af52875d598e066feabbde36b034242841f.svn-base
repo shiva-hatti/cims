@@ -1,0 +1,221 @@
+package com.iris.webservices.client;
+
+import java.util.Map;
+
+import javax.ws.rs.core.MediaType;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.google.gson.Gson;
+import com.iris.model.WebServiceComponentUrl;
+import com.iris.util.UtilMaster;
+import com.iris.util.constant.GeneralConstants;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
+
+public class CIMSRestWebserviceClient {
+	static final Logger logger = LogManager.getLogger(CIMSRestWebserviceClient.class);
+	public static final String HTTP_METHOD_TYPE_POST = "POST";
+	public static final String HTTP_METHOD_TYPE_GET = "GET";
+	public static final String HTTP_METHOD_TYPE_DELETE = "DELETE";
+
+	private static Client client;
+	
+	static {
+			client = Client.create();
+	}
+
+	/**
+	 * This method would call the RESTFul webservice
+	 * 
+	 * @param webServiceComponent The webservice component object to get the webservice calling details
+	 * @param webServiceParam The webservice parameter to be passed
+	 * @return The response of the webservice
+	 * @throws Exception
+	 */
+	public String callRestWebService(WebServiceComponentUrl webServiceComponent, Object webServiceParam) throws Exception {
+		return callRestWebService(webServiceComponent, webServiceParam, null);
+	}
+
+	/**
+	 * This method would call the RESTFul webservice
+	 * @param webServiceComponent The webservice component object to get the webservice calling details
+	 * @param webServiceParam The webservice parameter to be passed
+	 * @return The response of the webservice
+	 * @throws Exception
+	 */
+	public String callRestWebService(WebServiceComponentUrl webServiceComponent, Object webServiceParam, String pathParams) throws Exception {
+		if (webServiceComponent == null) {
+			throw new Exception("webServiceComponent");
+		}
+		if (client == null) {
+			client = Client.create();
+		}
+		final String URL = UtilMaster.trimInput(webServiceComponent.getComponentUrlPath() + (UtilMaster.isEmpty(pathParams) ? "" : pathParams));
+		final String HTTP_METHOD_TYPE = UtilMaster.trimInput(webServiceComponent.getUrlHttpMethodType());
+		final String PRODUCE_TYPE = UtilMaster.trimInput(webServiceComponent.getUrlProduceType());
+		final String APPID_KEY = UtilMaster.trimInput(webServiceComponent.getAppIdKey());
+		final String ACCEPT_TYPE = UtilMaster.trimInput(webServiceComponent.getUrlAcceptType());
+
+		boolean flag = true;
+		if (MediaType.APPLICATION_JSON.equalsIgnoreCase(ACCEPT_TYPE)) {
+			if (!(webServiceParam instanceof String)) {
+				if (webServiceParam == null) {
+					flag = false;
+				}
+				webServiceParam = new Gson().toJson(webServiceParam);
+				logger.info("inside RestWebserviceClient json string" + webServiceParam);
+				
+			}
+		}
+		logger.info("URL -- >" + URL);
+
+		WebResource webResource = client.resource(URL);
+		ClientResponse response;
+
+		if (HTTP_METHOD_TYPE_POST.equalsIgnoreCase(HTTP_METHOD_TYPE)) {
+			if (webServiceParam != null && flag) {
+				if (!UtilMaster.isEmpty(APPID_KEY)) {
+					response = webResource.header(GeneralConstants.APP_ID.getConstantVal(), APPID_KEY).accept(PRODUCE_TYPE).type(PRODUCE_TYPE).post(ClientResponse.class, webServiceParam);
+				} else {
+					response = webResource.accept(PRODUCE_TYPE).type(PRODUCE_TYPE).post(ClientResponse.class, webServiceParam);
+				}
+			} else {
+				if (!UtilMaster.isEmpty(APPID_KEY)) {
+					response = webResource.header(GeneralConstants.APP_ID.getConstantVal(), APPID_KEY).accept(PRODUCE_TYPE).type(PRODUCE_TYPE).post(ClientResponse.class);
+				} else {
+					response = webResource.accept(PRODUCE_TYPE).type(PRODUCE_TYPE).post(ClientResponse.class);
+				}
+			}
+		} else {
+			response = webResource.accept(PRODUCE_TYPE).get(ClientResponse.class);
+		}
+		if (response.getStatus() != 200) {
+			throw new RuntimeException("Failed: HTTP error code: " + response.getStatus());
+		}
+		return response.getEntity(String.class);
+	}
+	
+	
+	/**
+	 * This method would call the RESTFul webservice
+	 * @param webServiceComponent		The webservice component object to get the webservice calling details
+	 * @param webServiceParam			The webservice parameter to be passed
+	 * @param headerParam			    The header parameter to be passed
+	 * @return							The response of the webservice
+	 * @throws Exception 
+	 */
+	public String callRestWebServiceWithMultipleHeader(WebServiceComponentUrl webServiceComponent, Object webServiceParam, String pathParams, Map<String, String> headerMap) throws Exception {
+		if (webServiceComponent == null) {
+			throw new Exception("webServiceComponent");
+		}
+		
+		final String URL = UtilMaster.trimInput(webServiceComponent.getComponentUrlPath() + (UtilMaster.isEmpty(pathParams) ? "" : pathParams));
+		final String HTTP_METHOD_TYPE = UtilMaster.trimInput(webServiceComponent.getUrlHttpMethodType());
+		final String PRODUCE_TYPE = UtilMaster.trimInput(webServiceComponent.getUrlProduceType());
+		final String APPID_KEY = UtilMaster.trimInput(webServiceComponent.getAppIdKey());
+		final String ACCEPT_TYPE = UtilMaster.trimInput(webServiceComponent.getUrlAcceptType());
+
+		boolean flag = true;
+		if (MediaType.APPLICATION_JSON.equalsIgnoreCase(ACCEPT_TYPE)) {
+			if (!(webServiceParam instanceof String)) {
+				if (webServiceParam == null) {
+					flag = false;
+				}
+				webServiceParam = new Gson().toJson(webServiceParam);
+				logger.info("inside RestWebserviceClient json string" + webServiceParam);
+				
+			}
+		}
+		logger.info("URL -- >" + URL);
+
+		WebResource webResource = client.resource(URL);
+		ClientResponse response;
+
+		WebResource.Builder builder = webResource.accept(PRODUCE_TYPE);
+		
+		if (HTTP_METHOD_TYPE_POST.equalsIgnoreCase(HTTP_METHOD_TYPE)) {
+			if (webServiceParam != null && flag) {
+				if (!UtilMaster.isEmpty(APPID_KEY)) {
+					builder.type(PRODUCE_TYPE);
+					builder.accept(PRODUCE_TYPE);
+					builder.header(GeneralConstants.APP_ID.getConstantVal(), APPID_KEY);
+					for (String key : headerMap.keySet()) {
+						builder.header(key, headerMap.get(key));
+					}
+					response = builder.post(ClientResponse.class, webServiceParam);
+				} else {
+					builder.type(PRODUCE_TYPE);
+					builder.accept(PRODUCE_TYPE);
+					for (String key : headerMap.keySet()) {
+						builder.header(key, headerMap.get(key));
+					}
+					response = builder.post(ClientResponse.class, webServiceParam);
+				}
+			} else {
+				if (!UtilMaster.isEmpty(APPID_KEY)) {
+					builder.type(PRODUCE_TYPE);
+					builder.accept(PRODUCE_TYPE);
+					builder.header(GeneralConstants.APP_ID.getConstantVal(), APPID_KEY);
+					for (String key : headerMap.keySet()) {
+						builder.header(key, headerMap.get(key));
+					}
+					response = builder.post(ClientResponse.class);
+				} else {
+					response = webResource.accept(PRODUCE_TYPE).type(PRODUCE_TYPE).post(ClientResponse.class);
+					builder.type(PRODUCE_TYPE);
+					builder.accept(PRODUCE_TYPE);
+					for (String key : headerMap.keySet()) {
+						builder.header(key, headerMap.get(key));
+					}
+					response = builder.post(ClientResponse.class);
+				}
+			}
+		} else {
+			if (!UtilMaster.isEmpty(APPID_KEY)) {
+				builder.type(PRODUCE_TYPE);
+				builder.header(GeneralConstants.APP_ID.getConstantVal(), APPID_KEY);
+				for (String key : headerMap.keySet()) {
+					builder.header(key, headerMap.get(key));
+				}
+				response = builder.accept(PRODUCE_TYPE).get(ClientResponse.class);
+			} else {
+				builder.type(PRODUCE_TYPE);
+				for (String key : headerMap.keySet()) {
+					builder.header(key, headerMap.get(key));
+				}
+			    response = builder.accept(PRODUCE_TYPE).get(ClientResponse.class);
+			}
+		}
+		if (response.getStatus() != 200) {
+			throw new RuntimeException("Failed: HTTP error code: " + response.getStatus());
+		}
+		return response.getEntity(String.class);
+	}
+
+	public String restWebServiceCall(WebServiceComponentUrl webServiceComponent, String menuId, String languageId, String singleLang, String groupId) throws Exception {
+		if (webServiceComponent == null) {
+			throw new Exception("webServiceComponent");
+		}
+		if (client == null) {
+			client = Client.create();
+		}
+		final String URL = UtilMaster.trimInput(webServiceComponent.getComponentUrlPath());
+		final String HTTP_METHOD_TYPE = UtilMaster.trimInput(webServiceComponent.getUrlHttpMethodType());
+		final String PRODUCE_TYPE = UtilMaster.trimInput(webServiceComponent.getUrlProduceType());
+
+		ClientResponse response;
+		if (HTTP_METHOD_TYPE_POST.equalsIgnoreCase(HTTP_METHOD_TYPE)) {
+			response = client.resource(URL).queryParam("menuId", menuId).queryParam("languageId", languageId).queryParam("singleLang", singleLang).queryParam("groupId", groupId).accept(PRODUCE_TYPE).post(ClientResponse.class);
+		} else {
+			response = client.resource(URL).accept(PRODUCE_TYPE).get(ClientResponse.class);
+		}
+		if (response.getStatus() != 200) {
+			throw new RuntimeException("Failed: HTTP error code: " + response.getStatus());
+		}
+		return response.getEntity(String.class);
+	}
+
+}

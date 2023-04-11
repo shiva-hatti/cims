@@ -1,0 +1,28 @@
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.EntityAuditorMapInfo;
+
+
+
+public interface EntityAuditorMappingRepo extends JpaRepository<EntityAuditorMapInfo, Long>{
+	@Query("FROM EntityAuditorMapInfo where entityIdFk.entityId=:entityId and isActive=:isActive")
+	List<EntityAuditorMapInfo> getAuditorReturnMapping(@Param("entityId") Long entityId,@Param("isActive") Boolean isActive);
+	
+	@Query("FROM EntityAuditorMapInfo where entityIdFk.entityId=:entityId and returnIdFk.returnId=:returnId and isActive=:isActive")
+	EntityAuditorMapInfo getEntityAuditorMap( @Param("entityId") Long entityId,@Param("returnId") Long returnId,@Param("isActive") Boolean isActive);
+
+	@Query("FROM EntityAuditorMapInfo where auditorIdFk.userId=:auditorId and adminStatusIdFk=:statusId and isActive=:isActive")
+	List<EntityAuditorMapInfo> getEntityAuditorMappingForApproval(@Param("auditorId") Long auditorId,@Param("statusId") Integer statusId,@Param("isActive") Boolean isActive);
+	
+	@Query("FROM EntityAuditorMapInfo where entityAuditorMapId=:entityAuditorMapId and isActive=:isActive")
+	EntityAuditorMapInfo getEntityAuditorMapById(@Param("entityAuditorMapId") Long entityAuditorMapId,@Param("isActive") Boolean isActive);
+	
+	@Query("FROM EntityAuditorMapInfo where isActive=:isActive")
+	List<EntityAuditorMapInfo> getEntityAuditorMapData(@Param("isActive") Boolean isActive);
+}

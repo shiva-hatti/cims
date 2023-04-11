@@ -1,0 +1,106 @@
+/**
+ * 
+ */
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.TypeDefs;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
+import com.vladmihalcea.hibernate.type.json.JsonStringType;
+
+/**
+ * @author sanjayv
+ *
+ */
+@Entity
+@Table(name = "TBL_ROLE_MENU_MAPPING_MOD")
+@TypeDefs({
+    @TypeDef(name = "json", typeClass = JsonStringType.class),
+    @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
+})
+public class RoleMenuMappingMod implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name ="ROLE_MENU_MOD_ID")
+	private Long roleMenuMapModId;
+	
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "ROLE_ID_FK")
+	private UserRole userRole;
+	
+	@Column(name = "PREV_DATA_JSON", columnDefinition = "json")
+	@Type(type = "json")
+	private JsonNode prevData;
+	
+	@Column(name = "MODIFIED_ON")
+	private Date lastModifiedOn;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "MODIFIED_BY")
+	private UserMaster modifiedBy;
+
+	public Long getRoleMenuMapModId() {
+		return roleMenuMapModId;
+	}
+
+	public void setRoleMenuMapModId(Long roleMenuMapModId) {
+		this.roleMenuMapModId = roleMenuMapModId;
+	}
+
+	public UserRole getUserRole() {
+		return userRole;
+	}
+
+	public void setUserRole(UserRole userRole) {
+		this.userRole = userRole;
+	}
+
+	public JsonNode getPrevData() {
+		return prevData;
+	}
+
+	public void setPrevData(JsonNode prevData) {
+		this.prevData = prevData;
+	}
+
+	public Date getLastModifiedOn() {
+		return lastModifiedOn;
+	}
+
+	public void setLastModifiedOn(Date lastModifiedOn) {
+		this.lastModifiedOn = lastModifiedOn;
+	}
+
+	public UserMaster getModifiedBy() {
+		return modifiedBy;
+	}
+
+	public void setModifiedBy(UserMaster modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+
+	
+}

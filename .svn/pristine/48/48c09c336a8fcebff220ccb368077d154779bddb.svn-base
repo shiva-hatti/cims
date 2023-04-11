@@ -1,0 +1,60 @@
+package com.iris.model;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+/**
+ * @author sajadhav
+ *
+ */
+@Entity
+@Table(name = "TBL_FILE_STATUS")
+public class FileStatus implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2058045117451350877L;
+
+	@Id
+	@Column(name = "FILE_STATUS_ID")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long fileStatusId;
+	
+	@Column(name = "FILE_STATUS_DESC")
+	private String fileStatusDesc;
+	
+	@Column(name = "IS_ACTIVE")
+	private boolean isActive;
+
+	public Long getFileStatusId() {
+		return fileStatusId;
+	}
+
+	public void setFileStatusId(Long fileStatusId) {
+		this.fileStatusId = fileStatusId;
+	}
+
+	public String getFileStatusDesc() {
+		return fileStatusDesc;
+	}
+
+	public void setFileStatusDesc(String fileStatusDesc) {
+		this.fileStatusDesc = fileStatusDesc;
+	}
+
+	public boolean isActive() {
+		return isActive;
+	}
+
+	public void setActive(boolean isActive) {
+		this.isActive = isActive;
+	}
+	
+}

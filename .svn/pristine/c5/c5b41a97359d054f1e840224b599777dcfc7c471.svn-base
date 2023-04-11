@@ -1,0 +1,70 @@
+/**
+ * 
+ */
+package com.iris.dto;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * @author siddique
+ *
+ */
+public class LabelDto {
+
+	private String languageCode;
+	private List<String> labelKeyList;
+	private Map<String, String> labelKeyMap;
+	private Boolean isPanAndBorrowerRequiredInResponse;
+
+	public Boolean getIsPanAndBorrowerRequiredInResponse() {
+		return isPanAndBorrowerRequiredInResponse;
+	}
+
+	public void setIsPanAndBorrowerRequiredInResponse(Boolean isPanAndBorrowerRequiredInResponse) {
+		this.isPanAndBorrowerRequiredInResponse = isPanAndBorrowerRequiredInResponse;
+	}
+
+	/**
+	 * @return the languageCode
+	 */
+	public String getLanguageCode() {
+		return languageCode;
+	}
+
+	/**
+	 * @param languageCode the languageCode to set
+	 */
+	public void setLanguageCode(String languageCode) {
+		this.languageCode = languageCode;
+	}
+
+	/**
+	 * @return the labelKeyList
+	 */
+	public List<String> getLabelKeyList() {
+		return labelKeyList;
+	}
+
+	/**
+	 * @param labelKeyList the labelKeyList to set
+	 */
+	public void setLabelKeyList(List<String> labelKeyList) {
+		this.labelKeyList = labelKeyList;
+	}
+
+	/**
+	 * @return the labelKeyMap
+	 */
+	public Map<String, String> getLabelKeyMap() {
+		return labelKeyMap;
+	}
+
+	/**
+	 * @param labelKeyMap the labelKeyMap to set
+	 */
+	public void setLabelKeyMap(Map<String, String> labelKeyMap) {
+		this.labelKeyMap = labelKeyMap;
+	}
+
+}

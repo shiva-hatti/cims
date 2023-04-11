@@ -1,0 +1,334 @@
+package com.iris.controller;
+
+import java.io.Serializable;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import javax.sql.DataSource;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import com.google.gson.Gson;
+import com.iris.caching.ObjectCache;
+import com.iris.dateutility.util.DateManip;
+import com.iris.dto.ServiceResponse;
+import com.iris.exception.ServiceException;
+import com.iris.model.AuditFirm;
+import com.iris.model.AuditFirmInfo;
+import com.iris.model.AuditFirmLabel;
+import com.iris.model.AuditFirmLabelInfo;
+import com.iris.model.AuditFirmLabelMod;
+import com.iris.model.AuditFirmMod;
+import com.iris.model.CountryMaster;
+import com.iris.model.UserMaster;
+import com.iris.repository.AuditFirmLabelModRepo;
+import com.iris.repository.AuditFirmLabelRepo;
+import com.iris.repository.AuditFirmModRepo;
+import com.iris.repository.AuditorFirmRepo;
+import com.iris.repository.CountryMasterRepo;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.GeneralConstants;
+
+/**
+ * @author psheke
+ * @date 16/10/2020
+ */
+@Service
+public class AuditFirmProcessor implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+	@Autowired
+	private AuditorFirmRepo auditFirmRepo;
+	@Autowired
+	private CountryMasterRepo countryMasterRepo;
+	@Autowired
+	private AuditFirmModRepo auditFirmModRepo;
+	@Autowired
+	private AuditFirmLabelRepo auditFirmLabelRepo;
+	@Autowired
+	private AuditFirmLabelModRepo auditFirmLabelModRepo;
+	@Autowired
+	DataSource datasource;
+	static final Logger LOGGER = LogManager.getLogger(AuditFirmController.class);
+
+	/**
+	 * This method is used to add or edit Audit Firm Details.
+	 * 
+	 */
+	public ServiceResponse addAuditFirm(AuditFirm auditFirm) {
+		LOGGER.info("Add/Edit Audit Firm: AuditFirmProcessor.addAuditFirm");
+		try {
+
+			AuditFirmInfo auditFirmInfo = new AuditFirmInfo();
+			auditFirmInfo.setAuditFirmDefaultName(auditFirm.getAuditFirmDefaultName());
+			auditFirmInfo.setAuditFirmRegNo(auditFirm.getAuditFirmRegNo());
+			auditFirmInfo.setBusinessAddress(auditFirm.getBusinessAddress());
+			auditFirmInfo.setEmailAddress(auditFirm.getEmailAddress());
+			auditFirmInfo.setPhoneNo(auditFirm.getPhoneNo());
+			auditFirmInfo.setMobileNo(auditFirm.getMobileNo());
+
+			auditFirmInfo.setAuditFirmWebsite(auditFirm.getAuditFirmWebsite());
+			auditFirmInfo.setIsActive(auditFirm.getIsActive());
+			auditFirmInfo.setLastUpdatedOn(DateManip.getCurrentDateTime());
+
+			if (!auditFirm.isEditFlag()) {
+
+				UserMaster userObj = new UserMaster();
+				userObj.setUserId(auditFirm.getCreatedByUserId());
+				auditFirmInfo.setCreatedBy(userObj);
+				auditFirmInfo.setCreatedOn(DateManip.getCurrentDateTime());
+
+				CountryMaster countryMaster = new CountryMaster();
+				countryMaster.setId(auditFirm.getCountryId());
+				auditFirmInfo.setCountry(countryMaster);
+
+			}
+
+			else {
+				AuditFirmInfo auditFirmObj = auditFirmRepo.getAuditorFirmByRegNo(auditFirm.getAuditFirmRegNo());
+				auditFirmInfo.setCreatedBy(auditFirmObj.getCreatedBy());
+				CountryMaster countryMaster = null;
+
+				if (auditFirm.getLangCode().equals(GeneralConstants.ENG_LANG.getConstantVal())) {
+					countryMaster = countryMasterRepo.getCountryByName(auditFirm.getCountryName());
+				} else if (auditFirm.getLangCode().equals(GeneralConstants.HIN_LANG.getConstantVal())) {
+					countryMaster = countryMasterRepo.getCountryByNameBil(auditFirm.getCountryName());
+				}
+
+				auditFirmInfo.setCountry(countryMaster);
+				auditFirmInfo.setAuditFirmId(auditFirmObj.getAuditFirmId());
+				auditFirmInfo.setCreatedOn(auditFirmObj.getCreatedOn());
+				UserMaster userModifyObj = new UserMaster();
+				userModifyObj.setUserId(auditFirm.getLastModifiedByUserId());
+				auditFirmInfo.setLastModifiedBy(userModifyObj);
+				auditFirmInfo.setLastModifiedOn(DateManip.getCurrentDateTime());
+				if (countryMaster != null) {
+					auditFirm.setCountryId(countryMaster.getId());
+				}
+				auditFirm.setCountryName(null);
+				auditFirm.setLastModifiedByUserId(null);
+
+				try {
+					AuditFirmMod auditFirmMod = new AuditFirmMod();
+					auditFirmMod.setAuditFirmModId(auditFirmObj);
+					String jsonResult = new Gson().toJson(auditFirm);
+					auditFirmMod.setAuditFirmModJson(jsonResult);
+					auditFirmMod.setLastModifiedBy(userModifyObj);
+					auditFirmMod.setLastModifiedOn(auditFirmInfo.getLastModifiedOn());
+
+					auditFirmModRepo.save(auditFirmMod);
+
+				} catch (Exception e) {
+					LOGGER.error(ErrorCode.EC0033.toString());
+					return new ServiceResponse.ServiceResponseBuilder().setStatus(false)
+							.setStatusCode(ErrorCode.EC0033.toString())
+							.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+
+				}
+
+			}
+
+			auditFirmRepo.save(auditFirmInfo);
+			boolean flag = addAuditFirmId(auditFirmInfo.getAuditFirmId());
+
+			if (flag) {
+
+				return new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			} else {
+				return new ServiceResponse.ServiceResponseBuilder().setStatus(false)
+						.setStatusCode(ErrorCode.EC0033.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+
+			}
+
+		} catch (Exception e) {
+			LOGGER.error(ErrorCode.EC0033.toString());
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(false)
+					.setStatusCode(ErrorCode.EC0033.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+
+		}
+
+	}
+
+	/**
+	 * This method is used to check whether the Firm Registration Number entered by
+	 * user exists in the system.
+	 * 
+	 */
+	public AuditFirmInfo checkAuditFirmExists(String firmRegNo) {
+		LOGGER.info(
+				"Checking whether the Firm Registeration Number exists in the system: AuditFirmProcessor.checkAuditFirmExists");
+		try {
+			return auditFirmRepo.getAuditorFirmByRegNo(firmRegNo);
+
+		} catch (Exception e) {
+			LOGGER.error(ErrorCode.EC0033.toString());
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+
+	}
+
+	/**
+	 * This method is used to fetch the audit firm list.
+	 * 
+	 */
+	public List<AuditFirm> getAuditorFirmList(String langCode) {
+		LOGGER.info("Fetching the Audit Firm List: AuditFirmProcessor.getAuditorFirmList");
+		List<AuditFirm> auditFirmList = new ArrayList<>();
+		List<AuditFirmInfo> auditFirmInfoList = new ArrayList<>();
+
+		try {
+			AuditFirm auditFirm;
+			auditFirmInfoList = auditFirmRepo.getAuditorFirmList();
+
+			if (!CollectionUtils.isEmpty(auditFirmInfoList)) {
+				for (AuditFirmInfo auditFirmInfo : auditFirmInfoList) {
+					String auditFirmName = null;
+					auditFirm = new AuditFirm();
+					auditFirm.setAuditFirmId(auditFirmInfo.getAuditFirmId());
+					auditFirm.setAuditFirmDefaultName(auditFirmInfo.getAuditFirmDefaultName());
+					auditFirm.setAuditFirmRegNo(auditFirmInfo.getAuditFirmRegNo());
+					auditFirm.setAuditFirmWebsite(auditFirmInfo.getAuditFirmWebsite());
+					auditFirm.setBusinessAddress(auditFirmInfo.getBusinessAddress());
+					auditFirm.setCountryName(auditFirmInfo.getCountry().getCountryName());
+					auditFirm.setCreatedByUserName(auditFirmInfo.getCreatedBy().getUserName());
+					auditFirm.setCreatedOn(auditFirmInfo.getCreatedOn());
+					auditFirm.setEmailAddress(auditFirmInfo.getEmailAddress());
+					auditFirm.setPhoneNo(auditFirmInfo.getPhoneNo());
+					auditFirm.setMobileNo(auditFirmInfo.getMobileNo());
+					auditFirm.setIsActive(auditFirmInfo.getIsActive());
+					if (auditFirmInfo.getLastModifiedBy() != null) {
+						auditFirm.setLastModifiedByUserName(auditFirmInfo.getLastModifiedBy().getUserName());
+					}
+					auditFirm.setLastModifiedOn(auditFirmInfo.getLastModifiedOn());
+
+					Set<AuditFirmLabelInfo> auditFirmLabelSet = auditFirmInfo.getAuditFirmLabelSet();
+					if (!CollectionUtils.isEmpty(auditFirmLabelSet)) {
+						for (AuditFirmLabelInfo firmlabel : auditFirmLabelSet) {
+							if (firmlabel.getLanguageMaster().getLanguageCode().compareTo(langCode) == 0) {
+								auditFirmName = firmlabel.getAuditFirmNameLabel();
+								break;
+							}
+						}
+					}
+
+					auditFirm.setAuditFirmName(auditFirmName);
+
+					auditFirmList.add(auditFirm);
+
+				}
+
+			}
+		} catch (Exception e) {
+			LOGGER.error(ErrorCode.EC0033.toString());
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+
+		return auditFirmList;
+	}
+
+	public boolean addAuditFirmId(Long firmId) throws SQLException {
+		try (Connection con = datasource.getConnection();
+				CallableStatement stmt = con.prepareCall(GeneralConstants.SP_INSERT_AUDITOR_LBL.getConstantVal());) {
+
+			stmt.setLong(1, firmId);
+
+			stmt.registerOutParameter(2, Types.INTEGER);
+
+			stmt.executeQuery();
+			int number = stmt.getInt(2);
+			if (number > 0) {
+				return false;
+			}
+			return true;
+		} catch (Exception e) {
+			LOGGER.error(ErrorCode.EC0033.toString());
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	/**
+	 * This method is used to update the audit firm label details in the database.
+	 */
+	public ServiceResponse updateAuditFirmLabel(AuditFirm auditFirm) {
+		try {
+			LOGGER.info("Updating the Audit Firm Label: AuditFirmProcessor.updateAuditFirmLabel");
+			AuditFirmLabelInfo auditFirmLabel = auditFirmLabelRepo.getAuditFirmLabelById(auditFirm.getAuditFirmId());
+			String firmName = auditFirmLabel.getAuditFirmNameLabel();
+
+			auditFirmLabel.setAuditFirmNameLabel(auditFirm.getAuditFirmName());
+
+			UserMaster userModifyObj = new UserMaster();
+			userModifyObj.setUserId(auditFirm.getLastModifiedByUserId());
+			auditFirmLabel.setLastModifiedBy(userModifyObj);
+			auditFirmLabel.setLastModifiedOn(DateManip.getCurrentDateTime());
+			auditFirmLabel.setLastUpdatedOn(DateManip.getCurrentDateTime());
+
+			auditFirmLabelRepo.save(auditFirmLabel);
+
+			AuditFirmLabelMod auditFirmLabelMod = new AuditFirmLabelMod();
+			auditFirmLabelMod.setAuditFirmLabelModId(auditFirmLabel);
+
+			AuditFirmLabel auditFirmLabelObj = new AuditFirmLabel();
+			auditFirmLabelObj.setAuditFirmLabelId(auditFirmLabel.getAuditFirmLabelId());
+			auditFirmLabelObj.setAuditFirmIdFk(auditFirmLabel.getAuditFirmIdFk().getAuditFirmId());
+			auditFirmLabelObj.setAuditFirmNameLabel(firmName);
+			auditFirmLabelObj.setLanguageId(auditFirmLabel.getLanguageMaster().getLanguageId());
+
+			String jsonResult = new Gson().toJson(auditFirmLabelObj);
+			auditFirmLabelMod.setAuditFirmLabelModJson(jsonResult);
+			auditFirmLabelMod.setLastModifiedBy(userModifyObj);
+			auditFirmLabelMod.setLastModifiedOn(auditFirmLabel.getLastModifiedOn());
+
+			auditFirmLabelModRepo.save(auditFirmLabelMod);
+
+		} catch (Exception e) {
+			LOGGER.error(ErrorCode.EC0033.toString());
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(false)
+					.setStatusCode(ErrorCode.EC0033.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+
+		}
+
+		return new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+	}
+	/**
+	 * This method is used to fetch the audit firm label list.
+	 */
+	public List<AuditFirm> getAuditorFirmLabelList(String langCode) {
+		LOGGER.info("Fetching the Audit Firm Label List: AuditFirmProcessor.getAuditorFirmLabelList");
+		List<AuditFirm> auditFirmList = new ArrayList<>();
+		List<AuditFirmLabelInfo> auditFirmLabelInfoList = new ArrayList<>();
+		AuditFirm auditFirm;
+		try {
+			auditFirmLabelInfoList = auditFirmLabelRepo.getAuditorFirmLabelList(langCode);
+			if (!CollectionUtils.isEmpty(auditFirmLabelInfoList)) {
+				for (AuditFirmLabelInfo auditFirmLabelInfo : auditFirmLabelInfoList) {
+
+					auditFirm = new AuditFirm();
+					auditFirm.setAuditFirmId(auditFirmLabelInfo.getAuditFirmLabelId());
+					auditFirm.setAuditFirmName(auditFirmLabelInfo.getAuditFirmNameLabel());
+					auditFirm.setIsActive(auditFirmLabelInfo.getAuditFirmIdFk().getIsActive());
+					auditFirm.setAuditFirmRegNo(auditFirmLabelInfo.getAuditFirmIdFk().getAuditFirmRegNo());
+					auditFirm.setAuditFirmDefaultName(auditFirmLabelInfo.getAuditFirmIdFk().getAuditFirmDefaultName());
+					auditFirm.setLanguageName(auditFirmLabelInfo.getLanguageMaster().getLanguageName());
+					auditFirmList.add(auditFirm);
+
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error(ErrorCode.EC0033.toString());
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+
+		return auditFirmList;
+	}
+}

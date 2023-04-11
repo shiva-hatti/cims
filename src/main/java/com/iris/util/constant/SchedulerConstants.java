@@ -1,0 +1,26 @@
+/**
+ * 
+ */
+package com.iris.util.constant;
+
+/**
+ * @author sajadhav
+ *
+ */
+public enum SchedulerConstants {
+
+	META_DATA_SCHEDULER("META_DATA_SCHEDULER"), EBR_META_DATA_SCHEDULER("EBR_META_DATA_SCHEDULER");
+
+	String schedulerCode;
+
+	private SchedulerConstants(String schedulerCode) {
+		this.schedulerCode = schedulerCode;
+	}
+
+	/**
+	 * @param schedulerCode the schedulerCode to set
+	 */
+	public String getSchedulerCode() {
+		return this.schedulerCode;
+	}
+}

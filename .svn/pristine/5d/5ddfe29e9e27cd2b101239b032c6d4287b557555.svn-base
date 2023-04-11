@@ -1,0 +1,238 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.sql.Timestamp;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.persistence.Transient;
+
+/**
+ * @author sajadhav
+ */
+@Entity
+@Table(name = "TBL_RETURN_APPROVAL_DTL")
+public class ReturnApprovalDetail implements Serializable {
+
+	private static final long serialVersionUID = -616268373665749513L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "RETURN_APPROVAL_ID_FK")
+	private Long returnApprovalDetailId;
+
+	@ManyToOne
+	@JoinColumn(name = "RETURN_UPLOAD_ID_FK")
+	private ReturnsUploadDetails returnUploadDetails;
+
+	@ManyToOne
+	@JoinColumn(name = "ACTIVITY_ID_FK")
+	private WorkFlowActivity workFlowActivity;
+
+	@ManyToOne
+	@JoinColumn(name = "APPROVAL_USER_ID_FK")
+	private UserMaster approvedRejectedBy;
+
+	@ManyToOne
+	@JoinColumn(name = "APPROVAL_ROLE_ID_FK")
+	private UserRole userRole;
+
+	@Column(name = "APPROVED_ON")
+	private Date approvedRejectedOn;
+
+	@Column(name = "WF_STEP")
+	private int workflowStep;
+
+	@Column(name = "IS_COMPLETE")
+	private boolean isComplete;
+
+	@Column(name = "COMMENT")
+	private String comment;
+
+	@Column(name = "REVIEW_STATUS")
+	private String reviewStatus;
+
+	@Column(name = "CREATION_TIME")
+	private Date creationTime;
+
+	@Transient
+	private int filingStatusId;
+
+	/**
+	 * @return the userRole
+	 */
+	public UserRole getUserRole() {
+		return userRole;
+	}
+
+	/**
+	 * @param userRole the userRole to set
+	 */
+	public void setUserRole(UserRole userRole) {
+		this.userRole = userRole;
+	}
+
+	/**
+	 * @return the filingStatusId
+	 */
+	public int getFilingStatusId() {
+		return filingStatusId;
+	}
+
+	/**
+	 * @param filingStatusId the filingStatusId to set
+	 */
+	public void setFilingStatusId(int filingStatusId) {
+		this.filingStatusId = filingStatusId;
+	}
+
+	/**
+	 * @return the returnUploadDetails
+	 */
+	public ReturnsUploadDetails getReturnUploadDetails() {
+		return returnUploadDetails;
+	}
+
+	/**
+	 * @param returnUploadDetails the returnUploadDetails to set
+	 */
+	public void setReturnUploadDetails(ReturnsUploadDetails returnUploadDetails) {
+		this.returnUploadDetails = returnUploadDetails;
+	}
+
+	/**
+	 * @return the returnApprovalDetailId
+	 */
+	public Long getReturnApprovalDetailId() {
+		return returnApprovalDetailId;
+	}
+
+	/**
+	 * @param returnApprovalDetailId the returnApprovalDetailId to set
+	 */
+	public void setReturnApprovalDetailId(Long returnApprovalDetailId) {
+		this.returnApprovalDetailId = returnApprovalDetailId;
+	}
+
+	/**
+	 * @return the workFlowActivity
+	 */
+	public WorkFlowActivity getWorkFlowActivity() {
+		return workFlowActivity;
+	}
+
+	/**
+	 * @param workFlowActivity the workFlowActivity to set
+	 */
+	public void setWorkFlowActivity(WorkFlowActivity workFlowActivity) {
+		this.workFlowActivity = workFlowActivity;
+	}
+
+	/**
+	 * @return the approvedRejectedBy
+	 */
+	public UserMaster getApprovedRejectedBy() {
+		return approvedRejectedBy;
+	}
+
+	/**
+	 * @param approvedRejectedBy the approvedRejectedBy to set
+	 */
+	public void setApprovedRejectedBy(UserMaster approvedRejectedBy) {
+		this.approvedRejectedBy = approvedRejectedBy;
+	}
+
+	/**
+	 * @return the approvedRejectedOn
+	 */
+	public Date getApprovedRejectedOn() {
+		return approvedRejectedOn;
+	}
+
+	/**
+	 * @param approvedRejectedOn the approvedRejectedOn to set
+	 */
+	public void setApprovedRejectedOn(Date approvedRejectedOn) {
+		this.approvedRejectedOn = approvedRejectedOn;
+	}
+
+	/**
+	 * @return the workflowStep
+	 */
+	public int getWorkflowStep() {
+		return workflowStep;
+	}
+
+	/**
+	 * @param workflowStep the workflowStep to set
+	 */
+	public void setWorkflowStep(int workflowStep) {
+		this.workflowStep = workflowStep;
+	}
+
+	/**
+	 * @return the isComplete
+	 */
+	public boolean isComplete() {
+		return isComplete;
+	}
+
+	/**
+	 * @param isComplete the isComplete to set
+	 */
+	public void setComplete(boolean isComplete) {
+		this.isComplete = isComplete;
+	}
+
+	/**
+	 * @return the comment
+	 */
+	public String getComment() {
+		return comment;
+	}
+
+	/**
+	 * @param comment the comment to set
+	 */
+	public void setComment(String comment) {
+		this.comment = comment;
+	}
+
+	/**
+	 * @return the reviewStatus
+	 */
+	public String getReviewStatus() {
+		return reviewStatus;
+	}
+
+	/**
+	 * @param reviewStatus the reviewStatus to set
+	 */
+	public void setReviewStatus(String reviewStatus) {
+		this.reviewStatus = reviewStatus;
+	}
+
+	/**
+	 * @return the creationTime
+	 */
+	public Date getCreationTime() {
+		return creationTime;
+	}
+
+	/**
+	 * @param creationTime the creationTime to set
+	 */
+	public void setCreationTime(Date creationTime) {
+		this.creationTime = creationTime;
+	}
+
+}

@@ -1,0 +1,352 @@
+/**
+ * 
+ */
+package com.iris.sdmx.codelist.service;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.transaction.Transactional;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.sdmx.codelist.controller.CodeListMasterBean;
+import com.iris.sdmx.codelist.controller.CodeListMasterController;
+import com.iris.sdmx.codelist.controller.CodeListValuesBean;
+import com.iris.sdmx.codelist.entity.CodeListMaster;
+import com.iris.sdmx.codelist.entity.CodeListValues;
+import com.iris.sdmx.codelist.repo.CodeListMasterRepo;
+import com.iris.exception.ApplicationException;
+import com.iris.exception.ServiceException;
+import com.iris.model.UserMaster;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ErrorConstants;
+
+/**
+ * @author sajadhav
+ *
+ */
+@Service
+public class CodeListMasterService implements GenericService<CodeListMaster, Long>{
+
+	private static final Logger LOGGER = LogManager.getLogger(CodeListMasterService.class);
+
+	@Autowired
+	private CodeListMasterRepo codeListMasterRepo;
+
+	
+	@Override
+	public CodeListMaster add(CodeListMaster entity) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public boolean update(CodeListMaster entity) throws ServiceException {
+		return false;
+	}
+
+	@Override
+	public List<CodeListMaster> getDataByIds(Long[] ids) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public CodeListMaster getDataById(Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<CodeListMaster> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<CodeListMaster> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName)
+			throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<CodeListMaster> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<CodeListMaster> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		try {
+				return codeListMasterRepo.findByIsActiveTrue();
+		}catch(Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getErrorMessage(), e);
+		}
+	}
+
+	@Override
+	public List<CodeListMaster> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public void deleteData(CodeListMaster bean) throws ServiceException {
+		
+	}
+	
+	
+	@Transactional(rollbackOn = Exception.class)
+	public boolean addCodeListmasterData(CodeListMasterBean codeListMasterBean) {
+
+		try {
+			CodeListMaster codeListMaster = new CodeListMaster();
+			codeListMaster.setClCode(codeListMasterBean.getClCode());
+			codeListMaster.setClLable(codeListMasterBean.getClLable());
+			codeListMaster.setClVersion(codeListMasterBean.getClVersion());
+			codeListMaster.setClDesc(codeListMasterBean.getClDesc());
+			codeListMaster.setIsActive(codeListMasterBean.getIsActive());
+			codeListMaster.setLastUpdatedOn(new Date());
+			
+//			Set<String> parentCodeSet = codeListMasterBean.getCodeListValues().stream().map(f -> f.getParentClValueCode()).collect(Collectors.toSet());
+			
+			List<CodeListValuesBean> codeListValuesBeanList = codeListMasterBean.getCodeListValues();
+			codeListValuesBeanList.sort((CodeListValuesBean v1, CodeListValuesBean v2) -> Boolean.compare(v2.getIsParent(), v1.getIsParent()));
+			
+			List<CodeListValues> codeListValuesList = new ArrayList<>();
+			
+			Map<String, CodeListValues> parentCodeListValueMap = new HashMap<String, CodeListValues>();
+			
+			for (CodeListValuesBean codeListValueBean : codeListValuesBeanList) {
+				CodeListValues codeListValues = new CodeListValues();
+				codeListValues.setClValueCode(codeListValueBean.getClValueCode());
+				codeListValues.setClValueLable(codeListValueBean.getClValueLable());
+				codeListValues.setClValueDesc(codeListValueBean.getClValueDesc());
+				codeListValues.setIsActive(codeListValueBean.getIsActive());
+				codeListValues.setLastUpdatedOn(new Date());
+				
+				if(codeListValueBean.getIsParent().equals(Boolean.TRUE)) {
+					parentCodeListValueMap.put(codeListValueBean.getClValueCode(), codeListValues);
+				}
+				
+				codeListValues.setParentCodeListValues(parentCodeListValueMap.get(codeListValueBean.getParentClValueCode()));
+				
+				codeListValues.setCodeListMaster(codeListMaster);
+				
+				codeListValuesList.add(codeListValues);
+			}
+			
+			codeListMaster.setCodeListValues(codeListValuesList);
+
+			codeListMasterRepo.save(codeListMaster);
+			return true;
+		}catch(Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getErrorMessage(), e);
+			return false;
+		}
+	}
+	
+	
+	@Transactional(rollbackOn = Exception.class)
+	public boolean editCodeListmasterData(CodeListMasterBean codeListMasterBean) {
+
+		try {
+			CodeListMaster codeListMaster = codeListMasterRepo.findByClId(codeListMasterBean.getClId());
+			
+			if(codeListMaster!= null) {
+				codeListMaster.setClCode(codeListMasterBean.getClCode());
+				codeListMaster.setClLable(codeListMasterBean.getClLable());
+				codeListMaster.setClVersion(codeListMasterBean.getClVersion());
+				codeListMaster.setClDesc(codeListMasterBean.getClDesc());
+				codeListMaster.setIsActive(codeListMasterBean.getIsActive());
+				codeListMaster.setLastUpdatedOn(new Date());
+				
+				List<CodeListValuesBean> codeListValuesBeanList = codeListMasterBean.getCodeListValues();
+				codeListValuesBeanList.sort((CodeListValuesBean v1, CodeListValuesBean v2) -> Boolean.compare(v2.getIsParent(), v1.getIsParent()));
+				
+				Map<String, CodeListValues> parentCodeListValueMap = new HashMap<String, CodeListValues>();
+				
+				for (CodeListValuesBean codeListValueBean : codeListValuesBeanList) {
+					CodeListValues dbCodeListValue = codeListMaster.getCodeListValues().stream().filter(f -> f.getClValueId().equals(codeListValueBean.getClValueId())).findAny().orElse(null);
+					
+					if(dbCodeListValue!= null) {
+						dbCodeListValue.setClValueCode(codeListValueBean.getClValueCode());
+						dbCodeListValue.setClValueLable(codeListValueBean.getClValueLable());
+						dbCodeListValue.setClValueDesc(codeListValueBean.getClValueDesc());
+						dbCodeListValue.setIsActive(codeListValueBean.getIsActive());
+						dbCodeListValue.setLastUpdatedOn(new Date());
+						
+						if(codeListValueBean.getIsParent().equals(Boolean.TRUE)) {
+							parentCodeListValueMap.put(codeListValueBean.getClValueCode(), dbCodeListValue);
+						}
+						
+						dbCodeListValue.setParentCodeListValues(parentCodeListValueMap.get(codeListValueBean.getParentClValueCode()));
+					}else {
+						CodeListValues codeListValues = new CodeListValues();
+						codeListValues.setClValueCode(codeListValueBean.getClValueCode());
+						codeListValues.setClValueLable(codeListValueBean.getClValueLable());
+						codeListValues.setClValueDesc(codeListValueBean.getClValueDesc());
+						codeListValues.setIsActive(codeListValueBean.getIsActive());
+						codeListValues.setLastUpdatedOn(new Date());
+						
+						if(codeListValueBean.getIsParent().equals(Boolean.TRUE)) {
+							parentCodeListValueMap.put(codeListValueBean.getClValueCode(), codeListValues);
+						}
+						
+						codeListValues.setParentCodeListValues(parentCodeListValueMap.get(codeListValueBean.getParentClValueCode()));
+						
+						codeListValues.setCodeListMaster(codeListMaster);
+						
+						codeListMaster.getCodeListValues().add(codeListValues);
+					}
+				}
+				
+				codeListMasterRepo.save(codeListMaster);
+				return true;
+			}else {
+				throw new ServiceException("Code list not exist");
+			}
+		}catch(Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getErrorMessage(), e);
+			return false;
+		}
+	}
+	
+	@Transactional(rollbackOn = Exception.class)
+	public boolean deleteCodeListmasterData(CodeListMasterBean codeListMasterBean) throws ApplicationException{
+
+		try {
+			CodeListMaster codeListMaster = codeListMasterRepo.findByClCodeAndClVersionAndIsActive(codeListMasterBean.getClCode(), codeListMasterBean.getClVersion(), codeListMasterBean.getIsActive());
+			
+			if(codeListMaster!= null) {
+				codeListMaster.setIsActive(false);
+				codeListMasterRepo.save(codeListMaster);
+				return true;
+			}else {
+				throw new ApplicationException("EOOO2", "Code List not exist");
+			}
+		}catch(Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getErrorMessage(), e);
+			return false;
+		}
+	}
+	
+	
+	public List<CodeListMaster> prepareCodeListMasterResponseList(List<CodeListMaster> codeListMasterList){
+		
+		List<CodeListMaster> codeListMasterReponseList = new ArrayList<>();
+
+		codeListMasterList.forEach(f -> {
+			CodeListMaster codeListMaster = new CodeListMaster();
+			BeanUtils.copyProperties(f, codeListMaster);
+
+			if (f.getCreatedBy() != null) {
+				UserMaster createdBy = new UserMaster();
+				createdBy.setUserId(f.getCreatedBy().getUserId());
+				createdBy.setUserName(f.getCreatedBy().getUserName());
+				codeListMaster.setCreatedBy(createdBy);
+			}
+
+			if (f.getLastApprovedBy() != null) {
+				UserMaster lastApprovedBy = new UserMaster();
+				lastApprovedBy.setUserId(f.getLastApprovedBy().getUserId());
+				lastApprovedBy.setUserName(f.getLastApprovedBy().getUserName());
+				codeListMaster.setLastApprovedBy(lastApprovedBy);
+			}
+
+			if (f.getLastModifiedBy() != null) {
+				UserMaster lastModifiedBy = new UserMaster();
+				lastModifiedBy.setUserId(f.getLastModifiedBy().getUserId());
+				lastModifiedBy.setUserName(f.getLastModifiedBy().getUserName());
+				codeListMaster.setLastModifiedBy(lastModifiedBy);
+			}
+
+			if(f.getCreatedOn()!= null) {
+				codeListMaster.setCreatedOnInLong(f.getCreatedOn().getTime());
+				codeListMaster.setCreatedOn(null);
+			}
+			
+			if(f.getLastUpdatedOn()!= null) {
+				codeListMaster.setLastUpdatedOnInLong(f.getLastUpdatedOn().getTime());
+				codeListMaster.setLastUpdatedOn(null);
+			}
+			
+			if(f.getLastModifiedOn()!= null) {
+				codeListMaster.setLastModifiedOnInLong(f.getLastModifiedOn().getTime());
+				codeListMaster.setLastModifiedOn(null);
+			}
+			
+			if(f.getLastApprovedOn()!= null) {
+				codeListMaster.setLastApprovedOnInLong(f.getLastApprovedOn().getTime());
+				codeListMaster.setLastApprovedOn(null);
+			}
+			
+			List<CodeListValues> codeListValuesList = new ArrayList<>();
+
+			f.getCodeListValues().forEach(k -> {
+				CodeListValues codeListValues = new CodeListValues();
+				BeanUtils.copyProperties(k, codeListValues);
+
+				if (k.getCreatedBy() != null) {
+					UserMaster createdBy = new UserMaster();
+					createdBy.setUserId(k.getCreatedBy().getUserId());
+					createdBy.setUserName(k.getCreatedBy().getUserName());
+					codeListValues.setCreatedBy(createdBy);
+				}
+
+				if (k.getLastModifiedBy() != null) {
+					UserMaster lastModifiedBy = new UserMaster();
+					lastModifiedBy.setUserId(k.getLastModifiedBy().getUserId());
+					lastModifiedBy.setUserName(k.getLastModifiedBy().getUserName());
+					codeListValues.setLastModifiedBy(lastModifiedBy);
+				}
+				
+				
+				if(k.getCreatedOn()!= null) {
+					codeListValues.setCreatedOnInLong(f.getCreatedOn().getTime());
+					codeListValues.setCreatedOn(null);
+				}
+				
+				if(k.getLastUpdatedOn()!= null) {
+					codeListValues.setLastUpdatedOnInLong(f.getLastUpdatedOn().getTime());
+					codeListValues.setLastUpdatedOn(null);
+				}
+				
+				if(k.getLastModifiedOn()!= null) {
+					codeListValues.setLastModifiedOnInLong(f.getLastModifiedOn().getTime());
+					codeListValues.setLastModifiedOn(null);
+				}
+				
+				
+				if (k.getParentCodeListValues() != null) {
+					CodeListValues parentCodelistValues = new CodeListValues();
+					parentCodelistValues.setClValueId(k.getParentCodeListValues().getClValueId());
+					parentCodelistValues.setClValueCode(k.getParentCodeListValues().getClValueCode());
+					parentCodelistValues.setClValueLable(k.getParentCodeListValues().getClValueLable());
+					parentCodelistValues.setIsActive(k.getParentCodeListValues().getIsActive());
+					codeListValues.setParentCodeListValues(parentCodelistValues);
+				} else {
+					codeListValues.setParentCodeListValues(null);
+				}
+
+				codeListValues.setCodeListMaster(null);
+				codeListValuesList.add(codeListValues);
+			});
+
+			codeListMaster.setCodeListValues(codeListValuesList);
+			codeListMasterReponseList.add(codeListMaster);
+		});
+
+		return codeListMasterReponseList;
+		
+	}
+
+}

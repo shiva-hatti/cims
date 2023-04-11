@@ -1,0 +1,29 @@
+package com.iris.dto;
+
+import java.util.List;
+
+public class EntityFilingPendingData {
+	private String entityCode;
+	private String returnCode;
+	private String endDate;
+	public String getEntityCode() {
+		return entityCode;
+	}
+	public void setEntityCode(String entityCode) {
+		this.entityCode = entityCode;
+	}
+	public String getReturnCode() {
+		return returnCode;
+	}
+	public void setReturnCode(String returnCode) {
+		this.returnCode = returnCode;
+	}
+	public String getEndDate() {
+		return endDate;
+	}
+	public void setEndDate(String endDate) {
+		this.endDate = endDate;
+	}
+	
+	
+}

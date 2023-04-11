@@ -1,0 +1,100 @@
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.google.gson.Gson;
+import com.iris.dto.Option;
+import com.iris.dto.Options;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.model.CountryMaster;
+import com.iris.model.DynamicDropDownBean;
+import com.iris.service.impl.CountryMasterService;
+import com.iris.util.constant.GeneralConstants;
+
+/**
+ * @author Siddique H Khan
+ */
+@RestController
+@RequestMapping("/service/countryData")
+public class CountryMasterController {
+	static final Logger logger = LogManager.getLogger(CountryMasterController.class);
+
+	@Autowired
+	CountryMasterService countryMasterService;
+
+	@GetMapping(value = "/fetchActiveCountryData/{languageCode}")
+	public ServiceResponse fetchActiveCountryList(@PathVariable String languageCode) {
+		logger.info("fetch country data controller started " + languageCode);
+		ServiceResponse serviceResponse = null;
+		Option option = null;
+		Options options = null;
+		List<Option> optionList = null;
+		List<CountryMaster> listOfActiveCountryData = null;
+		if (languageCode != null) {
+
+			listOfActiveCountryData = new ArrayList<>();
+			optionList = new ArrayList<>();
+			options = new Options();
+			listOfActiveCountryData = countryMasterService.getActiveDataFor(CountryMaster.class, null);
+
+			for (CountryMaster countryMaster : listOfActiveCountryData) {
+				option = new Option();
+				if (languageCode.equals(GeneralConstants.ENG_LANG.getConstantVal())) {
+					option.setKey(countryMaster.getCountryCode());
+					option.setValue(countryMaster.getCountryName().toUpperCase());
+				} else if (languageCode.equals(GeneralConstants.HIN_LANG.getConstantVal())) {
+					option.setKey(countryMaster.getCountryCode());
+					option.setValue(countryMaster.getCountryNameBil().toUpperCase());
+				}
+				optionList.add(option);
+			}
+			options.setOptionList(optionList);
+			return new ServiceResponseBuilder().setStatus(true).setResponse(new Gson().toJson(options)).build();
+		}
+		return serviceResponse;
+	}
+	@GetMapping(value = "/fetchActiveCountryDropdownList/{languageCode}")
+	public ServiceResponse fetchActiveCountryDropdownList(@PathVariable String languageCode) {
+
+		ServiceResponse serviceResponse = null;
+		DynamicDropDownBean option = null;
+		
+		List<DynamicDropDownBean> optionList = null;
+		List<CountryMaster> listOfActiveCountryData = null;
+		if (languageCode != null) {
+
+			listOfActiveCountryData = new ArrayList<>();
+			optionList = new ArrayList<>();
+		
+			listOfActiveCountryData = countryMasterService.getActiveDataFor(CountryMaster.class, null);
+
+			for (CountryMaster countryMaster : listOfActiveCountryData) {
+				option = new DynamicDropDownBean();
+				if (languageCode.equals(GeneralConstants.ENG_LANG.getConstantVal())) {
+					option.setKey(countryMaster.getId());
+					option.setValue(countryMaster.getCountryName());
+				} else if (languageCode.equals(GeneralConstants.HIN_LANG.getConstantVal())) {
+					option.setKey(countryMaster.getId());
+					option.setValue(countryMaster.getCountryNameBil());
+				}
+				optionList.add(option);
+			}
+
+			String jsonResult = new Gson().toJson(optionList);
+			serviceResponse = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			serviceResponse.setResponse(jsonResult);
+			
+		}
+		return serviceResponse;
+	}
+}

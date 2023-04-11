@@ -1,0 +1,143 @@
+/**
+ * 
+ */
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+/**
+ * @author sajadhav
+ *
+ */
+@Entity
+@Table(name = "TBL_USER_ROLE_ENTITY_MAPPING")
+public class UserRoleEntityMapping implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name ="ROLE_ENTITY_ID")
+	private Long userRoleEntMapId;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "ENTITY_ID_FK")
+	private EntityBean entity;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "ROLE_ID_FK")
+	private UserRole userRole;
+	
+	@Column(name = "IS_ACTIVE")
+	private boolean isActive;
+
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "CREATED_BY")
+	private UserMaster createdBy;
+
+	@Column(name = "LAST_MODIFIED_ON")
+	private Date lastmMdifiedOn;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "LAST_MODIFIED_BY")
+	private UserMaster lastModifiedBy;
+
+	public UserRoleEntityMapping() {
+
+	}
+	
+	public UserRoleEntityMapping(Long userRoleId, Long entityId, String entityCode,  boolean isActive) {
+		this.userRole = new UserRole();
+		this.userRole.setUserRoleId(userRoleId);
+		
+		this.entity = new EntityBean();
+		this.entity.setEntityId(entityId);
+		this.entity.setEntityCode(entityCode);
+		
+		this.isActive = isActive;
+	}
+	
+	public UserRole getUserRole() {
+		return userRole;
+	}
+
+	public void setUserRole(UserRole userRole) {
+		this.userRole = userRole;
+	}
+
+	public Long getUserRoleEntMapId() {
+		return userRoleEntMapId;
+	}
+
+	public void setUserRoleEntMapId(Long userRoleEntMapId) {
+		this.userRoleEntMapId = userRoleEntMapId;
+	}
+
+	public EntityBean getEntity() {
+		return entity;
+	}
+
+	public void setEntity(EntityBean entity) {
+		this.entity = entity;
+	}
+
+	public boolean isActive() {
+		return isActive;
+	}
+
+	public void setActive(boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	public Date getLastmMdifiedOn() {
+		return lastmMdifiedOn;
+	}
+
+	public void setLastmMdifiedOn(Date lastmMdifiedOn) {
+		this.lastmMdifiedOn = lastmMdifiedOn;
+	}
+
+	public UserMaster getLastModifiedBy() {
+		return lastModifiedBy;
+	}
+
+	public void setLastModifiedBy(UserMaster lastModifiedBy) {
+		this.lastModifiedBy = lastModifiedBy;
+	}
+	
+	
+	
+}

@@ -1,0 +1,76 @@
+/**
+ * 
+ */
+package com.iris.sdmx.element.validator;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.iris.exception.ApplicationException;
+import com.iris.sdmx.element.bean.SdmxAddElementInputBean;
+import com.iris.sdmx.element.service.SdmxElementClassificationService;
+
+/**
+ * @author apagaria
+ *
+ */
+@Component
+public class SdmxElementValidator {
+
+	private static final Logger LOGGER = LogManager.getLogger(SdmxElementValidator.class);
+
+	@Autowired
+	SdmxElementClassificationService sdmxElementClassificationService;
+
+	/**
+	 * 
+	 */
+	public void validateAddElementRequest(SdmxAddElementInputBean sdmxAddElementInputBean, String jobProcessId)
+			throws ApplicationException {
+		LOGGER.info("START - Validation request for Add Element with Job Processing ID : " + jobProcessId);
+		validateDsdCode(sdmxAddElementInputBean.getDsdCode());
+
+		validateElementLabel(sdmxAddElementInputBean.getElementLabel());
+		LOGGER.info("END - Validation request for Add Element with Job Processing ID : " + jobProcessId);
+	}
+
+	/**
+	 * @param dsdCode
+	 * @throws ApplicationException
+	 */
+	public static void validateDsdCode(String dsdCode) throws ApplicationException {
+		if (StringUtils.isBlank(dsdCode)) {
+			throw new ApplicationException("ER001", "DsdCode can't Blank");
+		} else if (dsdCode.length() > 10) {
+			throw new ApplicationException("ER002", "DsdCode length can't greater than 10");
+		}
+	}
+
+	/**
+	 * @param elementLabel
+	 * @throws ApplicationException
+	 */
+	public static void validateElementLabel(String elementLabel) throws ApplicationException {
+		if (StringUtils.isBlank(elementLabel)) {
+			throw new ApplicationException("ER003", "Element Label can't Blank");
+		} else if (elementLabel.length() > 70) {
+			throw new ApplicationException("ER004", "Element Label length can't greater than 10");
+		}
+	}
+
+	/**
+	 * @param classificationType
+	 * @throws ApplicationException
+	 */
+	public void validateClassificationType(String classificationType) throws ApplicationException {
+		if (StringUtils.isBlank(classificationType)) {
+			throw new ApplicationException("ER004", "Classification type can't Blank");
+		} else if (!sdmxElementClassificationService.isDataExistWithClassificationName(classificationType)) {
+			throw new ApplicationException("ER005", "Classification type is not valid");
+		}
+	}
+
+}

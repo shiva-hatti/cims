@@ -1,0 +1,47 @@
+package com.iris.util.constant;
+
+public enum MetaDataCheckConstants {
+
+	RETURN_CODE_CHECK("field.returnCodeCheck"),
+	ENTITY_CHECK("field.entityCheck"),
+	USER_CHECK("field.userCheck"),
+	ROLE_RETURN_MAPP_CHECK("field.roleReturnMappCheck"),
+	ENTITY_RETURN_CHANNEL_MAP_CHECK("field.entityReturnChannelMappCheck"),
+	RETURN_FILE_TYPE_MAP_CHECK("field.returnFileTypeMappingCheck"),
+	TECHNICAL_ERROR_CHECK("field.technicalErrorCheck"),
+	ALLOWED_TO_SUBMIT_CHECK("field.allowedToSubmitCheck"),
+	ROLE_ACTIVITY_MAPP_CHECK("field.roleActivityMappCheck"),
+	REPORTING_START_DATE_CHECK("field.reportingStartDateCheck"),
+	REPORTING_END_DATE_CHECK("field.reportingEndDateCheck"),
+	RETURN_CODE_MATCH_CHECK("field.returnCodeMatchCheck"),
+	ENTITY_CODE_MATCH_CHECK("field.entityCodeMatchCheck"),
+	ENTITY_NAME_MATCH_CHECK("field.entityNameMatchCheck"),
+	
+	// This check applicable for CSV file only
+	REPORTING_FREQ_CHECK("field.reportingFrequencyCheck"),
+	GENERAL_INFO_TABLE_CHECK("field.generalInformationTableCheck"),
+
+	// This check would not be applicable for CSV
+	REPORTING_STATUS_CHECK("field.reportingStatusCheck"),
+	
+	
+	BSR_ROW_COUNT_CHECK("field.bsrRowCountCheck"),
+	BSR_TOTAL_AMOUNT_CHECK("field.bsrTotalAmountCheck"),
+	BSR_COMPARE_FILE_PREPARE_REF_QUARTER_CHECK("field.bsrCompareFilePrepareRefQuarterCheck"),
+	BSR7_FILE_TYPE("fied.bsr7FileTypeChek"),
+	REPORTING_DATE_CHECK("field.reportingDateCheck"),
+	BSR7_AUDIT_STATUS_CHECK("field.bsr7AuditStatusCheck"),
+	REPORTING_PERIOD_CHECK("field.reportingPeriodCheck"),
+	RETURN_NAME_MATCH_CHECK("field.returnNameCheck"),
+	HEADER_FORMAT_CHECK("field.headerFormatCheck");
+
+	String metaDataCheck;
+	
+	private MetaDataCheckConstants(String checkName) {
+		this.metaDataCheck = checkName;
+	}
+
+	public String getConstantVal() {
+		return metaDataCheck;
+	}
+}

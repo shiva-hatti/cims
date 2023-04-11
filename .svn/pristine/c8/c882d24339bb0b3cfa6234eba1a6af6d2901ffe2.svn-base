@@ -1,0 +1,711 @@
+/**
+ * 
+ */
+package com.iris.sdmx.util;
+
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.xml.namespace.QName;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Attribute;
+import javax.xml.stream.events.EndElement;
+import javax.xml.stream.events.StartElement;
+import javax.xml.stream.events.XMLEvent;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import com.google.gson.Gson;
+import com.iris.sdmx.exceltohtml.repo.SdmxModelCodesRepo;
+import com.iris.sdmx.model.code.data.SdmxDataModelCodeBean;
+import com.iris.sdmx.upload.bean.DataSet;
+import com.iris.sdmx.upload.bean.RepDateReturnDataPointMap;
+import com.iris.sdmx.upload.bean.ReturnDataPointMap;
+import com.iris.sdmx.upload.bean.SDMXDocument;
+import com.iris.sdmx.upload.bean.StructureRef;
+import com.iris.util.XmlValidate;
+
+/**
+ * @author sajadhav
+ *
+ */
+@Service
+public class SDMXMLDocumentReaderUtilityService {
+	
+	private static final Logger LOGGER = LogManager.getLogger(SDMXMLDocumentReaderUtilityService.class);
+	
+	@Autowired
+	private SdmxModelCodesRepo sdmxModelCodesRepo;
+	
+	public SDMXDocument readSDMXDocument(String filePath){
+		SDMXDocument sdmxDocument = null;
+	      try {
+	         XMLInputFactory factory = XMLInputFactory.newInstance();
+	         XMLEventReader eventReader = factory.createXMLEventReader(new FileReader(filePath));
+
+	         String elementCode = null;
+	         String senderId = null;
+	         String structureId = "";
+	         DataSet dataSet = null;
+	         StructureRef structureRef = null;
+	         while(eventReader.hasNext()) {
+	            XMLEvent nextEvent = eventReader.nextEvent();
+
+	          
+	            if (nextEvent.isStartElement()) {
+	            	
+	                StartElement startElement = nextEvent.asStartElement();
+	                Attribute attr = null;
+	                SDMXDocumentEnum sdmxDocumentEnum = SDMXDocumentEnum.getEnumByValue(startElement.getName().getLocalPart());
+	                
+	                if(sdmxDocumentEnum == null) {
+	                	continue;
+	                }
+	                
+	                switch (sdmxDocumentEnum) {
+		                case HEADER:
+		                	sdmxDocument = new SDMXDocument();
+		                    break;
+		                case SENDER:
+		                	attr = startElement.getAttributeByName(new QName(SDMXDocumentEnum.ID.getConstant()));
+		                    if(attr!= null) {
+			                	senderId = attr.getValue();
+		                    }
+		                    break;
+		                case STRUCTURE:
+		                    if(startElement.getName().getPrefix().equalsIgnoreCase("message")) {
+			                	Map<String, String> dataSetAttributeMap = new HashMap<>();
+		                		
+			                	attr = startElement.getAttributeByName(new QName(SDMXDocumentEnum.NAME_SPACE.getConstant()));
+			                    if(attr!= null) {
+			                		dataSetAttributeMap.put(SDMXDocumentEnum.SET_ID.getConstant(), attr.getValue());
+			                    }
+			                    
+			                    attr = startElement.getAttributeByName(new QName(SDMXDocumentEnum.DIMENSION_AT_OBSERVATION.getConstant()));
+			                    if(attr!= null) {
+			                		dataSetAttributeMap.put(SDMXDocumentEnum.DIMENSION_AT_OBSERVATION.getConstant(), attr.getValue());
+			                    }
+
+			                    attr = startElement.getAttributeByName(new QName(SDMXDocumentEnum.STRUCTURE_ID.getConstant()));
+			                    if(attr!= null) {
+			                    	structureId = attr.getValue();
+			                    }
+			                    
+			                    dataSet = new DataSet();
+			                    
+			                    structureRef = new StructureRef();
+			                    structureRef.setCode(structureId);
+			                    dataSet.setStructureRef(structureRef);
+			                    
+			                    if(sdmxDocument!= null) {
+			                    	if(sdmxDocument.getDataSets() == null) {
+			                    		dataSet.setDataset_attributes(dataSetAttributeMap);
+			                			if(sdmxDocument.getDataSets() == null) {
+			                				List<DataSet> dataSetList = new ArrayList<>();
+			                				dataSetList.add(dataSet);
+			                				sdmxDocument.setDataSets(dataSetList);
+			                			}else {
+			                				sdmxDocument.getDataSets().add(dataSet);
+			                			}
+			                    	}else {
+			                    		if(sdmxDocument.getDataSets().indexOf(dataSet) == -1) {
+			                    			dataSet.setDataset_attributes(dataSetAttributeMap);
+				                			sdmxDocument.getDataSets().add(dataSet);
+			                    		}else {
+				                    		DataSet ds = sdmxDocument.getDataSets().get(sdmxDocument.getDataSets().indexOf(dataSet));
+				                			ds.getDataset_attributes().putAll(dataSetAttributeMap);
+			                    		}
+			                    	}
+			                	}
+			                    structureId = null;
+		                    }
+		                    break;
+		                case REF:
+		                	structureRef = new StructureRef();
+		                	
+		                	attr = startElement.getAttributeByName(new QName(SDMXDocumentEnum.ID.getConstant()));
+		                    if(attr!= null) {
+		                    	structureRef.setCode(attr.getValue());
+		                    }
+		                    
+		                    attr = startElement.getAttributeByName(new QName(SDMXDocumentEnum.VERSION.getConstant()));
+		                    if(attr!= null) {
+		                    	structureRef.setVersion(attr.getValue());
+		                    }
+		                  
+		                    attr = startElement.getAttributeByName(new QName(SDMXDocumentEnum.AGENCY_ID.getConstant()));
+		                    if(attr!= null) {
+		                    	structureRef.setAgencyID(attr.getValue());
+		                    }
+		                    
+		                    structureRef.setSender(senderId);
+		                    
+		                    dataSet = new DataSet();
+		                    dataSet.setStructureRef(structureRef);
+		                    
+		                    if(sdmxDocument!= null) {
+		                    	
+		                    	if(sdmxDocument.getDataSets().indexOf(dataSet) != -1) {
+		                    		DataSet ds = sdmxDocument.getDataSets().get(sdmxDocument.getDataSets().indexOf(dataSet));
+			                		if(ds != null) {
+			                			ds.setStructureRef(structureRef);
+			                		}	
+		                    	}
+		                	}
+		                    break;
+		                case DATA_SET:
+		                	Map<String, String> dataSetAttribute = new HashMap<>();
+		                	
+		                	Iterator<Attribute> attrs = startElement.getAttributes();
+		                	Map<String, String> attributesMap = new HashMap<>();
+		                	while(attrs.hasNext()) {
+		                		Attribute attribute =  attrs.next();
+		                		if(!(attribute.getName().getLocalPart().equalsIgnoreCase(SDMXDocumentEnum.STRUCTURE_REF.getConstant()) || attribute.getName().getLocalPart().equalsIgnoreCase(SDMXDocumentEnum.TYPE.getConstant())
+		                				|| attribute.getName().getLocalPart().equalsIgnoreCase(SDMXDocumentEnum.DATA_SCOPE.getConstant()))) {
+			                		attributesMap.put(attribute.getName().getLocalPart(), attribute.getValue());
+		                		}else if(attribute.getName().getLocalPart().equalsIgnoreCase(SDMXDocumentEnum.ACTION.getConstant())){
+		                			dataSetAttribute.put(attribute.getName().getLocalPart(), attribute.getValue());
+		                		}else {
+		                			if(attribute.getName().getLocalPart().equalsIgnoreCase(SDMXDocumentEnum.STRUCTURE_REF.getConstant())) {
+		                				elementCode = attribute.getValue();
+		                			}
+		                		}
+		                	}
+		                	
+		                	StructureRef structure = new StructureRef();
+		                	structure.setCode(elementCode);
+
+		                	DataSet ds = new DataSet();
+		                	ds.setStructureRef(structure);
+
+		                	if(sdmxDocument!= null) {
+		                		if(sdmxDocument.getDataSets() == null) {
+		                			dataSet.setDataset_attributes(dataSetAttribute);
+		                			dataSet.setAttached_attributes(attributesMap);
+	                				List<DataSet> dataSetList = new ArrayList<>();
+	                				dataSetList.add(dataSet);
+	                				sdmxDocument.setDataSets(dataSetList);
+		                		}else {
+		                			if(sdmxDocument.getDataSets().indexOf(ds) == -1) {
+		                				dataSet.setDataset_attributes(dataSetAttribute);
+			                			dataSet.setAttached_attributes(attributesMap);
+			                			sdmxDocument.getDataSets().add(dataSet);
+		                			}else {
+			                			ds = sdmxDocument.getDataSets().get(sdmxDocument.getDataSets().indexOf(ds));
+		                				ds.setAttached_attributes(attributesMap);
+				                		ds.getDataset_attributes().putAll(dataSetAttribute);
+		                			}
+		                		}
+		                	}
+		                	break;
+		                case OBS:
+		                	Iterator<Attribute> obsAttributes = startElement.getAttributes();
+		                	Map<String, String> dimensionMap = new HashMap<String, String>();
+
+		                	while(obsAttributes.hasNext()) {
+		                		Attribute attribute = obsAttributes.next();
+		                		dimensionMap.put(attribute.getName().getLocalPart(), attribute.getValue());
+		                	}
+
+		                	if(elementCode!= null && dimensionMap.size()> 0) {
+		                		structure = new StructureRef();
+			                	structure.setCode(elementCode);
+
+			                	ds = new DataSet();
+			                	ds.setStructureRef(structure);
+			                
+			                	if(sdmxDocument!= null && sdmxDocument.getDataSets().indexOf(ds) != -1) {
+			                			ds = sdmxDocument.getDataSets().get(sdmxDocument.getDataSets().indexOf(ds));
+				                		
+				                		if(CollectionUtils.isEmpty(ds.getData())) {
+				                			List<Map<String, String>> newObsList = new ArrayList<>();
+				                			newObsList.add(dimensionMap);
+				                			ds.setData(newObsList);
+				                		}else {
+				                			List<Map<String, String>> obs = ds.getData();
+				                			obs.add(dimensionMap);
+				                			ds.setData(obs);
+				                		}			                			
+			                	}
+		                	}
+		                	break;
+		                default:
+		                    break;
+
+		            }
+	            }
+	            
+	            if (nextEvent.isEndElement()) {
+	                EndElement endElement = nextEvent.asEndElement();
+	                if (endElement.getName().getLocalPart().equals(SDMXDocumentEnum.DATA_SET.getConstant())) {
+	                	elementCode = null;
+	                }
+	            }
+	         }
+	      } catch (FileNotFoundException | XMLStreamException e) {
+	         LOGGER.error("Exception : ", e);
+	      } 
+		return sdmxDocument;
+	}
+
+	public Map<String, List<RepDateReturnDataPointMap>> generateDateWiseJsonModified(SDMXDocument sdmxDocument) throws Exception{
+		
+		DateFormat df1 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+		DateFormat df2 = new SimpleDateFormat("dd-MM-yyyy");
+		
+		List<DataSet> dataSets = sdmxDocument.getDataSets();
+		Set<String> dmIdSet = new HashSet<>();
+		
+		Map<String, Map<String, List<String>>> dmIdMapForAllElement = new HashMap<>();
+		dataSets.forEach(f -> {
+			Map<String, List<String>> dmIdMap = new HashMap<>();
+			String elementCode = f.getStructureRef().getCode();
+			List<Map<String, String>> lisvalueMap = f.getData();	
+			lisvalueMap.forEach(k -> {
+				try {
+					String keyDate = df2.format(df1.parse(k.get("TIME_PERIOD"))); 
+					if(dmIdMap.containsKey(keyDate)) {
+						List<String> list = dmIdMap.get(keyDate);
+						list.add(k.get("DMID"));
+						dmIdSet.add(k.get("DMID"));
+						dmIdMap.put(keyDate, list);
+					}else {
+						List<String> list = new ArrayList<>();
+						list.add(k.get("DMID"));
+						dmIdSet.add(k.get("DMID"));
+						dmIdMap.put(keyDate, list);
+					}	
+				}catch(Exception e) {
+					LOGGER.error("Exception : ", e);
+				}
+			});
+			dmIdMapForAllElement.put(elementCode, dmIdMap);
+		});
+		
+		Map<String, List<String>> sdmxDataModelCodeBeans = getSdmxReturnModelCodeBeans(dmIdSet);
+		
+		if(sdmxDataModelCodeBeans!= null) {
+			Map<String, List<RepDateReturnDataPointMap>> elementAndReportingDateMap = new HashMap<>();
+			
+			for (String elementCode : dmIdMapForAllElement.keySet()) {
+				
+				Map<String, List<String>> dmIdMapForSingleElement = dmIdMapForAllElement.get(elementCode);
+
+				List<RepDateReturnDataPointMap> repDateReturnDataPointMapList = new ArrayList<>();
+				
+				for (String reportingDate : dmIdMapForSingleElement.keySet()) {
+					RepDateReturnDataPointMap repDateReturnDataPointMap = new RepDateReturnDataPointMap();
+					repDateReturnDataPointMap.setEndDate(reportingDate);
+					
+					List<String> dmIdList = dmIdMapForSingleElement.get(reportingDate);
+					
+					for (String dmId : dmIdList) {
+						List<String> returnCodeList =  sdmxDataModelCodeBeans.get(dmId);
+						for (String returnCode : returnCodeList) {
+							if(repDateReturnDataPointMap.getReturnList()!= null) {
+								ReturnDataPointMap ret = new ReturnDataPointMap();
+								ret.setReturnCode(returnCode);
+								if(repDateReturnDataPointMap.getReturnList().indexOf(ret) == -1) {
+									Set<String> dataPoints = new HashSet<>();
+									dataPoints.add(dmId);
+									ret.setDataPoints(dataPoints);
+									repDateReturnDataPointMap.getReturnList().add(ret);
+								}else {
+									ret = repDateReturnDataPointMap.getReturnList().get(repDateReturnDataPointMap.getReturnList().indexOf(ret));
+									if(ret.getDataPoints()!= null) {
+										ret.getDataPoints().add(dmId);
+									}else {
+										Set<String> dataPoints = new HashSet<>();
+										dataPoints.add(dmId);
+										ret.setDataPoints(dataPoints);
+									}
+								}
+							}else {
+									List<ReturnDataPointMap> returnDataPointMapList = new ArrayList<>();
+									
+									ReturnDataPointMap returnDataPointMap = new ReturnDataPointMap();
+									
+									Set<String> dataPoints = new HashSet<>();
+									dataPoints.add(dmId);
+									
+									returnDataPointMap.setReturnCode(returnCode);
+									returnDataPointMap.setDataPoints(dataPoints);
+									
+									returnDataPointMapList.add(returnDataPointMap);
+									
+									repDateReturnDataPointMap.setReturnList(returnDataPointMapList);	
+							}
+						}
+					}
+					
+					repDateReturnDataPointMapList.add(repDateReturnDataPointMap);
+				}
+				elementAndReportingDateMap.put(elementCode, repDateReturnDataPointMapList);
+			}
+			return elementAndReportingDateMap;
+		}
+		return null;
+	}
+	
+	
+	
+	
+	
+	public Map<String, Map<String, List<String>>> generateDateWiseJson(SDMXDocument sdmxDocument){
+		
+		DateFormat df1 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+		DateFormat df2 = new SimpleDateFormat("dd-MM-yyyy");
+		
+		List<DataSet> dataSets = sdmxDocument.getDataSets();
+		Set<String> dmIdSet = new HashSet<>();
+		
+		Map<String, List<String>> dmIdMap = new HashMap<>();
+		dataSets.forEach(f -> {
+			List<Map<String, String>> lisvalueMap = f.getData();	
+			lisvalueMap.forEach(k -> {
+				try {
+					String keyDate = df2.format(df1.parse(k.get("TIME_PERIOD"))); 
+					if(dmIdMap.containsKey(keyDate)) {
+						List<String> list = dmIdMap.get(keyDate);
+						list.add(k.get("DMID"));
+						dmIdSet.add(k.get("DMID"));
+						dmIdMap.put(keyDate, list);
+					}else {
+						List<String> list = new ArrayList<>();
+						list.add(k.get("DMID"));
+						dmIdSet.add(k.get("DMID"));
+						dmIdMap.put(keyDate, list);
+					}	
+				}catch(Exception e) {
+					LOGGER.error("Exception : ", e);
+				}
+			});
+		});
+		
+		
+		Map<String, List<String>> sdmxDataModelCodeBeans = getSdmxReturnModelCodeBeans(dmIdSet);
+		
+		if(sdmxDataModelCodeBeans!= null) {
+			Map<String, Map<String, List<String>>> finalMapToBePrepared = new HashMap<>();
+
+			for (String reportingDate : dmIdMap.keySet()) {
+				List<String> dmIdList = dmIdMap.get(reportingDate);
+				
+				Map<String, List<String>> returnCodeAndDMIDMap = new HashMap<>();
+				
+				for (String dmId : dmIdList) {
+					List<String> returnCodeList =  sdmxDataModelCodeBeans.get(dmId);
+					for (String returnCode : returnCodeList) {
+						if(returnCodeAndDMIDMap.containsKey(returnCode)) {
+							List<String> dmIds =  returnCodeAndDMIDMap.get(returnCode);
+							dmIds.add(dmId);
+							returnCodeAndDMIDMap.put(returnCode, dmIds);
+						}else {
+							List<String> dmIds = new ArrayList<>();
+							dmIds.add(dmId);
+							returnCodeAndDMIDMap.put(returnCode, dmIds);
+						}
+					}
+				}
+				finalMapToBePrepared.put(reportingDate, returnCodeAndDMIDMap);
+			}			
+			System.out.println(new Gson().toJson(finalMapToBePrepared));
+			return finalMapToBePrepared;
+		}
+		return null;
+	}
+	
+	
+	private Map<String, List<String>> getSdmxReturnModelCodeBeans(Set<String> dmIdSet) {
+		
+		List<SdmxDataModelCodeBean> sdmxDataModelCodeBeans = sdmxModelCodesRepo.fetchDistinctDimIdData(new ArrayList<>(dmIdSet));
+		
+		if(!CollectionUtils.isEmpty(sdmxDataModelCodeBeans)) {
+			Map<String, List<String>>  dbDimCodeAndReturnListMap = new HashMap<>();
+			
+			for (SdmxDataModelCodeBean sdmxDataModelCodeBean : sdmxDataModelCodeBeans) {
+				if(dbDimCodeAndReturnListMap.containsKey(sdmxDataModelCodeBean.getModelCode())) {
+					List<String> returnCodeList =  dbDimCodeAndReturnListMap.get(sdmxDataModelCodeBean.getModelCode());
+					returnCodeList.add(sdmxDataModelCodeBean.getReturnCode());
+					dbDimCodeAndReturnListMap.put(sdmxDataModelCodeBean.getModelCode(), returnCodeList);
+				}else {
+					List<String> returnCodeList = new ArrayList<>();
+					returnCodeList.add(sdmxDataModelCodeBean.getReturnCode());
+					dbDimCodeAndReturnListMap.put(sdmxDataModelCodeBean.getModelCode(), returnCodeList);
+				}
+			}	
+			return dbDimCodeAndReturnListMap;
+		}
+		
+//		List<String> list = new ArrayList<>();
+//		list.add("R019");
+//		list.add("R017");
+//		
+//		dbDimCodeAndReturnListMap.put("DM017", list);
+//		dbDimCodeAndReturnListMap.put("DM012", list);
+		return null;
+	}
+
+
+	public static void main(String[] args) {
+		 String filePath = "C:\\Users\\sajadhav\\Downloads\\";
+		 SDMXMLDocumentReaderUtilityService sdmxmlDocumentReader = new SDMXMLDocumentReaderUtilityService();
+		 System.out.println(new XmlValidate().checkXMLDocumentType(filePath + "HDFC190630R02506Q.xml"));
+//		 SDMXDocument sdmxDocument = sdmxmlDocumentReader.readSDMXDocument(filePath + "ALE.xml");
+//         LOGGER.info(new Gson().toJson(sdmxDocument.getDataSets()));
+//         
+//         Map<String, Map<String, List<String>>> map = new HashMap<>();
+//         
+//         Map<String, List<String>> internalMap = new HashMap<>();
+//         List<String> list = new ArrayList<>();
+//         list.add("DM017");
+//         list.add("DM012");
+//         internalMap.put("R017", list);
+//         
+//         list = new ArrayList<>();
+//         list.add("DM017");
+//         list.add("DM012");
+//         internalMap.put("R019", list);
+//         
+//         map.put("31-12-2020", internalMap);
+//         
+//         list = new ArrayList<>();
+//         list.add("DM017");
+//         list.add("DM012");
+//         internalMap.put("R017", list);
+//         
+//         list = new ArrayList<>();
+//         list.add("DM017");
+//         list.add("DM012");
+//         internalMap.put("R019", list);
+//         
+//         map.put("31-01-2021", internalMap);
+//
+//         System.out.println(new Gson().toJson(map));
+         
+	}
+	
+//	 public static void main(String[] args) throws ParseException {
+//	      
+//		 String filePath = "D:\\CIMS-Document\\EBR\\SDMX-ML-DOCUMENT\\";
+//		 
+
+//		 
+//	      try {
+//	         XMLInputFactory factory = XMLInputFactory.newInstance();
+////	         XMLEventReader eventReader = factory.createXMLEventReader(new FileReader("D:\\CIMS-Document\\EBR\\SDMX-ML-DOCUMENT\\ALE.xml"));
+////	         XMLEventReader eventReader = factory.createXMLEventReader(new FileReader("D:\\CIMS-Document\\EBR\\SDMX-ML-DOCUMENT\\ALE_CSV_11012021.csv_xs.xml"));
+//	         XMLEventReader eventReader = factory.createXMLEventReader(new FileReader(filePath + "ALE_MODIFIED.xml"));
+//	         
+//
+//	         SDMXDocument sdmxDocument = null;
+////	         SDMXElementStructure sdmxElementStructure = null;
+//	         String elementCode = null;
+//	         while(eventReader.hasNext()) {
+//	            XMLEvent nextEvent = eventReader.nextEvent();
+//
+//	            if (nextEvent.isStartElement()) {
+//	            	
+//	                StartElement startElement = nextEvent.asStartElement();
+//	                
+//	                switch (startElement.getName().getLocalPart()) {
+//		                case "Header":
+//		                	sdmxDocument = new SDMXDocument();
+//		                    break;
+//		                case "ID":
+//		                    nextEvent = eventReader.nextEvent();
+//		                    break;
+//		                case "Test":
+//		                    nextEvent = eventReader.nextEvent();
+//		                    break;
+//		                case "Prepared":
+//		                    nextEvent = eventReader.nextEvent();
+//		                    break;
+//		                case "Sender":
+//		                	Attribute attr = startElement.getAttributeByName(new QName("id"));
+//		                    break;
+//		                case "Receiver":
+//		                    nextEvent = eventReader.nextEvent();
+//		                	attr = startElement.getAttributeByName(new QName("id"));
+//		                    break;
+//		                case "Structure":
+////		                    nextEvent = eventReader.nextEvent();
+////		                    if(startElement.getName().getPrefix().equalsIgnoreCase("message")) {
+////		                    	 sdmxElementStructure = new SDMXElementStructure();
+////		                    	 attr = startElement.getAttributeByName(new QName("structureID"));
+////			                     if(attr!= null) {
+////			                    	 sdmxElementStructure.setStructureid(attr.getValue());
+////			                     }
+////			                     
+////			                     attr = startElement.getAttributeByName(new QName("namespace"));
+////			                     if(attr!= null) {
+////			                    	 sdmxElementStructure.setNameSpace(attr.getValue());
+////			                     }
+////			                     
+////			                     attr = startElement.getAttributeByName(new QName("dimensionAtObservation"));
+////			                     if(attr!= null) {
+////			                    	 sdmxElementStructure.setDimensionAtObservation(attr.getValue());
+////			                     }
+////			                     
+////			                     if(sdmxDocument.getSdmxElementsStructure() == null) {
+////	                				List<SDMXElementStructure> sdmxElementStructures = new ArrayList<>();
+////	                				sdmxElementStructures.add(sdmxElementStructure);
+////	                				sdmxDocument.setSdmxElementsStructure(sdmxElementStructures);
+////	                			 }else {
+////	                				sdmxDocument.getSdmxElementsStructure().add(sdmxElementStructure);
+////	                			 }
+////	                			 sdmxElementStructure = null;
+////		                    }
+//		                    break;
+//		                case "Ref":
+//		                	DataSet dataSet = new DataSet();
+//		                	
+//		                	StructureRef structureRef = new StructureRef();
+//		                	
+//		                	attr = startElement.getAttributeByName(new QName("id"));
+//		                    if(attr!= null) {
+//		                    	structureRef.setCode(attr.getValue());
+//		                    }
+//		                    
+//		                    attr = startElement.getAttributeByName(new QName("version"));
+//		                    if(attr!= null) {
+//		                    	structureRef.setVersion(attr.getValue());
+//		                    }
+//		                  
+//		                    attr = startElement.getAttributeByName(new QName("agencyID"));
+//		                    if(attr!= null) {
+//		                    	structureRef.setAgencyID(attr.getValue());
+//		                    }
+//		                    dataSet.setStructureRef(structureRef);
+//		                    
+//	                    	if(CollectionUtils.isEmpty(sdmxDocument.getDataSets())) {
+//	                    		List<DataSet> dataSetList = new ArrayList<>();
+//	                    		dataSetList.add(dataSet);
+//	                    		sdmxDocument.setDataSets(dataSetList);
+//	                    	}else {
+//	                    		sdmxDocument.getDataSets().add(dataSet);
+//	                    	}
+//	                    	
+//		                    break;
+//		                case "DataSet":
+//		                	Iterator<Attribute> attrs = startElement.getAttributes();
+//		                	Map<String, String> attributesMap = new HashMap<>();
+//		                	while(attrs.hasNext()) {
+//		                		Attribute attribute =  attrs.next();
+//		                		
+//		                		if(!(attribute.getName().getLocalPart().equalsIgnoreCase("structureRef") || attribute.getName().getLocalPart().equalsIgnoreCase("type")
+//		                				|| attribute.getName().getLocalPart().equalsIgnoreCase("dataScope") || attribute.getName().getLocalPart().equalsIgnoreCase("action"))) {
+//			                		attributesMap.put(attribute.getName().getLocalPart(), attribute.getValue());
+//		                		}else {
+//		                			if(attribute.getName().getLocalPart().equalsIgnoreCase("structureRef")) {
+//		                				elementCode = attribute.getValue();
+//		                			}
+//		                		}
+//		                	}
+//		                	
+//		                	StructureRef structure = new StructureRef();
+//		                	structure.setCode(elementCode);
+//
+//		                	DataSet ds = new DataSet();
+//		                	ds.setStructureRef(structure);
+//		                	
+//		                	
+//		                	ds = sdmxDocument.getDataSets().get(sdmxDocument.getDataSets().indexOf(ds));
+//		                	
+//		                	ds.setAttached_attributes(attributesMap);
+//		                	break;
+//		                case "Obs":
+//		                	Iterator<Attribute> obsAttributes = startElement.getAttributes();
+//		                	Map<String, String> dimensionMap = new HashMap<String, String>();
+//                    		SDMXDataPoint sdmxDataPoint = new SDMXDataPoint();
+//
+//		                	while(obsAttributes.hasNext()) {
+//		                		Attribute attribute = obsAttributes.next();
+//		                		dimensionMap.put(attribute.getName().getLocalPart(), attribute.getValue());
+//		                	}
+//
+//		                	if(elementCode!= null && dimensionMap.size()> 0) {
+//		                		structure = new StructureRef();
+//			                	structure.setCode(elementCode);
+//
+//			                	ds = new DataSet();
+//			                	ds.setStructureRef(structure);
+//			                	
+//			                	ds = sdmxDocument.getDataSets().get(sdmxDocument.getDataSets().indexOf(ds));
+//		                    	
+//		                    	if(CollectionUtils.isEmpty(ds.getObs())) {
+//	                    			sdmxDataPoint.setDimensionMap(dimensionMap);
+//	                    			List<Map<String, String>> newObsList = new ArrayList<>();
+//	                    			newObsList.add(dimensionMap);
+//	                    			ds.setObs(newObsList);
+//		                    	}else {
+//		                    		List<Map<String, String>> obs = ds.getObs();
+//		                    		obs.add(dimensionMap);
+//	                    			ds.setObs(obs);
+//		                    	}
+//		                	}
+//		                	break;
+//		                default:
+//		                	System.out.println("Default received");
+//		                    break;
+//
+//		            }
+//	            }
+//	            
+//	            if (nextEvent.isEndElement()) {
+//	                EndElement endElement = nextEvent.asEndElement();
+//	                if (endElement.getName().getLocalPart().equals("Structure")) {
+////	                	if (endElement.getName().getPrefix().equals("message")) {
+////	                		if(sdmxElementStructure!= null) {
+////	                			if(sdmxDocument.getSdmxElementsStructure() == null) {
+////	                				List<SDMXElementStructure> sdmxElementStructures = new ArrayList<SDMXElementStructure>();
+////	                				sdmxElementStructures.add(sdmxElementStructure);
+////	                				sdmxDocument.setSdmxElementsStructure(sdmxElementStructures);
+////	                			}else {
+////	                				sdmxDocument.getSdmxElementsStructure().add(sdmxElementStructure);
+////	                			}
+////	                			
+////	                			sdmxElementStructure = null;
+////	                		}
+////	                	}
+//	                }else if (endElement.getName().getLocalPart().equals("DataSet")) {
+//	                	elementCode = null;
+//	                }
+//	            }
+//	         }
+//	         
+//	         
+////	         try {
+////	             FileOutputStream fileOut = new FileOutputStream(filePath + "ALE_MODIFIED.ser");
+////	             ObjectOutputStream out = new ObjectOutputStream(fileOut);
+////	             out.writeObject(sdmxDocument);
+////	             out.close();
+////	             fileOut.close();
+////	             System.out.printf("Serialized data is saved in /tmp/employee.ser");
+////	          } catch (IOException i) {
+////	             i.printStackTrace();
+////	          }
+////	         
+//	         
+//	         System.out.println(sdmxDocument);
+//	         System.out.println(new Gson().toJson(sdmxDocument));
+//	      } catch (FileNotFoundException | XMLStreamException e) {
+//	         e.printStackTrace();
+//	      } 
+//	   }
+}

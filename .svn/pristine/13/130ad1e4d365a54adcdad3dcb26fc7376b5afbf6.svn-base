@@ -1,0 +1,65 @@
+package com.iris.sdmx.exceltohtml.repo;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.iris.model.ReturnTemplate;
+import com.iris.sdmx.dimesnsion.bean.DimensionMasterBean;
+import com.iris.sdmx.element.entity.SdmxElementEntity;
+import com.iris.sdmx.exceltohtml.bean.ModelOutputBean;
+import com.iris.sdmx.exceltohtml.entity.SdmxModelCodesEntity;
+
+/**
+ * @author apagaria
+ *
+ */
+public interface SdmxModelCodesRepo extends JpaRepository<SdmxModelCodesEntity, Long> {
+
+	@Query("from SdmxModelCodesEntity where elementIdFk=:elementIdFk")
+	SdmxModelCodesEntity findByElementIdFk(SdmxElementEntity elementIdFk);
+
+	@Query("from SdmxModelCodesEntity where modelCode=:modelCode")
+	SdmxModelCodesEntity findByModelCode(String modelCode);
+
+	@Query("from SdmxModelCodesEntity where modelCodesId=:modelCodesId")
+	SdmxModelCodesEntity findByModelCodesId(Long modelCodesId);
+	
+	@Query("SELECT u.modelCode FROM SdmxModelCodesEntity u where u.modelCode like %:dmModelCode% group by u.modelCode")
+	List<String> findDmModelCodes(String dmModelCode);
+	
+	@Query("FROM SdmxModelCodesEntity u where u.modelCode=:dmModelCode")
+	List<SdmxModelCodesEntity> findEntityByModelCode(String dmModelCode);
+	
+	@Query("FROM SdmxModelCodesEntity u where u.modelDimHash=:modelDimHash")
+	SdmxModelCodesEntity findEntityByModelCodeHash(String modelDimHash);
+	
+	@Query(value = "SELECT * FROM TBL_SDMX_MODEL_CODES u where JSON_CONTAINS(u.MODEL_DIM,?1) LIMIT 1", nativeQuery = true)
+	SdmxModelCodesEntity findEntityByModelDim(String modelDim);
+	
+	@Query(value = "SELECT * FROM TBL_SDMX_MODEL_CODES u where JSON_CONTAINS(u.MODEL_DIM,?1) and u.ELEMENT_ID_FK=?2", nativeQuery = true)
+	List<SdmxModelCodesEntity> findEntityByModelDimNElementId(String modelDim, SdmxElementEntity sdmxElementEntity);
+	
+	@Query("SELECT max(u.modelCode) from SdmxModelCodesEntity u")
+	String findMaxModelCodes();
+
+	@Query("FROM SdmxModelCodesEntity smc where smc.modelCodesId=(SELECT rmi.modelCodesIdFk FROM SdmxReturnModelInfoEntity rmi where rmi.returnCellRef =:returnCellRef and rmi.isActive=true and rmi.returnSheetInfoIdFk IN (SELECT rsi.returnSheetInfoId FROM SdmxReturnSheetInfoEntity rsi where rsi.returnTemplateIdFk =:returnTemplateId))")
+	SdmxModelCodesEntity findByReturnCellReffNReturnTemplate(Integer returnCellRef, ReturnTemplate returnTemplateId);
+	
+	@Query(value = "SELECT * FROM TBL_SDMX_MODEL_CODES b where b.MODEL_DIM -> '$.closedDim[*].dimConceptId' like %:dimCode%  or '$.openDimension[*].dimConceptId' like %:dimCode%  or '$.commonDimension[*].dimConceptId' like %:dimCode% ", nativeQuery = true)
+	List<SdmxModelCodesEntity> getSdmxModelDataCodeUsingDimAndCodeValue(String dimCode);
+	
+	
+	
+	
+	@Query("SELECT new com.iris.sdmx.exceltohtml.bean.ModelOutputBean(cod.elementIdFk.elementId, info.returnCellRef, sheetInfo.returnSheetInfoId,"
+			+ " ret.returnCode, ret.returnName) "
+			+ "  from SdmxModelCodesEntity cod, SdmxReturnModelInfoEntity info, "
+			+ "  SdmxReturnSheetInfoEntity sheetInfo, ReturnTemplate temp, Return ret"
+			+ "  where cod.elementIdFk.elementId=:elementId and cod.modelCodesId =  info.modelCodesIdFk.modelCodesId "
+			+ "	 and info.returnSheetInfoIdFk.returnSheetInfoId = sheetInfo.returnSheetInfoId "
+			+ "	 and sheetInfo.returnTemplateIdFk.returnTemplateId = temp.returnTemplateId "
+			+ "	 and temp.returnObj.returnId = ret.returnId")
+	List<ModelOutputBean> fetchSDMXElementModelMappingData(Long elementId);
+}

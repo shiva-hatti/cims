@@ -1,0 +1,238 @@
+package com.iris.controller;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.dateutility.util.DateManip;
+import com.iris.dto.CustomDates;
+import com.iris.dto.ReturnCustomDateInputDto;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.dto.XbrlWebFormDto;
+import com.iris.model.ReturnCustomDate;
+import com.iris.repository.ReturnCustomDateRepo;
+import com.iris.service.impl.XbrlWebFormService;
+import com.iris.util.CallStompMsgViaThread;
+import com.iris.util.DaemonThreadFactory;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.util.constant.UploadFilingConstants;
+
+@RestController
+@RequestMapping("/service/xbrlWebForm")
+public class XbrlWebFormController {
+	static final Logger logger = LogManager.getLogger(XbrlWebFormController.class);
+	private static ExecutorService executor;
+	
+	@Autowired
+	private XbrlWebFormService xbrlWebFormService;
+	
+	@Autowired
+	private ReturnCustomDateRepo returnCustomDateRepo;
+	
+	private SimpMessagingTemplate template;
+	
+	@Autowired
+    public XbrlWebFormController(SimpMessagingTemplate template) {
+    	this.template = template;
+    }
+	
+	static {
+		executor = Executors.newFixedThreadPool(10, new DaemonThreadFactory());
+	}
+	
+	@PostMapping(value = "/saveOrSubmitData")
+	public ServiceResponse savePartialData(@RequestBody XbrlWebFormDto xbrlWebFormDto) {
+		ServiceResponse serviceResponse = xbrlWebFormService.verifyRequest(xbrlWebFormDto);
+		if (serviceResponse.isStatus()) {
+			serviceResponse = xbrlWebFormService.saveDataToPartialTable(xbrlWebFormDto);
+			if (serviceResponse.isStatus() && xbrlWebFormDto.getFilingStatus().equals(UploadFilingConstants.UPLOAD_FILING_STATUS.getName())) {
+				serviceResponse = xbrlWebFormService.submitXbrlDocument(xbrlWebFormDto);
+			}
+			CallStompMsgViaThread callStompMsgViaThread = new CallStompMsgViaThread(xbrlWebFormDto.getUserId(), xbrlWebFormDto.getRoleId(), this.template);
+			executor.execute(callStompMsgViaThread);
+		}
+		//this.template.convertAndSend(SLASH + ResourceUtil.getKeyValue(WEB_SOCKER_BROKER_NAME) + SLASH + xbrlWebFormDto.getRoleId() + SLASH + xbrlWebFormDto.getUserId() + SLASH  + VERIFY_XBRL_SESSION_STRING, true);
+		return serviceResponse;
+	}
+	
+	@PostMapping(value = "/submitXbrlData")
+	public ServiceResponse submitXbrlData(@RequestBody XbrlWebFormDto xbrlWebFormDto) {
+		ServiceResponse serviceResponse = xbrlWebFormService.saveDataToPartialTable(xbrlWebFormDto);
+		if (serviceResponse.isStatus()) {
+			//Update the frequency
+			//Call web service to save the file to a particular location and update file details in the partial data record 
+		}
+		
+		return serviceResponse;
+	}
+	
+	@PostMapping(value = "/verifyJwtToken")
+	public ServiceResponse verifyJWTToken(@RequestBody XbrlWebFormDto xbrlWebFormDto) {
+		ServiceResponse serviceResponse = xbrlWebFormService.verifyRequest(xbrlWebFormDto);
+		if (serviceResponse.isStatus()) {
+			CallStompMsgViaThread callStompMsgViaThread = new CallStompMsgViaThread(xbrlWebFormDto.getUserId(), xbrlWebFormDto.getRoleId(), this.template);
+			executor.execute(callStompMsgViaThread);
+		}
+		// add it in the thread
+		//this.template.convertAndSend(SLASH + ResourceUtil.getKeyValue(WEB_SOCKER_BROKER_NAME) + SLASH + xbrlWebFormDto.getRoleId() + SLASH + xbrlWebFormDto.getUserId() + SLASH  + VERIFY_XBRL_SESSION_STRING, true);
+		return serviceResponse;
+	}
+	
+	@PostMapping(value = "/startXbrlWebFormSession") 
+	public ServiceResponse startXbrlSession(@RequestBody XbrlWebFormDto xbrlWebFormDto) {
+		return xbrlWebFormService.startXbrlWebFormSession(xbrlWebFormDto);
+	}
+	
+	@PostMapping(value = "/getCustomDatesListUponReturnCode")
+	public ServiceResponse getCustomDatesListUponReturnCode(@RequestBody ReturnCustomDateInputDto returnCustomDateInputDto) throws Exception {
+	
+		ReturnCustomDate returnCustomDate = returnCustomDateRepo.getReturnCustomDate(returnCustomDateInputDto.getReturnCode());
+		if(returnCustomDate == null) {
+			return new ServiceResponseBuilder().setStatus(true).setResponse(null).build();
+		}
+		
+		List<CustomDates> customDatesList = new ArrayList<>();
+		Date reportingStartDate = DateManip.convertStringToDate(returnCustomDateInputDto.getReportingStartDate(), returnCustomDateInputDto.getDateFormat());
+		Date reportingEndDate = DateManip.convertStringToDate(returnCustomDateInputDto.getReportingEndDate(), returnCustomDateInputDto.getDateFormat());
+		CustomDates customDates = fetchCustomDates(reportingStartDate, reportingEndDate, "APR_TO_MAR", returnCustomDateInputDto.getDateFormat(),  returnCustomDate);
+		return new ServiceResponseBuilder().setStatus(true).setResponse(customDates).build();
+	}
+	
+	private static Calendar dateToCalendar(Date date) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		return calendar;
+
+	}
+	
+	
+	public CustomDates fetchCustomDates(Date reportingStartDate, Date reportingEndDate, String financialYear,
+			String dateFomratStr, ReturnCustomDate returnCustomDate) throws ParseException {
+		CustomDates customDates = new CustomDates();
+		SimpleDateFormat inputDateFormat = new SimpleDateFormat(dateFomratStr);
+		inputDateFormat.setLenient(false);
+		
+		
+		//If previous Quarter end date
+		
+		if(returnCustomDate.isPqEndDate()) {
+			long dayDiff = 0;
+			String startDate = DateManip.convertDateToString(reportingStartDate, dateFomratStr);
+			String endDate = DateManip.convertDateToString(reportingEndDate, dateFomratStr);
+			dayDiff = DateManip.getDayDiff(startDate, endDate, dateFomratStr);
+			if(dayDiff > 100) {//for Annually
+				Calendar startDateCalender = dateToCalendar(reportingEndDate);
+				Calendar currentFinancialYearDateCalendar = startDateCalender;
+				Date  currentFinancialYearDate = currentFinancialYearDateCalendar.getTime();
+				Calendar CurrentFinancialYearStartDate = dateToCalendar(currentFinancialYearDate);
+				CurrentFinancialYearStartDate.add(Calendar.MONTH, -3);
+				Date currentFinancialYearEndDate = CurrentFinancialYearStartDate.getTime();
+				System.out.println("End date of Previous Quarter " +inputDateFormat.format(currentFinancialYearEndDate));
+				customDates.setPqEndDate(inputDateFormat.format(currentFinancialYearEndDate));
+			} else {//for quarterly
+				Calendar startDateCalender = dateToCalendar(reportingStartDate);
+				Calendar reportingStartDateCalender = startDateCalender;
+				reportingStartDateCalender.add(Calendar.DAY_OF_MONTH, -1);
+				Date previousQuarterEndDate = startDateCalender.getTime();
+				customDates.setPqEndDate(inputDateFormat.format(previousQuarterEndDate));
+			}
+		}
+		
+		if(returnCustomDate.isPyEndDate()) {
+			Calendar startDateCalender = dateToCalendar(reportingStartDate);
+			Calendar reportingStartDateCalender = startDateCalender;
+			if (GeneralConstants.APR_TO_MAR.getConstantVal().equals("APR_TO_MAR")) {
+				if (reportingStartDateCalender.get(Calendar.MONTH) < 3) {
+					reportingStartDateCalender.add(Calendar.YEAR, -1);
+				}
+				reportingStartDateCalender.set(Calendar.MONTH, 3);
+			} else if (GeneralConstants.JAN_TO_DEC.getConstantVal().equals(financialYear)) {
+				reportingStartDateCalender.set(Calendar.MONTH, 0);
+			}
+		//	Date convertYTDStartDate = reportingStartDateCalender.getTime();
+			reportingStartDateCalender.add(Calendar.DAY_OF_MONTH, -1);
+			Date prevDateOFYTDStartDate = reportingStartDateCalender.getTime();
+			
+			customDates.setPyEndDate(inputDateFormat.format(prevDateOFYTDStartDate));
+			System.out.println("End date of Previous Financial Year " +inputDateFormat.format(prevDateOFYTDStartDate));
+			
+		}
+		
+		if(returnCustomDate.isCurQEndDate()) {
+			Calendar startDateCalender = dateToCalendar(reportingStartDate);
+			
+			startDateCalender = dateToCalendar(reportingEndDate);
+			Calendar currentFinancialYearDateCalendar = startDateCalender;
+			Date  currentFinancialYearDate = currentFinancialYearDateCalendar.getTime();
+			System.out.println("Period End date of Current Quarter " +inputDateFormat.format(currentFinancialYearDate));
+			customDates.setCurrQuEndDate(inputDateFormat.format(currentFinancialYearDate));
+		}
+		if(returnCustomDate.isCurQStartDate()) {
+			Calendar startDateCalender = dateToCalendar(reportingStartDate);
+			
+			startDateCalender = dateToCalendar(reportingEndDate);
+			Calendar currentFinancialYearDateCalendar = startDateCalender;
+			Date  currentFinancialYearDate = currentFinancialYearDateCalendar.getTime();
+			Calendar CurrentFinancialYearStartDate = dateToCalendar(currentFinancialYearDate);
+			CurrentFinancialYearStartDate.add(Calendar.MONTH, -3);
+			Date currentFinancialYearEndDate = CurrentFinancialYearStartDate.getTime();
+						
+			CurrentFinancialYearStartDate.add(Calendar.DAY_OF_MONTH, 1);
+			currentFinancialYearEndDate = CurrentFinancialYearStartDate.getTime();
+			System.out.println("Period Start date of Current Quarter " +inputDateFormat.format(currentFinancialYearEndDate));
+			customDates.setCurrQuStartDate(inputDateFormat.format(currentFinancialYearEndDate));
+		}
+		
+		if(returnCustomDate.isYtdStartDate()) {
+			Calendar startDateCalender = dateToCalendar(reportingStartDate);
+			Calendar ytdStartDateCalendar = startDateCalender;
+			
+			if (GeneralConstants.APR_TO_MAR.getConstantVal().equalsIgnoreCase(financialYear)) {
+				if (ytdStartDateCalendar.get(Calendar.MONTH) < 3) {
+					ytdStartDateCalendar.add(Calendar.YEAR, -1);
+				}
+				ytdStartDateCalendar.set(Calendar.MONTH, 3);
+			} else if (GeneralConstants.JAN_TO_DEC.getConstantVal().equalsIgnoreCase(financialYear)) {
+				ytdStartDateCalendar.set(Calendar.MONTH, 0);
+			}
+			Date convertYTDStartDate = ytdStartDateCalendar.getTime();
+			customDates.setYtdStartDate(inputDateFormat.format(convertYTDStartDate));
+			customDates.setYtdEndDate(inputDateFormat.format(reportingEndDate));
+			
+			if(customDates.getYtdStartDate().equals(DateManip.convertDateToString(reportingStartDate, dateFomratStr)) && customDates.getYtdEndDate().equals(DateManip.convertDateToString(reportingEndDate, dateFomratStr))) {
+				customDates.setYtdStartDate("");
+				customDates.setYtdEndDate("");
+			}
+		} 
+		
+		return customDates;
+	}
+	/**
+	 * @return the executor
+	 */
+	public static ExecutorService getExecutor() {
+		return executor;
+	}
+	/**
+	 * @param executor the executor to set
+	 */
+	public static void setExecutor(ExecutorService executor) {
+		XbrlWebFormController.executor = executor;
+	}
+	
+}

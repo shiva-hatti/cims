@@ -1,0 +1,68 @@
+package com.iris.model;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "TBL_USER_ROLE_PLATFORM_MAPPING")
+public class UserRolePlatFormMap implements Serializable {
+
+	private static final long serialVersionUID = 6486404765000054925L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "USER_ROLE_PLATFORM_MAP_ID")
+	private Long userRolePlatFormMapId;
+
+	@ManyToOne
+	@JoinColumn(name = "USER_ROLE_ID_FK")
+	private UserRole userRole;
+
+	@ManyToOne
+	@JoinColumn(name = "PLATFORM_ID_FK")
+	private Platform platForm;
+
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	public Long getUserRolePlatFormMapId() {
+		return userRolePlatFormMapId;
+	}
+
+	public void setUserRolePlatFormMapId(Long userRolePlatFormMapId) {
+		this.userRolePlatFormMapId = userRolePlatFormMapId;
+	}
+
+	public UserRole getUserRole() {
+		return userRole;
+	}
+
+	public void setUserRole(UserRole userRole) {
+		this.userRole = userRole;
+	}
+
+	public Platform getPlatForm() {
+		return platForm;
+	}
+
+	public void setPlatForm(Platform platForm) {
+		this.platForm = platForm;
+	}
+
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+}

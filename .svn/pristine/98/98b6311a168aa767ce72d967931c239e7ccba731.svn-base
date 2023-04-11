@@ -1,0 +1,55 @@
+package com.iris.sdmx.upload.controller;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.exception.ApplicationException;
+import com.iris.sdmx.upload.bean.EbrFileAuditBean;
+import com.iris.sdmx.upload.service.EbrFileAuditService;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.GeneralConstants;
+
+/**
+ * @author vjadhav
+ *
+ */
+@Controller
+@RestController
+@RequestMapping(value = "/service/sdmx/upload")
+public class EbrFileAuditController {
+
+	static final Logger LOGGER = LogManager.getLogger(EbrFileAuditController.class);
+	
+	@Autowired
+	private EbrFileAuditService ebrFileAuditService;
+	
+	
+	@PostMapping(value = "/addSdmxmlFileAuditData")
+	public ServiceResponse addEbrFileAuditRecord(@RequestHeader(name = "JobProcessingId") String jobProcessId, 
+			@RequestBody EbrFileAuditBean ebrFileAuditBean) {
+		LOGGER.info("START - Add Upload EbrFileAuditRecord data request received with Job Processing ID : " + jobProcessId);
+		try {
+			ebrFileAuditService.addXmlUploadData(ebrFileAuditBean);
+			return new ServiceResponseBuilder().setStatus(true).setStatusMessage(GeneralConstants.SUCCESS.getConstantVal()).build();
+		} catch(ApplicationException applicationException) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId, applicationException);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(applicationException.getErrorCode()).setStatusMessage(applicationException.getErrorMsg()).build();
+		}catch(Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+	
+	
+}

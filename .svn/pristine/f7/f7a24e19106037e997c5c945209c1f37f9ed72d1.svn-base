@@ -1,0 +1,82 @@
+package com.iris.repository;
+
+import java.util.Date;
+import java.util.List;
+
+import javax.persistence.LockModeType;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.FilingStatus;
+import com.iris.model.ReturnsUploadDetails;
+
+public interface ReturnUploadDetailsRepository extends JpaRepository<ReturnsUploadDetails, Long> {
+
+	@Query("from ReturnsUploadDetails where returnObj.returnId =:returnId and entity.entityId =:entityId "
+			+ "and finYrFreqDesc.finYrFreqDescId =:finYrFrquencyDescId and startDate =:startDate and endDate =:endDate and filingStatus.filingStatusId in(1,5,10,9,11,22,27,16) ORDER BY UPLOADED_DATE DESC")
+	List<ReturnsUploadDetails> getExistingUploadInfoByFileStatus(@Param("returnId") Long returnId, @Param("entityId") Long entityId,
+			@Param("startDate") Date startDate, @Param("endDate") Date endDate,
+			@Param("finYrFrquencyDescId") Long finYrFrquencyDescId);
+	
+	@Query("from ReturnsUploadDetails where returnObj.returnId =:returnId and entity.entityId =:entityId  and startDate =:startDate and endDate =:endDate ORDER BY UPLOADED_DATE DESC")
+	List<ReturnsUploadDetails> getExistingUploadInfo(@Param("returnId") Long returnId, @Param("entityId") Long entityId,@Param("startDate") Date startDate, @Param("endDate") Date endDate);
+
+	@Query("from ReturnsUploadDetails where fileDetailsBean.id =:filedetailsId ORDER BY UPLOADED_DATE DESC")
+	List<ReturnsUploadDetails> getReturnUploadDetailsByFileDetailsId(@Param("filedetailsId") Long filedetailsId);
+
+	@Query("from ReturnsUploadDetails where filingStatus.filingStatusId IN (:status) and upper(fileType) IN (:fileType) and returnObj.returnCode NOT IN (:notInReturnCodeList) ORDER BY uploadId asc")
+	List<ReturnsUploadDetails> getReturnUploadDetailsRecordByStatus(@Param("status") List<Integer> statusIdList,
+			@Param("fileType") List<String> fileTypeList, @Param("notInReturnCodeList") List<String> notInReturnCodeList, org.springframework.data.domain.Pageable pagebPageable);
+
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
+	@Query("from ReturnsUploadDetails where filingStatus.filingStatusId IN(:status) and upper(fileType) IN (:fileType) and returnObj.returnCode NOT IN (:notInReturnCodeList) ORDER BY uploadId asc")
+	List<ReturnsUploadDetails> getReturnUploadDetailsRecordByStatusForUpdate(
+			@Param("status") List<Integer> statusIdList, @Param("fileType") List<String> fileTypeList, @Param("notInReturnCodeList") List<String> notInReturnCodeList,
+			org.springframework.data.domain.Pageable pagebPageable);
+
+	@Query("from ReturnsUploadDetails where uploadId =:uploadId and active ='1'")
+	ReturnsUploadDetails getReturnUploadDetailsByUploadIdNActive(@Param("uploadId") Long uploadId);
+	
+	@Modifying
+	@Query("update ReturnsUploadDetails det set det.filingStatus =:filingStatus, det.lastUpdatedOn =:date where uploadId IN (:uploadIds) ")
+	int updateReturnUploadDetailsRecordStatus(@Param("uploadIds") long[] uploadIds, @Param("filingStatus") FilingStatus filingStatus, @Param("date") Date date);
+
+	@Query("from ReturnsUploadDetails where uploadId IN (:uploadIdIn) and active ='1'")
+	List<ReturnsUploadDetails> getReturnUploadDetailsByUploadIdInIsActiveTrue(@Param("uploadIdIn") Long[] uploadIdIn);
+	
+	@Query("from ReturnsUploadDetails where returnObj.returnId =:returnId and entity.entityId =:entityId  and startDate =:startDate and endDate =:endDate and filingStatus.filingStatusId NOT IN(:statusIds) ORDER BY UPLOADED_DATE DESC")
+	List<ReturnsUploadDetails> getExistingUploadInfoWithNotInStatus(@Param("returnId") Long returnId, @Param("entityId") Long entityId,@Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("statusIds") List<Integer> statusIds);
+
+	@Query("from ReturnsUploadDetails where endDate =:endDate and returnObj.returnId =:returnId and returnPropertyValue.returnProprtyValId =:returnProprtyId and active ='1'")
+	List<ReturnsUploadDetails> getReturnUploadDetailsByReturnId(@Param("endDate") Date endDate,@Param("returnId") Long returnId,@Param("returnProprtyId") Integer returnProprtyId);
+	
+	@Query("from ReturnsUploadDetails where endDate =:endDate and returnObj.returnId =:returnId and active ='1'")
+	List<ReturnsUploadDetails> getReturnUploadDetailsByReturnIdWithoutProp(@Param("endDate") Date endDate,@Param("returnId") Long returnId);
+
+	@Query("from ReturnsUploadDetails where entity.entityId =:entityId and filingStatus.filingStatusId=8 "
+			+ "and returnObj.returnId IN (:returnIdList) "
+			+ "and frequency.frequencyId =:finYrFrquencyDescId "
+			+ "and uploadedDate IN(Select MAX(uploadedDate) from ReturnsUploadDetails where returnObj.returnId IN (:returnIdList) and entity.entityId =:entityId "
+			+ "and filingStatus.filingStatusId=8 and frequency.frequencyId =:finYrFrquencyDescId and startDate =:startDate and endDate =:endDate group by RETURN_ID_FK) "
+			+ "and startDate =:startDate and endDate =:endDate ORDER BY UPLOADED_DATE DESC")
+	List<ReturnsUploadDetails> getSubmitedDataEntityWise(List<Long> returnIdList, @Param("entityId") Long entityId,
+			@Param("startDate") Date startDate, @Param("endDate") Date endDate,
+			@Param("finYrFrquencyDescId") Long finYrFrquencyDescId);
+	
+	@Query("from ReturnsUploadDetails where entity.entityId IN (:entityIdList) and filingStatus.filingStatusId=8 "
+			+ "and returnObj.returnId IN (:returnIdList) "
+			+ "and frequency.frequencyId =:finYrFrquencyDescId "
+			+ "and uploadedDate IN(Select MAX(uploadedDate) from ReturnsUploadDetails where returnObj.returnId IN (:returnIdList) and entity.entityId IN (:entityIdList) "
+			+ "and filingStatus.filingStatusId=8 and frequency.frequencyId =:finYrFrquencyDescId and startDate =:startDate and endDate =:endDate group by RETURN_ID_FK, ENTITY_ID_FK) "
+			+ "and startDate =:startDate and endDate =:endDate ORDER BY UPLOADED_DATE DESC")
+	
+	List<ReturnsUploadDetails> getSubmitedDataReturnWise(@Param("entityIdList") List<Long> entityIdList, @Param("returnIdList") List<Long> returnIdList,
+			@Param("startDate") Date startDate, @Param("endDate") Date endDate,
+			@Param("finYrFrquencyDescId") Long finYrFrquencyDescId);
+	
+	
+}

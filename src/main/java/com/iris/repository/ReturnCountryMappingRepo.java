@@ -1,0 +1,15 @@
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import com.iris.model.ReturnCountryMapping;
+
+public interface ReturnCountryMappingRepo extends JpaRepository<ReturnCountryMapping, Long> {
+
+	@Query("FROM ReturnCountryMapping rcm where rcm.returnCode=:returnCode order by rcm.countryIdFk.countryCode")
+	List<ReturnCountryMapping> getCountryCodeByReturnCode(@Param("returnCode") String returnCode);
+
+}

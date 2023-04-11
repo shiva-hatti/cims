@@ -1,0 +1,665 @@
+/**
+ * 
+ */
+package com.iris.dto;
+
+import java.io.Serializable;
+
+/**
+ * @author apagaria
+ *
+ */
+public class ReturnEntityQueryOutputDto implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -6771280388302462331L;
+
+	private Long returnId;
+
+	private String returnCode;
+
+	private String returnName;
+
+	private String entityCode;
+
+	private String entityName;
+
+	private String freqCode;
+
+	private String freqName;
+
+	private String freqLabel;
+
+	private Long groupId;
+
+	private String groupName;
+
+	private String categoryCode;
+
+	private String categoryName;
+
+	private String subCategoryCode;
+
+	private String subCategoryName;
+
+	private Boolean uploadChannel;
+
+	private Boolean webChannel;
+
+	private Boolean emailChannel;
+
+	private Boolean apiChannel;
+
+	private Boolean stsChannel;
+
+	private Long regulatorId;
+
+	private String regulatorCode;
+
+	private String regulatorName;
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj != null) {
+			if (this.getClass() != obj.getClass()) {
+				return false;
+			}
+			ReturnEntityQueryOutputDto returnObj = (ReturnEntityQueryOutputDto) obj;
+			if (returnObj.getReturnCode().equals(this.returnCode) && returnObj.getEntityCode().equals(this.entityCode)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return this.returnCode.hashCode() + entityCode.hashCode();
+	}
+
+	/**
+	 * 
+	 */
+	public ReturnEntityQueryOutputDto() {
+		super();
+	}
+
+	/**
+	 * @param returnCode
+	 * @param returnName
+	 * @param entityCode
+	 * @param entityName
+	 * @param freqName
+	 * @param freqCode
+	 */
+	public ReturnEntityQueryOutputDto(Long returnId, String returnCode, String returnName, String entityCode, String entityName, String freqCode, String freqName) {
+		super();
+		this.returnId = returnId;
+		this.returnCode = returnCode;
+		this.returnName = returnName;
+		this.entityCode = entityCode;
+		this.entityName = entityName;
+		this.freqCode = freqCode;
+		this.freqName = freqName;
+	}
+
+	/**
+	 * @param returnCode
+	 * @param returnName
+	 * @param freqName
+	 * @param freqCode
+	 */
+	public ReturnEntityQueryOutputDto(Long returnId, String returnCode, String returnName, String freqCode, String freqName) {
+		super();
+		this.returnId = returnId;
+		this.returnCode = returnCode;
+		this.returnName = returnName;
+		this.freqCode = freqCode;
+		this.freqName = freqName;
+	}
+
+	/**
+	 * @param returnCode
+	 * @param returnName
+	 * @param entityCode
+	 * @param entityName
+	 * @param freqCode
+	 * @param freqName
+	 * @param subCategoryCode
+	 * @param subCategoryName
+	 * @param groupCode
+	 * @param groupName
+	 */
+	public ReturnEntityQueryOutputDto(Long returnId, String returnCode, String returnName, String entityCode, String entityName, String freqCode, String freqName, String subCategoryCode, String subCategoryName, Long groupId, String groupName) {
+		super();
+		this.returnId = returnId;
+		this.returnCode = returnCode;
+		this.returnName = returnName;
+		this.entityCode = entityCode;
+		this.entityName = entityName;
+		this.freqCode = freqCode;
+		this.freqName = freqName;
+		this.subCategoryCode = subCategoryCode;
+		this.subCategoryName = subCategoryName;
+		this.groupId = groupId;
+		this.groupName = groupName;
+	}
+
+	/**
+	 * @param returnCode
+	 * @param returnName
+	 * @param entityCode
+	 * @param entityName
+	 * @param freqCode
+	 * @param freqName
+	 * @param groupCode
+	 * @param groupName
+	 */
+	public ReturnEntityQueryOutputDto(Long returnId, String returnCode, String returnName, String entityCode, String entityName, String freqCode, String freqName, Long groupId, String groupName) {
+		super();
+		this.returnId = returnId;
+		this.returnCode = returnCode;
+		this.returnName = returnName;
+		this.entityCode = entityCode;
+		this.entityName = entityName;
+		this.freqCode = freqCode;
+		this.freqName = freqName;
+		this.groupId = groupId;
+		this.groupName = groupName;
+	}
+
+	/**
+	 * @param returnId
+	 * @param returnCode
+	 * @param returnName
+	 * @param entityCode
+	 * @param entityName
+	 * @param freqCode
+	 * @param freqName
+	 * @param groupCode
+	 * @param groupName
+	 * @param subCategoryCode
+	 * @param subCategoryName
+	 */
+	public ReturnEntityQueryOutputDto(Long returnId, String returnCode, String returnName, String entityCode, String entityName, String freqCode, String freqName, Long groupId, String groupName, String subCategoryCode, String subCategoryName, Boolean uploadChannel, Boolean webChannel, Boolean emailChannel, Boolean apiChannel, Boolean stsChannel) {
+		super();
+		this.returnId = returnId;
+		this.returnCode = returnCode;
+		this.returnName = returnName;
+		this.entityCode = entityCode;
+		this.entityName = entityName;
+		this.freqCode = freqCode;
+		this.freqName = freqName;
+		this.groupId = groupId;
+		this.groupName = groupName;
+		this.subCategoryCode = subCategoryCode;
+		this.subCategoryName = subCategoryName;
+		this.uploadChannel = uploadChannel;
+		this.webChannel = webChannel;
+		this.emailChannel = emailChannel;
+		this.apiChannel = apiChannel;
+		this.stsChannel = stsChannel;
+	}
+
+	/**
+	 * @param returnId
+	 * @param returnCode
+	 * @param returnName
+	 * @param entityCode
+	 * @param entityName
+	 * @param freqCode
+	 * @param freqName
+	 * @param groupId
+	 * @param groupName
+	 * @param subCategoryCode
+	 * @param subCategoryName
+	 * @param uploadChannel
+	 * @param webChannel
+	 * @param emailChannel
+	 * @param apiChannel
+	 * @param stsChannel
+	 * @param regulatorId
+	 * @param regulatorCode
+	 * @param regulatorName
+	 */
+	public ReturnEntityQueryOutputDto(Long returnId, String returnCode, String returnName, String entityCode, String entityName, String freqCode, String freqName, Long groupId, String groupName, String subCategoryCode, String subCategoryName, Boolean uploadChannel, Boolean webChannel, Boolean emailChannel, Boolean apiChannel, Boolean stsChannel, Long regulatorId, String regulatorCode, String regulatorName) {
+		super();
+		this.returnId = returnId;
+		this.returnCode = returnCode;
+		this.returnName = returnName;
+		this.entityCode = entityCode;
+		this.entityName = entityName;
+		this.freqCode = freqCode;
+		this.freqName = freqName;
+		this.groupId = groupId;
+		this.groupName = groupName;
+		this.subCategoryCode = subCategoryCode;
+		this.subCategoryName = subCategoryName;
+		this.uploadChannel = uploadChannel;
+		this.webChannel = webChannel;
+		this.emailChannel = emailChannel;
+		this.apiChannel = apiChannel;
+		this.stsChannel = stsChannel;
+		this.regulatorId = regulatorId;
+		this.regulatorCode = regulatorCode;
+		this.regulatorName = regulatorName;
+	}
+
+	public ReturnEntityQueryOutputDto(Long returnId, String returnCode, String returnName, String entityCode, String entityName, String freqCode, String freqName, String freqLabel, Long groupId, String groupName, String subCategoryCode, String subCategoryName, Boolean uploadChannel, Boolean webChannel, Boolean emailChannel, Boolean apiChannel, Boolean stsChannel, Long regulatorId, String regulatorCode, String regulatorName) {
+		super();
+		this.returnId = returnId;
+		this.returnCode = returnCode;
+		this.returnName = returnName;
+		this.entityCode = entityCode;
+		this.entityName = entityName;
+		this.freqCode = freqCode;
+		this.freqName = freqName;
+		this.freqLabel = freqLabel;
+		this.groupId = groupId;
+		this.groupName = groupName;
+		this.subCategoryCode = subCategoryCode;
+		this.subCategoryName = subCategoryName;
+		this.uploadChannel = uploadChannel;
+		this.webChannel = webChannel;
+		this.emailChannel = emailChannel;
+		this.apiChannel = apiChannel;
+		this.stsChannel = stsChannel;
+		this.regulatorId = regulatorId;
+		this.regulatorCode = regulatorCode;
+		this.regulatorName = regulatorName;
+
+	}
+
+	/**
+	 * @param returnId
+	 * @param returnCode
+	 * @param returnName
+	 * @param entityCode
+	 * @param entityName
+	 * @param freqCode
+	 * @param freqName
+	 * @param groupId
+	 * @param groupName
+	 * @param categoryCode
+	 * @param categoryName
+	 * @param subCategoryCode
+	 * @param subCategoryName
+	 * @param uploadChannel
+	 * @param webChannel
+	 * @param emailChannel
+	 * @param apiChannel
+	 * @param stsChannel
+	 * @param regulatorId
+	 * @param regulatorCode
+	 * @param regulatorName
+	 */
+	public ReturnEntityQueryOutputDto(Long returnId, String returnCode, String returnName, String entityCode, String entityName, String freqCode, String freqName, Long groupId, String groupName, String categoryCode, String categoryName, String subCategoryCode, String subCategoryName, Boolean uploadChannel, Boolean webChannel, Boolean emailChannel, Boolean apiChannel, Boolean stsChannel, Long regulatorId, String regulatorCode, String regulatorName) {
+		super();
+		this.returnId = returnId;
+		this.returnCode = returnCode;
+		this.returnName = returnName;
+		this.entityCode = entityCode;
+		this.entityName = entityName;
+		this.freqCode = freqCode;
+		this.freqName = freqName;
+		this.groupId = groupId;
+		this.groupName = groupName;
+		this.categoryCode = categoryCode;
+		this.categoryName = categoryName;
+		this.subCategoryCode = subCategoryCode;
+		this.subCategoryName = subCategoryName;
+		this.uploadChannel = uploadChannel;
+		this.webChannel = webChannel;
+		this.emailChannel = emailChannel;
+		this.apiChannel = apiChannel;
+		this.stsChannel = stsChannel;
+		this.regulatorId = regulatorId;
+		this.regulatorCode = regulatorCode;
+		this.regulatorName = regulatorName;
+	}
+
+	public ReturnEntityQueryOutputDto(Long returnId, String returnCode, String returnName, String entityCode, String entityName, String freqCode, String freqName, String freqLabel, Long groupId, String groupName, String categoryCode, String categoryName, String subCategoryCode, String subCategoryName, Boolean uploadChannel, Boolean webChannel, Boolean emailChannel, Boolean apiChannel, Boolean stsChannel, Long regulatorId, String regulatorCode, String regulatorName) {
+		super();
+		this.returnId = returnId;
+		this.returnCode = returnCode;
+		this.returnName = returnName;
+		this.entityCode = entityCode;
+		this.entityName = entityName;
+		this.freqCode = freqCode;
+		this.freqName = freqName;
+		this.freqLabel = freqLabel;
+		this.groupId = groupId;
+		this.groupName = groupName;
+		this.categoryCode = categoryCode;
+		this.categoryName = categoryName;
+		this.subCategoryCode = subCategoryCode;
+		this.subCategoryName = subCategoryName;
+		this.uploadChannel = uploadChannel;
+		this.webChannel = webChannel;
+		this.emailChannel = emailChannel;
+		this.apiChannel = apiChannel;
+		this.stsChannel = stsChannel;
+		this.regulatorId = regulatorId;
+		this.regulatorCode = regulatorCode;
+		this.regulatorName = regulatorName;
+	}
+
+	/**
+	 * @return the returnId
+	 */
+	public Long getReturnId() {
+		return returnId;
+	}
+
+	/**
+	 * @param returnId the returnId to set
+	 */
+	public void setReturnId(Long returnId) {
+		this.returnId = returnId;
+	}
+
+	/**
+	 * @return the returnCode
+	 */
+	public String getReturnCode() {
+		return returnCode;
+	}
+
+	/**
+	 * @param returnCode the returnCode to set
+	 */
+	public void setReturnCode(String returnCode) {
+		this.returnCode = returnCode;
+	}
+
+	/**
+	 * @return the returnName
+	 */
+	public String getReturnName() {
+		return returnName;
+	}
+
+	/**
+	 * @param returnName the returnName to set
+	 */
+	public void setReturnName(String returnName) {
+		this.returnName = returnName;
+	}
+
+	/**
+	 * @return the entityCode
+	 */
+	public String getEntityCode() {
+		return entityCode;
+	}
+
+	/**
+	 * @param entityCode the entityCode to set
+	 */
+	public void setEntityCode(String entityCode) {
+		this.entityCode = entityCode;
+	}
+
+	/**
+	 * @return the entityName
+	 */
+	public String getEntityName() {
+		return entityName;
+	}
+
+	/**
+	 * @param entityName the entityName to set
+	 */
+	public void setEntityName(String entityName) {
+		this.entityName = entityName;
+	}
+
+	/**
+	 * @return the freqCode
+	 */
+	public String getFreqCode() {
+		return freqCode;
+	}
+
+	/**
+	 * @param freqCode the freqCode to set
+	 */
+	public void setFreqCode(String freqCode) {
+		this.freqCode = freqCode;
+	}
+
+	/**
+	 * @return the freqName
+	 */
+	public String getFreqName() {
+		return freqName;
+	}
+
+	/**
+	 * @param freqName the freqName to set
+	 */
+	public void setFreqName(String freqName) {
+		this.freqName = freqName;
+	}
+
+	/**
+	 * @return the freqLabel
+	 */
+	public String getFreqLabel() {
+		return freqLabel;
+	}
+
+	/**
+	 * @param freqLabel the freqLabel to set
+	 */
+	public void setFreqLabel(String freqLabel) {
+		this.freqLabel = freqLabel;
+	}
+
+	/**
+	 * @return the categoryCode
+	 */
+	public String getCategoryCode() {
+		return categoryCode;
+	}
+
+	/**
+	 * @param categoryCode the categoryCode to set
+	 */
+	public void setCategoryCode(String categoryCode) {
+		this.categoryCode = categoryCode;
+	}
+
+	/**
+	 * @return the categoryName
+	 */
+	public String getCategoryName() {
+		return categoryName;
+	}
+
+	/**
+	 * @param categoryName the categoryName to set
+	 */
+	public void setCategoryName(String categoryName) {
+		this.categoryName = categoryName;
+	}
+
+	/**
+	 * @return the subCategoryCode
+	 */
+	public String getSubCategoryCode() {
+		return subCategoryCode;
+	}
+
+	/**
+	 * @param subCategoryCode the subCategoryCode to set
+	 */
+	public void setSubCategoryCode(String subCategoryCode) {
+		this.subCategoryCode = subCategoryCode;
+	}
+
+	/**
+	 * @return the subCategoryName
+	 */
+	public String getSubCategoryName() {
+		return subCategoryName;
+	}
+
+	/**
+	 * @param subCategoryName the subCategoryName to set
+	 */
+	public void setSubCategoryName(String subCategoryName) {
+		this.subCategoryName = subCategoryName;
+	}
+
+	/**
+	 * @return the groupId
+	 */
+	public Long getGroupId() {
+		return groupId;
+	}
+
+	/**
+	 * @param groupId the groupId to set
+	 */
+	public void setGroupId(Long groupId) {
+		this.groupId = groupId;
+	}
+
+	/**
+	 * @return the groupName
+	 */
+	public String getGroupName() {
+		return groupName;
+	}
+
+	/**
+	 * @param groupName the groupName to set
+	 */
+	public void setGroupName(String groupName) {
+		this.groupName = groupName;
+	}
+
+	/**
+	 * @return the uploadChannel
+	 */
+	public Boolean getUploadChannel() {
+		return uploadChannel;
+	}
+
+	/**
+	 * @param uploadChannel the uploadChannel to set
+	 */
+	public void setUploadChannel(Boolean uploadChannel) {
+		this.uploadChannel = uploadChannel;
+	}
+
+	/**
+	 * @return the webChannel
+	 */
+	public Boolean getWebChannel() {
+		return webChannel;
+	}
+
+	/**
+	 * @param webChannel the webChannel to set
+	 */
+	public void setWebChannel(Boolean webChannel) {
+		this.webChannel = webChannel;
+	}
+
+	/**
+	 * @return the emailChannel
+	 */
+	public Boolean getEmailChannel() {
+		return emailChannel;
+	}
+
+	/**
+	 * @param emailChannel the emailChannel to set
+	 */
+	public void setEmailChannel(Boolean emailChannel) {
+		this.emailChannel = emailChannel;
+	}
+
+	/**
+	 * @return the apiChannel
+	 */
+	public Boolean getApiChannel() {
+		return apiChannel;
+	}
+
+	/**
+	 * @param apiChannel the apiChannel to set
+	 */
+	public void setApiChannel(Boolean apiChannel) {
+		this.apiChannel = apiChannel;
+	}
+
+	/**
+	 * @return the stsChannel
+	 */
+	public Boolean getStsChannel() {
+		return stsChannel;
+	}
+
+	/**
+	 * @param stsChannel the stsChannel to set
+	 */
+	public void setStsChannel(Boolean stsChannel) {
+		this.stsChannel = stsChannel;
+	}
+
+	/**
+	 * @return the regulatorId
+	 */
+	public Long getRegulatorId() {
+		return regulatorId;
+	}
+
+	/**
+	 * @param regulatorId the regulatorId to set
+	 */
+	public void setRegulatorId(Long regulatorId) {
+		this.regulatorId = regulatorId;
+	}
+
+	/**
+	 * @return the regulatorCode
+	 */
+	public String getRegulatorCode() {
+		return regulatorCode;
+	}
+
+	/**
+	 * @param regulatorCode the regulatorCode to set
+	 */
+	public void setRegulatorCode(String regulatorCode) {
+		this.regulatorCode = regulatorCode;
+	}
+
+	/**
+	 * @return the regulatorName
+	 */
+	public String getRegulatorName() {
+		return regulatorName;
+	}
+
+	/**
+	 * @param regulatorName the regulatorName to set
+	 */
+	public void setRegulatorName(String regulatorName) {
+		this.regulatorName = regulatorName;
+	}
+
+	/**
+	 *
+	 */
+	@Override
+	public String toString() {
+		return "ReturnEntityQueryOutputDto [returnId=" + returnId + ", returnCode=" + returnCode + ", returnName=" + returnName + ", entityCode=" + entityCode + ", entityName=" + entityName + ", freqCode=" + freqCode + ", freqName=" + freqName + ", groupId=" + groupId + ", groupName=" + groupName + ", subCategoryCode=" + subCategoryCode + ", subCategoryName=" + subCategoryName + ", uploadChannel=" + uploadChannel + ", webChannel=" + webChannel + ", emailChannel=" + emailChannel + ", apiChannel=" + apiChannel + ", stsChannel=" + stsChannel + ", regulatorId=" + regulatorId + ", regulatorCode=" + regulatorCode + ", regulatorName=" + regulatorName + "]";
+	}
+
+}

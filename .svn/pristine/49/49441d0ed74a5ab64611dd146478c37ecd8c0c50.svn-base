@@ -1,0 +1,110 @@
+/**
+ * 
+ */
+package com.iris.service.impl;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.exception.ServiceException;
+import com.iris.model.UserRoleEntityMapping;
+import com.iris.repository.UserRoleEntityMappingRepo;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.MethodConstants;
+
+/**
+ * @author sajadhav
+ *
+ */
+@Service
+public class UserRoleEntityMappingService implements GenericService<UserRoleEntityMapping, Long>{
+
+	
+	@Autowired
+	private UserRoleEntityMappingRepo userRoleEntityMappingRepo;
+	
+	@Override
+	public UserRoleEntityMapping add(UserRoleEntityMapping entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean update(UserRoleEntityMapping entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return false;
+		
+		
+	}
+
+	@Override
+	public List<UserRoleEntityMapping> getDataByIds(Long[] ids) throws ServiceException {
+		return userRoleEntityMappingRepo.fetchAllActiveDataByRoleId(ids);
+	}
+
+	@Override
+	public UserRoleEntityMapping getDataById(Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<UserRoleEntityMapping> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<UserRoleEntityMapping> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap,
+			String methodName) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<UserRoleEntityMapping> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		try {
+			Long roleId  = null;
+			for (String columnName : columnValueMap.keySet()) {
+					if(columnName.equalsIgnoreCase(ColumnConstants.ROLEID.getConstantVal())) {
+						roleId = (Long) columnValueMap.get(columnName);
+					}
+			}
+			if(methodName.equalsIgnoreCase(MethodConstants.GET_USER_ROLE_ENT_DATA_BY_ROLE_ID.getConstantVal())) {
+				Long roleIdArr[] = new Long[1];
+				roleIdArr[0] = roleId;
+				return userRoleEntityMappingRepo.fetchAllActiveDataByRoleId(roleIdArr);
+			}
+			return null;
+		}catch(Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<UserRoleEntityMapping> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<UserRoleEntityMapping> getAllDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void deleteData(UserRoleEntityMapping bean) throws ServiceException {
+		// TODO Auto-generated method stub
+		
+	}
+
+}

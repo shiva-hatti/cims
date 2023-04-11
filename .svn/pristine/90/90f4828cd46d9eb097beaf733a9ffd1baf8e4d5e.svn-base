@@ -1,0 +1,205 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+
+public class NbfcShareHolderDetails implements Serializable {
+	private static final long serialVersionUID = 5757719575755035534L;
+
+	private String name;
+	private String pan;
+	private BigDecimal sharesHeld;
+	private String capitalType;
+	private BigDecimal amount;
+	private String shareHolderRelated;
+	private String shareHolderOther;
+	private BigDecimal shareHolderPercentage;
+	private BigDecimal shareHolderNetWorth;
+	private String shareHolder;
+	private String shareHolderNetWorthCer;
+	private String shareHolderPattern;
+	private Long rowNum;
+
+	/**
+	 * @return the name
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * @param name the name to set
+	 */
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	/**
+	 * @return the pan
+	 */
+	public String getPan() {
+		return pan;
+	}
+
+	/**
+	 * @param pan the pan to set
+	 */
+	public void setPan(String pan) {
+		this.pan = pan;
+	}
+
+	/**
+	 * @return the sharesHeld
+	 */
+	public BigDecimal getSharesHeld() {
+		return sharesHeld;
+	}
+
+	/**
+	 * @param sharesHeld the sharesHeld to set
+	 */
+	public void setSharesHeld(BigDecimal sharesHeld) {
+		this.sharesHeld = sharesHeld;
+	}
+
+	/**
+	 * @return the capitalType
+	 */
+	public String getCapitalType() {
+		return capitalType;
+	}
+
+	/**
+	 * @param capitalType the capitalType to set
+	 */
+	public void setCapitalType(String capitalType) {
+		this.capitalType = capitalType;
+	}
+
+	/**
+	 * @return the amount
+	 */
+	public BigDecimal getAmount() {
+		return amount;
+	}
+
+	/**
+	 * @param amount the amount to set
+	 */
+	public void setAmount(BigDecimal amount) {
+		this.amount = amount;
+	}
+
+	/**
+	 * @return the shareHolderRelated
+	 */
+	public String getShareHolderRelated() {
+		return shareHolderRelated;
+	}
+
+	/**
+	 * @param shareHolderRelated the shareHolderRelated to set
+	 */
+	public void setShareHolderRelated(String shareHolderRelated) {
+		this.shareHolderRelated = shareHolderRelated;
+	}
+
+	/**
+	 * @return the shareHolderOther
+	 */
+	public String getShareHolderOther() {
+		return shareHolderOther;
+	}
+
+	/**
+	 * @param shareHolderOther the shareHolderOther to set
+	 */
+	public void setShareHolderOther(String shareHolderOther) {
+		this.shareHolderOther = shareHolderOther;
+	}
+
+	/**
+	 * @return the shareHolderPercentage
+	 */
+	public BigDecimal getShareHolderPercentage() {
+		return shareHolderPercentage;
+	}
+
+	/**
+	 * @param shareHolderPercentage the shareHolderPercentage to set
+	 */
+	public void setShareHolderPercentage(BigDecimal shareHolderPercentage) {
+		this.shareHolderPercentage = shareHolderPercentage;
+	}
+
+	/**
+	 * @return the shareHolderNetWorth
+	 */
+	public BigDecimal getShareHolderNetWorth() {
+		return shareHolderNetWorth;
+	}
+
+	/**
+	 * @param shareHolderNetWorth the shareHolderNetWorth to set
+	 */
+	public void setShareHolderNetWorth(BigDecimal shareHolderNetWorth) {
+		this.shareHolderNetWorth = shareHolderNetWorth;
+	}
+
+	/**
+	 * @return the shareHolder
+	 */
+	public String getShareHolder() {
+		return shareHolder;
+	}
+
+	/**
+	 * @param shareHolder the shareHolder to set
+	 */
+	public void setShareHolder(String shareHolder) {
+		this.shareHolder = shareHolder;
+	}
+
+	/**
+	 * @return the shareHolderNetWorthCer
+	 */
+	public String getShareHolderNetWorthCer() {
+		return shareHolderNetWorthCer;
+	}
+
+	/**
+	 * @param shareHolderNetWorthCer the shareHolderNetWorthCer to set
+	 */
+	public void setShareHolderNetWorthCer(String shareHolderNetWorthCer) {
+		this.shareHolderNetWorthCer = shareHolderNetWorthCer;
+	}
+
+	/**
+	 * @return the shareHolderPattern
+	 */
+	public String getShareHolderPattern() {
+		return shareHolderPattern;
+	}
+
+	/**
+	 * @param shareHolderPattern the shareHolderPattern to set
+	 */
+	public void setShareHolderPattern(String shareHolderPattern) {
+		this.shareHolderPattern = shareHolderPattern;
+	}
+
+	/**
+	 * @return the rowNum
+	 */
+	public Long getRowNum() {
+		return rowNum;
+	}
+
+	/**
+	 * @param rowNum the rowNum to set
+	 */
+	public void setRowNum(Long rowNum) {
+		this.rowNum = rowNum;
+	}
+
+}

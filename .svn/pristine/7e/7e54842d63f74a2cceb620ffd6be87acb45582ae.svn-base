@@ -1,0 +1,149 @@
+/**
+ * 
+ */
+package com.iris.sdmx.exceltohtml.bean;
+
+import java.io.Serializable;
+
+/**
+ * @author apagaria
+ *
+ */
+public class SdmxDimensionDetail {
+
+	/**
+	 * 
+	 */
+	private String dimensionCode;
+	/**
+	 * 
+	 */
+	private String dimensionName;
+	/**
+	 * 
+	 */
+	private String selectedCodeListId;
+	/**
+	 * 
+	 */
+	private String selectedCodeListValue;
+	/**
+	 * 
+	 */
+	private Boolean isMandatory;
+	/**
+	 * 
+	 */
+	private Boolean isCommon;
+	/**
+	 * 
+	 */
+	private String dimensionType;
+
+	/**
+	 * @return the dimensionCode
+	 */
+	public String getDimensionCode() {
+		return dimensionCode;
+	}
+
+	/**
+	 * @param dimensionCode the dimensionCode to set
+	 */
+	public void setDimensionCode(String dimensionCode) {
+		this.dimensionCode = dimensionCode;
+	}
+
+	/**
+	 * @return the dimensionName
+	 */
+	public String getDimensionName() {
+		return dimensionName;
+	}
+
+	/**
+	 * @param dimensionName the dimensionName to set
+	 */
+	public void setDimensionName(String dimensionName) {
+		this.dimensionName = dimensionName;
+	}
+
+	/**
+	 * @return the selectedCodeListId
+	 */
+	public String getSelectedCodeListId() {
+		return selectedCodeListId;
+	}
+
+	/**
+	 * @param selectedCodeListId the selectedCodeListId to set
+	 */
+	public void setSelectedCodeListId(String selectedCodeListId) {
+		this.selectedCodeListId = selectedCodeListId;
+	}
+
+	/**
+	 * @return the selectedCodeListValue
+	 */
+	public String getSelectedCodeListValue() {
+		return selectedCodeListValue;
+	}
+
+	/**
+	 * @param selectedCodeListValue the selectedCodeListValue to set
+	 */
+	public void setSelectedCodeListValue(String selectedCodeListValue) {
+		this.selectedCodeListValue = selectedCodeListValue;
+	}
+
+	/**
+	 * @return the isMandatory
+	 */
+	public Boolean getIsMandatory() {
+		return isMandatory;
+	}
+
+	/**
+	 * @param isMandatory the isMandatory to set
+	 */
+	public void setIsMandatory(Boolean isMandatory) {
+		this.isMandatory = isMandatory;
+	}
+
+	/**
+	 * @return the isCommon
+	 */
+	public Boolean getIsCommon() {
+		return isCommon;
+	}
+
+	/**
+	 * @param isCommon the isCommon to set
+	 */
+	public void setIsCommon(Boolean isCommon) {
+		this.isCommon = isCommon;
+	}
+
+	/**
+	 * @return the dimensionType
+	 */
+	public String getDimensionType() {
+		return dimensionType;
+	}
+
+	/**
+	 * @param dimensionType the dimensionType to set
+	 */
+	public void setDimensionType(String dimensionType) {
+		this.dimensionType = dimensionType;
+	}
+
+	/**
+	 *
+	 */
+	@Override
+	public String toString() {
+		return "SdmxDimensionDetail [dimensionCode=" + dimensionCode + ", dimensionName=" + dimensionName + ", selectedCodeListId=" + selectedCodeListId + ", selectedCodeListValue=" + selectedCodeListValue + ", isMandatory=" + isMandatory + ", isCommon=" + isCommon + ", dimensionType=" + dimensionType + "]";
+	}
+
+}

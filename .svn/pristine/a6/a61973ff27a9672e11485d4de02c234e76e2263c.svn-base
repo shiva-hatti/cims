@@ -1,0 +1,294 @@
+/**
+ * 
+ */
+package com.iris.sdmx.codelist.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.exception.ApplicationException;
+import com.iris.model.RoleType;
+import com.iris.model.UserMaster;
+import com.iris.sdmx.codelist.bean.CodeListMasterBean;
+import com.iris.sdmx.codelist.bean.CodelListMasterRequestBean;
+import com.iris.sdmx.codelist.entity.CodeListMaster;
+import com.iris.sdmx.codelist.entity.CodeListMasterMod;
+import com.iris.sdmx.codelist.service.CodeListMasterModService;
+import com.iris.sdmx.codelist.service.CodeListMasterService;
+import com.iris.service.GenericService;
+import com.iris.util.JsonUtility;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.util.constant.MethodConstants;
+
+/**
+ * @author sajadhav
+ *
+ */
+@RestController
+@RequestMapping(value = "/service/codeListMasterController")
+public class CodeListMasterController {
+
+	private static final Logger LOGGER = LogManager.getLogger(CodeListMasterController.class);
+	
+	@Autowired
+	private CodeListMasterService codeListmasterService;
+	
+	@Autowired
+	private GenericService<UserMaster, Long> userMasterService;
+	
+	@Autowired
+	private CodeListMasterModService codeListmasterModService;
+	
+	@PostMapping(value = "/getCodeListMasterRecord")
+	public ServiceResponse getCodeListMasterRecord(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody CodelListMasterRequestBean codeListMasterRequestBean) {
+		LOGGER.info("Request received to get code list master data for job processing Id : " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(codeListMasterRequestBean));
+		
+		try {
+			boolean isRBISuperUser = false;
+			boolean fetchClMasterRecord = false;
+			UserMaster userMaster = userMasterService.getDataById(codeListMasterRequestBean.getUserId());
+			if(userMaster == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			} else if(userMaster.getRoleType() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			RoleType roleType = userMaster.getRoleType();
+			
+			if(GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().equals(roleType.getRoleTypeId())) {
+				// return with error response;
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			
+			if(userMaster.getDepartmentIdFk().getIsMaster().equals(Boolean.TRUE)) {
+				isRBISuperUser = true;
+			}
+			
+			if(codeListMasterRequestBean.getFetchClMasterRecord().equals(Boolean.TRUE)) {
+				fetchClMasterRecord = true;
+			}
+			
+			if(codeListMasterRequestBean.getIsApprovedRecord().equals(Boolean.FALSE)) {
+				if(isRBISuperUser) {
+					Map<String, Object> codeValueMap = new HashMap<String, Object>();
+					codeValueMap.put(ColumnConstants.ADMIN_STATUS.getConstantVal(), 1);
+					List<CodeListMasterMod> codeListMasterModList = codeListmasterModService.getDataByObject(codeValueMap, MethodConstants.GET_CODE_LIST_PENDING_RECORD_BY_ADMIN_STATUS_ID.getConstantVal());
+					return new ServiceResponseBuilder().setStatus(true).setResponse(codeListmasterModService.prepareCodeListMasterResponseList(codeListMasterModList)).build();
+				}else {
+					//Dont have access to this module
+					return new ServiceResponseBuilder().setStatus(false).build();
+				}
+			}else {
+				List<CodeListMaster> codeListMasterList = codeListmasterService.getActiveDataFor(null,null);
+				return new ServiceResponseBuilder().setStatus(true).setResponse(codeListmasterService.prepareCodeListMasterResponseList(codeListMasterList,fetchClMasterRecord)).build();
+			}
+		}catch(Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+		}
+		
+		LOGGER.info("Request completed to get code list master data for job processing Id : " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(codeListMasterRequestBean));
+		return new ServiceResponseBuilder().setStatus(false).setStatusMessage(ErrorCode.E0808.toString()).setStatusCode(ObjectCache.getErrorCodeKey(ErrorCode.E0808.toString())).build();
+	}
+
+	@PostMapping(value = "/isCodeListRecordExist")
+	public ServiceResponse isCodeListRecordExist(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody CodelListMasterRequestBean codeListMasterRequestBean) {
+		LOGGER.info("Request received to get code list master data for job processing Id : " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(codeListMasterRequestBean));
+		
+		try {
+			UserMaster userMaster = userMasterService.getDataById(codeListMasterRequestBean.getUserId());
+			if(userMaster == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			} else if(userMaster.getRoleType() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			RoleType roleType = userMaster.getRoleType();
+			
+			if(GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().equals(roleType.getRoleTypeId())) {
+				// return with error response;
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			
+			return new ServiceResponseBuilder().setStatus(true).setResponse(codeListmasterService.isCodeListExist(codeListMasterRequestBean.getClCode(), codeListMasterRequestBean.getClVersion(), true)).build();
+		}catch(Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+		}
+		
+		LOGGER.info("Request completed to get code list master data for job processing Id : " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(codeListMasterRequestBean));
+		return new ServiceResponseBuilder().setStatus(false).setStatusMessage(ErrorCode.E0808.toString()).setStatusCode(ObjectCache.getErrorCodeKey(ErrorCode.E0808.toString())).build();
+	}
+	
+	
+	@PostMapping(value = "/addEditDeleteCodeListMasterRecord")
+	public ServiceResponse addEditDeleteCodeListMasterRecord(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody CodeListMasterBean codeListMasterBean) {
+		LOGGER.info("Request received to add code list master data for job processing Id : " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(codeListMasterBean));
+		
+		try {
+			// get User record
+			boolean isApprovalRequired = false;
+			UserMaster userMaster = userMasterService.getDataById(codeListMasterBean.getUserId());
+			if(userMaster == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			} else if(userMaster.getRoleType() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			RoleType roleType = userMaster.getRoleType();
+			
+			if(GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().equals(roleType.getRoleTypeId())) {
+				// return with error response;
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			
+			if(!userMaster.getDepartmentIdFk().getIsMaster().equals(Boolean.TRUE)) {
+				isApprovalRequired = true;
+			}
+			
+			boolean isSuccess = false;
+			if(codeListMasterBean.getActionId() == 1) {
+				validateInputRequestObject(codeListMasterBean);
+				// check same error code existance with is active flag
+				// If same error code and active flag record not present then add record into table
+				isSuccess = codeListmasterService.addCodeListmasterData(codeListMasterBean, isApprovalRequired);
+			}else if(codeListMasterBean.getActionId() == 2) {
+				validateInputRequestObject(codeListMasterBean);
+				isSuccess = codeListmasterService.editCodeListmasterData(codeListMasterBean, isApprovalRequired);
+			}else if(codeListMasterBean.getActionId() == 3) {
+				validateInputRequestObject(codeListMasterBean);
+				Map<String, String> failedMap = codeListmasterService.deleteCodeListmasterData(codeListMasterBean,isApprovalRequired);
+				if(failedMap!= null && failedMap.size() > 0) {
+					return new ServiceResponseBuilder().setStatus(false).setStatusCode("EOOO2").setStatusMessage("Partially delted").setResponse(failedMap).build();
+				}else {
+					isSuccess = true;
+				}
+			}else{
+				// return with error response
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode("EOOO2").setStatusMessage("Action Not Found").build();
+			}
+			
+			LOGGER.info("Request completed to add code list master data for job processing Id : " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(codeListMasterBean));
+
+			if(isSuccess) {
+				return new ServiceResponseBuilder().setStatus(true).setStatusMessage(ErrorConstants.RECORD_SAVED_SUCCESSFULLY.getErrorMessage()).build();
+			}
+		}catch(ApplicationException e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(e.getErrorCode()).setStatusMessage(ObjectCache.getErrorCodeKey(e.getErrorCode())).build();
+		}catch(Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+		}
+		return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+	}
+
+	
+	
+	private void validateInputRequestObject(CodeListMasterBean codeListMasterBean) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	
+	@PostMapping(value = "/performCodeListRecordAction")
+	public ServiceResponse performCodeListRecordAction(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody CodeListMasterBean codeListMasterBean) {
+		LOGGER.info("Request received to add code list master data for job processing Id : " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(codeListMasterBean));
+		
+		try {
+			// get User record
+			UserMaster userMaster = userMasterService.getDataById(codeListMasterBean.getUserId());
+			if(userMaster == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			} else if(userMaster.getRoleType() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			RoleType roleType = userMaster.getRoleType();
+			
+			if(GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().equals(roleType.getRoleTypeId())) {
+				// return with error response;
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			
+			if(!userMaster.getDepartmentIdFk().getIsMaster().equals(Boolean.TRUE)) {
+				// dont have rights to approved and reject record
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			
+			boolean isSuccess;
+			if(codeListMasterBean.getActionId() == 1) {
+				validateInputRequestObject(codeListMasterBean);
+				// check same error code existance with is active flag
+				// If same error code and active flag record not present then add record into table
+				isSuccess = codeListmasterService.performActiononOnAddedRecord(codeListMasterBean);
+			}else if(codeListMasterBean.getActionId() == 2) {
+				validateInputRequestObject(codeListMasterBean);
+				isSuccess = codeListmasterService.performActionOnEditedData(codeListMasterBean);
+			}else if(codeListMasterBean.getActionId() == 3) {
+				validateInputRequestObject(codeListMasterBean);
+				isSuccess = codeListmasterService.performActionOnDeletedData(codeListMasterBean);
+			}else{
+				// return with error response
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode("EOOO2").setStatusMessage("Action Not Found").build();
+			}
+			
+			LOGGER.info("Request completed to add code list master data for job processing Id : " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(codeListMasterBean));
+
+			if(isSuccess) {
+				return new ServiceResponseBuilder().setStatus(true).setStatusMessage(ErrorConstants.RECORD_SAVED_SUCCESSFULLY.getErrorMessage()).build();
+			}
+		}catch(Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+		}
+		return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+	}
+	
+	
+	@PostMapping(value = "/getCodeListMasterRecordByClCode")
+	public ServiceResponse getCodeListMasterRecordByClCode(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody CodelListMasterRequestBean codeListMasterRequestBean) {
+		LOGGER.info("Request received to get code list master data By Cl Code for job processing Id : " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(codeListMasterRequestBean));
+		
+		try {
+			boolean fetchClMasterRecord = false;
+			UserMaster userMaster = userMasterService.getDataById(codeListMasterRequestBean.getUserId());
+			if(userMaster == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			} else if(userMaster.getRoleType() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			RoleType roleType = userMaster.getRoleType();
+			
+			if(GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().equals(roleType.getRoleTypeId())) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+				// return with error response;
+			}
+			
+			if(codeListMasterRequestBean.getFetchClMasterRecord()) {
+				fetchClMasterRecord = true;
+			}
+
+			Map<String, Object> codeValueMap = new HashMap<String, Object>();
+			codeValueMap.put(ColumnConstants.CL_CODE.getConstantVal(), codeListMasterRequestBean.getClCode());
+			codeValueMap.put(ColumnConstants.CL_VERSION.getConstantVal(), codeListMasterRequestBean.getClVersion());
+			
+			List<CodeListMaster> codeListMasterList = codeListmasterService.getDataByObject(codeValueMap,MethodConstants.GET_CODE_LIST_MASTER_RECORD_BY_CL_CODE_CL_VERSION.getConstantVal());
+			return new ServiceResponseBuilder().setStatus(true).setResponse(codeListmasterService.prepareCodeListMasterResponseList(codeListMasterList,fetchClMasterRecord)).build();
+		}catch(Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+		}
+		
+		LOGGER.info("Request completed to get code list master data By Cl Code for job processing Id : " + jobProcessId + " With Input request : " + JsonUtility.getGsonObject().toJson(codeListMasterRequestBean));
+		return new ServiceResponseBuilder().setStatus(false).setStatusMessage(ErrorCode.E0808.toString()).setStatusCode(ObjectCache.getErrorCodeKey(ErrorCode.E0808.toString())).build();
+	}
+	
+}

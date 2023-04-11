@@ -1,0 +1,375 @@
+/**
+ * 
+ */
+package com.iris.service;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import com.google.gson.Gson;
+import com.iris.dto.FilingApprovalNotificationBean;
+import com.iris.dto.NotificationCount;
+import com.iris.model.EntityBean;
+import com.iris.model.Return;
+import com.iris.model.ReturnApprovalDetail;
+import com.iris.model.RevisionRequest;
+import com.iris.model.UnlockingRequest;
+import com.iris.model.UserMaster;
+import com.iris.model.UserRoleMaster;
+import com.iris.repository.ReturnApprovalDetailsRepo;
+import com.iris.repository.RevisionRequestRepository;
+import com.iris.repository.UnlockRequestRepository;
+import com.iris.repository.UserMasterRepo;
+import com.iris.repository.WorkFlowActivityRepo;
+import com.iris.service.impl.ReturnApprovalDetailsService;
+import com.iris.service.impl.ReturnEntityMapServiceNew;
+import com.iris.service.impl.UserRoleReturnMappingService;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.GeneralConstants;
+
+/**
+ * @author sajadhav
+ *
+ */
+@Service
+public class NotificationService {
+
+	@Autowired
+	private ReturnApprovalDetailsRepo returnApprovalDetailRepo;
+
+	@Autowired
+	private WorkFlowActivityRepo workflowActivityRepo;
+
+	@Autowired
+	private UserRoleReturnMappingService userRoleReturnMappingService;
+
+	@Autowired
+	private ReturnEntityMapServiceNew returnEntityMapServiceNew;
+
+	@Autowired
+	private ReturnApprovalDetailsService returnApprovalDetailService;
+
+	@Autowired
+	private RevisionRequestRepository revisionRequestRepo;
+
+	@Autowired
+	private UnlockRequestRepository unlockRequestRepo;
+
+	@Autowired
+	private UserMasterRepo userMasterRepo;
+
+	private static final Logger LOGGER = LogManager.getLogger(NotificationService.class);
+
+	public Map<String, Integer> getMinusCountOfFilingApproval(ReturnApprovalDetail returnApprovalDetail, Long uploadedUserId) {
+		Map<String, Integer> countMap = new HashMap<>();
+		try {
+			List<FilingApprovalNotificationBean> filingApprovalNotificationList = workflowActivityRepo.getFillingNotificationData(returnApprovalDetail.getWorkFlowActivity().getActivityId());
+
+			List<Long> roleIds = new ArrayList<>();
+			List<Long> entityIds = new ArrayList<>();
+			List<Long> returnIds = new ArrayList<>();
+
+			filingApprovalNotificationList.forEach(f -> {
+				if (!roleIds.contains(f.getUserRoleId())) {
+					roleIds.add(f.getUserRoleId());
+				}
+				if (!entityIds.contains(f.getEntityId())) {
+					entityIds.add(f.getEntityId());
+				}
+			});
+
+			Map<Long, Map<EntityBean, Boolean>> roleEntityMap = new HashMap<>();
+			Map<Long, Map<Return, Boolean>> roleReturnMap = new HashMap<>();
+			Map<Long, List<EntityBean>> returnEntityMap = new HashMap<>();
+			Map<Long, List<Return>> entityReturnMap = new HashMap<>();
+
+			if (!CollectionUtils.isEmpty(roleIds)) {
+				roleEntityMap = userRoleReturnMappingService.getRoleEntityMap(roleIds.toArray(new Long[roleIds.size()]));
+				roleReturnMap = userRoleReturnMappingService.getRoleRetunMap(roleIds.toArray(new Long[roleIds.size()]));
+
+				for (Map.Entry<Long, Map<Return, Boolean>> map : roleReturnMap.entrySet()) {
+					for (Map.Entry<Return, Boolean> roleMap : map.getValue().entrySet()) {
+						if (roleMap.getValue().equals(Boolean.TRUE)) {
+							returnIds.add(roleMap.getKey().getReturnId());
+						}
+					}
+				}
+
+				returnEntityMap = returnEntityMapServiceNew.getEntityListByReturnId(returnIds);
+				entityReturnMap = returnEntityMapServiceNew.getReturnListByReturnId(entityIds);
+			}
+
+			List<String> entityCodeList = null;
+			List<Return> returnListApplicableForUserRole = null;
+			String key = "";
+			for (FilingApprovalNotificationBean filingApprovalNotificationBean : filingApprovalNotificationList) {
+
+				if (!filingApprovalNotificationBean.getUserId().equals(uploadedUserId)) {
+					key = filingApprovalNotificationBean.getUserId() + "~" + filingApprovalNotificationBean.getUserRoleId() + "~" + filingApprovalNotificationBean.getUserName();
+
+					entityCodeList = getEntityListOfuserRole(filingApprovalNotificationBean, roleEntityMap, returnEntityMap, roleReturnMap);
+					returnListApplicableForUserRole = getReturnListOfuserRole(filingApprovalNotificationBean, roleReturnMap, entityReturnMap);
+
+					if (returnListApplicableForUserRole.contains(returnApprovalDetail.getReturnUploadDetails().getReturnObj()) && entityCodeList.contains(returnApprovalDetail.getReturnUploadDetails().getEntity().getEntityCode())) {
+						countMap.put(key, -1);
+					}
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error("Exception : ", e);
+		}
+
+		return countMap;
+	}
+
+	private Map<String, Integer> getPlusCountOfApprovalRecord(ReturnApprovalDetail returnApprovalDetail, Long uploadedUserId, Map<String, Integer> minusCountMap) {
+
+		Map<String, Integer> countMap = new HashMap<>();
+		try {
+
+			List<FilingApprovalNotificationBean> filingApprovalNotificationList = workflowActivityRepo.getFillingNotificationData(returnApprovalDetail.getWorkFlowActivity().getActivityId());
+
+			List<Long> roleIds = new ArrayList<>();
+			List<Long> entityIds = new ArrayList<>();
+			List<Long> returnIds = new ArrayList<>();
+
+			filingApprovalNotificationList.forEach(f -> {
+				roleIds.add(f.getUserRoleId());
+				entityIds.add(f.getEntityId());
+			});
+
+			Map<Long, Map<EntityBean, Boolean>> roleEntityMap = new HashMap<>();
+			Map<Long, Map<Return, Boolean>> roleReturnMap = new HashMap<>();
+			Map<Long, List<EntityBean>> returnEntityMap = new HashMap<>();
+			Map<Long, List<Return>> entityReturnMap = new HashMap<>();
+
+			if (!CollectionUtils.isEmpty(roleIds)) {
+				roleEntityMap = userRoleReturnMappingService.getRoleEntityMap(roleIds.toArray(new Long[roleIds.size()]));
+				roleReturnMap = userRoleReturnMappingService.getRoleRetunMap(roleIds.toArray(new Long[roleIds.size()]));
+
+				for (Map.Entry<Long, Map<Return, Boolean>> map : roleReturnMap.entrySet()) {
+					for (Map.Entry<Return, Boolean> roleMap : map.getValue().entrySet()) {
+						if (roleMap.getValue().equals(Boolean.TRUE)) {
+							returnIds.add(roleMap.getKey().getReturnId());
+						}
+					}
+				}
+
+				if (!CollectionUtils.isEmpty(returnIds)) {
+					returnEntityMap = returnEntityMapServiceNew.getEntityListByReturnId(returnIds);
+				}
+				if (!CollectionUtils.isEmpty(entityIds)) {
+					entityReturnMap = returnEntityMapServiceNew.getReturnListByReturnId(entityIds);
+				}
+			}
+
+			List<String> entityCodeList = null;
+			List<Return> returnListApplicableForUserRole = null;
+			String key = "";
+			for (FilingApprovalNotificationBean filingApprovalNotificationBean : filingApprovalNotificationList) {
+				if (!filingApprovalNotificationBean.getUserId().equals(uploadedUserId)) {
+					key = filingApprovalNotificationBean.getUserId() + "~" + filingApprovalNotificationBean.getUserRoleId() + "~" + filingApprovalNotificationBean.getUserName();
+
+					entityCodeList = getEntityListOfuserRole(filingApprovalNotificationBean, roleEntityMap, returnEntityMap, roleReturnMap);
+					returnListApplicableForUserRole = getReturnListOfuserRole(filingApprovalNotificationBean, roleReturnMap, entityReturnMap);
+
+					if (returnListApplicableForUserRole.contains(returnApprovalDetail.getReturnUploadDetails().getReturnObj()) && entityCodeList.contains(returnApprovalDetail.getReturnUploadDetails().getEntity().getEntityCode())) {
+						if (minusCountMap.containsKey(key)) {
+							countMap.put(key, minusCountMap.get(key) + 1);
+						} else {
+							countMap.put(key, 1);
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error("Exception : ", e);
+		}
+
+		return countMap;
+	}
+
+	private List<String> getEntityListOfuserRole(FilingApprovalNotificationBean filingApprovalNotificationBean, Map<Long, Map<EntityBean, Boolean>> roleEntityMap, Map<Long, List<EntityBean>> returnEntityMap, Map<Long, Map<Return, Boolean>> roleReturnMap) {
+
+		List<String> entityCodeList = new ArrayList<>();
+
+		if (filingApprovalNotificationBean.getRoleTypeId().equals(GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal())) {
+			entityCodeList.add(filingApprovalNotificationBean.getEntiryCode());
+		} else {
+			if (roleEntityMap.get(filingApprovalNotificationBean.getUserRoleId()) != null) {
+				Map<EntityBean, Boolean> entityMap = roleEntityMap.get(filingApprovalNotificationBean.getUserRoleId());
+				for (Map.Entry<EntityBean, Boolean> map : entityMap.entrySet()) {
+					if (map.getValue().equals(Boolean.TRUE) && !entityCodeList.contains(map.getKey().getEntityCode())) {
+						entityCodeList.add(map.getKey().getEntityCode());
+					}
+				}
+			} else {
+				if (roleReturnMap.get(filingApprovalNotificationBean.getUserRoleId()) != null) {
+					Map<Return, Boolean> returnMap = roleReturnMap.get(filingApprovalNotificationBean.getUserRoleId());
+					List<Long> returnIds = new ArrayList<>();
+					for (Map.Entry<Return, Boolean> map : returnMap.entrySet()) {
+						if (map.getValue().equals(Boolean.TRUE)) {
+							returnIds.add(map.getKey().getReturnId());
+						}
+					}
+					for (Long returnId : returnIds) {
+						if (returnEntityMap.get(returnId) != null) {
+							returnEntityMap.get(returnId).forEach(f -> {
+								if (!entityCodeList.contains(f.getEntityCode())) {
+									entityCodeList.add(f.getEntityCode());
+								}
+							});
+						}
+					}
+				}
+			}
+		}
+		return entityCodeList;
+	}
+
+	private List<Return> getReturnListOfuserRole(FilingApprovalNotificationBean filingApprovalNotificationBean, Map<Long, Map<Return, Boolean>> roleReturnMap, Map<Long, List<Return>> entityReturnMap) {
+		List<Return> returnList = new ArrayList<>();
+		if (roleReturnMap.get(filingApprovalNotificationBean.getUserRoleId()) != null) {
+			Map<Return, Boolean> returnMap = roleReturnMap.get(filingApprovalNotificationBean.getUserRoleId());
+			for (Map.Entry<Return, Boolean> map : returnMap.entrySet()) {
+				if (map.getValue().equals(Boolean.TRUE)) {
+					returnList.add(map.getKey());
+				}
+			}
+		} else {
+			if (filingApprovalNotificationBean.getEntityId() != null && entityReturnMap.get(filingApprovalNotificationBean.getEntityId()) != null) {
+				returnList.addAll(entityReturnMap.get(filingApprovalNotificationBean.getEntityId()));
+			}
+		}
+
+		return returnList;
+	}
+
+	public List<NotificationCount> getNotificationCountForFilingApproval(Long uploadId, Long outerReturnApprovalDetailId, Long uploadedUserId) {
+		List<NotificationCount> filingNotificationCountList = new ArrayList<>();
+
+		try {
+			Map<String, Integer> minusCountMap = new HashMap<>();
+			Map<String, Integer> plusCountMap = new HashMap<>();
+
+			if (outerReturnApprovalDetailId != null) {
+				ReturnApprovalDetail outerReturnApprovalDetail = returnApprovalDetailService.getDataById(outerReturnApprovalDetailId);
+				// This count represent when any user approved / reject filing then count would be deceresed for that user
+				minusCountMap = getMinusCountOfFilingApproval(outerReturnApprovalDetail, uploadedUserId);
+			}
+
+			// get latest return Approval record
+			List<ReturnApprovalDetail> returnApprovalDetailsList = returnApprovalDetailRepo.findByReturnUploadDetailsUploadIdOrderByCreationTimeDesc(uploadId);
+
+			if (!CollectionUtils.isEmpty(returnApprovalDetailsList)) {
+				ReturnApprovalDetail returnApprovalDetail = returnApprovalDetailsList.get(0);
+
+				if (!returnApprovalDetail.isComplete()) {
+					// This count represent when any user approved / reject filing then count would be increased for the next approval user
+					plusCountMap = getPlusCountOfApprovalRecord(returnApprovalDetail, uploadedUserId, minusCountMap);
+				}
+
+				if (!CollectionUtils.isEmpty(plusCountMap)) {
+					LOGGER.info("plusCountMap count map :" + plusCountMap.toString());
+					for (Map.Entry<String, Integer> countMapp : plusCountMap.entrySet()) {
+						NotificationCount notificationCount = new NotificationCount();
+						notificationCount.setUserId(countMapp.getKey().split("~")[0]);
+						notificationCount.setRoleId(countMapp.getKey().split("~")[1]);
+						notificationCount.setUserName(countMapp.getKey().split("~")[2]);
+						notificationCount.setMessage(countMapp.getValue() + "");
+						filingNotificationCountList.add(notificationCount);
+					}
+				}
+
+				if (!CollectionUtils.isEmpty(minusCountMap)) {
+					LOGGER.info("Minus count map :" + minusCountMap.toString());
+					for (Map.Entry<String, Integer> countMapp : minusCountMap.entrySet()) {
+						NotificationCount notificationCount = new NotificationCount();
+						notificationCount.setUserId(countMapp.getKey().split("~")[0]);
+						notificationCount.setRoleId(countMapp.getKey().split("~")[1]);
+						notificationCount.setUserName(countMapp.getKey().split("~")[2]);
+						notificationCount.setMessage(countMapp.getValue() + "");
+						filingNotificationCountList.add(notificationCount);
+					}
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error("Exception : ", e);
+		}
+
+		return filingNotificationCountList;
+	}
+
+	public List<NotificationCount> getNotificationCountForRevisionRequest(Long revisionRequestId, boolean isApproved) {
+		List<NotificationCount> revisionRequestNotificationCountList = new ArrayList<>();
+		try {
+			RevisionRequest revisionRequest = revisionRequestRepo.findByRevisionRequestId(revisionRequestId);
+
+			if (!Objects.isNull(revisionRequest)) {
+				List<Long> regulatorIds = revisionRequest.getReturns().getReturnRegulatorMapping().stream().filter(f -> f.getIsActive().equals(Boolean.TRUE) && f.getRegulatorIdFk().getIsActive().equals(Boolean.TRUE)).map(f -> f.getRegulatorIdFk().getRegulatorId()).collect(Collectors.toList());
+				List<UserMaster> userMasterList = userMasterRepo.findByDepartmentIdFkRegulatorIdInAndIsActiveTrue(regulatorIds);
+
+				for (UserMaster userMaster : userMasterList) {
+					for (UserRoleMaster userRoleMaster : userMaster.getUsrRoleMstrSet()) {
+						NotificationCount notificationCount = new NotificationCount();
+						notificationCount.setUserId(userMaster.getUserId() + "");
+						notificationCount.setRoleId(userRoleMaster.getUserRole().getUserRoleId() + "");
+						notificationCount.setUserName(userMaster.getUserName());
+						notificationCount.setIncreased(true);
+						if (isApproved) {
+							notificationCount.setMessage(-1 + "");
+						} else {
+							notificationCount.setMessage(1 + "");
+						}
+						System.out.println(userMaster.getUserId() + "   " + userRoleMaster.getUserRole().getUserRoleId() + " " + userMaster.getUserName());
+						revisionRequestNotificationCountList.add(notificationCount);
+					}
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getErrorMessage(), e);
+		}
+		return revisionRequestNotificationCountList;
+	}
+
+	public List<NotificationCount> getNotificationCountForUnlockRequest(Long unlockRequestId, boolean isApproved) {
+
+		List<NotificationCount> revisionRequestNotificationCountList = new ArrayList<>();
+		try {
+			UnlockingRequest unlockRequest = unlockRequestRepo.findByUnlockingReqId(unlockRequestId);
+
+			if (!Objects.isNull(unlockRequest)) {
+				List<Long> regulatorIds = unlockRequest.getReturns().getReturnRegulatorMapping().stream().filter(f -> f.getIsActive().equals(Boolean.TRUE) && f.getRegulatorIdFk().getIsActive().equals(Boolean.TRUE)).map(f -> f.getRegulatorIdFk().getRegulatorId()).collect(Collectors.toList());
+				List<UserMaster> userMasterList = userMasterRepo.findByDepartmentIdFkRegulatorIdInAndIsActiveTrue(regulatorIds);
+
+				for (UserMaster userMaster : userMasterList) {
+					for (UserRoleMaster userRoleMaster : userMaster.getUsrRoleMstrSet()) {
+						NotificationCount notificationCount = new NotificationCount();
+						notificationCount.setUserId(userMaster.getUserId() + "");
+						notificationCount.setRoleId(userRoleMaster.getUserRole().getUserRoleId() + "");
+						notificationCount.setIncreased(true);
+						if (isApproved) {
+							notificationCount.setMessage(-1 + "");
+						} else {
+							notificationCount.setMessage(1 + "");
+						}
+						revisionRequestNotificationCountList.add(notificationCount);
+					}
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getErrorMessage(), e);
+		}
+		return revisionRequestNotificationCountList;
+	}
+}

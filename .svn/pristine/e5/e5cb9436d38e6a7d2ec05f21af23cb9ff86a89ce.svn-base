@@ -1,0 +1,74 @@
+/**
+ * 
+ */
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.Option;
+import com.iris.dto.Options;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.model.LeadBankMaster;
+import com.iris.service.impl.LeadBankMasterService;
+import com.iris.util.Validations;
+import com.iris.util.constant.ErrorCode;
+
+/**
+ * @author Shivabasava Hatti
+ *
+ */
+@RestController
+@RequestMapping("/service/leadBankMaster")
+public class LeadBankMasterController {
+	
+	private static final Logger logger = LogManager.getLogger(LeadBankMasterController.class);
+	
+	@Autowired
+	private LeadBankMasterService leadBankMasterService;
+
+	@PostMapping("/getLeadBankDetails/{bankTypeCode}")
+	public ServiceResponse getLeadBankDetails(@PathVariable(name = "bankTypeCode") String bankTypeCode) {
+		ServiceResponse response = null;
+		try {
+			List<LeadBankMaster> leadBankMasterList = new ArrayList<>();
+			List<Option> optionList = new ArrayList<>();
+			Option option = null; 
+			Options options = new Options();
+			if (Validations.isEmpty(bankTypeCode)) {
+				logger.error("leadBankCode or bankTypeCode is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0889.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString())).build();
+			}
+			leadBankMasterList = leadBankMasterService.findLeadBankDetailsByLeadBankNameAndBankTypeCode(bankTypeCode);
+			if (CollectionUtils.isEmpty(leadBankMasterList)) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0660.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0660.toString())).build();
+			}
+			for (LeadBankMaster leadBankMaster : leadBankMasterList) {
+				option = new Option();
+				option.setKey(leadBankMaster.getEntityFk().getEntityCode());
+				option.setValue(leadBankMaster.getEntityFk().getEntityName().toUpperCase());
+				optionList.add(option);
+			}
+			options.setOptionList(optionList);
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			response.setResponse(options);
+			return response;
+		} catch (Exception e) {
+			logger.error("Exception occoured while featch Lead Bank Details list" + e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+		}
+		
+	}
+}

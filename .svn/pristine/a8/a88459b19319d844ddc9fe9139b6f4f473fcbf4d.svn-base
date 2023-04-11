@@ -1,0 +1,271 @@
+/**
+ * 
+ */
+package com.iris.sdmx.ebrtorbr.entity;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import com.iris.model.EntityBean;
+import com.iris.model.Return;
+import com.iris.model.ReturnPropertyValue;
+import com.iris.model.ReturnsUploadDetails;
+
+/**
+ * @author sajadhav
+ *
+ */
+@Entity
+@Table(name = "TBL_SDMX_EBR_TO_RBR_PREP")
+public class SdmxEbrToRbrPreparation implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8363275137973436450L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "EBR_TO_RBR_PREP_ID")
+	private Long ebrToRbrPreparationId;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "ENTITY_ID_FK")
+	private EntityBean entity;
+
+	@Column(name = "START_DATE")
+	private Date startDate;
+
+	@Column(name = "END_DATE")
+	private Date endDate;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "RETURN_ID_FK")
+	private Return returnObj;
+
+	@Column(name = "MANDATE_DATA_POINT_EXPECTED_JSON")
+	private String mandateDatapointExpectedJson;
+
+	@Column(name = "MANDATE_DATA_POINT_RECEIVED_JSON")
+	private String mandateDatapointReceivedJson;
+
+	@Column(name = "OPTIONAL_DATA_POINT_EXPECTED_JSON")
+	private String optionalDatapointExpectedJson;
+
+	@Column(name = "OPTIONAL_DATA_POINT_RECEIVED_JSON")
+	private String optionalDatapointReceivedJson;
+
+	@Column(name = "REPORT_PRE_START_ON")
+	private Date reportPreStartOn;
+
+	@Column(name = "REPORT_PRE_END_ON")
+	private Date reportPreEndOn;
+
+	@OneToOne(mappedBy = "sdmxEbrToRbrPreparation", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	private ReturnsUploadDetails returnsUploadDetails;
+
+	@Column(name = "IS_FILING_DONE")
+	private String isFilingDone;
+
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+
+	@Column(name = "LAST_UPDATED_ON")
+	private Date lastUpdatedOn;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "RETURN_PROPERTY_VAL_ID_FK")
+	private ReturnPropertyValue returnPropertyVal;
+
+	@Column(name = "SDMX_ELEMENT_ID")
+	private String sdmxElementId;
+
+	@Transient
+	private Long userId;
+
+	@Transient
+	private Long roleId;
+
+	@Transient
+	private String userName;
+
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	public Long getUserId() {
+		return userId;
+	}
+
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	public Long getRoleId() {
+		return roleId;
+	}
+
+	public void setRoleId(Long roleId) {
+		this.roleId = roleId;
+	}
+
+	public Long getEbrToRbrPreparationId() {
+		return ebrToRbrPreparationId;
+	}
+
+	public void setEbrToRbrPreparationId(Long ebrToRbrPreparationId) {
+		this.ebrToRbrPreparationId = ebrToRbrPreparationId;
+	}
+
+	public EntityBean getEntity() {
+		return entity;
+	}
+
+	public void setEntity(EntityBean entity) {
+		this.entity = entity;
+	}
+
+	public Date getStartDate() {
+		return startDate;
+	}
+
+	public void setStartDate(Date startDate) {
+		this.startDate = startDate;
+	}
+
+	public Date getEndDate() {
+		return endDate;
+	}
+
+	public void setEndDate(Date endDate) {
+		this.endDate = endDate;
+	}
+
+	public Return getReturnObj() {
+		return returnObj;
+	}
+
+	public void setReturnObj(Return returnObj) {
+		this.returnObj = returnObj;
+	}
+
+	public String getMandateDatapointExpectedJson() {
+		return mandateDatapointExpectedJson;
+	}
+
+	public void setMandateDatapointExpectedJson(String mandateDatapointExpectedJson) {
+		this.mandateDatapointExpectedJson = mandateDatapointExpectedJson;
+	}
+
+	public String getMandateDatapointReceivedJson() {
+		return mandateDatapointReceivedJson;
+	}
+
+	public void setMandateDatapointReceivedJson(String mandateDatapointReceivedJson) {
+		this.mandateDatapointReceivedJson = mandateDatapointReceivedJson;
+	}
+
+	public String getOptionalDatapointExpectedJson() {
+		return optionalDatapointExpectedJson;
+	}
+
+	public void setOptionalDatapointExpectedJson(String optionalDatapointExpectedJson) {
+		this.optionalDatapointExpectedJson = optionalDatapointExpectedJson;
+	}
+
+	public String getOptionalDatapointReceivedJson() {
+		return optionalDatapointReceivedJson;
+	}
+
+	public void setOptionalDatapointReceivedJson(String optionalDatapointReceivedJson) {
+		this.optionalDatapointReceivedJson = optionalDatapointReceivedJson;
+	}
+
+	public Date getReportPreStartOn() {
+		return reportPreStartOn;
+	}
+
+	public void setReportPreStartOn(Date reportPreStartOn) {
+		this.reportPreStartOn = reportPreStartOn;
+	}
+
+	public Date getReportPreEndOn() {
+		return reportPreEndOn;
+	}
+
+	public void setReportPreEndOn(Date reportPreEndOn) {
+		this.reportPreEndOn = reportPreEndOn;
+	}
+
+	public ReturnsUploadDetails getReturnsUploadDetails() {
+		return returnsUploadDetails;
+	}
+
+	public void setReturnsUploadDetails(ReturnsUploadDetails returnsUploadDetails) {
+		this.returnsUploadDetails = returnsUploadDetails;
+	}
+
+	public String getIsFilingDone() {
+		return isFilingDone;
+	}
+
+	public void setIsFilingDone(String isFilingDone) {
+		this.isFilingDone = isFilingDone;
+	}
+
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	public Date getLastUpdatedOn() {
+		return lastUpdatedOn;
+	}
+
+	public void setLastUpdatedOn(Date lastUpdatedOn) {
+		this.lastUpdatedOn = lastUpdatedOn;
+	}
+
+	public ReturnPropertyValue getReturnPropertyVal() {
+		return returnPropertyVal;
+	}
+
+	public void setReturnPropertyVal(ReturnPropertyValue returnPropertyVal) {
+		this.returnPropertyVal = returnPropertyVal;
+	}
+
+	/**
+	 * @return the sdmxElementId
+	 */
+	public String getSdmxElementId() {
+		return sdmxElementId;
+	}
+
+	/**
+	 * @param sdmxElementId the sdmxElementId to set
+	 */
+	public void setSdmxElementId(String sdmxElementId) {
+		this.sdmxElementId = sdmxElementId;
+	}
+
+}

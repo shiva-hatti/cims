@@ -1,0 +1,121 @@
+package com.iris.crossvalidation.service.dto;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+public class CrossValidationDto implements Serializable{
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private String bankCode;
+	private String auditUnaudigFlag;
+	private String setName;
+	private String uploadIds;
+	private List<Long> uploadIdList = new ArrayList<>();
+	private String srNo;
+	private String refTemplateName;
+	private String refElementName;
+	private String refValue;
+	private String validationRule;
+	private String compTemplateName;
+	private String compElementName;
+	private String compValue;
+	private String pageBreak;
+	private List<CrossValidationDto> item = new ArrayList<>();
+	
+	public String getBankCode() {
+		return bankCode;
+	}
+	public void setBankCode(String bankCode) {
+		this.bankCode = bankCode;
+	}
+	public String getAuditUnaudigFlag() {
+		return auditUnaudigFlag;
+	}
+	public void setAuditUnaudigFlag(String auditUnaudigFlag) {
+		this.auditUnaudigFlag = auditUnaudigFlag;
+	}
+	public String getSetName() {
+		return setName;
+	}
+	public void setSetName(String setName) {
+		this.setName = setName;
+	}
+	public String getUploadIds() {
+		return uploadIds;
+	}
+	public void setUploadIds(String uploadIds) {
+		this.uploadIds = uploadIds;
+	}
+	public List<Long> getUploadIdList() {
+		return uploadIdList;
+	}
+	public void setUploadIdList(List<Long> uploadIdList) {
+		this.uploadIdList = uploadIdList;
+	}
+	public String getSrNo() {
+		return srNo;
+	}
+	public void setSrNo(String srNo) {
+		this.srNo = srNo;
+	}
+	public String getRefTemplateName() {
+		return refTemplateName;
+	}
+	public void setRefTemplateName(String refTemplateName) {
+		this.refTemplateName = refTemplateName;
+	}
+	public String getRefElementName() {
+		return refElementName;
+	}
+	public void setRefElementName(String refElementName) {
+		this.refElementName = refElementName;
+	}
+	public String getRefValue() {
+		return refValue;
+	}
+	public void setRefValue(String refValue) {
+		this.refValue = refValue;
+	}
+	public String getValidationRule() {
+		return validationRule;
+	}
+	public void setValidationRule(String validationRule) {
+		this.validationRule = validationRule;
+	}
+	public String getCompTemplateName() {
+		return compTemplateName;
+	}
+	public void setCompTemplateName(String compTemplateName) {
+		this.compTemplateName = compTemplateName;
+	}
+	public String getCompElementName() {
+		return compElementName;
+	}
+	public void setCompElementName(String compElementName) {
+		this.compElementName = compElementName;
+	}
+	public String getCompValue() {
+		return compValue;
+	}
+	public void setCompValue(String compValue) {
+		this.compValue = compValue;
+	}
+	public List<CrossValidationDto> getItem() {
+		return item;
+	}
+	public void setItem(List<CrossValidationDto> item) {
+		this.item = item;
+	}
+	public String getPageBreak() {
+		return pageBreak;
+	}
+	public void setPageBreak(String pageBreak) {
+		this.pageBreak = pageBreak;
+	}
+	
+
+}

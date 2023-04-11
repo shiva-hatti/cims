@@ -1,0 +1,886 @@
+package com.iris.formula.gen.controller;
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.iris.formula.gen.FormulaBean;
+import com.iris.model.AutoCalculationFormula;
+import com.iris.model.ErrorCodeDetail;
+import com.iris.model.FormulaCategoryType;
+import com.iris.repository.ErrorCodeDetailRepo;
+
+@Component
+public class FormulaConverter {
+
+	static final Logger logger = LogManager.getLogger(FormulaConverter.class);
+	
+	@Autowired
+	private ErrorCodeDetailRepo errorCodeDetailRepo;
+	
+	private static final String[] EQUATOR = {"=","<",">","<=",">=","-","+","*","/","==","(",")"};
+	private static final String[] LHS_DIVIDER = {"=","<",">","<=",">=","=="};
+
+	public FormulaBean convert(FormulaBean formula) {
+		if (StringUtils.isBlank(formula.getFormula())) {
+			return new FormulaBean();
+		}
+		Map<String,List<AutoCalFormulaParts>> result = new HashMap<>();
+		List<AutoCalFormulaParts> formulaList = new ArrayList<>();
+		Boolean crossFormula = false;
+		Boolean validationType = true;
+		String[] formulaArray = formula.getFormula().split(",");
+		String[] elrIdFArray = formula.getElrIdPair().split(",");
+		Set<Integer> elrSet = new HashSet<>();
+		for (String str : elrIdFArray) {
+			String[] elrArray = str.split(">");
+			elrSet.add(Integer.valueOf(elrArray[1]));
+		}
+		if (formulaArray.length<2 ) {
+			return null;
+		}
+		if (elrSet.size()>1) {
+			crossFormula = true;
+		}
+
+		if (formula.getFormula().contains(",=,")){
+			validationType = false;
+			formulaArray = formula.getFormula().split(",=,");
+		}
+
+		if (Boolean.TRUE.equals(validationType)) {
+			String[] itemparts = null;
+			for (String str : formulaArray) {
+				if(str.contains("0-")) {
+					itemparts = str.split("-");
+					break;
+				}
+			}
+			if (Boolean.TRUE.equals(crossFormula)) {
+				formula.setIsCrossElr(true);
+				AutoCalFormulaParts formulaParts = prepareValidationFormulaCross(formulaArray,formula);
+				formulaParts.setErrorCode(formula.getErrorCodeDetail().getTechnicalErrorCode());
+				formulaParts.setTableId(itemparts[1]);
+				formulaParts.setFormulaId(formula.getFormulaId());
+				formulaParts.setRowId(0);
+				List<AutoCalFormulaParts> autoCalFormulaPartsList = new ArrayList<>();
+				autoCalFormulaPartsList.add(formulaParts);
+				formula.setCrossElrFormula(autoCalFormulaPartsList);
+			} else {
+				AutoCalFormulaParts formulaParts = prepareValidationFormula(formulaArray,formula);
+				formulaParts.setErrorCode(formula.getErrorCodeDetail().getTechnicalErrorCode());
+				formulaParts.setTableId(itemparts[1]);
+				formulaParts.setFormulaId(formula.getFormulaId());
+				formulaParts.setRowId(0);
+				formulaParts.setErrorType(formula.getErrorType());
+				formulaList.add(formulaParts);
+				for (int i=0;i<formulaArray.length;i++) {
+					Boolean isSymbol = isSymbol(formulaArray[i]);
+					if (Boolean.FALSE.equals(isSymbol) && 
+							formulaArray[i].contains("0-")) {
+						result.put(formulaArray[i], formulaList);
+					}
+				}
+				formula.setNormalFormula(result);
+			}
+			formula.setFormulaId(formula.getFormulaId());
+			return formula;
+		} else {
+			AutoCalFormulaParts formulaParts = new AutoCalFormulaParts();
+			Set<String> formulaFieldList = new HashSet<>();
+			List<String> formulaLhsList = new LinkedList<>();
+			Boolean isformulaCellSet = false;
+			for (String str : formulaArray) {
+				String[] formulafields = str.split(",");
+				if(formulafields.length == 1 && Boolean.FALSE.equals(isformulaCellSet)) {
+					formulaParts.setFormulaCell(str);
+					isformulaCellSet = true;
+				} else {
+					for(String formField : formulafields) {
+						Boolean isSymbol = isSymbol(formField);
+						if (Boolean.FALSE.equals(isSymbol) && formField.contains("0-")) {
+							formulaLhsList.add("#"+formField);
+							formulaFieldList.add("#"+formField);
+						} else {
+							formulaLhsList.add(formField);
+						}
+					}
+					formulaParts.setFormula(StringUtils.join(formulaLhsList, " "));
+				}
+			}
+			result = new HashMap<>();
+			formulaParts.setErrorCode(formula.getErrorCodeDetail().getTechnicalErrorCode());
+			//if event type is 3  split formula field instead of formulaCell for table id
+			String[] array = null;
+			if ("3".equals(formula.getEventType())) {
+				array = formulaParts.getFormula().split("-");
+			} else {
+				array = formulaParts.getFormulaCell().split("-");
+			}
+			formulaParts.setTableId(array[1]);
+			formulaParts.setFormulaId(formula.getFormulaId());
+			formulaParts.setRowId(0);
+			formulaParts.setErrorType(formula.getErrorType());
+			formulaList.add(formulaParts);
+			for (String formulaField : formulaFieldList) {
+				Boolean isSymbol = isSymbol(formulaField);
+				if (Boolean.FALSE.equals(isSymbol)) {
+					//if event type is 3 no remove 0- from formulaField
+					String formulaStr = formulaField;
+					if ("3".equals(formula.getEventType())) {
+						String formulaFields[] = formulaStr.split("#0-");
+						formulaStr = formulaFields[1];
+					} else {
+						String formulaFields[] = formulaStr.split("#");
+						formulaStr = formulaFields[1];
+					}
+					result.put(formulaStr, formulaList);
+				}
+			}
+			formula.setNormalFormula(result);
+			return formula;
+		}
+	}
+
+	public Boolean isSymbol(String item) {
+		Boolean isSymbol = false;
+		item = item.replaceAll(" ","");
+		for (String eq : EQUATOR) {
+			if (StringUtils.equalsIgnoreCase(eq, item.trim())) {
+				isSymbol = true;
+				break;
+			}
+		}
+		return isSymbol;
+
+	}
+	/**
+	 * 
+	 * @param formulaArray
+	 * @param formula 
+	 * @param isCrossElr
+	 * @return
+	 */
+	private AutoCalFormulaParts prepareValidationFormula(String[] formulaArray, FormulaBean formula){
+		AutoCalFormulaParts validationFormula = new AutoCalFormulaParts();
+		validationFormula.setFormulaCell("NA");
+		if (StringUtils.equals(formula.getDataType(), "dateType")) {
+			validationFormula.setFormulaType("DATECHK");
+		} else {
+			validationFormula.setFormulaType("EQUATION");
+		}
+		StringBuilder tempLhsExp = new StringBuilder();
+		StringBuilder tempRhsExp = new StringBuilder();
+		Boolean skip = true;
+		Boolean lhsNotCreated = true;
+		for (String item : formulaArray) {
+			for (String eqItem : LHS_DIVIDER) {
+				if (StringUtils.equals(eqItem, item) && Boolean.TRUE.equals(lhsNotCreated)) {
+					validationFormula.setExp(item);
+					validationFormula.setLhs(tempLhsExp.toString());
+					lhsNotCreated = false;
+					continue;
+				}
+			}
+			if (Boolean.TRUE.equals(lhsNotCreated)) {
+				prepareFormulaLHSandRHS(tempLhsExp, item);
+			} else {
+				if (Boolean.FALSE.equals(skip)) {
+					prepareFormulaLHSandRHS(tempRhsExp, item);
+				}
+				skip = false;
+			}
+		}
+		validationFormula.setRhs(tempRhsExp.toString());
+		return validationFormula;
+
+	}
+	/**
+	 * 
+	 * @param formulaArray
+	 * @param formula 
+	 * @param isCrossElr
+	 * @return
+	 */
+	private AutoCalFormulaParts prepareValidationFormulaCross(String[] formulaArray, FormulaBean formula){
+		AutoCalFormulaParts validationFormula = new AutoCalFormulaParts();
+		validationFormula.setFormulaCell("NA");
+		if (StringUtils.equals(formula.getDataType(), "dateType")) {
+			validationFormula.setFormulaType("DATECHK");
+		} else {
+			validationFormula.setFormulaType("EQUATION");
+		}
+		StringBuilder tempLhsExp = new StringBuilder();
+		StringBuilder tempRhsExp = new StringBuilder();
+		Boolean skip = true;
+		Boolean lhsNotCreated = true;
+		for (String item : formulaArray) {
+			for (String eqItem : LHS_DIVIDER) {
+				if (StringUtils.equals(eqItem, item) && Boolean.TRUE.equals(lhsNotCreated)) {
+					validationFormula.setExp(item);
+					validationFormula.setLhs(tempLhsExp.toString());
+					lhsNotCreated = false;
+					continue;
+				}
+			}
+			if (Boolean.TRUE.equals(lhsNotCreated)) {
+				prepareFormulaLHSandRHS(tempLhsExp, item);
+			} else {
+				if (Boolean.FALSE.equals(skip)) {
+					prepareFormulaLHSandRHS(tempRhsExp, item);
+				}
+				skip = false;
+			}
+		}
+		validationFormula.setRhs(tempRhsExp.toString());
+		prepareElrIdMap(formula, validationFormula);
+		return validationFormula;
+	}
+
+	/**
+	 * @param formula
+	 * @param validationFormula
+	 */
+	private void prepareElrIdMap(FormulaBean formula, AutoCalFormulaParts validationFormula) {
+		Map<String,Object> elrMap = new HashMap<>();
+		if (StringUtils.isNotBlank(formula.getElrIdPair())) {
+			String[] elrPair = formula.getElrIdPair().split(",");
+			for (String elrItem : elrPair) {
+				String[] itemValue = elrItem.split(">");
+				elrMap.put("#"+itemValue[0], Integer.parseInt(itemValue[1]));
+			}
+			validationFormula.setElementElr(elrMap);
+		}
+	}
+
+	/**
+	 * @param tempRhsExp
+	 * @param item
+	 */
+	private void prepareFormulaLHSandRHS(StringBuilder tempExp, String item) {
+		if (Boolean.FALSE.equals(isSymbol(item))) {
+			if (item.contains("0-")) {
+				tempExp.append("#").append(item);
+			} else {
+				tempExp.append(item);
+			}
+		} else {
+			tempExp.append(" ").append(item).append(" ");
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public JSONObject checkIfFormulaPresent(FormulaBean formula, AutoCalculationFormula autoCal) {
+		FormulaBean convetedFormula = convert(formula);
+		JSONObject formulaJsonObject = null;
+		Boolean isFormulaPresent = false;
+		Map<String,JSONObject> jsonObjectMap = new HashMap<>();
+		Map<String, List<AutoCalFormulaParts>> normalformulaMap = null;
+		AutoCalFormulaParts autoCalFormulaParts = null;
+		if (!Objects.isNull(autoCal)) {
+			ObjectMapper mapper = new ObjectMapper();
+			mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+			try {
+				if (!Objects.isNull(autoCal) && !ObjectUtils.isEmpty(autoCal.getFormulaJson()) && !Objects.isNull(autoCalFormulaParts) && !ObjectUtils.isEmpty(convetedFormula.getNormalFormula())) {
+					if (!ObjectUtils.isEmpty(convetedFormula.getNormalFormula())) {
+						normalformulaMap = convetedFormula.getNormalFormula();
+					}
+					if (!CollectionUtils.isEmpty(normalformulaMap)) {
+						Collection<List<AutoCalFormulaParts>> autoCalFormulaList = normalformulaMap.values().stream().collect(Collectors.toCollection(ArrayList::new));
+						for (List<AutoCalFormulaParts> autoCalList : autoCalFormulaList) {
+							autoCalFormulaParts = autoCalList.get(0);
+							break;
+						}
+					}
+					TypeReference<Map<String,Map<String,Map<String,List<AutoCalFormulaParts>>>>> autoFormulaType = new TypeReference<Map<String,Map<String,Map<String,List<AutoCalFormulaParts>>>>>() {
+					};
+					Map<String, Map<String, Map<String, List<AutoCalFormulaParts>>>> retMap;
+					retMap = mapper.readValue(autoCal.getFormulaJson(), autoFormulaType);
+					Map<String,Map<String,List<AutoCalFormulaParts>>> onBlurMap = retMap.get("customeCalculation");
+					checkFormula(autoCalFormulaParts, onBlurMap, "onblurEvent", jsonObjectMap);
+					checkFormula(autoCalFormulaParts, onBlurMap, "onchangeEvent", jsonObjectMap);
+					List<JSONObject> jsonObjectList = new ArrayList<>(jsonObjectMap.values());
+					for (JSONObject jsonObject : jsonObjectList) {
+						String val = (String) jsonObject.get("lhs");
+						if (val.equals(autoCalFormulaParts.getLhs())) {
+							val = (String) jsonObject.get("exp");
+							if (val.equals(autoCalFormulaParts.getExp())) {
+								isFormulaPresent = true;
+							} else {
+								isFormulaPresent = false;
+								continue;
+							}
+							val = (String) jsonObject.get("rhs");
+							if (val.equals(autoCalFormulaParts.getRhs())) {
+								isFormulaPresent = true;
+								formulaJsonObject = jsonObject;
+								break;
+							} else {
+								isFormulaPresent = false;
+							}
+						}
+						val = (String) jsonObject.get("lhs");
+						if (val.equals(autoCalFormulaParts.getRhs())) {
+							val = (String) jsonObject.get("rhs");
+							if (val.equals(autoCalFormulaParts.getLhs())) {
+								isFormulaPresent = true;
+							} else {
+								isFormulaPresent = false;
+							}
+							val = (String) jsonObject.get("exp");
+							if (val.equals(">") && Boolean.TRUE.equals(isFormulaPresent)) {
+								val = "<";
+							} else if (val.equals("<")) {
+								val = ">";
+							}
+							if (val.equals(">=") && Boolean.TRUE.equals(isFormulaPresent)) {
+								val = "<=";
+							} else if(val.equals("<=")) {
+								val = ">=";
+							}
+							if (val.equals(autoCalFormulaParts.getExp()) && Boolean.TRUE.equals(isFormulaPresent)) {
+								isFormulaPresent = true;
+								formulaJsonObject = jsonObject;
+								break;
+							} else {
+								isFormulaPresent = false;
+								continue;
+							}
+						}
+					}
+				}
+			} catch (JsonProcessingException | ParseException e) {
+				logger.error("Exception : ", e);
+				return null;
+			}
+			if (Boolean.TRUE.equals(isFormulaPresent)) {
+				ErrorCodeDetail newErrorCodeDetail = convetedFormula.getErrorCodeDetail();
+				ErrorCodeDetail errorCodeDetail = getErrorcodeMap(convetedFormula.getReturnCode(), (String) formulaJsonObject.get("errorCode"));
+				if (!Objects.isNull(errorCodeDetail)) {
+					if (!newErrorCodeDetail.getErrorDescription().equals(errorCodeDetail.getErrorDescription())) {
+						formulaJsonObject = null;
+					}
+				}
+				return formulaJsonObject;
+			}
+//			List<AutoCalFormulaParts> crossformulaList = null;
+//			autoCalFormulaParts = null;
+//			if(!ObjectUtils.isEmpty(convetedFormula.getCrossElrFormula())) {
+//				crossformulaList = convetedFormula.getCrossElrFormula();
+//			}
+//			if(!CollectionUtils.isEmpty(crossformulaList)) {
+//				autoCalFormulaParts = crossformulaList.get(0);
+//			}
+			mapper = new ObjectMapper();
+			mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+			try {
+				if (!Objects.isNull(autoCal) && !ObjectUtils.isEmpty(autoCal.getCrossElrJson()) && !Objects.isNull(autoCalFormulaParts) && !ObjectUtils.isEmpty(convetedFormula.getCrossElrFormula())) {
+					List<AutoCalFormulaParts> autoCalFormulaList = convetedFormula.getCrossElrFormula();
+					autoCalFormulaParts = autoCalFormulaList.get(0);
+					TypeReference<Map<String,List<AutoCalFormulaParts>>> crossFormulaType = new TypeReference<Map<String,List<AutoCalFormulaParts>>>() {
+					};
+					Map<String,List<AutoCalFormulaParts>> crossRetMap = mapper.readValue(autoCal.getCrossElrJson(), crossFormulaType);
+					List<AutoCalFormulaParts> crossitems = crossRetMap.get("crossELRCalculation");
+					String formulaString = new Gson().toJson(crossitems);
+					JSONParser parser = new JSONParser();
+					JSONArray array = (JSONArray)parser.parse(formulaString);
+					int count = array.size();
+					for (int i = 0; i < count; i++) {
+						JSONObject jsonObject = (JSONObject) array.get(i);
+						String val = (String) jsonObject.get("exp");
+						if (val.equals(autoCalFormulaParts.getExp())) {
+							val = (String) jsonObject.get("lhs");
+							if (val.equals(autoCalFormulaParts.getLhs())) {
+								isFormulaPresent = true;
+							} else {
+								isFormulaPresent = false;
+								continue;
+							}
+							val = (String) jsonObject.get("rhs");
+							if (val.equals(autoCalFormulaParts.getRhs()) && Boolean.TRUE.equals(isFormulaPresent)) {
+								isFormulaPresent = true;
+								formulaJsonObject = jsonObject;
+								break;
+		 
+							} else {
+								isFormulaPresent = false;
+							}
+						}
+						if (val.equals(">") && Boolean.TRUE.equals(isFormulaPresent)) {
+							val = "<";
+						} else if (val.equals("<")) {
+							val = ">";
+						}
+						if (val.equals(">=") && Boolean.TRUE.equals(isFormulaPresent)) {
+							val = "<=";
+						} else if (val.equals("<=")) {
+							val = ">=";
+						}
+						if (val.equals(autoCalFormulaParts.getExp())) {
+							val = (String) jsonObject.get("lhs");
+							if (val.equals(autoCalFormulaParts.getRhs())) {
+								isFormulaPresent = true;
+							} else {
+								isFormulaPresent = false;
+								continue;
+							}
+							val = (String) jsonObject.get("rhs");
+							if (val.equals(autoCalFormulaParts.getLhs()) && Boolean.TRUE.equals(isFormulaPresent)) {
+								isFormulaPresent = true;
+								formulaJsonObject = jsonObject;
+								break;
+		 
+							} else {
+								isFormulaPresent = false;
+							}
+						}
+					}
+//					for (int i = 0; i < count; i++) {
+//						JSONObject jsonObject = (JSONObject) array.get(i);
+//						String val = (String) jsonObject.get("lhs");
+//						checkValue(autoCalFormulaParts, jsonObjectMap, jsonObject, val);
+//						val = (String) jsonObject.get("rhs");
+//						checkValue(autoCalFormulaParts, jsonObjectMap, jsonObject, val);
+//					}
+//					List<JSONObject> jsonObjectList = new ArrayList<>(jsonObjectMap.values());
+//					for(JSONObject jsonObject : jsonObjectList) {
+//							   
+//						String val = (String) jsonObject.get("exp");
+//						if(val.equals(autoCalFormulaParts.getExp())) {
+//							val = (String) jsonObject.get("lhs");
+//							if (val.equals(autoCalFormulaParts.getLhs())) {
+//								isFormulaPresent = true;
+//							} else {
+//								isFormulaPresent = false;
+//								continue;
+//							}
+//							val = (String) jsonObject.get("rhs");
+//							if (val.equals(autoCalFormulaParts.getRhs()) && isFormulaPresent) {
+//								isFormulaPresent = true;
+//								formulaJsonObject = jsonObject;
+//								break;
+//		 
+//							} else {
+//								isFormulaPresent = false;
+//							}
+//						}
+//					}
+				}
+			} catch (JsonProcessingException | ParseException e) {
+				logger.error("Exception : ", e);
+				return null;
+			}
+		} 
+		if (!CollectionUtils.isEmpty(formula.getFormulaJsonMap()) && Boolean.FALSE.equals(isFormulaPresent)){
+			if (!ObjectUtils.isEmpty(convetedFormula.getNormalFormula())) {
+				normalformulaMap = convetedFormula.getNormalFormula();
+			}
+			if (!CollectionUtils.isEmpty(normalformulaMap)) {
+				Collection<List<AutoCalFormulaParts>> autoCalFormulaList = normalformulaMap.values().stream().collect(Collectors.toCollection(ArrayList::new));
+				for (List<AutoCalFormulaParts> autoCalList : autoCalFormulaList) {
+					autoCalFormulaParts = autoCalList.get(0);
+					break;
+				}
+			}
+			try {
+				FormulaBean formulaBean = null;			   
+				for (String errorCode : formula.getFormulaJsonMap().keySet()) {
+					Map<String, List<AutoCalFormulaParts>> newNormalformulaMap = null;
+					List<AutoCalFormulaParts> newCrossformulaList = null;
+					AutoCalFormulaParts newAutoCalFormulaParts = null;
+					autoCalFormulaParts = null;
+					normalformulaMap = null;
+					String errorInitials = "E"+formula.getReturnCode();
+					String formulaBeanStr = formula.getFormulaJsonMap().get(errorCode);
+					Type listToken = new TypeToken<FormulaBean>() {
+					}.getType();
+					formulaBean = new Gson().fromJson(formulaBeanStr, listToken);
+					if (!errorCode.startsWith(errorInitials)) {
+						formulaBean = prepareErrorCodeDetailObject(formulaBean);
+						formulaBean = convert(formulaBean);
+					}
+					if ( !Objects.isNull(formulaBean) && !ObjectUtils.isEmpty(formulaBean.getNormalFormula())) {
+						normalformulaMap = formulaBean.getNormalFormula();
+					}
+					if (!CollectionUtils.isEmpty(normalformulaMap)) {
+						for(Entry<String, List<AutoCalFormulaParts>> autoCalFormula : normalformulaMap.entrySet()) {
+							List<AutoCalFormulaParts> autoCalList = autoCalFormula.getValue();
+							if(!CollectionUtils.isEmpty(autoCalList)) {
+								autoCalFormulaParts = autoCalList.get(0);
+							}
+							break;
+						}
+					}
+					if (!Objects.isNull(convetedFormula.getNormalFormula()) && formulaBean != null && !CollectionUtils.isEmpty(formulaBean.getNormalFormula())) {
+						newNormalformulaMap = convetedFormula.getNormalFormula();
+						if (!CollectionUtils.isEmpty(newNormalformulaMap)) {
+							Collection<List<AutoCalFormulaParts>> autoCalFormulaList = newNormalformulaMap.values().stream().collect(Collectors.toCollection(ArrayList::new));
+							for (List<AutoCalFormulaParts> autoCalList : autoCalFormulaList) {
+								newAutoCalFormulaParts = autoCalList.get(0);
+								break;
+							}
+						}
+						if (!Objects.isNull(newAutoCalFormulaParts) && !Objects.isNull(autoCalFormulaParts) && !Objects.isNull(newAutoCalFormulaParts.getLhs()) && !Objects.isNull(autoCalFormulaParts.getLhs())) {
+							if (newAutoCalFormulaParts.getLhs().equals(autoCalFormulaParts.getLhs())) {
+								if (newAutoCalFormulaParts.getExp().equals(autoCalFormulaParts.getExp())) {
+									isFormulaPresent = true;
+								} else {
+									isFormulaPresent = false;
+									continue;
+								}
+								if (newAutoCalFormulaParts.getRhs().equals(autoCalFormulaParts.getRhs()) && isFormulaPresent) {
+									isFormulaPresent = true;
+									JSONParser parser = new JSONParser();
+									formulaJsonObject = (JSONObject) parser.parse(new Gson().toJson(autoCalFormulaParts));
+									formulaJsonObject.remove("errorCode"); 
+									formulaJsonObject.put("errorCode", formulaBean.getErrorCode());
+									break;
+								} else {
+									isFormulaPresent = false;
+								}
+							}
+							
+							if (newAutoCalFormulaParts.getLhs().equals(autoCalFormulaParts.getRhs())) {
+								String val = newAutoCalFormulaParts.getExp();
+								if (val.equals(">")) {
+									val = "<";
+								} else if (val.equals("<")) {
+									val = ">";
+								}
+								if (val.equals(">=")) {
+									val = "<=";
+								} else if (val.equals("<=")) {
+									val = ">=";
+								}
+								if (val.equals(autoCalFormulaParts.getExp())) {
+									isFormulaPresent = true;
+								} else {
+									isFormulaPresent = false;
+									continue;
+								}
+								if (newAutoCalFormulaParts.getRhs().equals(autoCalFormulaParts.getLhs()) && isFormulaPresent) {
+									isFormulaPresent = true;
+									JSONParser parser = new JSONParser();
+									formulaJsonObject = (JSONObject) parser.parse(new Gson().toJson(autoCalFormulaParts));
+									formulaJsonObject.remove("errorCode"); 
+									formulaJsonObject.put("errorCode", formulaBean.getErrorCode());
+									break;
+								} else {
+									isFormulaPresent = false;
+								}
+							}
+						}
+						if (!Objects.isNull(newAutoCalFormulaParts) && !Objects.isNull(autoCalFormulaParts) && !Objects.isNull(newAutoCalFormulaParts.getFormulaCell()) && !newAutoCalFormulaParts.getFormulaCell().equals("NA") && !Objects.isNull(autoCalFormulaParts.getFormulaCell())  && !autoCalFormulaParts.getFormulaCell().equals("NA")) {
+							if (newAutoCalFormulaParts.getFormulaCell().equals(autoCalFormulaParts.getFormulaCell())) {
+								isFormulaPresent = true;
+							} else {
+								isFormulaPresent = false;
+								continue;
+							}
+							if (newAutoCalFormulaParts.getFormula().equals(autoCalFormulaParts.getFormula()) && isFormulaPresent) {
+								isFormulaPresent = true;
+								JSONParser parser = new JSONParser();
+								formulaJsonObject = (JSONObject) parser.parse(new Gson().toJson(autoCalFormulaParts));
+								break;
+							} else {
+								List<String> newFormulaFieldSet = new LinkedList<>();
+								newFormulaFieldSet = getFormulaFields(newAutoCalFormulaParts, newFormulaFieldSet);
+								List<String> formulaFieldSet = new LinkedList<>();
+								formulaFieldSet = getFormulaFields(autoCalFormulaParts, formulaFieldSet);
+								int count = 0;
+								if (newFormulaFieldSet.size() == formulaFieldSet.size()) {
+									for (String field : formulaFieldSet) {
+										if (newFormulaFieldSet.contains(field)) {
+											count++;
+										}
+									}
+									if (formulaFieldSet.size() == count) {
+										isFormulaPresent = true;
+										JSONParser parser = new JSONParser();
+										formulaJsonObject = (JSONObject) parser.parse(new Gson().toJson(autoCalFormulaParts));
+									} else {
+										isFormulaPresent = false;
+									}
+								} else {
+									isFormulaPresent = false;
+								}
+							}
+						}
+					} else if (!CollectionUtils.isEmpty(convetedFormula.getCrossElrFormula()) && formulaBean != null && !CollectionUtils.isEmpty(formulaBean.getCrossElrFormula())) {
+						newCrossformulaList = convetedFormula.getCrossElrFormula();
+						List<AutoCalFormulaParts> crossformulaList = formulaBean.getCrossElrFormula();
+						for (AutoCalFormulaParts autoCalFormula : newCrossformulaList) {
+							newAutoCalFormulaParts = autoCalFormula;
+							break;
+						}
+						for (AutoCalFormulaParts autoCalFormula : crossformulaList) {
+							autoCalFormulaParts = autoCalFormula;
+							break;
+						}
+						if (!Objects.isNull(newAutoCalFormulaParts) && !Objects.isNull(autoCalFormulaParts)) {
+							if (newAutoCalFormulaParts.getExp().equals(autoCalFormulaParts.getExp())) {
+								if (newAutoCalFormulaParts.getLhs().equals(autoCalFormulaParts.getLhs())) {
+									isFormulaPresent = true;
+								} else {
+									isFormulaPresent = false;
+									continue;
+								}
+								if (newAutoCalFormulaParts.getRhs().equals(autoCalFormulaParts.getRhs()) && Boolean.TRUE.equals(isFormulaPresent)) {
+									isFormulaPresent = true;
+									JSONParser parser = new JSONParser();
+									formulaJsonObject = (JSONObject) parser.parse(new Gson().toJson(autoCalFormulaParts));
+									formulaJsonObject.remove("errorCode"); 
+									formulaJsonObject.put("errorCode", formulaBean.getErrorCode());
+									break;
+								} else {
+									isFormulaPresent = false;
+								}
+							}
+						}
+					}
+				} 
+				ErrorCodeDetail newErrorCodeDetail = convetedFormula.getErrorCodeDetail();
+				if (!Objects.isNull(formulaBean)) {
+					if (Boolean.TRUE.equals(isFormulaPresent) && !newErrorCodeDetail.getErrorDescription().equals(formulaBean.getErrorMessage())) {
+						formulaJsonObject = null;
+					}
+				}
+			} catch (ParseException e) {
+				logger.error("Exception : ", e);
+				return null;
+			}
+		}
+		return formulaJsonObject;
+	}
+
+	/**
+	 * @param newAutoCalFormulaParts
+	 * @param formulaFieldSet
+	 * @return
+	 */
+	private List<String> getFormulaFields(AutoCalFormulaParts newAutoCalFormulaParts, List<String> formulaFieldSet) {
+		String[] formulaFieldArray;
+		if (newAutoCalFormulaParts.getFormula().contains(" + #") || newAutoCalFormulaParts.getFormula().contains(" - #") || newAutoCalFormulaParts.getFormula().contains(" / #") || newAutoCalFormulaParts.getFormula().contains(" * #")) {
+			formulaFieldArray = newAutoCalFormulaParts.getFormula().split(" - #");
+			List<String> formulaFields = new LinkedList<>();
+			int count = 0;
+			for (String formulaFieldStr : formulaFieldArray) {
+				formulaFields.add(formulaFieldStr);
+				if (count < formulaFieldArray.length-1) {
+					formulaFields.add("-");
+				}
+				count++;
+			}
+			if (formulaFields != null) {
+				for (String formulaStr : formulaFields) {
+					String[] formulaStrArray = null;
+					if (formulaStr.contains(" + #")) {
+						formulaStrArray = formulaStr.split(" \\+ #");
+						Set<String> set = new HashSet<>(Arrays.asList(formulaStrArray));
+						count = 0;
+						for (String formulaFieldStr : set) {
+//												formulaFieldStr =formulaFieldStr.replaceAll(",","");
+							formulaFieldSet.add(formulaFieldStr);
+							if (count < set.size()-1) {
+								formulaFieldSet.add("+");
+							}
+							count++;
+						}
+					} else {
+//											formulaStr = formulaStr.replaceAll(",","");
+						formulaFieldSet.add(formulaStr);
+					}
+				}
+			}
+			formulaFields = new LinkedList<>();
+			if (!CollectionUtils.isEmpty(formulaFieldSet)) {
+				for (String formulaStr : formulaFieldSet) {
+					String[] formulaStrArray = null;
+					if (formulaStr.contains(" / #")) {
+						formulaStrArray = formulaStr.split(" \\/ #");
+						Set<String> set = new HashSet<>(Arrays.asList(formulaStrArray));
+						count = 0;
+						for (String formulaFieldStr : set) {
+							formulaFields.add(formulaFieldStr);
+							if (count < set.size()-1) {
+								formulaFields.add("/");
+							}
+							count++;
+						}
+					} else {
+						formulaFields.add(formulaStr);
+					}
+				}
+			}
+			formulaFieldSet = new LinkedList<>();
+			if (!CollectionUtils.isEmpty(formulaFields)) {
+				for (String formulaStr : formulaFields) {
+					String[] formulaStrArray = null;
+					if (formulaStr.contains(" * #")) {
+						formulaStrArray = formulaStr.split(" \\* #");
+						Set<String> set = new HashSet<>(Arrays.asList(formulaStrArray));
+						count = 0;
+						for (String formulaFieldStr : set) {
+							formulaFieldSet.add(formulaFieldStr);
+							if (count < set.size()-1) {
+								formulaFieldSet.add("*");
+							}
+							count++;
+						}
+					} else {
+						formulaFieldSet.add(formulaStr);
+					}
+				}
+			}
+//			StringBuilder formulaRHS = new StringBuilder("");
+			List<String> formulaFieldSetFinal = new LinkedList<>();
+			for (String formulaFieldId : formulaFieldSet) {
+				String formulaField = "";
+				if (formulaFieldId.contains("0-")) {
+					formulaField = formulaFieldId.replace("#","");
+					formulaFieldSetFinal.add(formulaField);
+				} else {
+					formulaFieldSetFinal.add(formulaFieldId);
+				}
+			}
+			formulaFieldSet = formulaFieldSetFinal;
+		}
+		return formulaFieldSet;
+	}
+	
+	private FormulaBean prepareErrorCodeDetailObject(FormulaBean formulaBeanObj) {
+//		FormulaBean formulaBean = new FormulaBean();
+		ErrorCodeDetail errorDetail = new ErrorCodeDetail();
+		errorDetail.setTechnicalErrorCode(getReturnErrorcode(formulaBeanObj.getReturnCode()));
+		errorDetail.setBusinessErrorCode(formulaBeanObj.getErrorCode());
+		errorDetail.setErrorDescription(formulaBeanObj.getErrorMessage());
+		errorDetail.setRoundOff(2);
+		FormulaCategoryType formulaCategoryType = new FormulaCategoryType();
+		formulaCategoryType.setFormulaCategoryTypeId(Long.valueOf(1));
+		errorDetail.setFormulaCategoryTypeIdFk(formulaCategoryType);
+		errorDetail.setNumericFormula("1");
+		formulaBeanObj.setErrorCodeDetail(errorDetail);
+		return formulaBeanObj;
+	}
+
+	private String getReturnErrorcode(String returnCode) {
+		String errorInitials = "E"+returnCode;
+		ErrorCodeDetail detail = errorCodeDetailRepo.findMaxErrorCodeDetail(errorInitials);
+
+		if (detail==null) {
+			return errorInitials+"00001";
+		} else {
+			String numberPart = detail.getTechnicalErrorCode().substring(errorInitials.length()+1, detail.getTechnicalErrorCode().length());
+			Integer numberValue = Integer.valueOf(numberPart);
+			numberValue++;
+			return errorInitials+"T"+numberValue;
+		}
+
+	}
+	
+	private ErrorCodeDetail getErrorcodeMap(String returnCode, String errorCode) {
+		String errorInitials = "E"+returnCode;
+		List<ErrorCodeDetail> detail = errorCodeDetailRepo.findErrorCodeDetail(errorInitials);
+		ErrorCodeDetail  result = null;
+		for (ErrorCodeDetail item : detail ) {
+			if (errorCode.equals(item.getTechnicalErrorCode())) {
+				result = item;
+				break;
+			}
+//			result.put(item.getTechnicalErrorCode(), item);
+		}
+
+		return result;
+	}
+	
+	/**
+	 * @param autoCalFormulaParts
+	 * @param onBlurMap
+	 * @throws ParseException
+	 */
+	private void checkFormula(AutoCalFormulaParts autoCalFormulaParts,
+			Map<String, Map<String, List<AutoCalFormulaParts>>> onBlurMap, String event, Map<String,JSONObject> jsonObjectMap) throws ParseException {
+			Map<String,List<AutoCalFormulaParts>> innerd = onBlurMap.get(event);
+			if (!CollectionUtils.isEmpty(innerd)) {
+				Set<String> newFormulaFieldSet = innerd.keySet();
+				for (String newFormulaField : newFormulaFieldSet) {
+					Set<String> oldFormulaFieldSet = innerd.keySet();
+					if (oldFormulaFieldSet.contains(newFormulaField)) {
+						List<AutoCalFormulaParts> newFieldFormulaList = innerd.get(newFormulaField);
+						for (AutoCalFormulaParts autoCalFormParts : newFieldFormulaList) {
+							JSONParser parser = new JSONParser();
+							JSONObject jsonObject = (JSONObject) parser.parse(new Gson().toJson(autoCalFormParts));
+							String val = (String) jsonObject.get("lhs");
+							if (!StringUtils.isBlank(val)) {
+								checkValue(autoCalFormulaParts, jsonObjectMap, jsonObject, val);
+								val = (String) jsonObject.get("rhs");
+								checkValue(autoCalFormulaParts, jsonObjectMap, jsonObject, val);
+							}
+						}
+					}
+				}
+		}
+	}
+//	}
+
+	/**
+	 * @param autoCalFormulaParts
+	 * @param jsonObjectMap
+	 * @param jsonObject
+	 * @param val
+	 */
+	private void checkValue(AutoCalFormulaParts autoCalFormulaParts, Map<String, JSONObject> jsonObjectMap,
+			JSONObject jsonObject, String val) {
+		if (val.equals(autoCalFormulaParts.getLhs())) {
+			jsonObjectMap.put(autoCalFormulaParts.getLhs(),jsonObject);
+		}
+		if (val.equals(autoCalFormulaParts.getRhs())) {
+			jsonObjectMap.put(autoCalFormulaParts.getLhs(),jsonObject);
+		}
+	}
+	
+//	@SuppressWarnings("resource")
+//	public static void main(String[] args) {
+//		 String str = "b,+,c";
+//		 String str1 = "b,+,c";
+//		 String[] formulaFieldArray = str.split(",");
+//		Set<String> formulaFieldSet = new HashSet<>();
+//		for(int i=0; i<formulaFieldArray.length; i++) {
+//			Boolean isSymbol = isSymbol(formulaFieldArray[i]);
+//			if (Boolean.FALSE.equals(isSymbol) && formulaFieldArray[i].contains("0-")) {
+//				String field = formulaFieldArray[i].substring(1);
+//				formulaFieldSet.add(field);
+//			} else {
+//				
+//			}
+//		}
+//	}
+}

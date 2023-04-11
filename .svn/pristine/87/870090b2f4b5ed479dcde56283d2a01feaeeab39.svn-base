@@ -1,0 +1,87 @@
+package com.iris.ebr.business.technical.metadata.bean;
+
+import java.io.Serializable;
+import java.util.Date;
+
+/**
+ * @author sajadhav
+ *
+ */
+public class ItemDto implements Serializable {
+
+	/**
+	*
+	*/
+	private static final long serialVersionUID = -6616420285047984331L;
+
+	private String returnCode;
+
+	private String itemOldSk;
+
+	private String itemCode;
+
+	private String itemDisplayText;
+
+	private String activeFlag;
+
+	private String startEffectiveDate;
+
+	private String endEffectiveDate;
+
+	public String getReturnCode() {
+		return returnCode;
+	}
+
+	public void setReturnCode(String returnCode) {
+		this.returnCode = returnCode;
+	}
+
+	public String getItemOldSk() {
+		return itemOldSk;
+	}
+
+	public void setItemOldSk(String itemOldSk) {
+		this.itemOldSk = itemOldSk;
+	}
+
+	public String getItemCode() {
+		return itemCode;
+	}
+
+	public void setItemCode(String itemCode) {
+		this.itemCode = itemCode;
+	}
+
+	public String getItemDisplayText() {
+		return itemDisplayText;
+	}
+
+	public void setItemDisplayText(String itemDisplayText) {
+		this.itemDisplayText = itemDisplayText;
+	}
+
+	public String getActiveFlag() {
+		return activeFlag;
+	}
+
+	public void setActiveFlag(String activeFlag) {
+		this.activeFlag = activeFlag;
+	}
+
+	public String getStartEffectiveDate() {
+		return startEffectiveDate;
+	}
+
+	public void setStartEffectiveDate(String startEffectiveDate) {
+		this.startEffectiveDate = startEffectiveDate;
+	}
+
+	public String getEndEffectiveDate() {
+		return endEffectiveDate;
+	}
+
+	public void setEndEffectiveDate(String endEffectiveDate) {
+		this.endEffectiveDate = endEffectiveDate;
+	}
+
+}

@@ -1,0 +1,129 @@
+/**
+ * 
+ */
+package com.iris.sdmx.element.service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.iris.exception.ServiceException;
+import com.iris.sdmx.element.bean.SdmxElementTempBean;
+import com.iris.sdmx.element.entity.SdmxElementTempEntity;
+import com.iris.sdmx.element.helper.SdmxElementTempHelper;
+import com.iris.sdmx.element.repo.SdmxElementTempRepo;
+import com.iris.sdmx.status.entity.AdminStatus;
+import com.iris.service.GenericService;
+
+/**
+ * @author apagaria
+ *
+ */
+@Service
+@Transactional(readOnly = true)
+public class SdmxElementTempService implements GenericService<SdmxElementTempEntity, Long> {
+
+	@Autowired
+	private SdmxElementTempRepo sdmxElementTempRepo;
+
+	@Override
+	public SdmxElementTempEntity add(SdmxElementTempEntity entity) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public boolean update(SdmxElementTempEntity entity) throws ServiceException {
+		return false;
+	}
+
+	@Override
+	public List<SdmxElementTempEntity> getDataByIds(Long[] ids) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public SdmxElementTempEntity getDataById(Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<SdmxElementTempEntity> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<SdmxElementTempEntity> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap,
+			String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<SdmxElementTempEntity> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<SdmxElementTempEntity> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<SdmxElementTempEntity> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public void deleteData(SdmxElementTempEntity bean) throws ServiceException {
+
+	}
+
+	/**
+	 * @param isActive
+	 * @return
+	 */
+	public List<SdmxElementTempBean> findByActiveStatus(Boolean isActive) {
+		List<SdmxElementTempBean> sdmxElementTempBeans = null;
+		List<SdmxElementTempEntity> sdmxElementTempEntities = sdmxElementTempRepo.findByActiveStatus(isActive);
+		if (!CollectionUtils.isEmpty(sdmxElementTempEntities)) {
+			sdmxElementTempBeans = new ArrayList<>();
+			for (SdmxElementTempEntity sdmxElementTempEntity : sdmxElementTempEntities) {
+				SdmxElementTempBean sdmxElementTempBean = new SdmxElementTempBean();
+				// convert entity to Bean
+				SdmxElementTempHelper.convertEntityToBean(sdmxElementTempEntity, sdmxElementTempBean);
+				sdmxElementTempBeans.add(sdmxElementTempBean);
+			}
+		}
+		return sdmxElementTempBeans;
+	}
+
+	@Transactional(readOnly = false)
+	public void addEntityByBean(SdmxElementTempBean sdmxElementTempBean) {
+		SdmxElementTempEntity sdmxElementTempEntity = new SdmxElementTempEntity();
+		SdmxElementTempHelper.convertBeanToEntity(sdmxElementTempBean, sdmxElementTempEntity);
+		sdmxElementTempRepo.save(sdmxElementTempEntity);
+	}
+
+	/**
+	 * @param dsdCode
+	 * @param adminStatus
+	 * @return
+	 */
+	public Boolean isDataExistWithDsdCodeAndStatus(String dsdCode, AdminStatus adminStatus) {
+		Boolean isRrecordExist = false;
+		int recordCount = sdmxElementTempRepo.isDataExistWithDsdCodeAndStatus(dsdCode, adminStatus);
+		if (recordCount > 0) {
+			isRrecordExist = true;
+		}
+		return isRrecordExist;
+	}
+
+}

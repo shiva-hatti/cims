@@ -1,0 +1,281 @@
+/**
+ * 
+ */
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.iris.dto.PrivilegeAccount;
+import com.iris.dto.ServiceResponse;
+import com.iris.exception.ServiceException;
+import com.iris.model.EntityBean;
+import com.iris.model.Menu;
+import com.iris.model.MenuRoleMap;
+import com.iris.model.Return;
+import com.iris.model.RoleType;
+import com.iris.model.UserMaster;
+import com.iris.model.UserRole;
+import com.iris.model.UserRoleEntityMapping;
+import com.iris.model.UserRoleReturnMapping;
+import com.iris.repository.MenuRoleMapRepo;
+import com.iris.repository.UserRoleEntityMappingRepo;
+import com.iris.repository.UserRoleRepo;
+import com.iris.repository.UserRoleReturnMappingRepo;
+import com.iris.util.constant.ErrorConstants;
+
+/**
+ * @author is an unknown old kid who still write code
+ * 
+ *         Typically two sides for a software as per cyber security strategies. 1. Designing an IAM 2. Designing an PAM
+ * 
+ *         Learn more here - https://www.beyondtrust.com/resources/glossary/privileged-access-management-pam
+ * 
+ */
+
+@RestController
+@RequestMapping("/service/pamController")
+public class PrivilegeAccessManagementController {
+	static final Logger logger = LogManager.getLogger(EntityMasterController.class);
+
+	@Autowired
+	private UserRoleRepo userRoleRepository;
+
+	@Autowired
+	private MenuRoleMapRepo menuRoleMapRepo;
+
+	@Autowired
+	private UserRoleReturnMappingRepo userRoleReturnMappingRepo;
+
+	@Autowired
+	private UserRoleEntityMappingRepo userRoleEntityMapping;
+
+	/*
+	 *
+	 * 
+	 * @Autowired private MenuLabelRepository menuLabelRepository;
+	 * 
+	 * @Autowired private ReturnRepo returnRepository;
+	 * 
+	 * @Autowired private UserRoleMasterRepo userRoleMasterRepo;
+	 */
+
+	@PostMapping(path = "/createNewRole")
+	public ServiceResponse createNewRole(@RequestBody PrivilegeAccount role) {
+		try {
+
+			Objects.requireNonNull(role, "role is missing, can not create empty role");
+			Objects.requireNonNull(role.getAllotedMenuList(), "allocated menu list is required");
+
+			UserRole result = userRoleRepository.save(convertPrivilegeAccountToUserRolePojo(role));
+
+			convertPrivilegeAllocatedMenuListForSave(Long.valueOf(role.getUserId()), result, role.getAllotedMenuList()).stream().forEach(menu -> menuRoleMapRepo.save(menu));
+
+			switch (Integer.parseInt(role.getRoleType())) {
+
+			case 1: // when department role is being created
+				Objects.requireNonNull(role.getAllotedReturnsList(), "allocated return list is required");
+
+				convertPrivilegeAllocatedReturnListForSave(Long.valueOf(role.getUserId()), result, role.getAllotedReturnsList()).stream().forEach(entity -> userRoleReturnMappingRepo.save(entity));
+				break;
+
+			case 2: // when entity role is being created
+				Objects.requireNonNull(role.getAllotedEntityAccessList(), "allocated entity list is required");
+
+				convertPrivilegeAllocatedMenuListForSave(Long.valueOf(role.getUserId()), result, role.getAllotedMenuList()).stream().forEach(menu -> menuRoleMapRepo.save(menu));
+
+				convertPrivilegeAllocatedEntityListForSave(Long.valueOf(role.getUserId()), result, role.getAllotedEntityAccessList()).stream().forEach(entity -> userRoleEntityMapping.save(entity));
+
+				break;
+			default:
+				throw new ServiceException("createNewRole unknown role type (" + role.getRoleType());
+			}
+
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(Boolean.TRUE).setResponse(result).setStatusCode(ErrorConstants.RECORD_SAVED_SUCCESSFULLY.getConstantVal()).setStatusMessage(ErrorConstants.RECORD_SAVED_SUCCESSFULLY.getConstantVal()).build();
+
+		} catch (Exception e) {
+			if (e instanceof NullPointerException) {
+				return new ServiceResponse.ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorConstants.EMPTY_RECORD.getConstantVal()).setStatusMessage(e.getMessage()).build();
+			} else {
+				return new ServiceResponse.ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorConstants.DEFAULT_ERROR.getConstantVal()).setStatusMessage(ErrorConstants.DEFAULT_MSG.getConstantVal()).build();
+			}
+		}
+	}
+
+	private List<MenuRoleMap> convertPrivilegeAllocatedMenuListForSave(final Long userIdModifiedBy, final UserRole roleCreated, Map<Long, String> allocatedMenuItems) {
+
+		Objects.requireNonNull(allocatedMenuItems);
+		List<MenuRoleMap> allocatedMenuListToSave = new ArrayList<MenuRoleMap>();
+		MenuRoleMap temp = null;
+		Menu tempMenu = null;
+		UserMaster modifiedBy = null;
+
+		for (Long allocatedMenu : allocatedMenuItems.keySet()) {
+
+			tempMenu = new Menu();
+			tempMenu.setMenuId(allocatedMenu);
+
+			modifiedBy = new UserMaster();
+			modifiedBy.setUserId(userIdModifiedBy);
+
+			temp = new MenuRoleMap();
+
+			temp.setIsActive(Boolean.TRUE);
+
+			temp.setMenuIDFk(tempMenu);
+			temp.setMenuRoleId(roleCreated.getRoleIdKey());
+			temp.setModifiedOn(roleCreated.getCreatedOn());
+
+			temp.setModifiedBy(modifiedBy);
+
+			allocatedMenuListToSave.add(temp);
+		}
+		return allocatedMenuListToSave;
+	}
+
+	private List<UserRoleReturnMapping> convertPrivilegeAllocatedReturnListForSave(final Long userIdModifiedBy, final UserRole userRoleCreated, Map<Long, String> allocatedMenuItems) {
+
+		Objects.requireNonNull(allocatedMenuItems);
+		List<UserRoleReturnMapping> allocatedMenuListToSave = new ArrayList<UserRoleReturnMapping>();
+
+		UserRoleReturnMapping temp = null;
+		Return tempReturn = null;
+		UserMaster modifiedBy = null;
+
+		for (Long allocatedMenu : allocatedMenuItems.keySet()) {
+
+			tempReturn = new Return();
+			tempReturn.setReturnId(allocatedMenu);
+
+			modifiedBy = new UserMaster();
+			modifiedBy.setUserId(userIdModifiedBy);
+
+			temp = new UserRoleReturnMapping();
+
+			temp.setIsActive(Boolean.TRUE);
+
+			temp.setRoleIdFk(userRoleCreated);
+
+			allocatedMenuListToSave.add(temp);
+		}
+		return allocatedMenuListToSave;
+	}
+
+	private List<UserRoleEntityMapping> convertPrivilegeAllocatedEntityListForSave(final Long userIdModifiedBy, final UserRole userRoleCreated, Map<Long, String> allocatedMenuItems) {
+
+		Objects.requireNonNull(allocatedMenuItems);
+		List<UserRoleEntityMapping> allocatedMenuListToSave = new ArrayList<UserRoleEntityMapping>();
+
+		UserRoleEntityMapping temp = null;
+		EntityBean tempEntity = null;
+		UserMaster modifiedBy = null;
+
+		for (Long allocatedMenu : allocatedMenuItems.keySet()) {
+
+			tempEntity = new EntityBean();
+			tempEntity.setEntityId(allocatedMenu);
+
+			modifiedBy = new UserMaster();
+			modifiedBy.setUserId(userIdModifiedBy);
+
+			temp = new UserRoleEntityMapping();
+
+			temp.setActive(Boolean.TRUE);
+
+			temp.setUserRole(userRoleCreated);
+			//temp.setUserRoleEntMapId();
+
+			allocatedMenuListToSave.add(temp);
+		}
+		return allocatedMenuListToSave;
+	}
+	/*
+	 * private Set<MenuLabel> prepareMenuLabelSet(){
+	 * 
+	 * }
+	 */
+
+	private UserRole convertPrivilegeAccountToUserRolePojo(PrivilegeAccount pRole) {
+
+		UserRole dbUserRole = new UserRole();
+		RoleType roleType = new RoleType();
+		Date momentConsiderWhenRoleIsGettingCreated = new Date(System.currentTimeMillis());
+		roleType.setRoleTypeId(1L); // FIXME
+
+		UserMaster createdBy = new UserMaster();
+		createdBy.setUserId(Long.valueOf(pRole.getUserId()));
+
+		// are not auto managed, DDL statement may add DEFAULT now() to tightly bind the column management over "time", time is a real magic
+		dbUserRole.setCreatedOn(momentConsiderWhenRoleIsGettingCreated);
+		dbUserRole.setLastUpdateOn(momentConsiderWhenRoleIsGettingCreated); // duplicate
+		dbUserRole.setLastModifiedOn(momentConsiderWhenRoleIsGettingCreated); // duplicate
+
+		// setting fk contraints 
+		dbUserRole.setLinkToAuditor(false);
+		dbUserRole.setLinkToEntity(false);
+		dbUserRole.setIsActive(true);
+
+		dbUserRole.setUser(createdBy);
+		dbUserRole.setLastApprovedBy(createdBy);
+		dbUserRole.setUserModify(createdBy);
+
+		dbUserRole.setRolePriority(roleType.getRoleTypeId());
+		dbUserRole.setRoleDesc(pRole.getRoleDescription());
+		dbUserRole.setRoleType(roleType);
+
+		return dbUserRole;
+	}
+
+	//	public static void main(String[] args) throws Exception{
+	//		Map<String,String> payload = new HashMap<>();
+	//		payload.put("1","7");
+	//		payload.put("key2","value2");
+	//
+	//		String json = new ObjectMapper().writeValueAsString(payload);
+	//		System.out.println(json);
+	//	}
+
+	/*
+	 * @SuppressWarnings("serial") public static void main(String[] args) {
+	 * 
+	 * PrivilegeAccount testAccount = new PrivilegeAccount();
+	 * 
+	 * Map<String, String> allotedMenuList = new HashMap<String, String>() {{
+	 * put("1", "VIEW DOCUMENT"); put("2","REJECT DOCUMENT"); put("3","ADD USER");
+	 * put("4", "EDIT USER"); }};
+	 * 
+	 * Map<String, String> allotedReturnsList = new HashMap<String, String>() {{
+	 * put("1", "ALE"); put("2", "RAQ"); put("3", "DFR"); }};
+	 * 
+	 * Map<String, String> allotedEntityAccessList = new HashMap<String, String>()
+	 * {{ put("psu:1", "SBI"); put("psu:2", "SCB"); put("psu:3", "ICICI"); }};
+	 * 
+	 * 
+	 * testAccount.setAllotedEntityAccessList(allotedEntityAccessList);
+	 * testAccount.setAllotedMenuList(allotedMenuList);
+	 * testAccount.setAllotedReturnsList(allotedReturnsList);
+	 * 
+	 * testAccount.setUserId("2"); testAccount.setUserRoleId("722");
+	 * testAccount.setMethodType("Add"); testAccount.setRoleName("TEST_ROLE_NAME");
+	 * testAccount.setCimsPortalId("40");; testAccount.setRoleType("1"); // 1
+	 * department 2 entity 3 auditor, azum
+	 * testAccount.setRoleDescription("Test Role Description");
+	 * 
+	 * System.out.println(testAccount.toJson());
+	 * 
+	 * }
+	 */
+}

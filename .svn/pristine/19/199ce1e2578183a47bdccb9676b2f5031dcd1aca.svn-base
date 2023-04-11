@@ -1,0 +1,24 @@
+package com.iris.sdmx.util;
+
+/**
+ * @author sajadhav
+ *
+ */
+public enum EcuConstants {
+
+	AUTH_TOKEN_KEY("authToken"), ACCESS_TOKEN("accessToken"), SDMX_TYPE("sdmx_type"), SEMANTIC_VALIDATION("semantic_validation"), FILE("file"), MULTIPLE("multiple"), SENDER("sender"), STRUCTURE("s"), TRUE("true"), FALSE("false"), AUTHORIZATION("Authorization"), BEARER("Bearer"), RESULT("result"), UID("uid");
+
+	private String ecuConstant;
+
+	private EcuConstants(String ecuConstant) {
+		this.ecuConstant = ecuConstant;
+	}
+
+	/**
+	 * @return the fusionAPIConstant
+	 */
+	public String getConstant() {
+		return ecuConstant;
+	}
+
+}

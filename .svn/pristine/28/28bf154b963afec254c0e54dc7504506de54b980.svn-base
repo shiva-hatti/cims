@@ -1,0 +1,94 @@
+/**
+ * 
+ */
+package com.iris.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.exception.ServiceException;
+import com.iris.model.PSUCategoryMaster;
+import com.iris.repository.PSUCategoryMasterRepo;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ErrorConstants;
+
+/**
+ * @author apagaria
+ *
+ */
+@Service
+public class PSUCategoryMasterService implements GenericService<PSUCategoryMaster, Long> {
+
+	@Autowired
+	PSUCategoryMasterRepo psuCategoryMasterRepo;
+
+	@Override
+	public List<PSUCategoryMaster> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		try {
+			if (bean.equals(PSUCategoryMaster.class) && id == null) {
+				return psuCategoryMasterRepo.findAllActiveData();
+			}
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+		return null;
+	}
+
+	@Override
+	public PSUCategoryMaster add(PSUCategoryMaster entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean update(PSUCategoryMaster entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public List<PSUCategoryMaster> getDataByIds(Long[] ids) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public PSUCategoryMaster getDataById(Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<PSUCategoryMaster> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<PSUCategoryMaster> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<PSUCategoryMaster> getDataByObject(Map<String, Object> columnValueMap, String methodName) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<PSUCategoryMaster> getAllDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void deleteData(PSUCategoryMaster bean) throws ServiceException {
+		// TODO Auto-generated method stub
+
+	}
+
+}

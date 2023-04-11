@@ -1,0 +1,315 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+/**
+ * @author psheke
+ * @date 16/10/2020
+ */
+public class AuditFirm implements Serializable {
+
+	private static final long serialVersionUID = 177090308375265396L;
+
+	private Long auditFirmId;
+
+	private boolean editFlag;
+	private String auditFirmName;
+
+	private String auditFirmRegNo;
+
+	private String businessAddress;
+
+	private String emailAddress;
+
+	private String phoneNo;
+
+	private String mobileNo;
+
+	private String auditFirmWebsite;
+
+	private long countryId;
+
+	private String countryName;
+
+	private Boolean isActive;
+
+	private Long createdByUserId;
+
+	private String createdByUserName;
+
+	private Date createdOn;
+
+	private String lastModifiedByUserName;
+	private Long lastModifiedByUserId;
+
+	private Date lastModifiedOn;
+	private String langCode;
+
+	/**
+	 * @return the auditFirmId
+	 */
+	public Long getAuditFirmId() {
+		return auditFirmId;
+	}
+
+	/**
+	 * @param auditFirmId the auditFirmId to set
+	 */
+	public void setAuditFirmId(Long auditFirmId) {
+		this.auditFirmId = auditFirmId;
+	}
+
+	/**
+	 * @return the auditFirmName
+	 */
+	public String getAuditFirmName() {
+		return auditFirmName;
+	}
+
+	/**
+	 * @param auditFirmName the auditFirmName to set
+	 */
+	public void setAuditFirmName(String auditFirmName) {
+		this.auditFirmName = auditFirmName;
+	}
+
+	/**
+	 * @return the businessAddress
+	 */
+	public String getBusinessAddress() {
+		return businessAddress;
+	}
+
+	/**
+	 * @param businessAddress the businessAddress to set
+	 */
+	public void setBusinessAddress(String businessAddress) {
+		this.businessAddress = businessAddress;
+	}
+
+	/**
+	 * @return the emailAddress
+	 */
+	public String getEmailAddress() {
+		return emailAddress;
+	}
+
+	/**
+	 * @param emailAddress the emailAddress to set
+	 */
+	public void setEmailAddress(String emailAddress) {
+		this.emailAddress = emailAddress;
+	}
+
+	/**
+	 * @return the phoneNo
+	 */
+	public String getPhoneNo() {
+		return phoneNo;
+	}
+
+	/**
+	 * @param phoneNo the phoneNo to set
+	 */
+	public void setPhoneNo(String phoneNo) {
+		this.phoneNo = phoneNo;
+	}
+
+	/**
+	 * @return the mobileNo
+	 */
+	public String getMobileNo() {
+		return mobileNo;
+	}
+
+	/**
+	 * @param mobileNo the mobileNo to set
+	 */
+	public void setMobileNo(String mobileNo) {
+		this.mobileNo = mobileNo;
+	}
+
+	/**
+	 * @return the auditFirmWebsite
+	 */
+	public String getAuditFirmWebsite() {
+		return auditFirmWebsite;
+	}
+
+	/**
+	 * @param auditFirmWebsite the auditFirmWebsite to set
+	 */
+	public void setAuditFirmWebsite(String auditFirmWebsite) {
+		this.auditFirmWebsite = auditFirmWebsite;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the lastModifiedOn
+	 */
+	public Date getLastModifiedOn() {
+		return lastModifiedOn;
+	}
+
+	/**
+	 * @param lastModifiedOn the lastModifiedOn to set
+	 */
+	public void setLastModifiedOn(Date lastModifiedOn) {
+		this.lastModifiedOn = lastModifiedOn;
+	}
+
+	/**
+	 * @return the auditFirmRegNo
+	 */
+	public String getAuditFirmRegNo() {
+		return auditFirmRegNo;
+	}
+
+	/**
+	 * @param auditFirmRegNo the auditFirmRegNo to set
+	 */
+	public void setAuditFirmRegNo(String auditFirmRegNo) {
+		this.auditFirmRegNo = auditFirmRegNo;
+	}
+
+	/**
+	 * @return the createdByUserId
+	 */
+	public Long getCreatedByUserId() {
+		return createdByUserId;
+	}
+
+	/**
+	 * @param createdByUserId the createdByUserId to set
+	 */
+	public void setCreatedByUserId(Long createdByUserId) {
+		this.createdByUserId = createdByUserId;
+	}
+
+	/**
+	 * @return the lastModifiedByUserId
+	 */
+	public Long getLastModifiedByUserId() {
+		return lastModifiedByUserId;
+	}
+
+	/**
+	 * @param lastModifiedByUserId the lastModifiedByUserId to set
+	 */
+	public void setLastModifiedByUserId(Long lastModifiedByUserId) {
+		this.lastModifiedByUserId = lastModifiedByUserId;
+	}
+
+	/**
+	 * @return the createdByUserName
+	 */
+	public String getCreatedByUserName() {
+		return createdByUserName;
+	}
+
+	/**
+	 * @param createdByUserName the createdByUserName to set
+	 */
+	public void setCreatedByUserName(String createdByUserName) {
+		this.createdByUserName = createdByUserName;
+	}
+
+	/**
+	 * @return the editFlag
+	 */
+	public boolean isEditFlag() {
+		return editFlag;
+	}
+
+	/**
+	 * @param editFlag the editFlag to set
+	 */
+	public void setEditFlag(boolean editFlag) {
+		this.editFlag = editFlag;
+	}
+
+	/**
+	 * @return the countryId
+	 */
+	public long getCountryId() {
+		return countryId;
+	}
+
+	/**
+	 * @param countryId the countryId to set
+	 */
+	public void setCountryId(long countryId) {
+		this.countryId = countryId;
+	}
+
+	/**
+	 * @return the countryName
+	 */
+	public String getCountryName() {
+		return countryName;
+	}
+
+	/**
+	 * @param countryName the countryName to set
+	 */
+	public void setCountryName(String countryName) {
+		this.countryName = countryName;
+	}
+
+	/**
+	 * @return the langCode
+	 */
+	public String getLangCode() {
+		return langCode;
+	}
+
+	/**
+	 * @param langCode the langCode to set
+	 */
+	public void setLangCode(String langCode) {
+		this.langCode = langCode;
+	}
+
+	/**
+	 * @return the lastModifiedByUserName
+	 */
+	public String getLastModifiedByUserName() {
+		return lastModifiedByUserName;
+	}
+
+	/**
+	 * @param lastModifiedByUserName the lastModifiedByUserName to set
+	 */
+	public void setLastModifiedByUserName(String lastModifiedByUserName) {
+		this.lastModifiedByUserName = lastModifiedByUserName;
+	}
+
+}

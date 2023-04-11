@@ -1,0 +1,249 @@
+/**
+ * 
+ */
+package com.iris.sdmx.codelist.bean;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.iris.dto.UserDto;
+
+/**
+ * @author sajadhav
+ *
+ */
+@JsonInclude(Include.NON_NULL)
+public class CodeListValuesBean implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 9117753196640158993L;
+
+	private Long clValueId;
+
+	private String clValueCode;
+
+	private String clValueLable;
+
+	private String clValueDesc;
+
+	private Boolean isActive;
+
+	private UserDto createdBy;
+
+	private Date createdOn;
+
+	private Long createdOnInLong;
+
+	private UserDto lastModifiedBy;
+
+	private Date lastModifiedOn;
+
+	private Long lastModifiedOnLong;
+
+	private String parentClValueCode;
+
+	private Boolean isParent;
+
+	private CodeListValuesBean parentCodeListValues;
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the createdOnInLong
+	 */
+	public Long getCreatedOnInLong() {
+		return createdOnInLong;
+	}
+
+	/**
+	 * @param createdOnInLong the createdOnInLong to set
+	 */
+	public void setCreatedOnInLong(Long createdOnInLong) {
+		this.createdOnInLong = createdOnInLong;
+	}
+
+	/**
+	 * @return the lastModifiedOn
+	 */
+	public Date getLastModifiedOn() {
+		return lastModifiedOn;
+	}
+
+	/**
+	 * @param lastModifiedOn the lastModifiedOn to set
+	 */
+	public void setLastModifiedOn(Date lastModifiedOn) {
+		this.lastModifiedOn = lastModifiedOn;
+	}
+
+	/**
+	 * @return the lastModifiedOnLong
+	 */
+	public Long getLastModifiedOnLong() {
+		return lastModifiedOnLong;
+	}
+
+	/**
+	 * @param lastModifiedOnLong the lastModifiedOnLong to set
+	 */
+	public void setLastModifiedOnLong(Long lastModifiedOnLong) {
+		this.lastModifiedOnLong = lastModifiedOnLong;
+	}
+
+	/**
+	 * @return the isParent
+	 */
+	public Boolean getIsParent() {
+		return isParent;
+	}
+
+	/**
+	 * @param isParent the isParent to set
+	 */
+	public void setIsParent(Boolean isParent) {
+		this.isParent = isParent;
+	}
+
+	/**
+	 * @return the clValueId
+	 */
+	public Long getClValueId() {
+		return clValueId;
+	}
+
+	/**
+	 * @param clValueId the clValueId to set
+	 */
+	public void setClValueId(Long clValueId) {
+		this.clValueId = clValueId;
+	}
+
+	/**
+	 * @return the clValueCode
+	 */
+	public String getClValueCode() {
+		return clValueCode;
+	}
+
+	/**
+	 * @param clValueCode the clValueCode to set
+	 */
+	public void setClValueCode(String clValueCode) {
+		this.clValueCode = clValueCode;
+	}
+
+	/**
+	 * @return the clValueLable
+	 */
+	public String getClValueLable() {
+		return clValueLable;
+	}
+
+	/**
+	 * @param clValueLable the clValueLable to set
+	 */
+	public void setClValueLable(String clValueLable) {
+		this.clValueLable = clValueLable;
+	}
+
+	/**
+	 * @return the clValueDesc
+	 */
+	public String getClValueDesc() {
+		return clValueDesc;
+	}
+
+	/**
+	 * @param clValueDesc the clValueDesc to set
+	 */
+	public void setClValueDesc(String clValueDesc) {
+		this.clValueDesc = clValueDesc;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public UserDto getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(UserDto createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the lastModifiedBy
+	 */
+	public UserDto getLastModifiedBy() {
+		return lastModifiedBy;
+	}
+
+	/**
+	 * @param lastModifiedBy the lastModifiedBy to set
+	 */
+	public void setLastModifiedBy(UserDto lastModifiedBy) {
+		this.lastModifiedBy = lastModifiedBy;
+	}
+
+	/**
+	 * @return the parentCodeListValues
+	 */
+	public CodeListValuesBean getParentCodeListValues() {
+		return parentCodeListValues;
+	}
+
+	/**
+	 * @param parentCodeListValues the parentCodeListValues to set
+	 */
+	public void setParentCodeListValues(CodeListValuesBean parentCodeListValues) {
+		this.parentCodeListValues = parentCodeListValues;
+	}
+
+	/**
+	 * @return the parentClValueCode
+	 */
+	public String getParentClValueCode() {
+		return parentClValueCode;
+	}
+
+	/**
+	 * @param parentClValueCode the parentClValueCode to set
+	 */
+	public void setParentClValueCode(String parentClValueCode) {
+		this.parentClValueCode = parentClValueCode;
+	}
+
+}

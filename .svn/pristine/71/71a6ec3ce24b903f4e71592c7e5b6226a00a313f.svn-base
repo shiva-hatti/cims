@@ -1,0 +1,18 @@
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.iris.model.AutoCalculationFormula;
+
+public interface AutoCalculationFormulaRepo extends JpaRepository<AutoCalculationFormula, Long> {
+
+	List<AutoCalculationFormula> findByReturnIdFkReturnIdAndIsActiveTrue(Long returnId);
+	
+	AutoCalculationFormula findByAutoCalVesrionReturnTemplateFkReturnTemplateId(Long returnTemplateId);
+	
+	@Query(value = "Select * from TBL_AUTO_CALCULATION_FORMULA where  RETURN_ID_FK =:returnId order by AUTO_CAL_FORMULA_ID desc",nativeQuery = true)
+	List<AutoCalculationFormula> findByReturnIdFkReturnIdAndIsActiveTrueAndOrderByautoCalFormulaId(Long returnId);
+}

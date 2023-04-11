@@ -1,0 +1,266 @@
+package com.iris.controller;
+
+import java.lang.reflect.Type;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.google.gson.reflect.TypeToken;
+import com.iris.dateutility.enums.DateConstants;
+import com.iris.dateutility.util.DateManip;
+import com.iris.dto.ServiceResponse;
+import com.iris.exception.ServiceException;
+import com.iris.model.EntityAuditorMapInfo;
+import com.iris.model.Scheduler;
+import com.iris.model.SchedulerLog;
+import com.iris.model.UserRegulator;
+import com.iris.model.WebServiceComponentUrl;
+import com.iris.service.GenericService;
+import com.iris.service.impl.EntityAuditorMappingService;
+import com.iris.util.JsonUtility;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.util.constant.MethodConstants;
+import com.iris.webservices.client.CIMSRestWebserviceClient;
+
+/**
+ * @author psheke
+ * @date 05/01/2020
+ */
+@RestController
+public class EntityAuditorMappingScheduler {
+	static final Logger LOGGER  = LogManager.getLogger(EntityAuditorMappingScheduler.class);
+	@Autowired
+	private GenericService<WebServiceComponentUrl, Long> webServiceComponentService;
+	private static final String SCHEDULER_CODE = "ENTITY_AUDITOR_MAP_SCHEDULER";
+	private String jobProcessingId;
+	@Autowired
+	private EntityAuditorMappingService entityAuditorMappingService;
+	List<EntityAuditorMapInfo> entityAuditorMapList = null;
+	UserRegulator userRegulator =null;
+	
+	@Scheduled(cron = "${cron.entityAuditorMapScheduler}")
+	public void processEntityAuditorMapValidation() {
+
+		int totalSuccess = 0;
+		jobProcessingId = UUID.randomUUID().toString();
+		Long schedulerLogId = null;
+		
+		
+			Scheduler scheduler = getSchedulerStatus();
+			try {	
+		if (scheduler != null) {
+			if (scheduler.getIsRunning().equals(Boolean.TRUE)) {
+				LOGGER.error("Error while starting Entity Auditor Mapping scheduler -> Reason : Scheduler is already running ");
+				return;
+			}
+			LOGGER.info("Fetching the Entity Auditor Mapping " + jobProcessingId);
+
+				//Fetch entity auditor mapping with active status - 1 and endDate less than current date
+				entityAuditorMapList = entityAuditorMappingService.fetchEntityAuditorMapData();
+				if (CollectionUtils.isEmpty(entityAuditorMapList)) {
+					LOGGER.info("No Record available to process");
+					return;
+				}
+				// Scheduler start entry
+				schedulerLogId = makeSchedulerStartEntry(Long.valueOf(entityAuditorMapList.size()),
+						scheduler.getSchedulerId());
+				if (schedulerLogId == null) {
+					LOGGER.error("Error while starting scheduler ,  Entity Auditor Mapping -> Reason : Scheduler Log ID not received ");
+					return;
+				}
+				
+				Integer audEntMapExpDays=entityAuditorMappingService.getUserRegulator();
+		
+			
+			for(EntityAuditorMapInfo entityAudMapObj:entityAuditorMapList) {
+				 Calendar cal =Calendar.getInstance();
+					String currentDateString=DateManip.getCurrentDate(DateConstants.DD_MM_YYYY.getDateConstants());
+					DateFormat formatter = new SimpleDateFormat(DateConstants.DD_MM_YYYY.getDateConstants()); 
+					Date currentDate = (Date)formatter.parse(currentDateString);
+					
+								cal.setTime(entityAudMapObj.getCreatedOn());
+								cal.add(Calendar.DATE, audEntMapExpDays);
+								Date dateWithExpiryDays=cal.getTime();
+								if((dateWithExpiryDays.compareTo(currentDate)<0 && entityAudMapObj.getAdminStatusIdFk() == 1)|| entityAudMapObj.getEndDate().compareTo(currentDate)<0) {
+									entityAudMapObj.setIsActive(false);
+								}
+			}
+			
+			//Update the records with active status 0 whose end date is less than current date
+			if(!entityAuditorMappingService.updateActiveStatusForPassedEndDate(entityAuditorMapList)) {
+				LOGGER.error("Error updating status flag for Entity Auditor Mapping");
+				makeSchedulerStopEntry(0l, schedulerLogId, scheduler.getSchedulerId());
+				return;
+			}
+			LOGGER.info("No Record available to process, Validation for Entity Auditor Mapping completed");
+			totalSuccess = entityAuditorMapList.size();
+			
+			
+			// Scheduler stop entry
+			makeSchedulerStopEntry(totalSuccess, schedulerLogId, scheduler.getSchedulerId());
+			}
+		
+		else {
+				LOGGER.error(ErrorConstants.SCHEDULER_INFO_NOT_PRESENT.getConstantVal());
+			
+		}
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.DEFAULT_ERROR.getConstantVal(), e);
+			if (scheduler != null) {
+			makeSchedulerStopEntry(0l, schedulerLogId, scheduler.getSchedulerId());
+			}
+			return;
+		}
+	}
+	
+	private Scheduler getSchedulerStatus() {
+		try {
+			CIMSRestWebserviceClient restServiceClient = new CIMSRestWebserviceClient();
+
+			Map<String, String> headerMap = new HashMap<>();
+			headerMap.put(GeneralConstants.JOB_PROCESSING_ID.getConstantVal(), jobProcessingId);
+			headerMap.put(GeneralConstants.SCHEDULER_CODE.getConstantVal(), SCHEDULER_CODE);
+
+			WebServiceComponentUrl componentUrl = getWebServiceComponentURL(
+					GeneralConstants.GET_ACTIVE_SCHEDULER_STATUS_BY_CODE.getConstantVal(),
+					CIMSRestWebserviceClient.HTTP_METHOD_TYPE_GET);
+			String responsestring = restServiceClient.callRestWebServiceWithMultipleHeader(componentUrl, null, null,
+					headerMap);
+
+			Type listToken = new TypeToken<ServiceResponse>() {
+			}.getType();
+			ServiceResponse serviceResponse = JsonUtility.getGsonObject().fromJson(responsestring, listToken);
+
+			if (!serviceResponse.isStatus()) {
+				LOGGER.error("False status received from API with status message " + serviceResponse.getStatusCode());
+				return null;
+			} else {
+				if (serviceResponse.getResponse() != null) {
+					listToken = new TypeToken<Scheduler>() {
+					}.getType();
+					return JsonUtility.getGsonObject().fromJson(serviceResponse.getResponse() + "", listToken);
+				} else {
+					LOGGER.error("response object not present in the response string, response received from API : {}"
+							+ responsestring);
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.DEFAULT_ERROR.getConstantVal(), e);
+		}
+		return null;
+	}
+	private WebServiceComponentUrl getWebServiceComponentURL(String componentName, String methodType) {
+		Map<String, List<String>> valueMap = new HashMap<>();
+
+		List<String> valueList = new ArrayList<>();
+		valueList.add(componentName);
+		valueMap.put(ColumnConstants.COMPONENTTYPE.getConstantVal(), valueList);
+
+		valueList = new ArrayList<>();
+		valueList.add(methodType);
+		valueMap.put(ColumnConstants.METHODTYPE.getConstantVal(), valueList);
+
+		WebServiceComponentUrl componentUrl = null;
+		try {
+			componentUrl = webServiceComponentService.getDataByColumnValue(valueMap,
+					MethodConstants.GET_ACTIVE_DATA_BY_COMPONENTTYPE_METHODTYPE.getConstantVal()).get(0);
+		} catch (ServiceException e) {
+			LOGGER.error(ErrorConstants.DEFAULT_ERROR.getConstantVal(), e);
+		}
+		return componentUrl;
+	}
+	private Long makeSchedulerStartEntry(Long totalRecordCount, Long schedulerId) {
+		try {
+			SchedulerLog schedulerLog = new SchedulerLog();
+			schedulerLog.setTakedRecordsCount(totalRecordCount);
+			Scheduler scheduler = new Scheduler();
+			scheduler.setSchedulerId(schedulerId);
+			scheduler.setIsRunning(true);
+			schedulerLog.setSchedulerIdFk(scheduler);
+			CIMSRestWebserviceClient restServiceClient = new CIMSRestWebserviceClient();
+
+			WebServiceComponentUrl componentUrl = getWebServiceComponentURL(
+					GeneralConstants.ADD_UPDATE_SCHEDULER_LOG.getConstantVal(),
+					CIMSRestWebserviceClient.HTTP_METHOD_TYPE_POST);
+
+			Map<String, String> headerMap = new HashMap<>();
+			headerMap.put(GeneralConstants.JOB_PROCESSING_ID.getConstantVal(), jobProcessingId);
+
+			String responsestring = restServiceClient.callRestWebServiceWithMultipleHeader(componentUrl, schedulerLog,
+					null, headerMap);
+
+			Type listToken = new TypeToken<ServiceResponse>() {
+			}.getType();
+			ServiceResponse serviceResponse = JsonUtility.getGsonObject().fromJson(responsestring, listToken);
+			Long schedulerLogId = null;
+
+			if (!serviceResponse.isStatus()) {
+				LOGGER.error("False status received from API with status message " + serviceResponse.getStatusCode());
+				return null;
+			} else {
+				listToken = new TypeToken<SchedulerLog>() {
+				}.getType();
+				SchedulerLog schedulerLog1 = JsonUtility.getGsonObject().fromJson(serviceResponse.getResponse() + "",
+						listToken);
+				schedulerLogId = schedulerLog1.getId();
+			}
+			return schedulerLogId;
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.DEFAULT_ERROR.getConstantVal(), e);
+		}
+		return null;
+	}
+	private void makeSchedulerStopEntry(long successfullyProcessed, Long schedulerLogId, Long schedulerId) {
+		try {
+			if (schedulerLogId != null) {
+				SchedulerLog schedulerLog = new SchedulerLog();
+				schedulerLog.setSuccessfullyProcessedCount(Long.valueOf(successfullyProcessed));
+				schedulerLog.setId(schedulerLogId);
+				Scheduler scheduler = new Scheduler();
+				scheduler.setSchedulerId(schedulerId);
+				scheduler.setIsRunning(false);
+				schedulerLog.setSchedulerIdFk(scheduler);
+				CIMSRestWebserviceClient restServiceClient = new CIMSRestWebserviceClient();
+
+				WebServiceComponentUrl componentUrl = getWebServiceComponentURL(
+						GeneralConstants.ADD_UPDATE_SCHEDULER_LOG.getConstantVal(),
+						CIMSRestWebserviceClient.HTTP_METHOD_TYPE_POST);
+
+				Map<String, String> headerMap = new HashMap<>();
+				headerMap.put(GeneralConstants.JOB_PROCESSING_ID.getConstantVal(), jobProcessingId);
+
+				String responsestring = restServiceClient.callRestWebServiceWithMultipleHeader(componentUrl,
+						schedulerLog, null, headerMap);
+
+				ServiceResponse serviceResponse = JsonUtility.getGsonObject().fromJson(responsestring,
+						ServiceResponse.class);
+
+				if (!serviceResponse.isStatus()) {
+					LOGGER.info("Error while stopping scheduler -> Reason : Schduler is alrady stopped ");
+				} else {
+					LOGGER.info("Scheduler stopped successfully ");
+				}
+			} else {
+				LOGGER.error("Scheduler Log Id not found");
+			}
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.DEFAULT_ERROR.getConstantVal(), e);
+		}
+
+	}
+}

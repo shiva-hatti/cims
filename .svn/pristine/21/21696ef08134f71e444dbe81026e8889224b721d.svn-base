@@ -1,0 +1,17 @@
+package com.iris.repository;
+
+import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import com.iris.model.AuditFirmLabelInfo;
+
+public interface AuditFirmLabelRepo extends JpaRepository<AuditFirmLabelInfo, Long> {
+
+	@Query("FROM AuditFirmLabelInfo where auditFirmLabelId=:auditFirmLabelId")
+	AuditFirmLabelInfo getAuditFirmLabelById(@Param("auditFirmLabelId") Long auditFirmLabelId);
+
+	@Query("FROM AuditFirmLabelInfo where languageMaster.languageCode=:langCode order by lastUpdatedOn desc")
+	List<AuditFirmLabelInfo> getAuditorFirmLabelList(@Param("langCode") String langCode);
+
+}

@@ -1,0 +1,123 @@
+/**
+ * 
+ */
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+/**
+ * @author Siddique H Khan
+ *
+ */
+
+@Entity
+@Table(name = "TBL_PSU_CATEGORY_MASTER")
+public class PSUCategoryMaster implements Serializable{
+
+	private static final long serialVersionUID = 8372455477866491318L;
+
+	@Id
+	@Column(name = "PSU_CATEGORY_ID")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long psuCategoryid;
+	
+	@Column(name = "CATEGORY_NAME")
+	private String categoryName;
+	
+	@Column(name = "CATEGORY_CODE")
+	private String categoryCode;
+	
+	@Column(name = "IS_ACTIVE")
+	private boolean isActive;
+	
+	@Column(name = "CREATION_DATE")
+	private Date creationDate;
+
+	/**
+	 * @return the psuCategoryid
+	 */
+	public Long getPsuCategoryid() {
+		return psuCategoryid;
+	}
+
+	/**
+	 * @param psuCategoryid the psuCategoryid to set
+	 */
+	public void setPsuCategoryid(Long psuCategoryid) {
+		this.psuCategoryid = psuCategoryid;
+	}
+
+	/**
+	 * @return the categoryName
+	 */
+	public String getCategoryName() {
+		return categoryName;
+	}
+
+	/**
+	 * @param categoryName the categoryName to set
+	 */
+	public void setCategoryName(String categoryName) {
+		this.categoryName = categoryName;
+	}
+
+	/**
+	 * @return the categoryCode
+	 */
+	public String getCategoryCode() {
+		return categoryCode;
+	}
+
+	/**
+	 * @param categoryCode the categoryCode to set
+	 */
+	public void setCategoryCode(String categoryCode) {
+		this.categoryCode = categoryCode;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public boolean isActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setActive(boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the creationDate
+	 */
+	public Date getCreationDate() {
+		return creationDate;
+	}
+
+	/**
+	 * @param creationDate the creationDate to set
+	 */
+	public void setCreationDate(Date creationDate) {
+		this.creationDate = creationDate;
+	}
+
+	/**
+	 *
+	 */
+	@Override
+	public String toString() {
+		return "PSUCategoryMaster [psuCategoryid=" + psuCategoryid + ", categoryName=" + categoryName
+				+ ", categoryCode=" + categoryCode + ", isActive=" + isActive + ", creationDate=" + creationDate + "]";
+	}	
+	
+}

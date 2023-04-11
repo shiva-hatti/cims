@@ -1,0 +1,107 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+import java.util.List;
+
+public class EmailHistoryDto implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -7104320571465976081L;
+	
+	private Long userId;
+	private Long menuId;
+	private Long userRoleId;
+	private String mailSubject;
+	private String mailBody;
+	private String mailRecipients;
+	private List<Long> userRoleMstrList;
+	/**
+	 * @return the userId
+	 */
+	public Long getUserId() {
+		return userId;
+	}
+	/**
+	 * @param userId the userId to set
+	 */
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+	/**
+	 * @return the menuId
+	 */
+	public Long getMenuId() {
+		return menuId;
+	}
+	/**
+	 * @param menuId the menuId to set
+	 */
+	public void setMenuId(Long menuId) {
+		this.menuId = menuId;
+	}
+	/**
+	 * @return the userRoleId
+	 */
+	public Long getUserRoleId() {
+		return userRoleId;
+	}
+	/**
+	 * @param userRoleId the userRoleId to set
+	 */
+	public void setUserRoleId(Long userRoleId) {
+		this.userRoleId = userRoleId;
+	}
+	/**
+	 * @return the mailSubject
+	 */
+	public String getMailSubject() {
+		return mailSubject;
+	}
+	/**
+	 * @param mailSubject the mailSubject to set
+	 */
+	public void setMailSubject(String mailSubject) {
+		this.mailSubject = mailSubject;
+	}
+	/**
+	 * @return the mailBody
+	 */
+	public String getMailBody() {
+		return mailBody;
+	}
+	/**
+	 * @param mailBody the mailBody to set
+	 */
+	public void setMailBody(String mailBody) {
+		this.mailBody = mailBody;
+	}
+	/**
+	 * @return the mailRecipients
+	 */
+	public String getMailRecipients() {
+		return mailRecipients;
+	}
+	/**
+	 * @param mailRecipients the mailRecipients to set
+	 */
+	public void setMailRecipients(String mailRecipients) {
+		this.mailRecipients = mailRecipients;
+	}
+	/**
+	 * @return the userRoleMstrList
+	 */
+	public List<Long> getUserRoleMstrList() {
+		return userRoleMstrList;
+	}
+	/**
+	 * @param userRoleMstrList the userRoleMstrList to set
+	 */
+	public void setUserRoleMstrList(List<Long> userRoleMstrList) {
+		this.userRoleMstrList = userRoleMstrList;
+	}
+	
+	
+
+}

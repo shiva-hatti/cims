@@ -1,0 +1,47 @@
+package com.iris.sdmx.element.repo;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+
+import com.iris.sdmx.element.entity.SdmxElementTempEntity;
+import com.iris.sdmx.status.entity.AdminStatus;
+
+/**
+ * @author apagaria
+ *
+ */
+public interface SdmxElementTempRepo extends JpaRepository<SdmxElementTempEntity, Long> {
+
+	/**
+	 * @param isActive
+	 * @return
+	 */
+	@Query("from SdmxElementTempEntity where isActive =:isActive")
+	List<SdmxElementTempEntity> findByActiveStatus(Boolean isActive);
+	
+	@Query("SELECT COUNT(u) FROM SdmxElementTempEntity u where u.dsdCode =:dsdCode and u.sdmxStatusEntity=:sdmxStatusEntity")
+	int isDataExistWithDsdCodeAndStatus(String dsdCode, AdminStatus sdmxStatusEntity);
+	
+	@Query("from SdmxElementTempEntity u where u.sdmxStatusEntity.adminStatusId =:adminStatusId")
+	List<SdmxElementTempEntity> findByAdminStatusId(Long adminStatusId);
+	
+	@Query("from SdmxElementTempEntity u where u.elementTempId =:elementTempId")
+	SdmxElementTempEntity findByElementTempId(Long elementTempId);
+	
+	@Modifying(clearAutomatically=true)
+	@Query("update SdmxElementTempEntity u set u.sdmxStatusEntity.adminStatusId =:adminStatusId, u.comment =:comment "
+			+ "where u.elementTempId =:elementTempId")
+	int approveRejectRequest(Long elementTempId,  String comment, Long adminStatusId);
+	
+	@Modifying(clearAutomatically=true)
+	@Query("update SdmxElementTempEntity u set u.elementIdFk.elementId =:elementIdFk where u.elementTempId =:elementTempId")
+	int setElementId(Long elementTempId, Long elementIdFk);
+	
+	@Query("from SdmxElementTempEntity u where u.dsdCode =:dsdCode and u.elementVer =:elementVer and "
+			+ "u.actionStatusFk.actionId =:actionId and u.sdmxStatusEntity.adminStatusId =:adminStatusId")
+	SdmxElementTempEntity chkPendingAddReqPresent(String dsdCode, String elementVer, Long actionId, Long adminStatusId);
+	
+}

@@ -1,0 +1,986 @@
+package com.iris.model;
+
+import java.io.File;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.util.CollectionUtils;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.iris.util.Validations;
+
+/**
+ * This is the Entity bean class with Hibernate mapping.
+ */
+@Entity
+@Table(name = "TBL_ENTITY")
+@JsonInclude(Include.NON_NULL)
+public class EntityBean implements Serializable {
+
+	private static final long serialVersionUID = -8054703039420202379L;
+
+	private static final Logger LOGGER = LogManager.getLogger(EntityBean.class);
+
+	@Id
+	@Column(name = "ENTITY_ID")
+	private Long entityId;
+
+	@Column(name = "ENTITY_NAME")
+	private String entityName;
+
+	@Column(name = "ENTITY_CODE")
+	private String entityCode;
+
+	@Column(name = "ENTITY_SHORT_NAME")
+	private String entityShortName;
+
+	@Column(name = "ENTITY_EMAIL_ID")
+	private String entityEmailId;
+
+	@Column(name = "ENTITY_URL")
+	private String entityUrl;
+
+	@Column(name = "ENTITY_PHONE_NO")
+	private String entityPhoneNo;
+
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+	
+	@Column(name = "IS_NBFC_ENTITY")
+	private Boolean isNBFCEntity;
+
+	@ManyToOne
+	@JoinColumn(name = "CATEGORY_ID_FK")
+	private Category category;
+
+	@ManyToOne
+	@JoinColumn(name = "SUB_CATEGORY_ID_FK")
+	private SubCategory subCategory;
+
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+
+	@ManyToOne
+	@JoinColumn(name = "CREATED_BY_FK")
+	private UserMaster createdBy;
+
+	@Column(name = "LAST_MODIFIED_ON")
+	private Date lastModifiedOn;
+
+	@ManyToOne
+	@JoinColumn(name = "LAST_MODIFIED_BY_FK")
+	private UserMaster modifiedBy;
+
+	@ManyToOne
+	@JoinColumn(name = "LAST_APPROVED_BY_FK")
+	private UserMaster lastApprovedBy;
+
+	@Column(name = "LAST_APPROVED_ON")
+	private Date lastApprovedOn;
+
+	@Column(name = "LAST_UPDATE_ON")
+	private Date lastUpdatedOn;
+
+	@OneToMany(mappedBy = "entityBean", fetch = FetchType.LAZY)
+	private Set<EntityLabelBean> entityLabelSet;
+
+	@Column(name = "ENTITY_NAME_BIL")
+	private String entityNameBil;
+
+	@Column(name = "ENTITY_SHORT_NAME_BIL")
+	private String entityShortNameBil;
+
+	@Column(name = "REGISTRATION_DATE")
+	private Date registerDate;
+
+	@Column(name = "AUTHORIZED_CAPITAL")
+	private String authCapital;
+
+	@Column(name = "PAID_UP_CAPITAL")
+	private String paidUpCapital;
+
+	@Column(name = "IN_KIND_CAPITAL")
+	private String inKindCapital;
+
+	@ManyToOne
+	@JoinColumn(name = "ISSUANCE_MANAGER_ID_FK")
+	private EntityBean issunaceMgrIdFk;
+
+	@Column(name = "BRANCH_DTL")
+	private String branchDetail;
+
+	@Column(name = "IS_REGISTER")
+	private Boolean registerStatus;
+
+	@Column(name = "IS_ISLAMIC")
+	private String subSectorType;
+
+	@Column(name = "IS_SPV")
+	private Boolean isSPV;
+
+	@Column(name = "IS_MEMBER")
+	private String memberStatus;
+
+	@Column(name = "SIGNATURES_FORM")
+	private String signatureForm;
+
+	@Column(name = "OTHER_INFO_ATTACHMENT")
+	private String otherExtraAttachment;
+
+	@Column(name = "OTC")
+	private Boolean otc;
+
+	@Column(name = "IS_GOVERNMENT")
+	private Boolean isGovernment;
+
+	@Column(name = "ENTITY_SYMBOL_CODE")
+	private String entitySymbolCode;
+
+	@Column(name = "IFSC_CODE")
+	private String ifscCode;
+
+	@ManyToOne
+	@JoinColumn(name = "FIN_YR_FORMAT_ID_FK")
+	private FinYrFormat finYrFormat;
+
+	@OneToMany(mappedBy = "entityBean")
+	private List<UserEntityRole> userEntityRoles;
+
+	@OneToMany(mappedBy = "entity", cascade = CascadeType.ALL)
+	private List<ReturnEntityMappingNew> returnEntityMappingNew;
+
+	@Transient
+	private File entityLogoImg;
+
+	@Transient
+	private Long roleIdKey;
+
+	@Transient
+	private LanguageMaster languageMaster;
+
+	@Transient
+	private String entityNameAndCode;
+
+	@Transient
+	private int singleLanguage;
+
+	@Transient
+	private String sectorCode;
+
+	@Transient
+	private String subSectorCode;
+
+	@Transient
+	private String issuanceMgrCode;
+
+	@Transient
+	private String compLegalCode;
+
+	@Transient
+	private String dateFormat;
+
+	@Transient
+	private String listingStatusCode;
+
+	@Transient
+	private String regDateString;
+
+	@Transient
+	private Long finYrFormatId;
+
+	@Transient
+	private List<Return> returnList;
+
+	public EntityBean() {
+
+	}
+
+	public EntityBean(Long entityId, String entityName, String entityCode, String entitySymbolCode, String ifscCode) {
+		this.entityId = entityId;
+		this.entityName = entityName;
+		this.entityCode = entityCode;
+		this.entitySymbolCode = entitySymbolCode;
+		this.ifscCode = ifscCode;
+	}
+
+	public EntityBean(Long entityId, String entityName, String entityCode, String entitySymbolCode, String ifscCode,
+			Long categoryId, String categoryCode, String categoryName, Long subcategoryId, String subCategoryCode,
+			String subCategoryName) {
+		this.entityId = entityId;
+		this.entityName = entityName;
+		this.entityCode = entityCode;
+		this.entitySymbolCode = entitySymbolCode;
+		this.ifscCode = ifscCode;
+
+		this.category = new Category();
+		category.setCategoryId(categoryId);
+		category.setCategoryName(categoryName);
+		category.setCategoryCode(categoryCode);
+
+		this.subCategory = new SubCategory();
+		subCategory.setSubCategoryId(subcategoryId);
+		subCategory.setSubCategoryName(subCategoryName);
+		subCategory.setSubCategoryCode(subCategoryCode);
+		subCategory.setCategory(this.category);
+
+	}
+
+	public List<ReturnEntityMappingNew> getReturnEntityMappingNew() {
+		return returnEntityMappingNew;
+	}
+
+	public void setReturnEntityMappingNew(List<ReturnEntityMappingNew> returnEntityMappingNew) {
+		this.returnEntityMappingNew = returnEntityMappingNew;
+	}
+
+	public List<Return> getReturnList() {
+		return returnList;
+	}
+
+	public void setReturnList(List<Return> returnList) {
+		this.returnList = returnList;
+	}
+
+	public List<UserEntityRole> getUserEntityRoles() {
+		return userEntityRoles;
+	}
+
+	public void setUserEntityRoles(List<UserEntityRole> userEntityRoles) {
+		this.userEntityRoles = userEntityRoles;
+	}
+
+	public FinYrFormat getFinYrFormat() {
+		return finYrFormat;
+	}
+
+	public void setFinYrFormat(FinYrFormat finYrFormat) {
+		this.finYrFormat = finYrFormat;
+	}
+
+	/**
+	 * @return the entityId
+	 */
+	public Long getEntityId() {
+		return entityId;
+	}
+
+	/**
+	 * @param entityId the entityId to set
+	 */
+	public void setEntityId(Long entityId) {
+		this.entityId = entityId;
+	}
+
+	/**
+	 * @return the entityName
+	 */
+	public String getEntityName() {
+		return entityName;
+	}
+
+	/**
+	 * @param entityName the entityName to set
+	 */
+	public void setEntityName(String entityName) {
+		this.entityName = Validations.trimInput(entityName);
+	}
+
+	/**
+	 * @return the entityCode
+	 */
+	public String getEntityCode() {
+		return entityCode;
+	}
+
+	/**
+	 * @param entityCode the entityCode to set
+	 */
+	public void setEntityCode(String entityCode) {
+		this.entityCode = Validations.trimInput(entityCode);
+	}
+
+	/**
+	 * @return the entityShortName
+	 */
+	public String getEntityShortName() {
+		return entityShortName;
+	}
+
+	/**
+	 * @param entityShortName the entityShortName to set
+	 */
+	public void setEntityShortName(String entityShortName) {
+		this.entityShortName = Validations.trimInput(entityShortName);
+	}
+
+	/**
+	 * @return the entityEmailId
+	 */
+	public String getEntityEmailId() {
+		return entityEmailId;
+	}
+
+	/**
+	 * @param entityEmailId the entityEmailId to set
+	 */
+	public void setEntityEmailId(String entityEmailId) {
+		this.entityEmailId = Validations.trimInput(entityEmailId);
+	}
+
+	/**
+	 * @return the entityPhoneNo
+	 */
+	public String getEntityPhoneNo() {
+		return entityPhoneNo;
+	}
+
+	/**
+	 * @param entityPhoneNo the entityPhoneNo to set
+	 */
+	public void setEntityPhoneNo(String entityPhoneNo) {
+		this.entityPhoneNo = Validations.trimInput(entityPhoneNo);
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the category
+	 */
+	public Category getCategory() {
+		return category;
+	}
+
+	/**
+	 * @param category the category to set
+	 */
+	public void setCategory(Category category) {
+		this.category = category;
+	}
+
+	/**
+	 * @return the subCategory
+	 */
+	public SubCategory getSubCategory() {
+		return subCategory;
+	}
+
+	/**
+	 * @param subCategory the subCategory to set
+	 */
+	public void setSubCategory(SubCategory subCategory) {
+		this.subCategory = subCategory;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the lastModifiedOn
+	 */
+	public Date getLastModifiedOn() {
+		return lastModifiedOn;
+	}
+
+	/**
+	 * @param lastModifiedOn the lastModifiedOn to set
+	 */
+	public void setLastModifiedOn(Date lastModifiedOn) {
+		this.lastModifiedOn = lastModifiedOn;
+	}
+
+	/**
+	 * @return the modifiedBy
+	 */
+	public UserMaster getModifiedBy() {
+		return modifiedBy;
+	}
+
+	/**
+	 * @param modifiedBy the modifiedBy to set
+	 */
+	public void setModifiedBy(UserMaster modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+
+	/**
+	 * @return the lastApprovedBy
+	 */
+	public UserMaster getLastApprovedBy() {
+		return lastApprovedBy;
+	}
+
+	/**
+	 * @param lastApprovedBy the lastApprovedBy to set
+	 */
+	public void setLastApprovedBy(UserMaster lastApprovedBy) {
+		this.lastApprovedBy = lastApprovedBy;
+	}
+
+	/**
+	 * @return the lastApprovedOn
+	 */
+	public Date getLastApprovedOn() {
+		return lastApprovedOn;
+	}
+
+	/**
+	 * @param lastApprovedOn the lastApprovedOn to set
+	 */
+	public void setLastApprovedOn(Date lastApprovedOn) {
+		this.lastApprovedOn = lastApprovedOn;
+	}
+
+	/**
+	 * @return the lastUpdatedOn
+	 */
+	public Date getLastUpdatedOn() {
+		return lastUpdatedOn;
+	}
+
+	/**
+	 * @param lastUpdatedOn the lastUpdatedOn to set
+	 */
+	public void setLastUpdatedOn(Date lastUpdatedOn) {
+		this.lastUpdatedOn = lastUpdatedOn;
+	}
+
+	/**
+	 * @return the entityUrl
+	 */
+	public String getEntityUrl() {
+		return entityUrl;
+	}
+
+	/**
+	 * @param entityUrl the entityUrl to set
+	 */
+	public void setEntityUrl(String entityUrl) {
+		this.entityUrl = Validations.trimInput(entityUrl);
+	}
+
+	/**
+	 * @return the entityLogoImg
+	 */
+	public File getEntityLogoImg() {
+		return entityLogoImg;
+	}
+
+	/**
+	 * @param entityLogoImg the entityLogoImg to set
+	 */
+	public void setEntityLogoImg(File entityLogoImg) {
+		this.entityLogoImg = entityLogoImg;
+	}
+
+	/**
+	 * @return the roleIdKey
+	 */
+	public Long getRoleIdKey() {
+		return roleIdKey;
+	}
+
+	/**
+	 * @param roleIdKey the roleIdKey to set
+	 */
+	public void setRoleIdKey(Long roleIdKey) {
+		this.roleIdKey = roleIdKey;
+	}
+
+	/**
+	 * @return the languageMaster
+	 */
+	public LanguageMaster getLanguageMaster() {
+		return languageMaster;
+	}
+
+	/**
+	 * @param languageMaster the languageMaster to set
+	 */
+	public void setLanguageMaster(LanguageMaster languageMaster) {
+		this.languageMaster = languageMaster;
+	}
+
+	/**
+	 * @return the entityLabelSet
+	 */
+	public Set<EntityLabelBean> getEntityLabelSet() {
+		return entityLabelSet;
+	}
+
+	/**
+	 * @param entityLabelSet the entityLabelSet to set
+	 */
+	public void setEntityLabelSet(Set<EntityLabelBean> entityLabelSet) {
+		this.entityLabelSet = entityLabelSet;
+	}
+
+	/**
+	 * @return the entityNameAndCode
+	 */
+	public String getEntityNameAndCode() {
+		entityNameAndCode = this.entityName + " (" + this.entityCode + ")";
+		return entityNameAndCode;
+	}
+
+	/**
+	 * @return the singleLanguage
+	 */
+	public int getSingleLanguage() {
+		return singleLanguage;
+	}
+
+	/**
+	 * @param singleLanguage the singleLanguage to set
+	 */
+	public void setSingleLanguage(int singleLanguage) {
+		this.singleLanguage = singleLanguage;
+	}
+
+	/**
+	 * @return the entityNameBil
+	 */
+	public String getEntityNameBil() {
+		return entityNameBil;
+	}
+
+	/**
+	 * @param entityNameBil the entityNameBil to set
+	 */
+	public void setEntityNameBil(String entityNameBil) {
+		this.entityNameBil = Validations.trimInput(entityNameBil);
+	}
+
+	/**
+	 * @return the entityShortNameBil
+	 */
+	public String getEntityShortNameBil() {
+		return entityShortNameBil;
+	}
+
+	/**
+	 * @param entityShortNameBil the entityShortNameBil to set
+	 */
+	public void setEntityShortNameBil(String entityShortNameBil) {
+		this.entityShortNameBil = Validations.trimInput(entityShortNameBil);
+	}
+
+	/**
+	 * @return the registerDate
+	 */
+	public Date getRegisterDate() {
+		return registerDate;
+	}
+
+	/**
+	 * @param registerDate the registerDate to set
+	 */
+	public void setRegisterDate(Date registerDate) {
+		this.registerDate = registerDate;
+	}
+
+	/**
+	 * @return the authCapital
+	 */
+	public String getAuthCapital() {
+		return authCapital;
+	}
+
+	/**
+	 * @param authCapital the authCapital to set
+	 */
+	public void setAuthCapital(String authCapital) {
+		this.authCapital = Validations.trimInput(authCapital);
+	}
+
+	/**
+	 * @return the paidUpCapital
+	 */
+	public String getPaidUpCapital() {
+		return paidUpCapital;
+	}
+
+	/**
+	 * @param paidUpCapital the paidUpCapital to set
+	 */
+	public void setPaidUpCapital(String paidUpCapital) {
+		this.paidUpCapital = Validations.trimInput(paidUpCapital);
+	}
+
+	/**
+	 * @return the inKindCapital
+	 */
+	public String getInKindCapital() {
+		return inKindCapital;
+	}
+
+	/**
+	 * @param inKindCapital the inKindCapital to set
+	 */
+	public void setInKindCapital(String inKindCapital) {
+		this.inKindCapital = Validations.trimInput(inKindCapital);
+	}
+
+	/**
+	 * @return the issunaceMgrIdFk
+	 */
+	public EntityBean getIssunaceMgrIdFk() {
+		return issunaceMgrIdFk;
+	}
+
+	/**
+	 * @param issunaceMgrIdFk the issunaceMgrIdFk to set
+	 */
+	public void setIssunaceMgrIdFk(EntityBean issunaceMgrIdFk) {
+		this.issunaceMgrIdFk = issunaceMgrIdFk;
+	}
+
+	/**
+	 * @return the branchDetail
+	 */
+	public String getBranchDetail() {
+		return branchDetail;
+	}
+
+	/**
+	 * @param branchDetail the branchDetail to set
+	 */
+	public void setBranchDetail(String branchDetail) {
+		this.branchDetail = Validations.trimInput(branchDetail);
+	}
+
+	/**
+	 * @return the registerStatus
+	 */
+	public Boolean getRegisterStatus() {
+		return registerStatus;
+	}
+
+	/**
+	 * @param registerStatus the registerStatus to set
+	 */
+	public void setRegisterStatus(Boolean registerStatus) {
+		this.registerStatus = registerStatus;
+	}
+
+	public String getSubSectorType() {
+		return subSectorType;
+	}
+
+	public void setSubSectorType(String subSectorType) {
+		this.subSectorType = subSectorType;
+	}
+
+	/**
+	 * @return the isSPV
+	 */
+	public Boolean getIsSPV() {
+		return isSPV;
+	}
+
+	/**
+	 * @param isSPV the isSPV to set
+	 */
+	public void setIsSPV(Boolean isSPV) {
+		this.isSPV = isSPV;
+	}
+
+	/**
+	 * @return the memberStatus
+	 */
+	public String getMemberStatus() {
+		return memberStatus;
+	}
+
+	/**
+	 * @param memberStatus the memberStatus to set
+	 */
+	public void setMemberStatus(String memberStatus) {
+		this.memberStatus = Validations.trimInput(memberStatus);
+	}
+
+	/**
+	 * @return the signatureForm
+	 */
+	public String getSignatureForm() {
+		return signatureForm;
+	}
+
+	/**
+	 * @param signatureForm the signatureForm to set
+	 */
+	public void setSignatureForm(String signatureForm) {
+		this.signatureForm = Validations.trimInput(signatureForm);
+	}
+
+	/**
+	 * @param entityNameAndCode the entityNameAndCode to set
+	 */
+	public void setEntityNameAndCode(String entityNameAndCode) {
+		this.entityNameAndCode = Validations.trimInput(entityNameAndCode);
+	}
+
+	/**
+	 * @return the otherExtraAttachment
+	 */
+	public String getOtherExtraAttachment() {
+		return otherExtraAttachment;
+	}
+
+	/**
+	 * @param otherExtraAttachment the otherExtraAttachment to set
+	 */
+	public void setOtherExtraAttachment(String otherExtraAttachment) {
+		this.otherExtraAttachment = Validations.trimInput(otherExtraAttachment);
+	}
+
+	/**
+	 * @return the otc
+	 */
+	public Boolean getOtc() {
+		return otc;
+	}
+
+	/**
+	 * @param otc the otc to set
+	 */
+	public void setOtc(Boolean otc) {
+		this.otc = otc;
+	}
+
+	/**
+	 * @return the isGovernment
+	 */
+	public Boolean getIsGovernment() {
+		return isGovernment;
+	}
+
+	/**
+	 * @param isGovernment the isGovernment to set
+	 */
+	public void setIsGovernment(Boolean isGovernment) {
+		this.isGovernment = isGovernment;
+	}
+
+	/**
+	 * @return the sectorCode
+	 */
+	public String getSectorCode() {
+		return sectorCode;
+	}
+
+	/**
+	 * @param sectorCode the sectorCode to set
+	 */
+	public void setSectorCode(String sectorCode) {
+		this.sectorCode = Validations.trimInput(sectorCode);
+	}
+
+	/**
+	 * @return the subSectorCode
+	 */
+	public String getSubSectorCode() {
+		return subSectorCode;
+	}
+
+	/**
+	 * @param subSectorCode the subSectorCode to set
+	 */
+	public void setSubSectorCode(String subSectorCode) {
+		this.subSectorCode = Validations.trimInput(subSectorCode);
+	}
+
+	/**
+	 * @return the compLegalCode
+	 */
+	public String getCompLegalCode() {
+		return compLegalCode;
+	}
+
+	/**
+	 * @param compLegalCode the compLegalCode to set
+	 */
+	public void setCompLegalCode(String compLegalCode) {
+		this.compLegalCode = compLegalCode;
+	}
+
+	/**
+	 * @return the dateFormat
+	 */
+	public String getDateFormat() {
+		return dateFormat;
+	}
+
+	/**
+	 * @param dateFormat the dateFormat to set
+	 */
+	public void setDateFormat(String dateFormat) {
+		this.dateFormat = Validations.trimInput(dateFormat);
+	}
+
+	/**
+	 * @return the issuanceMgrCode
+	 */
+	public String getIssuanceMgrCode() {
+		return issuanceMgrCode;
+	}
+
+	/**
+	 * @param issuanceMgrCode the issuanceMgrCode to set
+	 */
+	public void setIssuanceMgrCode(String issuanceMgrCode) {
+		this.issuanceMgrCode = issuanceMgrCode;
+	}
+
+	/**
+	 * @return the listingStatusCode
+	 */
+	public String getListingStatusCode() {
+		return listingStatusCode;
+	}
+
+	/**
+	 * @param listingStatusCode the listingStatusCode to set
+	 */
+	public void setListingStatusCode(String listingStatusCode) {
+		this.listingStatusCode = listingStatusCode;
+	}
+
+	/**
+	 * @return the regDateString
+	 */
+	public String getRegDateString() {
+		return regDateString;
+	}
+
+	/**
+	 * @param regDateString the regDateString to set
+	 */
+	public void setRegDateString(String regDateString) {
+		this.regDateString = regDateString;
+	}
+
+	/**
+	 * @return the finYrFormatId
+	 */
+	public Long getFinYrFormatId() {
+		return finYrFormatId;
+	}
+
+	/**
+	 * @param finYrFormatId the finYrFormatId to set
+	 */
+	public void setFinYrFormatId(Long finYrFormatId) {
+		this.finYrFormatId = finYrFormatId;
+	}
+
+	/**
+	 * @return the entitySymbolCode
+	 */
+	public String getEntitySymbolCode() {
+		return entitySymbolCode;
+	}
+
+	/**
+	 * @param entitySymbolCode the entitySymbolCode to set
+	 */
+	public void setEntitySymbolCode(String entitySymbolCode) {
+		this.entitySymbolCode = Validations.trimInput(entitySymbolCode);
+	}
+
+	/**
+	 * @return the ifscCode
+	 */
+	public String getIfscCode() {
+		return ifscCode;
+	}
+
+	/**
+	 * @param ifscCode the ifscCode to set
+	 */
+	public void setIfscCode(String ifscCode) {
+		this.ifscCode = ifscCode;
+	}
+	
+
+	public Boolean getIsNBFCEntity() {
+		return isNBFCEntity;
+	}
+
+	public void setIsNBFCEntity(Boolean isNBFCEntity) {
+		this.isNBFCEntity = isNBFCEntity;
+	}
+
+	public String getLangEntityLabel(Long languageId) {
+		if (CollectionUtils.isEmpty(this.entityLabelSet)) {
+			return null;
+		}
+		if (languageId == null) {
+			return null;
+		}
+		try {
+			for (EntityLabelBean entityLabelLabel : this.entityLabelSet) {
+				if (entityLabelLabel.getLanguageMaster().getLanguageId().equals(languageId)) {
+					return entityLabelLabel.getEntityNameLabel();
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error("Exception : ", e);
+		}
+		return null;
+	}
+
+	
+}

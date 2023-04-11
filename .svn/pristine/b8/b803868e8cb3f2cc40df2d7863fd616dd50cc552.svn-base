@@ -1,0 +1,101 @@
+package com.iris.listener;
+
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.EventListener;
+
+import com.iris.caching.ObjectCache;
+import com.iris.controller.EmailController;
+import com.iris.controller.UserRegulatorController;
+import com.iris.controller.WebServiceController;
+import com.iris.dto.ServiceResponse;
+import com.iris.model.EmailSetting;
+import com.iris.model.ErrorKeyLabel;
+import com.iris.model.FieldKeyLabel;
+import com.iris.model.GridFormKeyLabel;
+import com.iris.repository.ErrorKeyLabelRepo;
+import com.iris.repository.FieldKeyLabelRepo;
+import com.iris.repository.GridFormKeyLabelRepo;
+import com.iris.service.MailService;
+
+@Configuration
+public class ApplicationStartListener {
+	static final Logger LOGGER = LogManager.getLogger(ApplicationStartListener.class);
+
+	@Autowired
+	private EmailController emailController;
+
+	@Autowired
+	private ErrorKeyLabelRepo errorKeyLabelRepo;
+
+	@Autowired
+	private FieldKeyLabelRepo fieldKeyLabelRepo;
+
+	@Autowired
+	private GridFormKeyLabelRepo gridFormKeyLabelRepo;
+
+	@Autowired
+	private WebServiceController webServiceController;
+
+	@Autowired
+	private UserRegulatorController userRegulatorController;
+
+	@EventListener(ApplicationReadyEvent.class)
+	public void startApplication() {
+		LOGGER.debug("Application loaded");
+		try {
+			ServiceResponse emailServiceResponse = emailController.getEmailSettings();
+
+			if (emailServiceResponse.isStatus()) {
+				EmailSetting emailSettingObj = (EmailSetting) emailServiceResponse.getResponse();
+				MailService.setDefaultHost(emailSettingObj.getServerName());
+				MailService.setDefaultPort(emailSettingObj.getPortNumber());
+				MailService.setDefaultSenderEmail(emailSettingObj.getMailBox());
+				MailService.setDefaultSenderPassword(emailSettingObj.getPassword());
+				MailService.setIssmtpAuthentication(emailSettingObj.isIssmtpAuthentication());
+				MailService.setSSLAuthentication(emailSettingObj.isSlsAuthentication());
+				MailService.setTLSAuthentication(emailSettingObj.isTlsAuthentication());
+			} else {
+				LOGGER.error("email setting not loaded");
+			}
+
+			ServiceResponse serviceResponse = webServiceController.reInitializeWebServiceComponentCache();
+			if (!serviceResponse.isStatus()) {
+				LOGGER.error("Webservice component not loaded");
+			}
+
+			ServiceResponse sdmxServiceResponse = webServiceController.getAllSdmxServiceUrlList();
+			if (!sdmxServiceResponse.isStatus()) {
+				LOGGER.error("Webservice component not loaded");
+			}
+
+			List<ErrorKeyLabel> errorKeyLableList = errorKeyLabelRepo.loadAllErrorKeyLableByLanguageId(15l);
+			errorKeyLableList.forEach(f -> {
+				ObjectCache.putLabelKeyValue(f.getLanguageCode(), f.getErrorKey(), f.getErrorKeyLable());
+				ObjectCache.putErrorCodeKey(f.getErrorCode(), f.getErrorKey());
+			});
+
+			List<FieldKeyLabel> fieldKeyLableList = fieldKeyLabelRepo.loadAllFiedldKeyLableByLanguageId(15l);
+			fieldKeyLableList.forEach(f -> ObjectCache.putLabelKeyValue(f.getLanguageCode(), f.getFieldKey(), f.getFieldKeyLable()));
+
+			List<GridFormKeyLabel> gridKeyLableList = gridFormKeyLabelRepo.loadAllFiedldKeyLableByLanguageId(15l);
+			gridKeyLableList.forEach(f -> {
+				ObjectCache.putLabelKeyValue(f.getLanguageCode(), f.getGridFromKey(), f.getGridFormKeyLable());
+				ObjectCache.putErrorCodeKey(f.getErrorCode(), f.getGridFromKey());
+			});
+
+			ServiceResponse userRegulatorResponse = userRegulatorController.reloadMasterContent(null);
+			if (!userRegulatorResponse.isStatus()) {
+				LOGGER.error("User Regulator Setting reloading failed");
+			}
+
+		} catch (Exception e) {
+			LOGGER.error("Exception while starting application :", e);
+		}
+	}
+}

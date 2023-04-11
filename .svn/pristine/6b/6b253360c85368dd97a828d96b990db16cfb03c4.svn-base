@@ -1,0 +1,396 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import com.iris.util.Validations;
+
+public class LogedInUser implements Serializable {
+
+	private static final long serialVersionUID = 335819880966920789L;
+
+	private long userId;
+	private long userInfoId;
+	private String userName;
+	private String firstName;
+	private String lastName;
+	private String emailId;
+	private String phoneNum;
+
+	private long roleId;
+	private String roleKey;
+	private String roleName;
+	private long domainId;
+	private Long entityId;
+	private long domainUserRoleId;
+	private boolean isEntityUserLogedIn;
+	private long entityUserDomainId;
+	private boolean isPasswordRest;
+	private String isPasswordExpired;
+	private Date lastLogin;
+	private String lastLogedOn;
+	private long roleTypeId;
+	private Long auditorId;
+	private String entityName;
+	private String entityCode;
+	private String auditFirmName;
+	private String auditFirmCode;
+	private boolean isLinkedToEntity;
+	private boolean isLinkedToAuditor;
+	private Long rolePriority;
+
+	private boolean isRegisteredCompany;
+
+	/**
+	 * @return the userId
+	 */
+	public long getUserId() {
+		return userId;
+	}
+
+	/**
+	 * @param userId the userId to set
+	 */
+	public void setUserId(long userId) {
+		this.userId = userId;
+	}
+
+	/**
+	 * @return the userName
+	 */
+	public String getUserName() {
+		return userName;
+	}
+
+	/**
+	 * @param userName the userName to set
+	 */
+	public void setUserName(String userName) {
+		this.userName = Validations.trimInput(userName);
+	}
+
+	/**
+	 * @return the firstName
+	 */
+	public String getFirstName() {
+		return firstName;
+	}
+
+	/**
+	 * @param firstName the firstName to set
+	 */
+	public void setFirstName(String firstName) {
+		this.firstName = Validations.trimInput(firstName);
+	}
+
+	/**
+	 * @return the lastName
+	 */
+	public String getLastName() {
+		return lastName;
+	}
+
+	/**
+	 * @param lastName the lastName to set
+	 */
+	public void setLastName(String lastName) {
+		this.lastName = Validations.trimInput(lastName);
+	}
+
+	/**
+	 * @return the emailId
+	 */
+	public String getEmailId() {
+		return emailId;
+	}
+
+	/**
+	 * @param emailId the emailId to set
+	 */
+	public void setEmailId(String emailId) {
+		this.emailId = Validations.trimInput(emailId);
+	}
+
+	/**
+	 * @return the roleId
+	 */
+	public long getRoleId() {
+		return roleId;
+	}
+
+	/**
+	 * @param roleId the roleId to set
+	 */
+	public void setRoleId(long roleId) {
+		this.roleId = roleId;
+	}
+
+	/**
+	 * @return the domainId
+	 */
+	public long getDomainId() {
+		return domainId;
+	}
+
+	/**
+	 * @param domainId the domainId to set
+	 */
+	public void setDomainId(long domainId) {
+		this.domainId = domainId;
+	}
+
+	/**
+	 * @return the domainUserRoleId
+	 */
+	public long getDomainUserRoleId() {
+		return domainUserRoleId;
+	}
+
+	/**
+	 * @param domainUserRoleId the domainUserRoleId to set
+	 */
+	public void setDomainUserRoleId(long domainUserRoleId) {
+		this.domainUserRoleId = domainUserRoleId;
+	}
+
+	public long getUserInfoId() {
+		return userInfoId;
+	}
+
+	public void setUserInfoId(long userInfoId) {
+		this.userInfoId = userInfoId;
+	}
+
+	public String getRoleKey() {
+		return roleKey;
+	}
+
+	public void setRoleKey(String roleKey) {
+		this.roleKey = Validations.trimInput(roleKey);
+	}
+
+	public String getRoleName() {
+		return roleName;
+	}
+
+	public void setRoleName(String roleName) {
+		this.roleName = Validations.trimInput(roleName);
+	}
+
+	public boolean isEntityUserLogedIn() {
+		return isEntityUserLogedIn;
+	}
+
+	public void setEntityUserLogedIn(boolean isEntityUserLogedIn) {
+		this.isEntityUserLogedIn = isEntityUserLogedIn;
+	}
+
+	public boolean isPasswordRest() {
+		return isPasswordRest;
+	}
+
+	public void setPasswordRest(boolean isPasswordRest) {
+		this.isPasswordRest = isPasswordRest;
+	}
+
+	public long getEntityUserDomainId() {
+		return entityUserDomainId;
+	}
+
+	public void setEntityUserDomainId(long entityUserDomainId) {
+		this.entityUserDomainId = entityUserDomainId;
+	}
+
+	public String getPhoneNum() {
+		return phoneNum;
+	}
+
+	public void setPhoneNum(String phoneNum) {
+		this.phoneNum = Validations.trimInput(phoneNum);
+	}
+
+	public Date getLastLogin() {
+		return lastLogin;
+	}
+
+	public void setLastLogin(Date lastLogin) {
+		this.lastLogin = lastLogin;
+	}
+
+	/**
+	 * @return the roleTypeId
+	 */
+	public long getRoleTypeId() {
+		return roleTypeId;
+	}
+
+	/**
+	 * @param roleTypeId the roleTypeId to set
+	 */
+	public void setRoleTypeId(long roleTypeId) {
+		this.roleTypeId = roleTypeId;
+	}
+
+	/**
+	 * @return the entityName
+	 */
+	public String getEntityName() {
+		return entityName;
+	}
+
+	/**
+	 * @param entityName the entityName to set
+	 */
+	public void setEntityName(String entityName) {
+		this.entityName = Validations.trimInput(entityName);
+	}
+
+	/**
+	 * @return the entityCode
+	 */
+	public String getEntityCode() {
+		return entityCode;
+	}
+
+	/**
+	 * @param entityCode the entityCode to set
+	 */
+	public void setEntityCode(String entityCode) {
+		this.entityCode = Validations.trimInput(entityCode);
+	}
+
+	/**
+	 * @return the auditFirmName
+	 */
+	public String getAuditFirmName() {
+		return auditFirmName;
+	}
+
+	/**
+	 * @param auditFirmName the auditFirmName to set
+	 */
+	public void setAuditFirmName(String auditFirmName) {
+		this.auditFirmName = Validations.trimInput(auditFirmName);
+	}
+
+	/**
+	 * @return the auditFirmCode
+	 */
+	public String getAuditFirmCode() {
+		return auditFirmCode;
+	}
+
+	/**
+	 * @param auditFirmCode the auditFirmCode to set
+	 */
+	public void setAuditFirmCode(String auditFirmCode) {
+		this.auditFirmCode = Validations.trimInput(auditFirmCode);
+	}
+
+	/**
+	 * @return the isLinkedToEntity
+	 */
+	public boolean isLinkedToEntity() {
+		return isLinkedToEntity;
+	}
+
+	/**
+	 * @param isLinkedToEntity the isLinkedToEntity to set
+	 */
+	public void setLinkedToEntity(boolean isLinkedToEntity) {
+		this.isLinkedToEntity = isLinkedToEntity;
+	}
+
+	/**
+	 * @return the isLinkedToAuditor
+	 */
+	public boolean isLinkedToAuditor() {
+		return isLinkedToAuditor;
+	}
+
+	/**
+	 * @param isLinkedToAuditor the isLinkedToAuditor to set
+	 */
+	public void setLinkedToAuditor(boolean isLinkedToAuditor) {
+		this.isLinkedToAuditor = isLinkedToAuditor;
+	}
+
+	public String getIsPasswordExpired() {
+		return isPasswordExpired;
+	}
+
+	public void setIsPasswordExpired(String isPasswordExpired) {
+		this.isPasswordExpired = Validations.trimInput(isPasswordExpired);
+	}
+
+	/**
+	 * @return the entityId
+	 */
+	public Long getEntityId() {
+		return entityId;
+	}
+
+	/**
+	 * @param entityId the entityId to set
+	 */
+	public void setEntityId(Long entityId) {
+		this.entityId = entityId;
+	}
+
+	/**
+	 * @return the auditorId
+	 */
+	public Long getAuditorId() {
+		return auditorId;
+	}
+
+	/**
+	 * @param auditorId the auditorId to set
+	 */
+	public void setAuditorId(Long auditorId) {
+		this.auditorId = auditorId;
+	}
+
+	/**
+	 * @return the rolePriority
+	 */
+	public Long getRolePriority() {
+		return rolePriority;
+	}
+
+	/**
+	 * @param rolePriority the rolePriority to set
+	 */
+	public void setRolePriority(Long rolePriority) {
+		this.rolePriority = rolePriority;
+	}
+
+	/**
+	 * @return the lastLogedOn
+	 */
+	public String getLastLogedOn() {
+		return lastLogedOn;
+	}
+
+	/**
+	 * @param lastLogedOn the lastLogedOn to set
+	 */
+	public void setLastLogedOn(String lastLogedOn) {
+		this.lastLogedOn = Validations.trimInput(lastLogedOn);
+	}
+
+	/**
+	 * @return the isRegisteredCompany
+	 */
+	public boolean isRegisteredCompany() {
+		return isRegisteredCompany;
+	}
+
+	/**
+	 * @param isRegisteredCompany the isRegisteredCompany to set
+	 */
+	public void setRegisteredCompany(boolean isRegisteredCompany) {
+		this.isRegisteredCompany = isRegisteredCompany;
+	}
+
+}

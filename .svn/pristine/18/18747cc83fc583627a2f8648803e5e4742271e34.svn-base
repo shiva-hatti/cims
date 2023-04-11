@@ -1,0 +1,69 @@
+package com.iris.model;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "TBL_DYNAMIC_HEADER_LABEL")
+public class DynamicHeaderLabel implements Serializable {
+
+	private static final long serialVersionUID = -6572122556984631263L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "HEADER_LABEL_ID")
+	private Integer headerLabelId;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "HEADER_ID_FK")
+	private DynamicHeader headerIdFk;
+
+	@Column(name = "HEADER_LABEL")
+	private String headerLabel;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "LANGUAGE_ID_FK")
+	private LanguageMaster langIdFk;
+
+	public Integer getHeaderLabelId() {
+		return headerLabelId;
+	}
+
+	public void setHeaderLabelId(Integer headerLabelId) {
+		this.headerLabelId = headerLabelId;
+	}
+
+	public DynamicHeader getHeaderIdFk() {
+		return headerIdFk;
+	}
+
+	public void setHeaderIdFk(DynamicHeader headerIdFk) {
+		this.headerIdFk = headerIdFk;
+	}
+
+	public String getHeaderLabel() {
+		return headerLabel;
+	}
+
+	public void setHeaderLabel(String headerLabel) {
+		this.headerLabel = headerLabel;
+	}
+
+	public LanguageMaster getLangIdFk() {
+		return langIdFk;
+	}
+
+	public void setLangIdFk(LanguageMaster langIdFk) {
+		this.langIdFk = langIdFk;
+	}
+
+}

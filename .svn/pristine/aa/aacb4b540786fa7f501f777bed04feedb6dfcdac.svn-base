@@ -1,0 +1,183 @@
+package com.iris.nbfc.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+import com.iris.model.UserMaster;
+/**
+ * @author Shivabasava Hatti
+ */
+@Entity
+@Table(name = "TBL_NBFC_ENTITY")
+public class NbfcEntityBean implements Serializable {
+	private static final long serialVersionUID = 8102482918523287238L;
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "NBFC_ID")
+	private Long nbfcId;
+	
+	@Column(name = "COMPANY_PAN")
+	private String compPan;
+	
+	@Column(name = "COMPANY_NAME")
+	private String compName;
+	
+	@Column(name = "COMPANY_EMAILID")
+	private String compEmailId;
+	
+	@Column(name = "COMPANY_PHONE")
+	private String compPhone;
+	
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+	
+	@Column(name = "OTP")
+	private String otp;
+	
+	@Column(name = "IS_VERIFIED")
+	private Boolean isVerified;
+	
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+	
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "REGISTER_ON")
+	private Date registeredOn;
+	
+	@ManyToOne
+	@JoinColumn(name = "USERID_FK")
+	private UserMaster user;
+
+	public Long getNbfcId() {
+		return nbfcId;
+	}
+
+	public void setNbfcId(Long nbfcId) {
+		this.nbfcId = nbfcId;
+	}
+
+	public String getCompPan() {
+		return compPan;
+	}
+
+	public void setCompPan(String compPan) {
+		this.compPan = compPan;
+	}
+
+	public String getCompName() {
+		return compName;
+	}
+
+	public void setCompName(String compName) {
+		this.compName = compName;
+	}
+
+	public String getCompEmailId() {
+		return compEmailId;
+	}
+
+	public void setCompEmailId(String compEmailId) {
+		this.compEmailId = compEmailId;
+	}
+
+	/**
+	 * @return the compPhone
+	 */
+	public String getCompPhone() {
+		return compPhone;
+	}
+
+	/**
+	 * @param compPhone the compPhone to set
+	 */
+	public void setCompPhone(String compPhone) {
+		this.compPhone = compPhone;
+	}
+
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	public String getOtp() {
+		return otp;
+	}
+
+	public void setOtp(String otp) {
+		this.otp = otp;
+	}
+
+	/**
+	 * @return the isVerified
+	 */
+	public Boolean getIsVerified() {
+		return isVerified;
+	}
+
+	/**
+	 * @param isVerified the isVerified to set
+	 */
+	public void setIsVerified(Boolean isVerified) {
+		this.isVerified = isVerified;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the registeredOn
+	 */
+	public Date getRegisteredOn() {
+		return registeredOn;
+	}
+
+	/**
+	 * @param registeredOn the registeredOn to set
+	 */
+	public void setRegisteredOn(Date registeredOn) {
+		this.registeredOn = registeredOn;
+	}
+
+	/**
+	 * @return the user
+	 */
+	public UserMaster getUser() {
+		return user;
+	}
+
+	/**
+	 * @param user the user to set
+	 */
+	public void setUser(UserMaster user) {
+		this.user = user;
+	}
+
+
+}

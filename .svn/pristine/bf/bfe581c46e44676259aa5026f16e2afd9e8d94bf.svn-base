@@ -1,0 +1,73 @@
+/**
+ * 
+ */
+package com.iris.util;
+
+/**
+ * @author apagaria
+ *
+ */
+public enum SdmxDataTemplateStatus {
+	
+	UPLOADED(1, "UPLOADED", "UPLOADED"), IN_PROGRESS(2, "INPROG","IN PROGRESS"), 
+	UPLOADED_SUCCESSFULLY(3, "UPLOADSUCCESS", "SUCCESSFULLY UPLOADED"), FAILED(4,"FAILRED", "FAILED"), DEACTIVATED(5,"DEACT","DEACTIVATED");
+	
+	int statusId;
+	
+	String statusCode;
+	
+	String statusMessage;
+
+	/**
+	 * @param statusId
+	 * @param statusCode
+	 * @param statusMessage
+	 */
+	private SdmxDataTemplateStatus(int statusId, String statusCode, String statusMessage) {
+		this.statusId = statusId;
+		this.statusCode = statusCode;
+		this.statusMessage = statusMessage;
+	}
+
+	/**
+	 * @return the statusId
+	 */
+	public int getStatusId() {
+		return statusId;
+	}
+
+	/**
+	 * @param statusId the statusId to set
+	 */
+	public void setStatusId(int statusId) {
+		this.statusId = statusId;
+	}
+
+	/**
+	 * @return the statusCode
+	 */
+	public String getStatusCode() {
+		return statusCode;
+	}
+
+	/**
+	 * @param statusCode the statusCode to set
+	 */
+	public void setStatusCode(String statusCode) {
+		this.statusCode = statusCode;
+	}
+
+	/**
+	 * @return the statusMessage
+	 */
+	public String getStatusMessage() {
+		return statusMessage;
+	}
+
+	/**
+	 * @param statusMessage the statusMessage to set
+	 */
+	public void setStatusMessage(String statusMessage) {
+		this.statusMessage = statusMessage;
+	}
+}

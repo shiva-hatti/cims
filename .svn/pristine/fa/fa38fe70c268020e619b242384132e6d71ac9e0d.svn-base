@@ -1,0 +1,88 @@
+/**
+ * 
+ */
+package com.iris.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.dto.ServiceResponse;
+import com.iris.model.BranchMasterDomestic;
+import com.iris.model.StateMaster;
+import com.iris.repository.BranchMasterDomesticRepo;
+import com.iris.service.impl.BranchMasterDomesticService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.MethodConstants;
+
+/**
+ * @author Siddique H Khan
+ *
+ */
+
+@RestController
+@RequestMapping("/service/branchMaster")
+public class BranchMasterDomesticController {
+
+	static final Logger logger = LogManager.getLogger(BranchMasterDomesticController.class);
+
+	@Autowired
+	BranchMasterDomesticService branchMasterDomesticService;
+
+	@Autowired
+	private BranchMasterDomesticRepo branchMasterDomesticRepo;
+
+	@GetMapping(value = "/fetchDomesticBranchData/{branchWorkingCode}")
+	public ServiceResponse fetchDomesticBranchData(@PathVariable String branchWorkingCode) {
+
+		logger.info("fetch fetchBranchMasterDomestictData method started " + branchWorkingCode);
+
+		ServiceResponse serviceResponse = null;
+
+		if (StringUtils.isBlank(branchWorkingCode)) {
+
+			return serviceResponse;
+		}
+
+		List<BranchMasterDomestic> listOfActiveBranchMasterDomestic = null;
+
+		Map<String, Object> columnValueMap = new HashMap<>();
+		columnValueMap.put(ColumnConstants.BRANCH_WORKING_CODE.getConstantVal(), branchWorkingCode);
+
+		listOfActiveBranchMasterDomestic = branchMasterDomesticService.getDataByObject(columnValueMap, MethodConstants.GET_DATA_BY_BRANCH_WORKING_CODE.getConstantVal());
+
+		List<String> branchCodeList = listOfActiveBranchMasterDomestic.stream().map(BranchMasterDomestic::getBranchCode).collect(Collectors.toList());
+		logger.info("fetch fetchBranchMasterDomestictData list size" + branchCodeList.size());
+		serviceResponse = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+		serviceResponse.setResponse(branchCodeList);
+		return serviceResponse;
+
+	}
+
+	@GetMapping(value = "/checkActiveBranchCode/{branchWorkingCode}")
+	public ServiceResponse checkActiveBranchCode(@PathVariable String branchWorkingCode) {
+		logger.info("check checkActiveBranchCode method started " + branchWorkingCode);
+		ServiceResponse serviceResponse = null;
+		if (StringUtils.isBlank(branchWorkingCode)) {
+			return serviceResponse;
+		}
+		BranchMasterDomestic branchMasterDomestic = branchMasterDomesticRepo.checkBranchMasterByBranchWorkingCode(branchWorkingCode);
+		logger.info("check checkActiveBranchCode " + branchMasterDomestic);
+		if (!Objects.isNull(branchMasterDomestic)) {
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+		} else {
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+		}
+	}
+}

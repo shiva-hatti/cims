@@ -1,0 +1,81 @@
+package com.iris.controller;
+
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.google.gson.Gson;
+import com.iris.caching.ObjectCache;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.model.AuditFirm;
+import com.iris.model.SchedulerInfo;
+import com.iris.util.UtilMaster;
+import com.iris.util.constant.ErrorCode;
+
+/**
+ * @author psheke
+ * @date 19/05/2021
+ */
+@RestController
+@RequestMapping("/service/schedulerLogController")
+public class SchedulerLogController {
+	static final Logger LOGGER = LogManager.getLogger(SchedulerLogController.class);
+	@Autowired
+	private SchedulerLogProcessor schedulerLogProcessor;
+
+	/**
+	 * This method is used to fetch the scheduler Log list.
+	 */
+	@PostMapping(value = "/getSchedulerLog/{count}")
+	public ServiceResponse getSchedulerLogList(@RequestHeader(name = "AppId") String jobProcessId, @RequestHeader(name = "UUID") String uuid, @PathVariable Integer count) {
+		try {
+			LOGGER.info("Fetching the Scheduler Log list: getSchedulerLogList");
+			List<SchedulerInfo> schedulerLogList = schedulerLogProcessor.getSchedulerLogList(count);
+			if (CollectionUtils.isEmpty(schedulerLogList)) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+			}
+
+			String jsonResult = new Gson().toJson(schedulerLogList);
+			if (!UtilMaster.isEmpty(jsonResult)) {
+				return new ServiceResponseBuilder().setStatus(true).setResponse(jsonResult).build();
+			} else {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+			}
+		} catch (Exception e) {
+			LOGGER.error(ErrorCode.EC0033.toString(), e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+
+	/**
+	 * This method is used to update Scheduler Details.
+	 */
+	@PostMapping(value = "/updateSchedulerInfo")
+	public ServiceResponse updateSchedulerInfo(@RequestHeader(name = "AppId") String jobProcessId, @RequestHeader(name = "UUID") String uuid, @RequestBody SchedulerInfo schedulerInfo) {
+		LOGGER.info("update Scheduler Details: updateSchedulerInfo");
+		ServiceResponse serviceResponse = null;
+		try {
+			if (UtilMaster.isEmpty(schedulerInfo.getSchedulerId())) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+			}
+
+			serviceResponse = schedulerLogProcessor.updateSchedulerInfo(schedulerInfo);
+		} catch (Exception e) {
+			LOGGER.error(ErrorCode.EC0033.toString(), e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+		return serviceResponse;
+	}
+
+}

@@ -1,0 +1,104 @@
+/**
+ * 
+ */
+package com.iris.sdmx.fusion.bean;
+
+import java.io.Serializable;
+
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
+/**
+ * @author sajadhav
+ *
+ */
+@XmlRootElement(name = "RegistryInterface")
+public class RegistryInterface implements Serializable  {
+
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -8103035410843378125L;
+	private Header header;
+	private SubmitStructureResponse submitStructureResponse;
+	
+
+	/**
+	 * @return the submitStructureResponse
+	 */
+	@XmlElement(name= "SubmitStructureResponse")
+	public SubmitStructureResponse getSubmitStructureResponse() {
+		return submitStructureResponse;
+	}
+
+	/**
+	 * @param submitStructureResponse the submitStructureResponse to set
+	 */
+	public void setSubmitStructureResponse(SubmitStructureResponse submitStructureResponse) {
+		this.submitStructureResponse = submitStructureResponse;
+	}
+
+	/**
+	 * @return the header
+	 */
+	@XmlElement(name= "Header")
+	public Header getHeader() {
+		return header;
+	}
+
+	/**
+	 * @param header the header to set
+	 */
+	public void setHeader(Header header) {
+		this.header = header;
+	}
+	
+	public static void main(String[] args) {
+//	    try {
+//            JAXBContext jaxbContext = JAXBContext.newInstance(RegistryInterface.class);
+            
+//	    	RegistryInterface registryInterface = new RegistryInterface();
+//	    	Header header = new Header();
+//	    	header.setId("1");
+//	    	header.setPrepared("Preparedasdas data");
+//	    	header.setReceiver("Receivasdasaser data");
+//	    	header.setSender("Sender");
+//	    	header.setTest("Test");
+//	    	registryInterface.setHeader(header);
+//	    	
+//	    	SubmitStructureResponse submitStructureResponse = new SubmitStructureResponse();
+//	    	SubmissionResult submissionResult = new SubmissionResult();
+//	    	
+//	    	SubmittedStructure submittedStructure = new SubmittedStructure();
+//	    	MaintainableObject maintainableObject = new MaintainableObject();
+//	    	maintainableObject.setURN(Arrays.asList("urn:sdmx:org.sdmx.infomodel.codelist.Codelist=RBI_CIMS:CL_Area_Operation_NEW(1.0)"));
+//	    	submittedStructure.setMaintainableObject(maintainableObject);
+//	    	
+//	    	StatusMessage statusMessage = new StatusMessage();
+//	    	statusMessage.setStatus("Success");
+//	    	submissionResult.setStatusMessage(statusMessage);
+//	    	submissionResult.setSubmittedStructure(submittedStructure);
+//	    	
+//	    	
+//	    	submittedStructure.setAction("Append");
+//	    	
+//	    	submitStructureResponse.setSubmissionResult(submissionResult);
+//	    			
+//	    	registryInterface.setSubmitStructureResponse(submitStructureResponse);
+//	    	
+//	    	
+//            Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+//
+//            
+//            jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE); // To format XML
+//
+//            jaxbMarshaller.marshal(registryInterface, new File("RegistryInterface.xml"));
+//            Unmarshaller jaxbUnMarshaller = jaxbContext.createUnmarshaller();
+//            RegistryInterface registryInterface1 = (RegistryInterface) jaxbUnMarshaller.unmarshal(new File("RegistryInterface.xml"));
+//            System.out.println(registryInterface1);
+//	    } catch (JAXBException e) {
+//            e.printStackTrace();
+//        }
+	}
+}

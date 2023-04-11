@@ -1,0 +1,54 @@
+package com.iris.sdmx.fusion.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.dto.ServiceResponse;
+import com.iris.sdmx.fusion.bean.SdmxFusionDsdDetailBean;
+import com.iris.sdmx.fusion.entity.SdmxFusionDsdDetailEntity;
+import com.iris.sdmx.fusion.service.SdmxFusionDsdDetailService;
+
+/**
+ * @author apagaria
+ */
+@RestController
+@RequestMapping(value = "/service/sdmx/dsdDetail")
+public class SdmxFusionDsdDetailController {
+
+	private static final Logger LOGGER = LogManager.getLogger(SdmxFusionDsdDetailController.class);
+
+	@Autowired
+	private SdmxFusionDsdDetailService sdmxFusionDsdDetailService;
+
+	@GetMapping(value = "/user/{userId}/getDsdDetailList")
+	public ServiceResponse getFusionProperties(@PathVariable("userId") Long userId) {
+		List<SdmxFusionDsdDetailBean> sdmxFusionDsdDetailBeans = null;
+		try {
+			List<SdmxFusionDsdDetailEntity> sdmxFusionDsdDetailEntities = sdmxFusionDsdDetailService.findEntitiesByActiveStatus(true);
+			if (!CollectionUtils.isEmpty(sdmxFusionDsdDetailEntities)) {
+				sdmxFusionDsdDetailBeans = new ArrayList<SdmxFusionDsdDetailBean>();
+				for (SdmxFusionDsdDetailEntity sdmxFusionDsdDetailEntity : sdmxFusionDsdDetailEntities) {
+					SdmxFusionDsdDetailBean sdmxFusionDsdDetailBean = new SdmxFusionDsdDetailBean();
+					BeanUtils.copyProperties(sdmxFusionDsdDetailEntity, sdmxFusionDsdDetailBean);
+					sdmxFusionDsdDetailBean.setCreatedBy(sdmxFusionDsdDetailEntity.getCreatedBy().getUserId());
+					sdmxFusionDsdDetailBean.setUserName(sdmxFusionDsdDetailEntity.getCreatedBy().getUserName());
+					sdmxFusionDsdDetailBeans.add(sdmxFusionDsdDetailBean);
+				}
+			}
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(sdmxFusionDsdDetailBeans).build();
+		} catch (Exception e) {
+			LOGGER.error("Exception", e);
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+		}
+	}
+}

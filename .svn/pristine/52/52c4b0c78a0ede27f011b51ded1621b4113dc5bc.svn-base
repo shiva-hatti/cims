@@ -1,0 +1,321 @@
+/**
+ * 
+ */
+package com.iris.sdmx.element.bean;
+
+import java.util.Date;
+
+import org.springframework.stereotype.Component;
+
+/**
+ * @author apagaria
+ *
+ */
+@Component
+public class SdmxElementBeanForTemp {
+
+	private String dsdCode;
+
+	private String elementLable;
+
+	private String elementVer;
+
+	private String classificationName;
+
+	private String dependencyTypeName;
+
+	private String flowTypeName;
+
+	private String natureTypeName;
+
+	private String sectorTypeName;
+
+	private String elementDesc;
+
+	private Long elementParentId;
+	
+	private String sdmxParentDsdCode;
+
+	private Boolean isActive;
+
+	private Date lastUpdateOn;
+
+	private Long createdBy;
+
+	private Date createdOn;
+
+	private Long modifyBy;
+
+	private Date modifyOn;
+
+	private Long ownerDepartmentId;
+
+	/**
+	 * @return the dsdCode
+	 */
+	public String getDsdCode() {
+		return dsdCode;
+	}
+
+	/**
+	 * @param dsdCode the dsdCode to set
+	 */
+	public void setDsdCode(String dsdCode) {
+		this.dsdCode = dsdCode;
+	}
+
+	/**
+	 * @return the elementLable
+	 */
+	public String getElementLable() {
+		return elementLable;
+	}
+
+	/**
+	 * @param elementLable the elementLable to set
+	 */
+	public void setElementLable(String elementLable) {
+		this.elementLable = elementLable;
+	}
+
+	/**
+	 * @return the elementVer
+	 */
+	public String getElementVer() {
+		return elementVer;
+	}
+
+	/**
+	 * @param elementVer the elementVer to set
+	 */
+	public void setElementVer(String elementVer) {
+		this.elementVer = elementVer;
+	}
+
+	/**
+	 * @return the classificationName
+	 */
+	public String getClassificationName() {
+		return classificationName;
+	}
+
+	/**
+	 * @param classificationName the classificationName to set
+	 */
+	public void setClassificationName(String classificationName) {
+		this.classificationName = classificationName;
+	}
+
+	/**
+	 * @return the dependencyTypeName
+	 */
+	public String getDependencyTypeName() {
+		return dependencyTypeName;
+	}
+
+	/**
+	 * @param dependencyTypeName the dependencyTypeName to set
+	 */
+	public void setDependencyTypeName(String dependencyTypeName) {
+		this.dependencyTypeName = dependencyTypeName;
+	}
+
+	/**
+	 * @return the flowTypeName
+	 */
+	public String getFlowTypeName() {
+		return flowTypeName;
+	}
+
+	/**
+	 * @param flowTypeName the flowTypeName to set
+	 */
+	public void setFlowTypeName(String flowTypeName) {
+		this.flowTypeName = flowTypeName;
+	}
+
+	/**
+	 * @return the natureTypeName
+	 */
+	public String getNatureTypeName() {
+		return natureTypeName;
+	}
+
+	/**
+	 * @param natureTypeName the natureTypeName to set
+	 */
+	public void setNatureTypeName(String natureTypeName) {
+		this.natureTypeName = natureTypeName;
+	}
+
+	/**
+	 * @return the sectorTypeName
+	 */
+	public String getSectorTypeName() {
+		return sectorTypeName;
+	}
+
+	/**
+	 * @param sectorTypeName the sectorTypeName to set
+	 */
+	public void setSectorTypeName(String sectorTypeName) {
+		this.sectorTypeName = sectorTypeName;
+	}
+
+	/**
+	 * @return the elementDesc
+	 */
+	public String getElementDesc() {
+		return elementDesc;
+	}
+
+	/**
+	 * @param elementDesc the elementDesc to set
+	 */
+	public void setElementDesc(String elementDesc) {
+		this.elementDesc = elementDesc;
+	}
+
+	/**
+	 * @return the elementParentId
+	 */
+	public Long getElementParentId() {
+		return elementParentId;
+	}
+
+	/**
+	 * @param elementParentId the elementParentId to set
+	 */
+	public void setElementParentId(Long elementParentId) {
+		this.elementParentId = elementParentId;
+	}
+
+	/**
+	 * @return the sdmxParentDsdCode
+	 */
+	public String getSdmxParentDsdCode() {
+		return sdmxParentDsdCode;
+	}
+
+	/**
+	 * @param sdmxParentDsdCode the sdmxParentDsdCode to set
+	 */
+	public void setSdmxParentDsdCode(String sdmxParentDsdCode) {
+		this.sdmxParentDsdCode = sdmxParentDsdCode;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the lastUpdateOn
+	 */
+	public Date getLastUpdateOn() {
+		return lastUpdateOn;
+	}
+
+	/**
+	 * @param lastUpdateOn the lastUpdateOn to set
+	 */
+	public void setLastUpdateOn(Date lastUpdateOn) {
+		this.lastUpdateOn = lastUpdateOn;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public Long getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(Long createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the modifyBy
+	 */
+	public Long getModifyBy() {
+		return modifyBy;
+	}
+
+	/**
+	 * @param modifyBy the modifyBy to set
+	 */
+	public void setModifyBy(Long modifyBy) {
+		this.modifyBy = modifyBy;
+	}
+
+	/**
+	 * @return the modifyOn
+	 */
+	public Date getModifyOn() {
+		return modifyOn;
+	}
+
+	/**
+	 * @param modifyOn the modifyOn to set
+	 */
+	public void setModifyOn(Date modifyOn) {
+		this.modifyOn = modifyOn;
+	}
+
+	/**
+	 * @return the ownerDepartmentId
+	 */
+	public Long getOwnerDepartmentId() {
+		return ownerDepartmentId;
+	}
+
+	/**
+	 * @param ownerDepartmentId the ownerDepartmentId to set
+	 */
+	public void setOwnerDepartmentId(Long ownerDepartmentId) {
+		this.ownerDepartmentId = ownerDepartmentId;
+	}
+
+	/**
+	 *
+	 */
+	@Override
+	public String toString() {
+		return "SdmxElementBeanForTemp [dsdCode=" + dsdCode + ", elementLable=" + elementLable + ", elementVer="
+				+ elementVer + ", classificationName=" + classificationName + ", dependencyTypeName="
+				+ dependencyTypeName + ", flowTypeName=" + flowTypeName + ", natureTypeName=" + natureTypeName
+				+ ", sectorTypeName=" + sectorTypeName + ", elementDesc=" + elementDesc + ", elementParentId="
+				+ elementParentId + ", sdmxParentDsdCode=" + sdmxParentDsdCode + ", isActive=" + isActive
+				+ ", lastUpdateOn=" + lastUpdateOn + ", createdBy=" + createdBy + ", createdOn=" + createdOn
+				+ ", modifyBy=" + modifyBy + ", modifyOn=" + modifyOn + ", ownerDepartmentId=" + ownerDepartmentId
+				+ "]";
+	}
+
+	
+}

@@ -1,0 +1,94 @@
+package com.iris.util;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.tika.Tika;
+import org.apache.tika.metadata.Metadata;
+
+import com.iris.util.constant.GeneralConstants;
+
+public class FileMimeType {
+
+	static final Logger logger = LogManager.getLogger(FileMimeType.class);
+	
+	public static String[] getFileMimeType(File file) {
+		String[] fileMimeTypeDetails = null;
+		if (file != null) {
+			try(FileInputStream fileInputStream = new FileInputStream(file);) {
+//			String fileMimeType = new Tika().detect(file);
+				Metadata metadata = new Metadata();
+				new Tika().parse(fileInputStream, metadata);
+				String fileMimeType = metadata.get("Content-Type");
+				if (fileMimeType != null) {
+					if (fileMimeType.equals(GeneralConstants.XLSMIMETYPE.getConstantVal())) {
+						fileMimeTypeDetails = new String[2];
+						fileMimeTypeDetails[0] = GeneralConstants.XLS.getConstantVal();
+						fileMimeTypeDetails[1] = GeneralConstants.XLSMIMETYPE.getConstantVal();
+					} else if (fileMimeType.equals(GeneralConstants.XLSXMIMETYPE.getConstantVal())) {
+						fileMimeTypeDetails = new String[2];
+						fileMimeTypeDetails[0] = GeneralConstants.XLSX.getConstantVal();
+						fileMimeTypeDetails[1] = GeneralConstants.XLSMIMETYPE.getConstantVal();
+					} else if (fileMimeType.equals(GeneralConstants.CSVMIMETYPE.getConstantVal())) {
+						fileMimeTypeDetails = new String[2];
+						fileMimeTypeDetails[0] = GeneralConstants.CSV.getConstantVal();
+						fileMimeTypeDetails[1] = GeneralConstants.CSVMIMETYPE.getConstantVal();
+					} else if (fileMimeType.equals(GeneralConstants.TXTMIMETYPE.getConstantVal())) {
+						fileMimeTypeDetails = new String[2];
+						fileMimeTypeDetails[0] = GeneralConstants.TXT.getConstantVal();
+						fileMimeTypeDetails[1] = GeneralConstants.TXTMIMETYPE.getConstantVal();
+					} else if (fileMimeType.equals(GeneralConstants.XMLMIMETYPE.getConstantVal())) {
+						fileMimeTypeDetails = new String[2];
+						fileMimeTypeDetails[0] = GeneralConstants.XML.getConstantVal();
+						fileMimeTypeDetails[1] = GeneralConstants.XMLMIMETYPE.getConstantVal();
+					} else if(fileMimeType.equals(GeneralConstants.PDFMIMETYPE.getConstantVal())){
+						fileMimeTypeDetails = new String[2];
+						fileMimeTypeDetails[0] = GeneralConstants.PDF.getConstantVal();
+						fileMimeTypeDetails[1] = GeneralConstants.PDFMIMETYPE.getConstantVal();
+					} else {
+						fileMimeTypeDetails = new String[1];
+						fileMimeTypeDetails[0] = fileMimeType;
+					}
+				}
+			} catch (IOException e) {
+				logger.error("Error getting MimeType", e);
+			}
+		}
+		return fileMimeTypeDetails;
+	}
+	
+	
+	public static String[] getFileMimeTypeForJsonAndCSVFile(File file) {
+		String[] fileMimeTypeDetails = null;
+		if (file != null) {
+			try(FileInputStream fileInputStream = new FileInputStream(file);) {
+				String fileMimeType = new Tika().detect(file);
+				if (fileMimeType != null) {
+					if (fileMimeType.equals(GeneralConstants.CSVMIMETYPE.getConstantVal())) {
+						fileMimeTypeDetails = new String[2];
+						fileMimeTypeDetails[0] = GeneralConstants.CSV.getConstantVal();
+						fileMimeTypeDetails[1] = GeneralConstants.CSVMIMETYPE.getConstantVal();
+					} else if (fileMimeType.equals(GeneralConstants.JSONMIMETYPE.getConstantVal())) {
+						fileMimeTypeDetails = new String[2];
+						fileMimeTypeDetails[0] = GeneralConstants.JSON.getConstantVal();
+						fileMimeTypeDetails[1] = GeneralConstants.JSONMIMETYPE.getConstantVal();
+					}else {
+						fileMimeTypeDetails = new String[1];
+						fileMimeTypeDetails[0] = fileMimeType;
+					}
+				}
+			} catch (IOException e) {
+				logger.error("Error getting MimeType", e);
+			}
+		}
+		return fileMimeTypeDetails;
+	}
+	
+//	public static void main(String[] args) {
+//		FileMimeType fileMimeType = new FileMimeType();
+//		System.out.println(fileMimeType.getFileMimeType(new File("C:\\Users\\sajadhav\\Downloads\\example_1.json")));
+//	}
+}

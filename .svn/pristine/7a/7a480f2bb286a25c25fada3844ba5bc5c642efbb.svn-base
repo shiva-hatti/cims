@@ -1,0 +1,25 @@
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.query.Procedure;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.ErrorCodeDetail;
+import com.iris.model.ErrorCodeLabelMapping;
+
+public interface ErrorCodeLabelMappingRepository extends JpaRepository<ErrorCodeLabelMapping, Long> {
+
+	//@Query("from ErrorCodeLabelMapping where isActive=:isActive and errorCodeDetailIdFk IN (:errorCodeDetailList)")
+	@Query("from ErrorCodeLabelMapping where errorCodeDetailIdFk IN (:errorCodeDetailList)")
+	List<ErrorCodeLabelMapping> getErrorCodeLabelByErrorCodeIds(
+			@Param("errorCodeDetailList") List<ErrorCodeDetail> errorCodeDetailList);
+	
+	@Procedure(procedureName = "SP_INSERT_ERROR_CODE_LABEL")
+	void insertErrorCodeLabel(@Param("mod_user_id") Integer userId,@Param("lang_id") Integer langId);
+	
+	ErrorCodeLabelMapping findByErrorCodeDetailIdFkErrorCodeDetailIdAndLanguageIdFkLanguageId(Long errorCodeDetailId,Long languageId);
+
+}

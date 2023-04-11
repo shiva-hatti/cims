@@ -1,0 +1,365 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+
+/**
+ * @author psheke
+ * @date 4/12/2020
+ */
+@Entity
+@Table(name = "TBL_ENTITY_AUDITOR_MAPPING")
+public class EntityAuditorMapInfo implements Serializable {
+
+	private static final long serialVersionUID = 1236070217696324360L;
+
+	@Id
+	@Column(name = "ENTITY_AUDITOR_MAP_ID")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long entityAuditorMapId;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "ENTITY_ID_FK")
+	private EntityBean entityIdFk;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "AUDITOR_ID_FK")
+	private UserMaster auditorIdFk;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "RETURN_ID_FK")
+	private Return returnIdFk;
+
+	@Column(name = "UPLOAD")
+	private Boolean upload;
+
+	@Column(name = "REVIEW")
+	private Boolean review;
+
+	@Column(name = "VIEW")
+	private Boolean view;
+
+	@Column(name = "START_DATE")
+	private Date startDate;
+
+	@Column(name = "END_DATE")
+	private Date endDate;
+
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "AUDIT_FIRM_ID_FK")
+	private AuditFirmInfo auditFirmIdFk;
+
+	@Column(name = "ADMIN_STATUS_ID_FK")
+	private Integer adminStatusIdFk;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "CREATED_BY_FK")
+	private UserMaster createdBy;
+
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "MODIFIED_BY_FK")
+	private UserMaster modifiedBy;
+
+	@Column(name = "MODIFIED_ON")
+	private Date modifiedOn;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "APPROVED_BY_FK")
+	private UserMaster approvedByFk;
+
+	@Column(name = "APPROVED_ON")
+	private Date approvedOn;
+
+	@Column(name = "REJECT_COMMENT")
+	private String rejectComment;
+
+	@OneToMany(fetch = FetchType.EAGER, mappedBy = "entityAuditorMapModIdFk")
+	private List<EntityAuditorMapMod> entityAuditorMapMod;
+
+	/**
+	 * @return the entityAuditorMapMod
+	 */
+	public List<EntityAuditorMapMod> getEntityAuditorMapMod() {
+		return entityAuditorMapMod;
+	}
+
+	/**
+	 * @param entityAuditorMapMod the entityAuditorMapMod to set
+	 */
+	public void setEntityAuditorMapMod(List<EntityAuditorMapMod> entityAuditorMapMod) {
+		this.entityAuditorMapMod = entityAuditorMapMod;
+	}
+
+	/**
+	 * @return the entityAuditorMapId
+	 */
+	public Long getEntityAuditorMapId() {
+		return entityAuditorMapId;
+	}
+
+	/**
+	 * @param entityAuditorMapId the entityAuditorMapId to set
+	 */
+	public void setEntityAuditorMapId(Long entityAuditorMapId) {
+		this.entityAuditorMapId = entityAuditorMapId;
+	}
+
+	/**
+	 * @return the entityIdFk
+	 */
+	public EntityBean getEntityIdFk() {
+		return entityIdFk;
+	}
+
+	/**
+	 * @param entityIdFk the entityIdFk to set
+	 */
+	public void setEntityIdFk(EntityBean entityIdFk) {
+		this.entityIdFk = entityIdFk;
+	}
+
+	/**
+	 * @return the auditFirmIdFk
+	 */
+	public AuditFirmInfo getAuditFirmIdFk() {
+		return auditFirmIdFk;
+	}
+
+	/**
+	 * @param auditFirmIdFk the auditFirmIdFk to set
+	 */
+	public void setAuditFirmIdFk(AuditFirmInfo auditFirmIdFk) {
+		this.auditFirmIdFk = auditFirmIdFk;
+	}
+
+	/**
+	 * @return the returnIdFk
+	 */
+	public Return getReturnIdFk() {
+		return returnIdFk;
+	}
+
+	/**
+	 * @param returnIdFk the returnIdFk to set
+	 */
+	public void setReturnIdFk(Return returnIdFk) {
+		this.returnIdFk = returnIdFk;
+	}
+
+	/**
+	 * @return the upload
+	 */
+	public Boolean getUpload() {
+		return upload;
+	}
+
+	/**
+	 * @param upload the upload to set
+	 */
+	public void setUpload(Boolean upload) {
+		this.upload = upload;
+	}
+
+	/**
+	 * @return the review
+	 */
+	public Boolean getReview() {
+		return review;
+	}
+
+	/**
+	 * @param review the review to set
+	 */
+	public void setReview(Boolean review) {
+		this.review = review;
+	}
+
+	/**
+	 * @return the view
+	 */
+	public Boolean getView() {
+		return view;
+	}
+
+	/**
+	 * @param view the view to set
+	 */
+	public void setView(Boolean view) {
+		this.view = view;
+	}
+
+	/**
+	 * @return the startDate
+	 */
+	public Date getStartDate() {
+		return startDate;
+	}
+
+	/**
+	 * @param startDate the startDate to set
+	 */
+	public void setStartDate(Date startDate) {
+		this.startDate = startDate;
+	}
+
+	/**
+	 * @return the endDate
+	 */
+	public Date getEndDate() {
+		return endDate;
+	}
+
+	/**
+	 * @param endDate the endDate to set
+	 */
+	public void setEndDate(Date endDate) {
+		this.endDate = endDate;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the adminStatusIdFk
+	 */
+	public Integer getAdminStatusIdFk() {
+		return adminStatusIdFk;
+	}
+
+	/**
+	 * @param adminStatusIdFk the adminStatusIdFk to set
+	 */
+	public void setAdminStatusIdFk(Integer adminStatusIdFk) {
+		this.adminStatusIdFk = adminStatusIdFk;
+	}
+
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the modifiedBy
+	 */
+	public UserMaster getModifiedBy() {
+		return modifiedBy;
+	}
+
+	/**
+	 * @param modifiedBy the modifiedBy to set
+	 */
+	public void setModifiedBy(UserMaster modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+
+	/**
+	 * @return the modifiedOn
+	 */
+	public Date getModifiedOn() {
+		return modifiedOn;
+	}
+
+	/**
+	 * @param modifiedOn the modifiedOn to set
+	 */
+	public void setModifiedOn(Date modifiedOn) {
+		this.modifiedOn = modifiedOn;
+	}
+
+	/**
+	 * @return the approvedByFk
+	 */
+	public UserMaster getApprovedByFk() {
+		return approvedByFk;
+	}
+
+	/**
+	 * @param approvedByFk the approvedByFk to set
+	 */
+	public void setApprovedByFk(UserMaster approvedByFk) {
+		this.approvedByFk = approvedByFk;
+	}
+
+	/**
+	 * @return the approvedOn
+	 */
+	public Date getApprovedOn() {
+		return approvedOn;
+	}
+
+	/**
+	 * @param approvedOn the approvedOn to set
+	 */
+	public void setApprovedOn(Date approvedOn) {
+		this.approvedOn = approvedOn;
+	}
+
+	/**
+	 * @return the rejectComment
+	 */
+	public String getRejectComment() {
+		return rejectComment;
+	}
+
+	/**
+	 * @param rejectComment the rejectComment to set
+	 */
+	public void setRejectComment(String rejectComment) {
+		this.rejectComment = rejectComment;
+	}
+
+	/**
+	 * @param auditorIdFk the auditorIdFk to set
+	 */
+	public void setAuditorIdFk(UserMaster auditorIdFk) {
+		this.auditorIdFk = auditorIdFk;
+	}
+
+	/**
+	 * @return the auditorIdFk
+	 */
+	public UserMaster getAuditorIdFk() {
+		return auditorIdFk;
+	}
+
+}

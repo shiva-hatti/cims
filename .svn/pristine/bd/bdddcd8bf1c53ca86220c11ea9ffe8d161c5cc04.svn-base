@@ -1,0 +1,31 @@
+package com.iris.dto;
+
+
+public class ApiDetails {
+	
+	private String url;
+	private String methodType;
+	private Headers headers;
+	
+
+	public String getUrl() {
+		return url;
+	}
+	public void setUrl(String url) {
+		this.url = url;
+	}
+	
+	public String getMethodType() {
+		return methodType;
+	}
+	public void setMethodType(String methodType) {
+		this.methodType = methodType;
+	}
+	public Headers getHeaders() {
+		return headers;
+	}
+	public void setHeaders(Headers headers) {
+		this.headers = headers;
+	}
+	
+}

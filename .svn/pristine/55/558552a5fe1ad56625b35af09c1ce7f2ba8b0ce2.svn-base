@@ -1,0 +1,162 @@
+package com.iris.sdmx.upload.controller;
+
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.FileDetailsBeanLimitedField;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.exception.ApplicationException;
+import com.iris.sdmx.upload.bean.EbrFileDetailsBean;
+import com.iris.sdmx.upload.bean.SdmxFileAuditRecordStatusUpdateRequest;
+import com.iris.sdmx.upload.validation.EbrFileAuditValidator;
+import com.iris.sdmx.util.SDMXConstants;
+import com.iris.service.impl.FileDetailsService;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.GeneralConstants;
+
+/**
+ * @author vjadhav
+ *
+ */
+@Controller
+@RestController
+@RequestMapping(value = "/service/sdmx/upload")
+public class EbrFileAuditController {
+
+	static final Logger LOGGER = LogManager.getLogger(EbrFileAuditController.class);
+
+	@Autowired
+	private FileDetailsService fileDetailsService;
+
+	@Autowired
+	private EbrFileAuditValidator ebrFileAuditValidator;
+
+	@PostMapping(value = "/addSdmxmlFileAuditData")
+	public ServiceResponse addEbrFileAuditRecord(@RequestHeader(name = "JobProcessingId") String jobProcessId,
+			@RequestBody EbrFileDetailsBean ebrFileAuditBean) {
+		LOGGER.info(
+				"START - Add Upload EbrFileAuditRecord data request received with Job Processing ID : " + jobProcessId);
+		try {
+			fileDetailsService.addXmlUploadData(ebrFileAuditBean);
+			return new ServiceResponseBuilder().setStatus(true)
+					.setStatusMessage(GeneralConstants.SUCCESS.getConstantVal()).build();
+		} catch (ApplicationException applicationException) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId,
+					applicationException);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(applicationException.getErrorCode())
+					.setStatusMessage(applicationException.getErrorMsg()).build();
+		} catch (Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+
+	/**
+	 * @param jobProcessId
+	 * @param userId
+	 * @param roleId
+	 * @param langCode
+	 * @param statusId
+	 * @return
+	 */
+	@GetMapping(value = "/user/{userId}/role/{roleId}/lang/{langCode}/fetchSdmxFileAuditRecords/status/{statusId}")
+	public ServiceResponse fetchSdmxFileAuditRecords(@RequestHeader(name = "JobProcessingId") String jobProcessId,
+			@PathVariable("userId") Long userId, @PathVariable(name = "roleId") Long roleId,
+			@PathVariable("langCode") String langCode, @PathVariable("statusId") Integer statusId) {
+		LOGGER.info("START - Fetch sdmx file audit records request received with Job Processing ID : " + jobProcessId);
+		ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+		serviceResponseBuilder.setStatus(false);
+		try {
+			// Validation START
+			LOGGER.info("Validation start for fetch sdmx file audit records with job processing id " + jobProcessId);
+			ebrFileAuditValidator.validateFetchSdmxFileAuditRequest(jobProcessId, userId, statusId);
+			LOGGER.info("Validation end for fetch sdmx file audit records with job processing id " + jobProcessId);
+
+			// Fetch Records from Table
+			LOGGER.info("fetch sdmx file audit records from table with job processing id " + jobProcessId);
+			List<FileDetailsBeanLimitedField> fileDetailsBeanLimitedFieldList = fileDetailsService
+					.fetchSdmxAuditRecords(statusId, jobProcessId);
+			LOGGER.info("Records fetch from table sucessfully with job processing id " + jobProcessId);
+			serviceResponseBuilder.setStatus(true);
+			serviceResponseBuilder.setStatusCode(SDMXConstants.SUCCESS_CODE);
+			serviceResponseBuilder.setStatusMessage(SDMXConstants.SUCCESS_MESSAGE);
+			serviceResponseBuilder.setResponse(fileDetailsBeanLimitedFieldList);
+		} catch (ApplicationException applicationException) {
+			LOGGER.error(
+					"Exception occured while fetching sdmx file audit records "
+							+ ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId,
+					applicationException);
+			serviceResponseBuilder.setStatusCode(applicationException.getErrorCode());
+			serviceResponseBuilder.setStatusMessage(applicationException.getErrorMsg());
+		} catch (Exception e) {
+			LOGGER.error("Exception occured while fetching sdmx file audit records for job processing Id : "
+					+ jobProcessId + "", e);
+			serviceResponseBuilder.setStatusCode(ErrorCode.EC0033.toString());
+			serviceResponseBuilder.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString()));
+		}
+		LOGGER.info("END - Fetch sdmx file audit records request received with Job Processing ID : " + jobProcessId);
+		return serviceResponseBuilder.build();
+	}
+
+	@PutMapping(value = "/user/{userId}/role/{roleId}/lang/{langCode}/updateSdmxFileAuditRecords")
+	public ServiceResponse updateStatusSdmxFileAuditRecords(
+			@RequestHeader(name = "JobProcessingId") String jobProcessId, @PathVariable("userId") Long userId,
+			@PathVariable(name = "roleId") Long roleId, @PathVariable("langCode") String langCode,
+			@RequestBody SdmxFileAuditRecordStatusUpdateRequest sdmxFileAuditRecordStatusUpdateRequest) {
+		LOGGER.info("START - Update status of sdmx file audit records request received with Job Processing ID : "
+				+ jobProcessId);
+		ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+		serviceResponseBuilder.setStatus(false);
+		try {
+			// Validation START
+			LOGGER.info("Validation start for updating status of sdmx file audit records with job processing id "
+					+ jobProcessId);
+			ebrFileAuditValidator.validateSdmxFileAuditRequestUpdateStatus(jobProcessId, userId,
+					sdmxFileAuditRecordStatusUpdateRequest.getStatusId());
+			LOGGER.info("Validation end for updating status of sdmx file audit records with job processing id "
+					+ jobProcessId);
+
+			LOGGER.info("Update the status of sdmx file audit records with job processing id " + jobProcessId
+					+ ", and status id - " + sdmxFileAuditRecordStatusUpdateRequest.getStatusId());
+			fileDetailsService.updateStatusOfSdmxFileAuditRecords(
+					sdmxFileAuditRecordStatusUpdateRequest.getSdmxEbrFileDetailsRecordId(),
+					sdmxFileAuditRecordStatusUpdateRequest.getStatusId(), jobProcessId);
+			LOGGER.info("Updation complete for sdmx file audit records with job processing id " + jobProcessId
+					+ ", and status id - " + sdmxFileAuditRecordStatusUpdateRequest.getStatusId());
+			serviceResponseBuilder.setStatus(true);
+			serviceResponseBuilder.setStatusCode(SDMXConstants.SUCCESS_CODE);
+			serviceResponseBuilder.setStatusMessage(SDMXConstants.SUCCESS_MESSAGE);
+		} catch (ApplicationException applicationException) {
+			LOGGER.error("Exception occured while updating status of sdmx file audit records "
+					+ ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + ", with job Processing ID : " + jobProcessId,
+					applicationException);
+			serviceResponseBuilder.setStatusCode(applicationException.getErrorCode());
+			serviceResponseBuilder.setStatusMessage(applicationException.getErrorMsg());
+		} catch (Exception e) {
+			LOGGER.error("Exception occured while updating status of sdmx file audit records for job processing Id : "
+					+ jobProcessId + "", e);
+			serviceResponseBuilder.setStatusCode(ErrorCode.EC0033.toString());
+			serviceResponseBuilder.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString()));
+		}
+		LOGGER.info("END - Update status of sdmx file audit records request received with Job Processing ID : "
+				+ jobProcessId);
+		return serviceResponseBuilder.build();
+	}
+
+}

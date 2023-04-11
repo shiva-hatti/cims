@@ -1,0 +1,171 @@
+/**
+ * 
+ */
+package com.iris.sdmx.exceltohtml.service;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.iris.sdmx.exceltohtml.bean.ProcessUploadInputBean;
+import com.iris.sdmx.exceltohtml.bean.SdmxReturnPreviewBean;
+import com.iris.sdmx.exceltohtml.bean.SdmxReturnSheetInfoBean;
+import com.iris.sdmx.exceltohtml.entity.SdmxReturnModelInfoEntity;
+import com.iris.sdmx.exceltohtml.entity.SdmxReturnSheetInfoEntity;
+import com.iris.sdmx.util.SdmxUtil;
+import com.iris.util.ResourceUtil;
+
+/**
+ * @author apagaria
+ *
+ */
+@Service
+public class SdmxUploadFileProcessorService {
+
+	/**
+	 * 
+	 */
+	@Autowired
+	private SdmxReturnPreviewService sdmxReturnPreviewService;
+
+	@Autowired
+	private SdmxReturnModelInfoService sdmxReturnModelInfoService;
+
+	/**
+	 * 
+	 */
+	@Autowired
+	private SdmxReturnSheetInfoService sdmxReturnSheetInfoService;
+
+	public void processUploadedFile(ProcessUploadInputBean processUploadInputBean, Long userId, Long returnTemplateId)
+			throws IOException {
+
+		// Copy Xlsx file
+		String destinationXlsFileName = copyXlsxFile(processUploadInputBean);
+
+		// Copy HTML file
+		String destinationHtmlFileName = copyHtmlFile(processUploadInputBean);
+
+		// Save data in return preview
+		saveSdmxReturnPreview(destinationHtmlFileName, destinationXlsFileName, userId, returnTemplateId);
+
+		// Save data in Return sheet table
+		saveSdmxReturnSheetInfo(processUploadInputBean, userId, returnTemplateId);
+	}
+
+	/**
+	 * @param processUploadInputBean
+	 * @return
+	 * @throws IOException
+	 */
+	private String copyXlsxFile(ProcessUploadInputBean processUploadInputBean) throws IOException {
+		// Excel File Create
+		String destinationXlsFilePath = ResourceUtil.getKeyValue("filepath.root") + File.separator
+				+ ResourceUtil.getKeyValue("excel.to.html.xls.base.path") + File.separator
+				+ processUploadInputBean.getReturnCode() + File.separator + processUploadInputBean.getFileName()
+				+ ".xlsx";
+		File dir = new File(ResourceUtil.getKeyValue("filepath.root") + File.separator
+				+ ResourceUtil.getKeyValue("excel.to.html.xls.base.path") + File.separator
+				+ processUploadInputBean.getReturnCode() + File.separator);
+		if (!dir.exists())
+			dir.mkdirs();
+		SdmxUtil.copyFile(processUploadInputBean.getExcelFilePath(), destinationXlsFilePath);
+		return processUploadInputBean.getFileName() + ".xlsx";
+	}
+
+	/**
+	 * @param processUploadInputBean
+	 * @return
+	 * @throws IOException
+	 */
+	private String copyHtmlFile(ProcessUploadInputBean processUploadInputBean) throws IOException {
+		// HTML File create
+		String destinationHtmlFilePath = ResourceUtil.getKeyValue("filepath.root") + File.separator
+				+ ResourceUtil.getKeyValue("excel.to.html.base.path") + File.separator
+				+ processUploadInputBean.getReturnCode() + File.separator + processUploadInputBean.getFileName()
+				+ ".html";
+		File dir = new File(ResourceUtil.getKeyValue("filepath.root") + File.separator
+				+ ResourceUtil.getKeyValue("excel.to.html.base.path") + File.separator
+				+ processUploadInputBean.getReturnCode() + File.separator);
+		if (!dir.exists())
+			dir.mkdirs();
+		SdmxUtil.copyFile(processUploadInputBean.getHtmlFilePath(), destinationHtmlFilePath);
+		return processUploadInputBean.getFileName() + ".html";
+	}
+
+	/**
+	 * @param destinationHtmlFilePath
+	 * @param destinationXlsFilePath
+	 * @param userId
+	 * @param returnTemplateId
+	 */
+	private void saveSdmxReturnPreview(String destinationHtmlFilePath, String destinationXlsFilePath, Long userId,
+			Long returnTemplateId) {
+		SdmxReturnPreviewBean sdmxReturnPreviewBean = new SdmxReturnPreviewBean();
+		sdmxReturnPreviewBean.setHtmlFilePath(destinationHtmlFilePath);
+		sdmxReturnPreviewBean.setXlsxFilePath(destinationXlsFilePath);
+		sdmxReturnPreviewBean.setCreatedBy(userId);
+		sdmxReturnPreviewBean.setReturnTemplateIdFk(returnTemplateId);
+		sdmxReturnPreviewService.saveEntityByBean(sdmxReturnPreviewBean);
+	}
+
+	/**
+	 * @param processUploadInputBean
+	 * @param userId
+	 * @param returnTemplateId
+	 * @throws UnsupportedEncodingException
+	 */
+	private void saveSdmxReturnSheetInfo(ProcessUploadInputBean processUploadInputBean, Long userId,
+			Long returnTemplateId) throws UnsupportedEncodingException {
+		Type listType = new TypeToken<ArrayList<SdmxReturnSheetInfoBean>>() {
+		}.getType();
+
+		List<SdmxReturnSheetInfoBean> sdmxReturnSheetInfoBeanList = new Gson().fromJson(
+				new String(Base64.decodeBase64(processUploadInputBean.getSheetInfoBean().getBytes("utf-8"))), listType);
+		Type MapType = new TypeToken<Map<String, List<Integer>>>() {
+		}.getType();
+		Map<String, List<Integer>> sheetCellMapping = new Gson()
+				.fromJson(processUploadInputBean.getSheetCellMappingJson(), MapType);
+		Map<Integer, SdmxReturnModelInfoEntity> oldCellRefWithModelCodeMap = new HashMap<>();
+		Map<String, Long> sheetCodeNewIdMap = new HashMap<>();
+		sdmxReturnSheetInfoService.saveEntityByBean(sdmxReturnSheetInfoBeanList, returnTemplateId, userId,
+				oldCellRefWithModelCodeMap, sheetCodeNewIdMap);
+		if (!MapUtils.isEmpty(oldCellRefWithModelCodeMap) && !MapUtils.isEmpty(sheetCellMapping)
+				&& !MapUtils.isEmpty(sheetCodeNewIdMap)) {
+			for (Map.Entry<Integer, SdmxReturnModelInfoEntity> oldCellRefNModelCodeEntry : oldCellRefWithModelCodeMap
+					.entrySet()) {
+				Integer cellRefNumber = oldCellRefNModelCodeEntry.getKey();
+				String sheetCode = null;
+				if (cellRefNumber != null) {
+					for (Map.Entry<String, List<Integer>> sheetCellMappingEntry : sheetCellMapping.entrySet()) {
+						List<Integer> cellRefList = sheetCellMappingEntry.getValue();
+						if (cellRefList.contains(cellRefNumber)) {
+							sheetCode = sheetCellMappingEntry.getKey();
+							break;
+						}
+					}
+					if (!StringUtils.isBlank(sheetCode)) {
+						Long newReturnSheetInfoId = sheetCodeNewIdMap.get(sheetCode);
+						SdmxReturnModelInfoEntity sdmxReturnModelInfoEntity = oldCellRefNModelCodeEntry.getValue();
+						sdmxReturnModelInfoEntity
+								.setReturnSheetInfoIdFk(new SdmxReturnSheetInfoEntity(newReturnSheetInfoId));
+						sdmxReturnModelInfoService.add(sdmxReturnModelInfoEntity);
+					}
+				}
+			}
+		}
+	}
+}

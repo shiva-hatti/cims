@@ -1,0 +1,82 @@
+package com.iris.sdmx.status.controller;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.exception.ApplicationException;
+import com.iris.sdmx.status.validator.SdmxModuleDetailValidator;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.ErrorConstants;
+
+import com.iris.sdmx.status.bean.SdmxModuleDetailBean;
+import com.iris.sdmx.status.entity.SdmxModuleDetailEntity;
+import com.iris.sdmx.status.service.SdmxModuleDetailService;
+
+/**
+ * @author vjadhav
+ *
+ */
+@RestController
+@RequestMapping("/service/sdmx/moduleDetail")
+public class SdmxModuleDetailController implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -6423027922044206057L;
+
+	private static final Logger LOGGER = LogManager.getLogger(SdmxModuleDetailController.class);
+
+	@Autowired
+	private SdmxModuleDetailValidator sdmxModuleDetailValidator;
+
+	@Autowired
+	private SdmxModuleDetailService sdmxModuleDetailService;
+
+	@GetMapping("/user/{userId}/role/{roleId}/lang/{langCode}/fetchModuleDetail")
+	public ServiceResponse fetchModuleDetail(@RequestHeader("JobProcessingId") String jobProcessId, @PathVariable("userId") Long userId, @PathVariable("roleId") Long roleId, @PathVariable("langCode") String langCode) {
+		LOGGER.info("START - Fetch Module detail list request received with Job Processing ID : " + jobProcessId);
+		ServiceResponse serviceResponse = null;
+		ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+		serviceResponseBuilder.setStatus(true);
+		try {
+			sdmxModuleDetailValidator.fetchModuleDetailListValidateRequest(userId, jobProcessId);
+			SdmxModuleDetailBean sdmxModuleDetailBean;
+			List<SdmxModuleDetailBean> sdmxModuleDetailBeanList = new ArrayList<>();
+			List<SdmxModuleDetailEntity> sdmxModuleDetailEntityList = sdmxModuleDetailService.findAll();
+			for (SdmxModuleDetailEntity sdmxModuleDetailEntity : sdmxModuleDetailEntityList) {
+				sdmxModuleDetailBean = new SdmxModuleDetailBean();
+				BeanUtils.copyProperties(sdmxModuleDetailBean, sdmxModuleDetailEntity);
+				sdmxModuleDetailBeanList.add(sdmxModuleDetailBean);
+			}
+
+			serviceResponseBuilder.setResponse(sdmxModuleDetailBeanList);
+		} catch (ApplicationException applicationException) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId, applicationException);
+			serviceResponseBuilder.setStatus(false);
+			serviceResponseBuilder.setStatusCode(applicationException.getErrorCode());
+			serviceResponseBuilder.setStatusMessage(applicationException.getErrorMsg());
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId, e);
+			serviceResponseBuilder = new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0013.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString()));
+		}
+
+		serviceResponse = serviceResponseBuilder.build();
+		LOGGER.info("END - Fetch Module detail list request completed with Job Processing ID : " + jobProcessId);
+		return serviceResponse;
+	}
+}

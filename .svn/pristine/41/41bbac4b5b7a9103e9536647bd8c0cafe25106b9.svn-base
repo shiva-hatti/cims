@@ -1,0 +1,111 @@
+package com.iris.sdmx.exceltohtml.bean;
+
+import java.io.Serializable;
+import java.util.List;
+
+public class ModelMappingBean implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	private String returnCode;
+
+	private String returnName;
+
+	private String sheetName;
+
+	private String sectionName;
+
+	private List<Integer> cellNo;
+
+	// private List<RbrReturnTemplate> returnTemplateList;
+
+	private String returnTemplateVersion;
+
+	private String ebrVersion;
+
+	public String getReturnCode() {
+		return returnCode;
+	}
+
+	public void setReturnCode(String returnCode) {
+		this.returnCode = returnCode;
+	}
+
+	public String getReturnName() {
+		return returnName;
+	}
+
+	public void setReturnName(String returnName) {
+		this.returnName = returnName;
+	}
+
+	public List<Integer> getCellNo() {
+		return cellNo;
+	}
+
+	public void setCellNo(List<Integer> cellNo) {
+		this.cellNo = cellNo;
+	}
+
+	/**
+	 * @return the sheetName
+	 */
+	public String getSheetName() {
+		return sheetName;
+	}
+
+	/**
+	 * @param sheetName the sheetName to set
+	 */
+	public void setSheetName(String sheetName) {
+		this.sheetName = sheetName;
+	}
+
+	/**
+	 * @return the sectionName
+	 */
+	public String getSectionName() {
+		return sectionName;
+	}
+
+	/**
+	 * @param sectionName the sectionName to set
+	 */
+	public void setSectionName(String sectionName) {
+		this.sectionName = sectionName;
+	}
+
+	/**
+	 * @return the returnTemplateVersion
+	 */
+	public String getReturnTemplateVersion() {
+		return returnTemplateVersion;
+	}
+
+	/**
+	 * @param returnTemplateVersion the returnTemplateVersion to set
+	 */
+	public void setReturnTemplateVersion(String returnTemplateVersion) {
+		this.returnTemplateVersion = returnTemplateVersion;
+	}
+
+	/**
+	 * @return the ebrVersion
+	 */
+	public String getEbrVersion() {
+		return ebrVersion;
+	}
+
+	/**
+	 * @param ebrVersion the ebrVersion to set
+	 */
+	public void setEbrVersion(String ebrVersion) {
+		this.ebrVersion = ebrVersion;
+	}
+
+	
+
+}

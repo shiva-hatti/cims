@@ -1,0 +1,111 @@
+/**
+ * 
+ */
+package com.iris.dto;
+
+import java.io.Serializable;
+
+/**
+ * @author Siddique
+ *
+ */
+public class TableElementMetaInfo  implements Serializable{
+	
+	
+	private static final long serialVersionUID = 1576591851106639703L;
+	private String csvColumnPosition;
+	private String csvTableCode;
+	private String csvRowPosition;
+	private long maxLength;
+	private long minLength;
+	private String regex;
+	private Boolean isMandatory;
+	
+	
+	/**
+	 * @return the maxLength
+	 */
+	public long getMaxLength() {
+		return maxLength;
+	}
+	/**
+	 * @param maxLength the maxLength to set
+	 */
+	public void setMaxLength(long maxLength) {
+		this.maxLength = maxLength;
+	}
+	/**
+	 * @return the minLength
+	 */
+	public long getMinLength() {
+		return minLength;
+	}
+	/**
+	 * @param minLength the minLength to set
+	 */
+	public void setMinLength(long minLength) {
+		this.minLength = minLength;
+	}
+	/**
+	 * @return the regex
+	 */
+	public String getRegex() {
+		return regex;
+	}
+	/**
+	 * @param regex the regex to set
+	 */
+	public void setRegex(String regex) {
+		this.regex = regex;
+	}
+	/**
+	 * @return the isMandatory
+	 */
+	public Boolean getIsMandatory() {
+		return isMandatory;
+	}
+	/**
+	 * @param isMandatory the isMandatory to set
+	 */
+	public void setIsMandatory(Boolean isMandatory) {
+		this.isMandatory = isMandatory;
+	}
+	/**
+	 * @return the csvRowPosition
+	 */
+	public String getCsvRowPosition() {
+		return csvRowPosition;
+	}
+	/**
+	 * @param csvRowPosition the csvRowPosition to set
+	 */
+	public void setCsvRowPosition(String csvRowPosition) {
+		this.csvRowPosition = csvRowPosition;
+	}
+	/**
+	 * @return the csvColumnPosition
+	 */
+	public String getCsvColumnPosition() {
+		return csvColumnPosition;
+	}
+	/**
+	 * @param csvColumnPosition the csvColumnPosition to set
+	 */
+	public void setCsvColumnPosition(String csvColumnPosition) {
+		this.csvColumnPosition = csvColumnPosition;
+	}
+	/**
+	 * @return the csvTableCode
+	 */
+	public String getCsvTableCode() {
+		return csvTableCode;
+	}
+	/**
+	 * @param csvTableCode the csvTableCode to set
+	 */
+	public void setCsvTableCode(String csvTableCode) {
+		this.csvTableCode = csvTableCode;
+	}
+	
+	
+}

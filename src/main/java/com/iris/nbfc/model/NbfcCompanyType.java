@@ -1,0 +1,64 @@
+package com.iris.nbfc.model;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+/**
+ * @author pmohite
+ */
+@Entity
+@Table(name = "TBL_NBFC_COMPANY_TYPE")
+public class NbfcCompanyType {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "COMPANY_TYPE_ID")
+	private int companyTypeId;
+
+	@Column(name = "COMPANY_TYPE_NAME")
+	private String companyTypeName;
+
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the companyTypeId
+	 */
+	public int getCompanyTypeId() {
+		return companyTypeId;
+	}
+
+	/**
+	 * @param companyTypeId the companyTypeId to set
+	 */
+	public void setCompanyTypeId(int companyTypeId) {
+		this.companyTypeId = companyTypeId;
+	}
+
+	/**
+	 * @return the companyTypeName
+	 */
+	public String getCompanyTypeName() {
+		return companyTypeName;
+	}
+
+	/**
+	 * @param companyTypeName the companyTypeName to set
+	 */
+	public void setCompanyTypeName(String companyTypeName) {
+		this.companyTypeName = companyTypeName;
+	}
+
+}

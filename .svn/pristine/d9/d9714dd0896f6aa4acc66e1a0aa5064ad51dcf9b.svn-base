@@ -1,0 +1,98 @@
+package com.iris.rbrToEbr.service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.exception.ServiceException;
+import com.iris.rbrToEbr.bean.EbrRbrFlowMasterBean;
+import com.iris.rbrToEbr.entity.EbrRbrFlowMaster;
+import com.iris.rbrToEbr.repo.EbrRbrFlowMasterRepo;
+import com.iris.service.GenericService;
+
+@Service
+public class EbrRbrFlowMasterService implements GenericService<EbrRbrFlowMaster, Long> {
+
+	@Autowired
+	private EbrRbrFlowMasterRepo ebrRbrFlowMasterRepo;
+
+	private static final Logger LOGGER = LogManager.getLogger(EbrRbrFlowMasterService.class);
+
+	@Override
+	public EbrRbrFlowMaster add(EbrRbrFlowMaster entity) throws ServiceException {
+		return ebrRbrFlowMasterRepo.save(entity);
+	}
+
+	@Override
+	public boolean update(EbrRbrFlowMaster entity) throws ServiceException {
+		return false;
+	}
+
+	@Override
+	public List<EbrRbrFlowMaster> getDataByIds(Long[] ids) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public EbrRbrFlowMaster getDataById(Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<EbrRbrFlowMaster> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<EbrRbrFlowMaster> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<EbrRbrFlowMaster> getDataByObject(Map<String, Object> columnValueMap, String methodName) throws ServiceException {
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<EbrRbrFlowMaster> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<EbrRbrFlowMaster> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public void deleteData(EbrRbrFlowMaster bean) throws ServiceException {
+
+	}
+
+	/**
+	 * @param flowId
+	 * @return
+	 */
+	public List<EbrRbrFlowMasterBean> getDataByFlowIdd(int flowId, String jobProcessingId) {
+		List<EbrRbrFlowMasterBean> ebrRbrFlowMasterBeanList = null;
+		List<EbrRbrFlowMaster> flowList = ebrRbrFlowMasterRepo.getDataByFlowIdd(flowId);
+		if (!CollectionUtils.isEmpty(flowList)) {
+			ebrRbrFlowMasterBeanList = new ArrayList<>();
+			for (EbrRbrFlowMaster ebrRbrFlowMaster : flowList) {
+				EbrRbrFlowMasterBean ebrRbrFlowMasterBean = new EbrRbrFlowMasterBean();
+				BeanUtils.copyProperties(ebrRbrFlowMaster, ebrRbrFlowMasterBean);
+				ebrRbrFlowMasterBeanList.add(ebrRbrFlowMasterBean);
+			}
+		}
+		return ebrRbrFlowMasterBeanList;
+	}
+
+}

@@ -1,0 +1,38 @@
+server.servlet.context-path=/CIMSCustomizationService
+
+#crontab entry for MetaDataValidate scheduler
+#cron.entry=0 0/5 * * * *
+#crontab entry for every 1 minute
+cron.entry=0 * * * * *
+#crontab entry for every 3 hrs
+#cron.entry=0 0 */3 * * *
+cron.mailScheduler = 0 0 0 * * *
+#crontab for Pan Bulk upload validation
+cron.panBulkScheduler = 0 * * * * *
+#crontab for group master schedular
+cron.groupMasterScheduler = 0 * * * * *
+#crontab for pan master file creation schedular
+cron.panMasterSchedular = 0 0/5 * * * *
+#crontab for Group master file creation schedular
+cron.groupMasterSchedular = 0 0/5 * * * *
+
+# can give multiple appId by ~ separator. Below is hash value of 'IRISREST'
+appId.allowed = APP-a8bf3264f58259e263342e91522c7a07647014f68da3ad7466a7500110a7d91b~1234
+
+spring.mvc.view.prefix: /
+server.port=8081
+spring.jackson.serialization.fail-on-empty-beans=false
+spring.jackson.serialization.fail-on-self-references=false
+#SQL Loggins
+#logging.level.org.hibernate.SQL=DEBUG
+#logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
+
+#common properties
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.jpa.hibernate.naming.physical-strategy =  org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+spring.jpa.properties.hibernate.enable_lazy_load_no_trans=true
+spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.MySQLDialect
+#base.date.for.fortnightly=10-10-1990
+base.date.for.fortnightly=09-10-1998
+spring.profiles.active=dbcp2
+isBsr.newImplementation=true

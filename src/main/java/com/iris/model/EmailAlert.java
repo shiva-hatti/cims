@@ -1,0 +1,113 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Set;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+
+/**
+ * This is the EmailAlert bean class with Hibernate mapping.
+ * 
+ * @author Amruta Kadam
+ * @version 1.0
+ * @since 03-12-2015
+ */
+@Entity
+@Table(name = "TBL_EMAIL_ALERT")
+public class EmailAlert implements Serializable {
+
+	private static final long serialVersionUID = -2436256028259987339L;
+
+	@Id
+	@Column(name = "EMAIL_ALERT_ID")
+	private long emailAlertId;
+
+	@Column(name = "IS_ACTIVE")
+	private boolean isActive;
+
+	@OneToOne(mappedBy = "emailAlertId")
+	private EmailBodyBean emailBody;
+
+	@OneToMany(mappedBy = "emailAlertIdFk", fetch = FetchType.EAGER)
+	private Set<EmailRoleMapping> emailRoleMapSet;
+
+	@OneToMany(mappedBy = "emailAlertIdFk", fetch = FetchType.EAGER)
+	private Set<EmailGroupMapping> emailGroupMapSet;
+
+	/**
+	 * @return the emailAlertId
+	 */
+	public long getEmailAlertId() {
+		return emailAlertId;
+	}
+
+	/**
+	 * @param emailAlertId the emailAlertId to set
+	 */
+	public void setEmailAlertId(long emailAlertId) {
+		this.emailAlertId = emailAlertId;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public boolean isActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setActive(boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the emailBody
+	 */
+	public EmailBodyBean getEmailBody() {
+		return emailBody;
+	}
+
+	/**
+	 * @param emailBody the emailBody to set
+	 */
+	public void setEmailBody(EmailBodyBean emailBody) {
+		this.emailBody = emailBody;
+	}
+
+	/**
+	 * @return the emailRoleMapSet
+	 */
+	public Set<EmailRoleMapping> getEmailRoleMapSet() {
+		return emailRoleMapSet;
+	}
+
+	/**
+	 * @param emailRoleMapSet the emailRoleMapSet to set
+	 */
+	public void setEmailRoleMapSet(Set<EmailRoleMapping> emailRoleMapSet) {
+		this.emailRoleMapSet = emailRoleMapSet;
+	}
+
+	/**
+	 * @return the emailGroupMapSet
+	 */
+	public Set<EmailGroupMapping> getEmailGroupMapSet() {
+		return emailGroupMapSet;
+	}
+
+	/**
+	 * @param emailGroupMapSet the emailGroupMapSet to set
+	 */
+	public void setEmailGroupMapSet(Set<EmailGroupMapping> emailGroupMapSet) {
+		this.emailGroupMapSet = emailGroupMapSet;
+	}
+
+}

@@ -1,0 +1,107 @@
+/**
+ * 
+ */
+package com.iris.sdmx.status.service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.iris.sdmx.status.bean.SdmxStatusBean;
+import com.iris.sdmx.status.entity.SdmxStatusEntity;
+import com.iris.sdmx.status.helper.SdmxStatusHelper;
+import com.iris.sdmx.status.repo.SdmxStatusRepo;
+import com.iris.exception.ServiceException;
+import com.iris.service.GenericService;
+
+/**
+ * @author apagaria
+ *
+ */
+@Service
+@Transactional(readOnly = true)
+public class SdmxStatusService implements GenericService<SdmxStatusEntity, Long> {
+
+	@Autowired
+	private SdmxStatusRepo sdmxStatusRepo;
+
+	@Override
+	public SdmxStatusEntity add(SdmxStatusEntity entity) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public boolean update(SdmxStatusEntity entity) throws ServiceException {
+		return false;
+	}
+
+	@Override
+	public List<SdmxStatusEntity> getDataByIds(Long[] ids) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public SdmxStatusEntity getDataById(Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<SdmxStatusEntity> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<SdmxStatusEntity> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName)
+			throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<SdmxStatusEntity> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<SdmxStatusEntity> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<SdmxStatusEntity> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public void deleteData(SdmxStatusEntity bean) throws ServiceException {
+
+	}
+
+	/**
+	 * @param isActive
+	 * @return
+	 */
+	public List<SdmxStatusBean> findByActiveStatus(Boolean isActive) {
+		List<SdmxStatusBean> sdmxStatusBeans = null;
+		List<SdmxStatusEntity> sdmxStatusEntities = sdmxStatusRepo.findByActiveStatus(isActive);
+		if (!CollectionUtils.isEmpty(sdmxStatusEntities)) {
+			sdmxStatusBeans = new ArrayList<>();
+			for (SdmxStatusEntity sdmxStatusEntity : sdmxStatusEntities) {
+				SdmxStatusBean sdmxStatusBean = new SdmxStatusBean();
+				// convert entity to Bean
+				SdmxStatusHelper.convertEntityToBean(sdmxStatusEntity, sdmxStatusBean);
+				sdmxStatusBeans.add(sdmxStatusBean);
+			}
+		}
+		return sdmxStatusBeans;
+	}
+
+}

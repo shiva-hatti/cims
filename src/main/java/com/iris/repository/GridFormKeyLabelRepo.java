@@ -1,0 +1,26 @@
+/**
+ * 
+ */
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.GridFormKeyLabel;
+
+/**
+ * @author sajadhav
+ *
+ */
+public interface GridFormKeyLabelRepo extends JpaRepository<GridFormKeyLabel, Long> {
+
+	@Query(value = "SELECT new com.iris.model.GridFormKeyLabel(b.gridFormIdKey, a.gridFormKeyLable, c.languageCode) FROM GridFormKeyLabel a, GridFormKey b, LanguageMaster c where a.gridFormIdFk.gridFormId = b.gridFormId and c.languageId = a.languageIdFk.languageId and c.isActive = 1 and c.languageCode IN :languageCode and b.gridFormIdKey IN :labelKeys")
+	List<GridFormKeyLabel> getDataByLabelKeyAndLangCode(@Param("labelKeys") List<String> labelKeys, @Param("languageCode") List<String> languageCode);
+
+	@Query(value = "SELECT new com.iris.model.GridFormKeyLabel(gridFormKey.gridFormIdKey, lable.gridFormKeyLable, lable.languageIdFk.languageCode, gridFormKey.errorCode, gridFormKey.type)  FROM GridFormKeyLabel lable , GridFormKey gridFormKey where lable.languageIdFk.languageId = :languageId" + " and lable.gridFormIdFk.gridFormId = gridFormKey.gridFormId")
+	List<GridFormKeyLabel> loadAllFiedldKeyLableByLanguageId(@Param("languageId") Long languageId);
+
+}

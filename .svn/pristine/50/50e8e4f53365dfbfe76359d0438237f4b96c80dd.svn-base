@@ -1,0 +1,298 @@
+/**
+ * 
+ */
+package com.iris.sdmx.elementdimensionmapping.entity;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+import com.iris.model.UserMaster;
+import com.iris.sdmx.element.entity.SdmxElementEntity;
+
+/**
+ * @author sajadhav
+ *
+ */
+@Entity
+@Table(name = "TBL_SDMX_ELEMENT_DIMENSIONS_MOD")
+public class ElementDimensionMod implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3958472159625564667L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "ELEMENT_DIMENSIONS_MOD_ID")
+	private Long elementDimensionModId;
+	
+	@Column(name = "ELEMENT_DIMENSIONS")
+	private String elementDimensionJson;
+	
+	@ManyToOne
+	@JoinColumn(name = "ELEMENT_DIMENSIONS_ID_FK")
+	private ElementDimension elementDimension;
+	
+	@ManyToOne
+	@JoinColumn(name = "ELEMENT_ID_FK")
+	private SdmxElementEntity element;
+	
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	@Column(name = "ADMIN_STATUS_ID_FK")
+	private int adminStatusId;
+	
+	@Column(name = "ACTION_ID_FK")
+	private int actionId;
+	
+	@Column(name = "COMMENTS")
+	private String comments;
+	
+	@ManyToOne
+	@JoinColumn(name = "CREATED_BY_FK")
+	private UserMaster createdBy;
+	
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+	
+	@ManyToOne
+	@JoinColumn(name = "LAST_MODIFIED_BY_FK")
+	private UserMaster lastModifiedBy;
+	
+	@Column(name = "LAST_MODIFIED_ON")
+	private Date lastModifiedOn;
+	
+	@Column(name = "LAST_UPDATED_ON")
+	private Date lastUpdatedOn;
+	
+	@ManyToOne
+	@JoinColumn(name = "LAST_APPROVED_BY_FK")
+	private UserMaster lastApprovedBy;
+	
+	@Column(name = "LAST_APPROVED_ON")
+	private Date lastApprovedOn;
+	
+	
+	
+	/**
+	 * @return the elementDimension
+	 */
+	public ElementDimension getElementDimension() {
+		return elementDimension;
+	}
+
+	/**
+	 * @param elementDimension the elementDimension to set
+	 */
+	public void setElementDimension(ElementDimension elementDimension) {
+		this.elementDimension = elementDimension;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the adminStatusId
+	 */
+	public int getAdminStatusId() {
+		return adminStatusId;
+	}
+
+	/**
+	 * @param adminStatusId the adminStatusId to set
+	 */
+	public void setAdminStatusId(int adminStatusId) {
+		this.adminStatusId = adminStatusId;
+	}
+
+	/**
+	 * @return the actionId
+	 */
+	public int getActionId() {
+		return actionId;
+	}
+
+	/**
+	 * @param actionId the actionId to set
+	 */
+	public void setActionId(int actionId) {
+		this.actionId = actionId;
+	}
+
+	/**
+	 * @return the comments
+	 */
+	public String getComments() {
+		return comments;
+	}
+
+	/**
+	 * @param comments the comments to set
+	 */
+	public void setComments(String comments) {
+		this.comments = comments;
+	}
+
+	/**
+	 * @return the elementDimensionId
+	 */
+	public Long getElementDimensionModId() {
+		return elementDimensionModId;
+	}
+
+	/**
+	 * @param elementDimensionId the elementDimensionId to set
+	 */
+	public void setElementDimensionModId(Long elementDimensionId) {
+		this.elementDimensionModId = elementDimensionId;
+	}
+
+	/**
+	 * @return the elementDimensionJson
+	 */
+	public String getElementDimensionJson() {
+		return elementDimensionJson;
+	}
+
+	/**
+	 * @param elementDimensionJson the elementDimensionJson to set
+	 */
+	public void setElementDimensionJson(String elementDimensionJson) {
+		this.elementDimensionJson = elementDimensionJson;
+	}
+
+	/**
+	 * @return the element
+	 */
+	public SdmxElementEntity getElement() {
+		return element;
+	}
+
+	/**
+	 * @param element the element to set
+	 */
+	public void setElement(SdmxElementEntity element) {
+		this.element = element;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the lastModifiedBy
+	 */
+	public UserMaster getLastModifiedBy() {
+		return lastModifiedBy;
+	}
+
+	/**
+	 * @param lastModifiedBy the lastModifiedBy to set
+	 */
+	public void setLastModifiedBy(UserMaster lastModifiedBy) {
+		this.lastModifiedBy = lastModifiedBy;
+	}
+
+	/**
+	 * @return the lastModifiedOn
+	 */
+	public Date getLastModifiedOn() {
+		return lastModifiedOn;
+	}
+
+	/**
+	 * @param lastModifiedOn the lastModifiedOn to set
+	 */
+	public void setLastModifiedOn(Date lastModifiedOn) {
+		this.lastModifiedOn = lastModifiedOn;
+	}
+
+	/**
+	 * @return the lastUpdatedOn
+	 */
+	public Date getLastUpdatedOn() {
+		return lastUpdatedOn;
+	}
+
+	/**
+	 * @param lastUpdatedOn the lastUpdatedOn to set
+	 */
+	public void setLastUpdatedOn(Date lastUpdatedOn) {
+		this.lastUpdatedOn = lastUpdatedOn;
+	}
+
+	/**
+	 * @return the lastApprovedBy
+	 */
+	public UserMaster getLastApprovedBy() {
+		return lastApprovedBy;
+	}
+
+	/**
+	 * @param lastApprovedBy the lastApprovedBy to set
+	 */
+	public void setLastApprovedBy(UserMaster lastApprovedBy) {
+		this.lastApprovedBy = lastApprovedBy;
+	}
+
+	/**
+	 * @return the lastApprovedOn
+	 */
+	public Date getLastApprovedOn() {
+		return lastApprovedOn;
+	}
+
+	/**
+	 * @param lastApprovedOn the lastApprovedOn to set
+	 */
+	public void setLastApprovedOn(Date lastApprovedOn) {
+		this.lastApprovedOn = lastApprovedOn;
+	}
+	
+}

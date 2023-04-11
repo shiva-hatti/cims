@@ -1,0 +1,37 @@
+/**
+ * 
+ */
+package com.iris.sdmx.element.helper;
+
+import org.springframework.beans.BeanUtils;
+
+import com.iris.sdmx.element.bean.SdmxElementNatureBean;
+import com.iris.sdmx.element.entity.SdmxElementNatureEntity;
+
+/**
+ * @author apagaria
+ *
+ */
+public class SdmxElementNatureHelper {
+
+	private SdmxElementNatureHelper() {
+
+	}
+
+	/**
+	 * @param sdmxElementNatureEntity
+	 * @param sdmxElementNatureBean
+	 */
+	public static void convertEntityToBean(SdmxElementNatureEntity sdmxElementNatureEntity, SdmxElementNatureBean sdmxElementNatureBean) {
+		BeanUtils.copyProperties(sdmxElementNatureEntity, sdmxElementNatureBean);
+		// Removing extra data from user master for created By field
+		if (sdmxElementNatureEntity.getCreatedBy() != null && sdmxElementNatureEntity.getCreatedBy().getUserId() != null) {
+			sdmxElementNatureBean.setCreatedBy(sdmxElementNatureEntity.getCreatedBy().getUserId());
+		}
+		// Removing extra data from user master for modify By field
+		if (sdmxElementNatureEntity.getModifyBy() != null && sdmxElementNatureEntity.getModifyBy().getUserId() != null) {
+			sdmxElementNatureBean.setModifyBy(sdmxElementNatureEntity.getModifyBy().getUserId());
+		}
+	}
+
+}

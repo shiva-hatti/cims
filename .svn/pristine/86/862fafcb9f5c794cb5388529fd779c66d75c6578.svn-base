@@ -1,0 +1,396 @@
+package com.iris.formula.gen.service;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.iris.formula.gen.AutoCalVesrion;
+import com.iris.formula.gen.AutoCalVesrionRepo;
+import com.iris.formula.gen.FormulaBean;
+import com.iris.formula.gen.FormulaGen;
+import com.iris.formula.gen.FormulaGenRepo;
+import com.iris.formula.gen.controller.AutoCalFormulaParts;
+import com.iris.formula.gen.controller.CrossFormulaParts;
+import com.iris.formula.gen.controller.FormulaConverter;
+import com.iris.model.AutoCalculationFormula;
+import com.iris.model.ErrorCodeDetail;
+import com.iris.model.ErrorCodeLabelMapping;
+import com.iris.model.FormulaCategoryType;
+import com.iris.model.LanguageMaster;
+import com.iris.model.Return;
+import com.iris.model.ReturnTemplate;
+import com.iris.model.UserMaster;
+import com.iris.repository.AutoCalculationFormulaRepo;
+import com.iris.repository.ErrorCodeDetailRepo;
+import com.iris.repository.ErrorCodeLabelMappingRepository;
+import com.iris.repository.ErrorVersionChannelMappingRepository;
+import com.iris.repository.ReturnRepo;
+import com.iris.repository.ReturnTemplateRepository;
+import com.iris.repository.UserMasterRepo;
+
+
+
+@Service
+public class FormulaGeneratorService {
+
+	@Autowired
+	private FormulaGenRepo repo;
+
+	@Autowired
+	private ReturnRepo returnRepo;
+
+	@Autowired
+	private AutoCalculationFormulaRepo autoCalculationFormulaRepo;
+
+	@Autowired
+	private ReturnTemplateRepository returnTemplateRepository;
+
+	@Autowired
+	private FormulaConverter formulaConverter;
+
+	@Autowired
+	private ErrorCodeDetailRepo errorCodeDetailRepo;
+
+	@Autowired
+	private ErrorCodeLabelMappingRepository errorCodeLabelMappingRepository;
+
+	@Autowired
+	private ErrorVersionChannelMappingRepository errorVersionChannelMappingRepository;
+
+	@Autowired
+	private AutoCalVesrionRepo autoCalVesrionRepo;
+
+	@Autowired
+	private UserMasterRepo UserMasterRepo;
+
+
+	@Transactional(rollbackFor = Exception.class)
+	public Boolean saveFormula(FormulaBean formula) throws JsonProcessingException {
+
+		FormulaGen entity = new FormulaGen();
+		if(formula.getFormulaId()!=null) {
+			entity.setFormulaId(Long.valueOf(formula.getFormulaId()));
+		}
+		ObjectMapper objectMapper = new ObjectMapper();
+		entity.setFormulaJson(objectMapper.writeValueAsString(formula));
+		Return returnEn = returnRepo.findByReturnCode(formula.getReturnCode());
+		entity.setIsActive(true);
+		entity.setReturnIdFk(returnEn);
+		entity = repo.save(entity);
+		formula.setFormulaId(entity.getFormulaId().intValue());
+		//Save Error Code Detail
+		String errorInitials = "E"+formula.getReturnCode();
+		ErrorCodeDetail errorDetail = new ErrorCodeDetail();
+		if(!StringUtils.isBlank(formula.getTechnicalErrorCode())) {
+			errorInitials = formula.getTechnicalErrorCode();
+			ErrorCodeDetail detail = errorCodeDetailRepo.findMaxErrorCodeDetail(errorInitials);
+			if(detail==null) {
+				errorDetail.setTechnicalErrorCode(getReturnErrorcode(formula.getReturnCode()));
+			}else {
+				errorDetail.setErrorCodeDetailId(detail.getErrorCodeDetailId());
+				errorDetail.setTechnicalErrorCode(formula.getTechnicalErrorCode());
+			}
+		}else {
+			errorDetail.setTechnicalErrorCode(getReturnErrorcode(formula.getReturnCode()));
+		}
+		errorDetail.setBusinessErrorCode(formula.getErrorCode());
+		errorDetail.setErrorDescription(formula.getErrorMessage());
+		errorDetail.setRoundOff(2);
+		FormulaCategoryType formulaCategoryType = new FormulaCategoryType();
+		formulaCategoryType.setFormulaCategoryTypeId(Long.valueOf(1));
+		errorDetail.setFormulaCategoryTypeIdFk(formulaCategoryType);
+		errorDetail.setNumericFormula("1");
+		errorDetail = errorCodeDetailRepo.save(errorDetail);
+		//Save Label Table
+		LanguageMaster lang = new LanguageMaster();
+		lang.setLanguageId(Long.valueOf(15));
+		ErrorCodeLabelMapping enEntity = new ErrorCodeLabelMapping();
+		enEntity.setErrorCodeDetailIdFk(errorDetail);
+		enEntity.setErrorKeyLabelForFileBased(errorDetail.getErrorDescription());
+		enEntity.setErrorKeyLabelForWebBased(errorDetail.getErrorDescription());
+		UserMaster master = new UserMaster();
+		master.setUserId(formula.getUserId().longValue());
+		enEntity.setCreatedBy(master);
+		enEntity.setModifiedBy(master);
+		enEntity.setModifiedOn(new Date());
+		enEntity.setCreatedOn(new Date());
+		enEntity.setLanguageIdFk(lang);
+		enEntity.setLastUpdatedOn(new Date());
+		ErrorCodeLabelMapping ex = errorCodeLabelMappingRepository.findByErrorCodeDetailIdFkErrorCodeDetailIdAndLanguageIdFkLanguageId(errorDetail.getErrorCodeDetailId(),Long.valueOf("15"));
+		if(ex!=null) {
+			enEntity.setErrorCodeLabelMappingId(ex.getErrorCodeLabelMappingId());
+		}
+		errorCodeLabelMappingRepository.save(enEntity);
+		ErrorCodeLabelMapping hiEntity = new ErrorCodeLabelMapping();
+		LanguageMaster langHI = new LanguageMaster();
+		langHI.setLanguageId(Long.valueOf(26));
+		hiEntity.setErrorCodeDetailIdFk(errorDetail);
+		hiEntity.setErrorKeyLabelForFileBased(errorDetail.getErrorDescription());
+		hiEntity.setErrorKeyLabelForWebBased(errorDetail.getErrorDescription());
+		master.setUserId(formula.getUserId().longValue());
+		hiEntity.setCreatedBy(master);
+		hiEntity.setModifiedBy(master);
+		hiEntity.setLanguageIdFk(langHI);
+		hiEntity.setModifiedOn(new Date());
+		hiEntity.setLastUpdatedOn(new Date());
+		hiEntity.setCreatedOn(new Date());
+		ErrorCodeLabelMapping ex2 = errorCodeLabelMappingRepository.findByErrorCodeDetailIdFkErrorCodeDetailIdAndLanguageIdFkLanguageId(errorDetail.getErrorCodeDetailId(),Long.valueOf("26"));
+		if(ex2!=null) {
+			hiEntity.setErrorCodeLabelMappingId(ex2.getErrorCodeLabelMappingId());
+		}
+		errorCodeLabelMappingRepository.save(hiEntity);
+
+		//errorCodeLabelMappingRepository.insertErrorCodeLabel(formula.getUserId(), 15);
+		//errorCodeLabelMappingRepository.insertErrorCodeLabel(formula.getUserId(), 26);
+
+		formula.setTechnicalErrorCode(errorDetail.getTechnicalErrorCode());
+		FormulaBean convetedFormula = formulaConverter.convert(formula);
+		AutoCalculationFormula autoCal = null;
+		autoCal = autoCalculationFormulaRepo.findByAutoCalVesrionReturnTemplateFkReturnTemplateId(formula.getReturnTemplateId());
+		if(autoCal==null) {
+			List<AutoCalculationFormula> autoCalList = autoCalculationFormulaRepo.findByReturnIdFkReturnIdAndIsActiveTrueAndOrderByautoCalFormulaId(returnEn.getReturnId());
+			if(autoCalList!=null) {
+				autoCal = autoCalList.get(0);
+				autoCal.setAutoCalFormulaId(null);
+			}
+		}
+		//AutoCAl present case
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+		if(autoCal!=null) {
+			TypeReference<Map<String,Map<String,Map<String,List<AutoCalFormulaParts>>>>> autoFormulaType = new TypeReference<Map<String,Map<String,Map<String,List<AutoCalFormulaParts>>>>>() {
+			};
+			TypeReference<Map<String,List<CrossFormulaParts>>> crossFormulaType = new TypeReference<Map<String,List<CrossFormulaParts>>>() {
+			};
+			//if no Normal Json present
+			if(StringUtils.isBlank(autoCal.getFormulaJson())) {
+				Map<String,Map<String,List<AutoCalFormulaParts>>> onBlurEvnt = new HashMap<>();
+				Map<String,Map<String,Map<String,List<AutoCalFormulaParts>>>> customCal = new HashMap<>();
+				onBlurEvnt.put("onblurEvent", convetedFormula.getNormalFormua());
+				customCal.put("customeCalculation", onBlurEvnt);
+				autoCal.setFormulaJson(mapper.writeValueAsString(customCal));
+			}else {
+				Map<String,Map<String,Map<String,List<AutoCalFormulaParts>>>> retMap = mapper.readValue(autoCal.getFormulaJson(), autoFormulaType);
+				Map<String,Map<String,List<AutoCalFormulaParts>>> onBlurMap = retMap.get("customeCalculation");
+				Map<String,List<AutoCalFormulaParts>> innerd = onBlurMap.get("onblurEvent");
+				for (Entry<String, List<AutoCalFormulaParts>> item : innerd.entrySet()) {
+					ListIterator<AutoCalFormulaParts> list = item.getValue().listIterator();
+					while (list.hasNext()) {
+						AutoCalFormulaParts autoCalItem = list.next();
+						if ((autoCalItem.getFormulaId() != null && formula.getFormulaId() != null
+								&& autoCalItem.getFormulaId().compareTo(formula.getFormulaId()) == 0)
+								|| StringUtils.equals(formula.getTechnicalErrorCode(), autoCalItem.getErrorCode())) {
+							list.remove();
+						}
+					}
+
+				}
+
+
+				convetedFormula.getNormalFormua().entrySet().forEach(item->{
+					Map<String,List<AutoCalFormulaParts>> inner = innerd;
+					if(inner==null) {
+						inner = new HashMap<>();
+					}
+					//check for the key
+					List<AutoCalFormulaParts> existingObject = inner.get(item.getKey());
+					// if Present get the list and add the item
+					if(existingObject==null) {
+						inner.put(item.getKey(), item.getValue());
+					}else {
+
+						existingObject.addAll(item.getValue());
+					}
+
+
+				});
+				autoCal.setFormulaJson(mapper.writeValueAsString(retMap));
+			}
+			//if no Cross Json present
+			if(StringUtils.isBlank(autoCal.getCrossElrJson())) {
+
+				Map<String,List<CrossFormulaParts>> crossRetMap = new HashMap<>();
+				crossRetMap.put("crossELRCalculation", convetedFormula.getCrossElrFormula());
+
+				autoCal.setCrossElrJson(mapper.writeValueAsString(crossRetMap));
+			}else {
+
+				Map<String,List<CrossFormulaParts>> crossRetMap = mapper.readValue(autoCal.getCrossElrJson(), crossFormulaType);
+				for(Entry<String, List<CrossFormulaParts>> crossItem : crossRetMap.entrySet()) {
+					ListIterator<CrossFormulaParts> listItereator = crossItem.getValue().listIterator();
+					while(listItereator.hasNext()) {
+						CrossFormulaParts formulaCross = listItereator.next();
+						if((formulaCross.getFormulaId()!=null && formula.getFormulaId()!=null &&formulaCross.getFormulaId().compareTo(formula.getFormulaId())==0)||StringUtils.equals(formulaCross.getErrorCode(),formula.getTechnicalErrorCode()))
+						{
+							listItereator.remove();
+						}
+					}
+				}
+
+				List<CrossFormulaParts> crossitems = crossRetMap.get("crossELRCalculation");
+				crossitems.addAll(convetedFormula.getCrossElrFormula());
+
+				autoCal.setCrossElrJson(mapper.writeValueAsString(crossRetMap));
+			}
+
+		}else {
+			//Add new entry in auto cal
+			autoCal = new AutoCalculationFormula();
+			autoCal.setReturnIdFk(returnEn);
+			autoCal.setIsActive(true);
+			Map<String,Map<String,List<AutoCalFormulaParts>>> retMap = new HashMap<>();
+			retMap.put("customeCalculation", convetedFormula.getNormalFormua());
+			Map<String,List<CrossFormulaParts>> crossRetMap = new HashMap<>();
+			crossRetMap.put("crossELRCalculation", convetedFormula.getCrossElrFormula());
+			autoCal.setFormulaJson(mapper.writeValueAsString(retMap));
+			autoCal.setCrossElrJson(mapper.writeValueAsString(crossRetMap));
+		}
+
+		//Save Error code version Table
+		//todo return template Id should be dynamic
+		errorVersionChannelMappingRepository.insertErrorChannnelVesrion(errorDetail.getErrorCodeDetailId().intValue(), errorDetail.getErrorCodeDetailId().intValue(), formula.getReturnTemplateId().intValue());
+		autoCalculationFormulaRepo.save(autoCal);
+		saveAutoCalVesrion(autoCal,formula);
+		return true;
+
+	}
+
+	private void saveAutoCalVesrion(AutoCalculationFormula autoCal, FormulaBean formula) {
+		AutoCalVesrion autoCalVersion = new AutoCalVesrion();
+		List<AutoCalVesrion> existing =  autoCalVesrionRepo.findByReturnTemplateFkReturnTemplateId(formula.getReturnTemplateId());
+		if(existing!=null && !existing.isEmpty()) {
+			autoCalVersion = existing.get(0);
+		}
+		Optional<UserMaster> user = UserMasterRepo.findById(formula.getUserId().longValue());
+		autoCalVersion.setAutoFormula(autoCal);
+		Optional<ReturnTemplate> template = returnTemplateRepository.findById(formula.getReturnTemplateId());
+		if(template.isPresent()) {
+			autoCalVersion.setReturnTemplateFk(template.get());
+		}
+		if(user.isPresent()) {
+			autoCalVersion.setCreatedByFk(user.get());
+			autoCalVersion.setModifiedByFk(user.get());
+		}
+		autoCalVersion.setIsActive(true);
+		Date date = new Date();
+		autoCalVersion.setUpdatedOn(date);
+		autoCalVersion.setCreatedOn(date);
+		autoCalVesrionRepo.save(autoCalVersion);
+	}
+
+	public FormulaBean prepareEditFormula(FormulaBean formula) throws JsonProcessingException {
+		FormulaGen entity = new FormulaGen();
+		StringBuilder table = new StringBuilder();
+		Map<String,Object> formulaJsonMap = new HashMap<>();
+		table.append("<div id=\"errorTable\"><table>").append("<th>Error Code</th>").append("<th>Edit</th>");
+		Set<String> errorCode = new HashSet<>();
+		if(formula.getFormulaId()!=null) {
+			entity.setFormulaId(Long.valueOf(formula.getFormulaId()));
+		}
+		ObjectMapper objectMapper = new ObjectMapper();
+		entity.setFormulaJson(objectMapper.writeValueAsString(formula));
+		Return returnEn = returnRepo.findByReturnCode(formula.getReturnCode());
+		formula.setReturnId(String.valueOf(returnEn.getReturnId()));
+		List<AutoCalculationFormula> autoCalList = autoCalculationFormulaRepo.findByReturnIdFkReturnIdAndIsActiveTrue(returnEn.getReturnId());
+		AutoCalculationFormula autoCal = autoCalList.get(0);
+		Map<String,ErrorCodeDetail> errorCodeMap =  getErrorcodeMap(returnEn.getReturnCode());
+		//AutoCAl present case
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+		if(autoCal!=null) {
+			TypeReference<Map<String,Map<String,Map<String,List<AutoCalFormulaParts>>>>> autoFormulaType = new TypeReference<Map<String,Map<String,Map<String,List<AutoCalFormulaParts>>>>>() {
+			};
+			TypeReference<Map<String,List<CrossFormulaParts>>> crossFormulaType = new TypeReference<Map<String,List<CrossFormulaParts>>>() {
+			};
+			//if no Normal Json present
+			if(!StringUtils.isBlank(autoCal.getFormulaJson())) {
+				Map<String, Map<String, Map<String, List<AutoCalFormulaParts>>>> retMap = mapper.readValue(autoCal.getFormulaJson(), autoFormulaType);
+				Map<String, Map<String, List<AutoCalFormulaParts>>> inner = retMap.get("customeCalculation");
+				Map<String, List<AutoCalFormulaParts>> innerd = inner.get("onblurEvent");
+				Set<Entry<String, List<AutoCalFormulaParts>>> entry =innerd.entrySet();
+				Iterator<Entry<String, List<AutoCalFormulaParts>>> entryIterator = entry.iterator();
+				while(entryIterator.hasNext()) {
+					Entry<String, List<AutoCalFormulaParts>> llt = entryIterator.next();
+					List<AutoCalFormulaParts> list = llt.getValue();
+					for(AutoCalFormulaParts pparts: list) {
+						if(!StringUtils.isBlank(pparts.getErrorCode())&&errorCode.add(pparts.getErrorCode())) {
+							String error = errorCodeMap.get(pparts.getErrorCode())==null?pparts.getErrorCode():errorCodeMap.get(pparts.getErrorCode()).getBusinessErrorCode();
+							formulaJsonMap.put(pparts.getErrorCode(), pparts);
+							table.append("<tr>").append("<td>")
+							.append(error).append("</td>").append("<td>").append("<button onClick=\"editFormula('"+pparts.getErrorCode()+"')\"/>").append("</td>").append("</tr>");
+
+						}
+					}
+
+				}
+
+			}
+			//if no Cross Json present
+			if(!StringUtils.isBlank(autoCal.getCrossElrJson())) {
+				Map<String,List<CrossFormulaParts>> crossRetMap = mapper.readValue(autoCal.getCrossElrJson(), crossFormulaType);
+				List<CrossFormulaParts> crossitems = crossRetMap.get("crossELRCalculation");
+
+				for(CrossFormulaParts pparts: crossitems) {
+					if(errorCode.add(pparts.getErrorCode())) {
+						formulaJsonMap.put(pparts.getErrorCode(), pparts);
+						table.append("<tr>").append("<td>")
+						.append(errorCodeMap.get(pparts.getErrorCode()).getBusinessErrorCode()).append("</td>").append("<td>").append("<button onClick=\"editFormula('"+pparts.getErrorCode()+"')\"/>").append("</td>").append("</tr>");
+
+					}
+				}
+			}
+
+		}
+		table.append("</table></div>");	
+		formula.setTable(table.toString());
+		formula.setFormulaJsonMap(formulaJsonMap);
+		System.out.println(mapper.writeValueAsString(formulaJsonMap));
+		return formula;
+
+	}
+
+	private String getReturnErrorcode(String returnCode) {
+		String errorInitials = "E"+returnCode;
+		ErrorCodeDetail detail = errorCodeDetailRepo.findMaxErrorCodeDetail(errorInitials);
+
+		if(detail==null) {
+			return errorInitials+"00001";
+		}else {
+			String numberPart = detail.getTechnicalErrorCode().substring(errorInitials.length()+1, detail.getTechnicalErrorCode().length());
+			Integer numberValue = Integer.valueOf(numberPart);
+			numberValue++;
+			return errorInitials+"T"+numberValue;
+		}
+
+	}
+
+	private Map<String,ErrorCodeDetail> getErrorcodeMap(String returnCode) {
+		String errorInitials = "E"+returnCode;
+		List<ErrorCodeDetail> detail = errorCodeDetailRepo.findErrorCodeDetail(errorInitials);
+		Map<String,ErrorCodeDetail>  result = new HashMap<>();
+		for(ErrorCodeDetail item : detail ) {
+			result.put(item.getTechnicalErrorCode(), item);
+		}
+
+		return result;
+
+	}
+
+
+}

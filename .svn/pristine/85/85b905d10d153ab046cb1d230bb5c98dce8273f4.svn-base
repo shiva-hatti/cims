@@ -1,0 +1,69 @@
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.dto.ServiceResponse;
+import com.iris.model.RoleType;
+import com.iris.model.UserMaster;
+import com.iris.service.impl.RoleTypeService;
+import com.iris.service.impl.UserMasterService;
+import com.iris.service.impl.UserRoleMasterService;
+import com.iris.util.constant.ServiceConstants;
+
+/**
+ * @author svishwakarma
+ */
+@RestController
+@RequestMapping("/service")
+public class RoleTypeController {
+	private static final Logger logger = LoggerFactory.getLogger(RoleTypeController.class);
+
+	@Autowired
+	RoleTypeService service;
+
+	@Autowired
+	UserRoleMasterService userRoleMasterService;
+
+	@Autowired
+	UserMasterService userMasterService;
+
+	@GetMapping("/roleTypes")
+	public ServiceResponse getAllRoleType(@RequestHeader(name = "JobProcessingId") String jobProcessId) {
+		logger.info("Requesting roleTypes {}", jobProcessId);
+		ServiceResponse response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+		response.setResponse(service.findByIsActiveTrue());
+		return response;
+	}
+
+	@RequestMapping(value = "/roleTypes/{userid}", method = { RequestMethod.GET, RequestMethod.POST })
+	public ServiceResponse getRoleTypeByUserId(@RequestHeader(name = "JobProcessingId") String jobProcessId, @PathVariable("userid") Long userId) {
+		logger.info("Requesting roleTypes with userId {}", jobProcessId);
+		RoleType roleType = null;
+		List<RoleType> roleTypeList = new ArrayList<>();
+		UserMaster user = userMasterService.getDataById(userId);
+		if (user.getRoleType().getRoleTypeId().equals(ServiceConstants.REGULATOR) && user.getDepartmentIdFk().getIsMaster()) {
+			return getAllRoleType(jobProcessId);
+		} else if (user.getRoleType().getRoleTypeId().equals(ServiceConstants.REGULATOR) && !user.getDepartmentIdFk().getIsMaster()) {
+			roleType = service.getDataById(1l);
+			roleTypeList.add(roleType);
+		} else if (user.getRoleType().getRoleTypeId().equals(ServiceConstants.COMPANY)) {
+			roleType = service.getDataById(2l);
+			roleTypeList.add(roleType);
+		}
+		ServiceResponse response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+		response.setResponse(roleTypeList);
+		return response;
+	}
+
+}

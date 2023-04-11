@@ -1,0 +1,384 @@
+package com.iris.sdmx.codelist.service;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.google.gson.reflect.TypeToken;
+import com.iris.caching.ObjectCache;
+import com.iris.dto.ServiceResponse;
+import com.iris.exception.ApplicationException;
+import com.iris.exception.ServiceException;
+import com.iris.model.UserMaster;
+import com.iris.sdmx.agency.master.entity.AgencyMaster;
+import com.iris.sdmx.agency.master.repo.SdmxAgencyMasterRepo;
+import com.iris.sdmx.codelist.bean.CodeListMasterBean;
+import com.iris.sdmx.codelist.bean.CodeListModBean;
+import com.iris.sdmx.codelist.bean.CodeListValuesBean;
+import com.iris.sdmx.codelist.bean.CodelListMasterRequestBean;
+import com.iris.sdmx.codelist.entity.CodeListMaster;
+import com.iris.sdmx.codelist.entity.CodeListMasterMod;
+import com.iris.sdmx.codelist.entity.CodeListValues;
+import com.iris.sdmx.codelist.repo.CodeListMasterModRepo;
+import com.iris.sdmx.codelist.repo.CodeListMasterRepo;
+import com.iris.sdmx.fusion.controller.FusionApiController;
+import com.iris.sdmx.status.entity.ActionStatus;
+import com.iris.sdmx.status.entity.AdminStatus;
+import com.iris.sdmx.status.repo.ActionStatusRepo;
+import com.iris.sdmx.status.repo.AdminStatusRepo;
+import com.iris.sdmx.userMangement.bean.ApprovalInputBean;
+import com.iris.service.GenericService;
+import com.iris.util.JsonUtility;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.ErrorConstants;
+
+/**
+ * @author vjadhav
+ *
+ */
+@Service
+@Transactional
+public class CodeListApprovalService implements GenericService<CodeListMaster, Long> {
+
+	private static final Logger LOGGER = LogManager.getLogger(CodeListApprovalService.class);
+
+	@Autowired
+	private CodeListMasterModRepo codeListMasterModRepo;
+
+	@Autowired
+	private AdminStatusRepo adminStatusRepo;
+
+	@Autowired
+	private ActionStatusRepo actionStatusRepo;
+
+	@Autowired
+	private CodeListMasterRepo codeListMasterRepo;
+
+	@Autowired
+	private FusionApiController fusionAPIController;
+
+	@Autowired
+	private SdmxAgencyMasterRepo sdmxAgencyMasterRepo;
+
+	@Override
+	public CodeListMaster add(CodeListMaster entity) throws ServiceException {
+
+		return null;
+	}
+
+	@Override
+	public boolean update(CodeListMaster entity) throws ServiceException {
+
+		return false;
+	}
+
+	@Override
+	public List<CodeListMaster> getDataByIds(Long[] ids) throws ServiceException {
+
+		return null;
+	}
+
+	@Override
+	public CodeListMaster getDataById(Long id) throws ServiceException {
+
+		return null;
+	}
+
+	@Override
+	public List<CodeListMaster> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName) throws ServiceException {
+
+		return null;
+	}
+
+	@Override
+	public List<CodeListMaster> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName) throws ServiceException {
+
+		return null;
+	}
+
+	@Override
+	public List<CodeListMaster> getDataByObject(Map<String, Object> columnValueMap, String methodName) throws ServiceException {
+
+		return null;
+	}
+
+	@Override
+	public List<CodeListMaster> getActiveDataFor(Class bean, Long id) throws ServiceException {
+
+		return null;
+	}
+
+	@Override
+	public List<CodeListMaster> getAllDataFor(Class bean, Long id) throws ServiceException {
+
+		return null;
+	}
+
+	@Override
+	public void deleteData(CodeListMaster bean) throws ServiceException {
+
+	}
+
+	public List<CodeListModBean> getAllRequestsByAdminStatus(Long adminStatusId) throws IllegalAccessException, InvocationTargetException {
+		List<CodeListModBean> codeListModBeanList = new ArrayList<>();
+		CodeListModBean beanObj;
+		List<CodeListMasterMod> codeListMasterModList = new ArrayList<>();
+		codeListMasterModList = codeListMasterModRepo.findByAdminStatusId(adminStatusId.intValue());
+
+		Map<Long, String> adminStatusMap = getAdminStatus();
+		Map<Long, String> actionMap = getAction();
+		if (!codeListMasterModList.isEmpty()) {
+			for (CodeListMasterMod entityobj : codeListMasterModList) {
+				beanObj = new CodeListModBean();
+				BeanUtils.copyProperties(beanObj, entityobj);
+				if (entityobj.getCodeListMaster() != null) {
+					beanObj.setCodeListMasterFk(entityobj.getCodeListMaster().getClId());
+					beanObj.setAgencyCode(entityobj.getCodeListMaster().getAgencyMaster().getAgencyMasterCode());
+					beanObj.setAgencyLabel(entityobj.getCodeListMaster().getAgencyMaster().getAgencyMasterLabel());
+				}
+				beanObj.setCreatedBy(entityobj.getCreatedBy().getUserId());
+				beanObj.setCreatedByName(entityobj.getCreatedBy().getUserName());
+				beanObj.setCreatedOn(entityobj.getCreatedOn());
+				beanObj.setCreatedOnInLong(entityobj.getCreatedOn().getTime());
+				beanObj.setActionLabel(actionMap.get(Long.valueOf(entityobj.getActionId())));
+				beanObj.setAdminStatusLabel(adminStatusMap.get(Long.valueOf(entityobj.getAdminStatusId())));
+				codeListModBeanList.add(beanObj);
+			}
+		}
+		return codeListModBeanList;
+	}
+
+	public List<CodeListModBean> getRequests(ApprovalInputBean requestInputBean) throws IllegalAccessException, InvocationTargetException {
+
+		List<CodeListModBean> requestsList = new ArrayList<>();
+		requestsList = getAllRequestsByAdminStatus(requestInputBean.getAdminStatusId());
+		return requestsList;
+	}
+
+	public Map<Long, String> getAdminStatus() {
+		List<AdminStatus> adminStatusList = new ArrayList<>();
+		adminStatusList = adminStatusRepo.findByActiveStatus(Boolean.TRUE);
+		Map<Long, String> adminStatusMap = adminStatusList.stream().collect(Collectors.toMap(AdminStatus::getAdminStatusId, AdminStatus::getStatus));
+		return adminStatusMap;
+	}
+
+	public Map<Long, String> getAction() {
+		List<ActionStatus> actionStatusList = new ArrayList<>();
+		actionStatusList = actionStatusRepo.findAll();
+		Map<Long, String> actionStatusMap = actionStatusList.stream().collect(Collectors.toMap(ActionStatus::getActionId, ActionStatus::getActionName));
+		return actionStatusMap;
+
+	}
+
+	public void approveRejectCodeListRecord(ApprovalInputBean requestInputBean) throws ApplicationException {
+		Long actionId;
+		int updatedRow;
+		actionId = requestInputBean.getActionId();
+
+		if (actionId == 1) {
+			throw new ApplicationException(ErrorCode.E1573.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E1573.toString()));
+
+		}
+
+		if (requestInputBean.getAdminStatusId() == 3) {
+			updatedRow = codeListMasterModRepo.approveRejectRequest(requestInputBean.getAdminStatusId().intValue(), requestInputBean.getComments(), requestInputBean.getModTablePkId());
+
+			codeListMasterRepo.setIsPending(requestInputBean.getMasterTablePkId(), Boolean.FALSE);
+
+		} else if (requestInputBean.getAdminStatusId() == 4) {
+
+			updatedRow = codeListMasterModRepo.approveRejectRequest(requestInputBean.getAdminStatusId().intValue(), requestInputBean.getComments(), requestInputBean.getModTablePkId());
+
+			if (actionId == 2) {
+
+				codeListMasterRepo.setIsPending(requestInputBean.getMasterTablePkId(), Boolean.FALSE);
+				editCodeList(requestInputBean);
+
+			} else if (actionId == 4) {
+
+				codeListMasterRepo.setIsPending(requestInputBean.getMasterTablePkId(), Boolean.FALSE);
+				deleteCodeList(requestInputBean);
+
+			}
+		}
+
+	}
+
+	public void editCodeList(ApprovalInputBean requestInputBean) throws ApplicationException {
+
+		CodeListMaster codeListMaster = codeListMasterRepo.findByClId(requestInputBean.getMasterTablePkId());
+
+		CodeListMasterMod codeListMasterMod = codeListMasterModRepo.findByClMasterModId(requestInputBean.getModTablePkId());
+
+		if (codeListMaster == null) {
+			throw new ApplicationException(ErrorCode.E0660.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E0660.toString()));
+		} else {
+
+			CodeListMasterBean codeListMasterBean = new CodeListMasterBean();
+
+			Type type = new TypeToken<CodeListMasterBean>() {
+			}.getType();
+			codeListMasterBean = JsonUtility.getGsonObject().fromJson(codeListMasterMod.getClMasterJson(), type);
+
+			codeListMaster.setClCode(codeListMasterBean.getClCode());
+			codeListMaster.setClLable(codeListMasterBean.getClLable());
+			codeListMaster.setClVersion(codeListMasterBean.getClVersion());
+			codeListMaster.setClDesc(codeListMasterBean.getClDesc());
+			codeListMaster.setIsActive(codeListMasterBean.getIsActive());
+
+			if (codeListMasterBean.getAgencyMasterCode() != null) {
+				AgencyMaster agencyMaster = sdmxAgencyMasterRepo.findByAgencyCode(codeListMasterBean.getAgencyMasterCode());
+				if (agencyMaster != null && agencyMaster.getAgencyMasterId() != 0) {
+					AgencyMaster agencyMaster2 = new AgencyMaster();
+					agencyMaster2.setAgencyMasterId(agencyMaster.getAgencyMasterId());
+					codeListMaster.setAgencyMaster(agencyMaster2);
+				}
+			}
+
+			List<CodeListValuesBean> codeListValuesBeanList = codeListMasterBean.getCodeListValues();
+			codeListValuesBeanList.sort((CodeListValuesBean v1, CodeListValuesBean v2) -> Boolean.compare(v2.getIsParent(), v1.getIsParent()));
+
+			Map<String, CodeListValues> parentCodeListValueMap = new HashMap<String, CodeListValues>();
+
+			for (CodeListValuesBean codeListValueBean : codeListValuesBeanList) {
+				CodeListValues dbCodeListValue = codeListMaster.getCodeListValues().stream().filter(f -> f.getClValueId() != null && f.getClValueId().equals(codeListValueBean.getClValueId())).findAny().orElse(null);
+
+				if (dbCodeListValue != null) {
+					dbCodeListValue.setClValueCode(codeListValueBean.getClValueCode());
+					dbCodeListValue.setClValueLable(codeListValueBean.getClValueLable());
+					dbCodeListValue.setClValueDesc(codeListValueBean.getClValueDesc());
+					dbCodeListValue.setIsActive(codeListValueBean.getIsActive());
+					dbCodeListValue.setLastUpdatedOn(new Date());
+					dbCodeListValue.setCreatedBy(codeListMasterMod.getCreatedBy());
+					dbCodeListValue.setCreatedOn(new Date());
+					if (codeListValueBean.getIsParent().equals(Boolean.TRUE)) {
+						parentCodeListValueMap.put(codeListValueBean.getClValueCode(), dbCodeListValue);
+					}
+
+					dbCodeListValue.setParentCodeListValues(parentCodeListValueMap.get(codeListValueBean.getParentClValueCode()));
+				} else {
+					CodeListValues codeListValues = new CodeListValues();
+					codeListValues.setClValueCode(codeListValueBean.getClValueCode());
+					codeListValues.setClValueLable(codeListValueBean.getClValueLable());
+					codeListValues.setClValueDesc(codeListValueBean.getClValueDesc());
+					codeListValues.setIsActive(codeListValueBean.getIsActive());
+					codeListValues.setLastUpdatedOn(new Date());
+					codeListValues.setCreatedBy(codeListMasterMod.getCreatedBy());
+					codeListValues.setCreatedOn(new Date());
+
+					if (codeListValueBean.getIsParent().equals(Boolean.TRUE)) {
+						parentCodeListValueMap.put(codeListValueBean.getClValueCode(), codeListValues);
+					}
+
+					codeListValues.setParentCodeListValues(parentCodeListValueMap.get(codeListValueBean.getParentClValueCode()));
+
+					codeListValues.setCodeListMaster(codeListMaster);
+
+					codeListMaster.getCodeListValues().add(codeListValues);
+				}
+			}
+
+			Date approvedOn = new Date();
+			UserMaster approvedBy = new UserMaster();
+			approvedBy.setUserId(requestInputBean.getUserId());
+
+			codeListMaster.setLastModifiedBy(codeListMasterMod.getCreatedBy());
+			codeListMaster.setLastUpdatedOn(codeListMasterMod.getCreatedOn());
+			if (requestInputBean.getAdminStatusId() == 4) {
+				codeListMaster.setLastApprovedBy(approvedBy);
+				codeListMaster.setLastApprovedOn(approvedOn);
+			}
+			codeListMasterRepo.save(codeListMaster);
+
+			ServiceResponse serviceResponse = fusionAPIController.submitCodeListData(codeListMasterBean);
+
+			if (!serviceResponse.isStatus()) {
+				throw new ApplicationException(ErrorCode.E1413.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E1413.toString()));
+			}
+		}
+
+	}
+
+	public void deleteCodeList(ApprovalInputBean requestInputBean) throws ApplicationException {
+
+		CodeListMasterMod codeListMasterMod = codeListMasterModRepo.findByClMasterModId(requestInputBean.getModTablePkId());
+		if (codeListMasterMod != null) {
+			CodeListMasterBean codeListMasterBean = new CodeListMasterBean();
+
+			Type type = new TypeToken<CodeListMasterBean>() {
+			}.getType();
+			codeListMasterBean = JsonUtility.getGsonObject().fromJson(codeListMasterMod.getClMasterJson(), type);
+
+			CodeListMaster codeListMaster = codeListMasterRepo.findByClCodeIgnoreCaseAndClVersionAndIsActive(codeListMasterBean.getClCode(), codeListMasterBean.getClVersion(), Boolean.TRUE);
+
+			codeListMaster.setIsActive(Boolean.FALSE);
+			Date approvedOn = new Date();
+			UserMaster approvedBy = new UserMaster();
+			approvedBy.setUserId(requestInputBean.getUserId());
+			if (requestInputBean.getAdminStatusId() == 4) {
+				codeListMaster.setLastApprovedBy(approvedBy);
+				codeListMaster.setLastApprovedOn(approvedOn);
+			}
+
+			codeListMasterRepo.save(codeListMaster);
+
+			ServiceResponse serviceResponse = fusionAPIController.deleteCodeListData(codeListMasterMod.getClCode(), codeListMasterMod.getClVersion(), codeListMasterMod.getCreatedBy().getUserId(), codeListMaster.getAgencyMaster().getAgencyMasterCode());
+
+			if (!serviceResponse.isStatus()) {
+				throw new ApplicationException(ErrorCode.E1413.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E1413.toString()));
+			}
+		}
+	}
+
+	public boolean isCodeListPending(String clCode, String clVersion, String agencyCode) throws ServiceException {
+		try {
+			CodeListMaster codeListmaster = codeListMasterRepo.findByCodeVersionAndAgency(clCode, clVersion, agencyCode, true);
+			if (codeListmaster != null) {
+				if (codeListmaster.getIsPending().equals(Boolean.TRUE)) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+			return false;
+
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getErrorMessage(), e);
+		}
+	}
+
+	public boolean isCodeListArrayPending(List<CodelListMasterRequestBean> codeListArrayList) throws ServiceException {
+		try {
+			List<String> clCodeList = codeListArrayList.stream().map(f -> f.getClCode()).collect(Collectors.toList());
+			List<CodeListMaster> codeListmasterList = new ArrayList<>();
+			codeListmasterList = codeListMasterRepo.findByClCodeIn(clCodeList);
+			if (!codeListmasterList.isEmpty()) {
+				for (CodelListMasterRequestBean beanObj : codeListArrayList) {
+
+					for (CodeListMaster CodeListMaster : codeListmasterList) {
+						if (CodeListMaster.getClCode().equals(beanObj.getClCode()) && CodeListMaster.getClVersion().equals(beanObj.getClVersion()) && CodeListMaster.getIsActive().equals(Boolean.TRUE) && CodeListMaster.getIsPending().equals(Boolean.TRUE) && CodeListMaster.getAgencyMaster().getAgencyMasterCode().equals(beanObj.getAgencyMasterCode()) && CodeListMaster.getAgencyMaster().getIsActive().equals(Boolean.TRUE)) {
+							return true;
+						}
+
+					}
+				}
+			}
+			return false;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getErrorMessage(), e);
+		}
+	}
+
+}

@@ -1,0 +1,67 @@
+/**
+ * 
+ */
+package com.iris.sdmx.exceltohtml.validator;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.iris.exception.ApplicationException;
+import com.iris.validator.CIMSCommonValidator;
+
+/**
+ * @author apagaria
+ *
+ */
+@Component
+public class SdmxRetrunPreviewValidator {
+
+	/**
+	 * 
+	 */
+	private static final Logger LOGGER = LogManager.getLogger(SdmxRetrunPreviewValidator.class);
+	
+	/**
+	 * 
+	 */
+	@Autowired
+	private CIMSCommonValidator cimsCommonValidator;
+
+	/**
+	 * @param userId
+	 * @param jobProcessId
+	 * @throws ApplicationException
+	 */
+	public void validateFetchAllRecord(Long userId, String jobProcessId) throws ApplicationException {
+		LOGGER.info("START - Validation request for Fetch All Record with Job Processing ID : " + jobProcessId);
+
+		// Validate Job Processing Id
+		cimsCommonValidator.validateJobProcessingId(jobProcessId);
+		// Validate User
+		cimsCommonValidator.validateUser(userId);
+		LOGGER.info("END - Validation request for Fetch All Record with Job Processing ID : " + jobProcessId);
+	}
+
+	/**
+	 * @param userId
+	 * @param jobProcessId
+	 * @param returnTemplateId
+	 * @throws ApplicationException
+	 */
+	public void validateFetchHtmlById(Long userId, String jobProcessId, Long returnTemplateId)
+			throws ApplicationException {
+		LOGGER.info("START - Validation request for Fetch Html By Id with Job Processing ID : " + jobProcessId);
+
+		// Job Processing Id
+		cimsCommonValidator.validateJobProcessingId(jobProcessId);
+
+		// Validate User
+		cimsCommonValidator.validateUser(userId);
+		
+		// Return Template
+		cimsCommonValidator.validateReturnTemplate(returnTemplateId);
+		LOGGER.info("END - Validation request for Fetch Html By Id with Job Processing ID : " + jobProcessId);
+	}
+}

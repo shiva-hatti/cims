@@ -1,0 +1,37 @@
+/**
+ * 
+ */
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.iris.model.GroupMaster;
+
+/**
+ * @author Siddique
+ *
+ */
+public interface GroupMasterRepo extends JpaRepository<GroupMaster, Integer>{
+
+	@Query("select distinct new com.iris.model.GroupMaster(gm.groupCode, gm.groupName ) FROM GroupMaster gm order by gm.groupCode asc")
+	List<GroupMaster> getGroupMasterData();
+	
+	@Query("From GroupMaster where groupCode IN (:groupCode)")
+	List<GroupMaster> getGroupCode(@Param("groupCode") List<String> groupCode);
+	
+	@Transactional
+	@Modifying(clearAutomatically = true)
+    @Query("update GroupMaster SET remark = :remark, alternateName = :alternateName, mobileNumber = :mobileNumber, groupIdFk = :groupIdFk "
+    		+ " where groupCode = :groupCode")
+    int updateGroup(@Param("remark") String remark, @Param("alternateName") String alternateName, @Param("mobileNumber") Long mobileNumber, @Param("groupIdFk") Long groupIdFk, @Param("groupCode") String groupCode);
+	
+	@Query("From GroupMaster where UPPER(groupCode) LIKE %:groupCode% order by groupCode asc")
+	List<GroupMaster> getGroupDetails(@Param("groupCode") String groupCode);
+
+}

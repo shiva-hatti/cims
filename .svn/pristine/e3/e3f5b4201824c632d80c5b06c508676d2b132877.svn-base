@@ -1,0 +1,17 @@
+/**
+ * 
+ */
+package com.iris.sdmx.fusion.repo;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.iris.sdmx.fusion.entity.FusionProperties;
+
+/**
+ * @author sajadhav
+ *
+ */
+public interface FusionPropertiesRepo extends JpaRepository<FusionProperties, Long>{
+
+	
+}

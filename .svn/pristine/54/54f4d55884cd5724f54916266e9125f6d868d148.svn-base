@@ -1,0 +1,356 @@
+package com.iris.controller;
+
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import com.google.gson.Gson;
+import com.iris.dateutility.enums.DateConstants;
+import com.iris.dateutility.util.DateManip;
+import com.iris.exception.ServiceException;
+import com.iris.model.AuditFirmInfo;
+import com.iris.model.Auditor;
+import com.iris.model.EntityAuditorMapping;
+import com.iris.model.EntityAuditorMapInfo;
+import com.iris.model.EntityAuditorMapMod;
+import com.iris.model.EntityBean;
+import com.iris.model.Return;
+import com.iris.model.UserAuditorRole;
+import com.iris.model.UserMaster;
+import com.iris.model.UserRoleMaster;
+import com.iris.repository.EntityAuditorMapModRepo;
+import com.iris.repository.EntityAuditorMappingRepo;
+import com.iris.repository.UserMasterRepo;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.ErrorConstants;
+
+/**
+ * @author psheke
+ * @date 02/12/2020
+ */
+@Service
+public class EntityAuditorMapProcessor implements Serializable {
+
+
+	private static final long serialVersionUID = 5781426049378837543L;
+	@Autowired
+	private UserMasterRepo userMasterRepo;
+	@Autowired
+	private EntityAuditorMappingRepo entityAuditorMapRepo;
+	@Autowired
+	private EntityAuditorMapModRepo entityAuditorMapModRepo;
+
+	static final Logger LOGGER = LogManager.getLogger(EntityAuditorMapProcessor.class);
+	private static final String DD_SLASH_MM_SLASH_YYYY = "dd/MM/yyyy";
+	
+	/**
+	 * This method will fetch Auditor List
+	 * @return auditorList 
+	 */
+	public List<Auditor> getAuditorList(){
+
+		LOGGER.info("Fetching the Auditor List: EntityAuditorMapProcessor.getAuditorList");
+		List<Auditor> auditorList = new ArrayList<>();
+		Auditor auditor;
+		List<UserMaster> auditorInfoList = new ArrayList<>();
+		try {
+			auditorInfoList = userMasterRepo.getAuditorList();
+			for(UserMaster userAuditor : auditorInfoList) {
+
+				for(UserRoleMaster userRole:userAuditor.getUsrRoleMstrSet()) {
+					for(UserAuditorRole	userAuditorRole:userRole.getUserAuditorRole()) {
+						auditor=new Auditor();
+						auditor.setAuditFirmName(userAuditorRole.getAuditFirm().getAuditFirmDefaultName());
+						auditor.setAuditorICAIMemNumber(userAuditor.getIcaiMemberNumber());
+						auditor.setAuditorName(userAuditor.getUserName());
+						auditor.setAuditorUserId(userAuditor.getUserId()); auditor.setAuditorIciaMap(auditor.getAuditorName()+"("+auditor.getAuditorICAIMemNumber()+")");
+						auditorList.add(auditor);
+					}
+				}
+			}
+		}catch(Exception e) {
+			LOGGER.error(ErrorCode.EC0033.toString());
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+		return auditorList;
+
+	}
+
+	/**
+	 * This method will fetch Entity Auditor Mapping List
+	 * @return entityAuditorMapList
+	 */
+	public List<EntityAuditorMapping> getEntityAuditorMapping(Long auditorId,Long entityId){
+		LOGGER.info("Fetching the Entity Auditor Mapping List: EntityAuditorMapProcessor.getEntityAuditorMapping");
+		List<EntityAuditorMapInfo> entityAuditorMapInfoList = new ArrayList<>();
+		List<EntityAuditorMapping> entityAuditorMapList=new ArrayList<>();
+		SimpleDateFormat formatter = new SimpleDateFormat(DD_SLASH_MM_SLASH_YYYY);
+		try {
+			entityAuditorMapInfoList=entityAuditorMapRepo.getAuditorReturnMapping(auditorId,entityId,true);
+
+			EntityAuditorMapping entityAuditorMapping;
+			for(EntityAuditorMapInfo entityAuditMapInfoObj :  entityAuditorMapInfoList) {
+				entityAuditorMapping = new EntityAuditorMapping();
+				entityAuditorMapping.setReturnId(entityAuditMapInfoObj.getReturnIdFk().getReturnId());
+				entityAuditorMapping.setReturnName(entityAuditMapInfoObj.getReturnIdFk().getReturnName());
+				entityAuditorMapping.setAuditorId(entityAuditMapInfoObj.getAuditorIdFk().getUserId());
+				entityAuditorMapping.setEntityId(entityAuditMapInfoObj.getEntityIdFk().getEntityId());
+				entityAuditorMapping.setUpload(entityAuditMapInfoObj.getUpload());
+				entityAuditorMapping.setReview(entityAuditMapInfoObj.getReview());
+				entityAuditorMapping.setView(entityAuditMapInfoObj.getView());
+				if(entityAuditMapInfoObj.getApprovedByFk()!=null) {
+				entityAuditorMapping.setApprovedByUserName(entityAuditMapInfoObj.getApprovedByFk().getUserName());
+				String calendarFormat = "en";
+				String timeFormat = DateConstants.HH_MM_SS.getDateConstants().toLowerCase() + " "
+						+ DateConstants.AM_PM.getDateConstants();
+
+				String aprrovedDate = DateManip.formatAppDateTime(entityAuditMapInfoObj.getApprovedOn(), DD_SLASH_MM_SLASH_YYYY + " " + timeFormat, calendarFormat);
+				entityAuditorMapping.setApprovedOn(aprrovedDate);}
+				entityAuditorMapping.setRejectComment(entityAuditMapInfoObj.getRejectComment());
+				entityAuditorMapping.setAdminStatusId(entityAuditMapInfoObj.getAdminStatusIdFk());
+				entityAuditorMapping.setIsActive(entityAuditMapInfoObj.getIsActive());
+			
+
+				String endDate= formatter.format(entityAuditMapInfoObj.getEndDate().getTime());
+				String startDate=formatter.format(entityAuditMapInfoObj.getStartDate().getTime());
+				entityAuditorMapping.setTenureEndDate(endDate);
+				entityAuditorMapping.setTenureStartDate(startDate);
+
+
+				entityAuditorMapList.add(entityAuditorMapping);
+			}
+
+
+		} catch (Exception e) {
+			LOGGER.error(ErrorCode.EC0033.toString());
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+		return entityAuditorMapList;
+	}
+
+	/**
+	 * This method will insert/update Entity Auditor Mapping 
+	 */
+	public void addEditEntityAuditorMapping(Long entityId,List<EntityAuditorMapping> entityAuditorMapList) {
+		LOGGER.info("Inserting/Updating Entity Auditor Mapping List: EntityAuditorMapProcessor.addEditEntityAuditorMapping");
+		List<EntityAuditorMapInfo> entityAuditorMapInfoList =new ArrayList<>();
+		EntityAuditorMapInfo entityAuditorMapInfo;
+		Return returnObj;
+		try {
+			for(EntityAuditorMapping entityAuditorMap:entityAuditorMapList) {
+				entityAuditorMapInfo=new EntityAuditorMapInfo();
+
+				returnObj=new Return();
+				returnObj.setReturnId(entityAuditorMap.getReturnId());
+				entityAuditorMapInfo.setReturnIdFk(returnObj);
+
+				UserMaster userObj=new UserMaster();
+				userObj.setUserId(entityAuditorMap.getAuditorId());
+				entityAuditorMapInfo.setAuditorIdFk(userObj);
+
+
+				EntityBean entity=new EntityBean();
+				entity.setEntityId(entityId);
+
+				entityAuditorMapInfo.setEntityIdFk(entity);
+
+				entityAuditorMapInfo.setIsActive(entityAuditorMap.getIsActive());
+
+				UserMaster user=userMasterRepo.findByUserIdAndIsActiveTrue(entityAuditorMap.getAuditorId());
+				AuditFirmInfo auditFirm = null;
+
+
+				for(UserRoleMaster userRole:user.getUsrRoleMstrSet()) {
+					for(UserAuditorRole	userAuditorRole:userRole.getUserAuditorRole()) {
+						auditFirm = userAuditorRole.getAuditFirm();
+						break;
+					}
+					break;
+				}
+				entityAuditorMapInfo.setAuditFirmIdFk(auditFirm);
+				if(entityAuditorMap.isUpdateFlag() && !entityAuditorMap.getIsActive()){
+
+					entityAuditorMapInfo.setUpload(false);
+					entityAuditorMapInfo.setView(false);
+					entityAuditorMapInfo.setReview(false);	
+					entityAuditorMapInfo.setStartDate(null);
+					entityAuditorMapInfo.setEndDate(null);
+
+
+				}
+				else {
+					entityAuditorMapInfo.setUpload(entityAuditorMap.getUpload());
+					entityAuditorMapInfo.setView(entityAuditorMap.getView());
+					entityAuditorMapInfo.setReview(entityAuditorMap.getReview());
+
+					Date startDate=new SimpleDateFormat(DD_SLASH_MM_SLASH_YYYY).parse(entityAuditorMap.getTenureStartDate());
+
+					entityAuditorMapInfo.setStartDate(startDate);
+					Date endDate=new SimpleDateFormat(DD_SLASH_MM_SLASH_YYYY).parse(entityAuditorMap.getTenureEndDate());
+
+					entityAuditorMapInfo.setEndDate(endDate);
+
+				}      
+				if(!entityAuditorMap.isUpdateFlag()) {
+					entityAuditorMapInfo.setAdminStatusIdFk(1);
+
+					UserMaster userMasterObj = new UserMaster();
+					userMasterObj.setUserId(entityAuditorMap.getCreatedByUserId());
+					entityAuditorMapInfo.setCreatedBy(userMasterObj);
+					entityAuditorMapInfo.setCreatedOn(DateManip.getCurrentDateTime());
+
+				}
+				else {
+					UserMaster userModifyObj = new UserMaster();
+					userModifyObj.setUserId(entityAuditorMap.getModifiedByUserId());
+					entityAuditorMapInfo.setModifiedBy(userModifyObj);
+					entityAuditorMapInfo.setModifiedOn(DateManip.getCurrentDateTime());
+					EntityAuditorMapInfo entityAuditorMapInfoExist =entityAuditorMapRepo.getEntityAuditorMap(entityId,entityAuditorMap.getAuditorId(),entityAuditorMap.getReturnId(),true);
+
+
+					if(entityAuditorMapInfoExist!=null) {
+						entityAuditorMapInfo.setEntityAuditorMapId(entityAuditorMapInfoExist.getEntityAuditorMapId());
+						entityAuditorMapInfo.setAdminStatusIdFk(entityAuditorMapInfoExist.getAdminStatusIdFk());
+						entityAuditorMapInfo.setCreatedBy(entityAuditorMapInfoExist.getCreatedBy());
+						entityAuditorMapInfo.setCreatedOn(entityAuditorMapInfoExist.getCreatedOn());
+						UserMaster userMasterObj = new UserMaster();
+						userMasterObj.setUserId(entityAuditorMapInfoExist.getApprovedByFk().getUserId());
+						entityAuditorMapInfo.setApprovedByFk(userMasterObj);
+						entityAuditorMapInfo.setApprovedOn(entityAuditorMapInfoExist.getApprovedOn());
+						entityAuditorMapInfo.setRejectComment(entityAuditorMapInfoExist.getRejectComment());
+					
+					
+
+
+						//Modification History
+						try {
+							EntityAuditorMapping entityAudObj =new EntityAuditorMapping();
+							entityAudObj.setAuditorId(entityAuditorMapInfoExist.getAuditorIdFk().getUserId());
+							entityAudObj.setEntityId(entityAuditorMapInfoExist.getEntityIdFk().getEntityId());
+							entityAudObj.setIsActive(entityAuditorMapInfoExist.getIsActive());
+							entityAudObj.setReturnId(entityAuditorMapInfoExist.getReturnIdFk().getReturnId());
+							entityAudObj.setUpload(entityAuditorMapInfoExist.getUpload());
+							entityAudObj.setReview(entityAuditorMapInfoExist.getReview());
+							entityAudObj.setView(entityAuditorMapInfoExist.getView());
+
+							entityAudObj.setReturnName(entityAuditorMapInfoExist.getReturnIdFk().getReturnName());
+							SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+
+							String endDate= formatter.format(entityAuditorMapInfoExist.getEndDate().getTime());
+							String startDate=formatter.format(entityAuditorMapInfoExist.getStartDate().getTime());
+							entityAudObj.setTenureStartDate(startDate);
+							entityAudObj.setTenureEndDate(endDate);
+							if(entityAuditorMapInfoExist.getAdminStatusIdFk() == 1) {
+								entityAudObj.setAssociationStatus("Pending");
+							}
+							else if(entityAuditorMapInfoExist.getAdminStatusIdFk() == 3) {
+								entityAudObj.setAssociationStatus("Rejected");
+
+							}
+							else if(entityAuditorMapInfoExist.getAdminStatusIdFk() == 4) {
+								entityAudObj.setAssociationStatus("Approved");
+
+							}
+
+							String jsonResult = new Gson().toJson(entityAudObj);
+
+							EntityAuditorMapMod entityAuditorMapMod=new EntityAuditorMapMod();
+							entityAuditorMapMod.setEntityAuditorMapModIdFk(entityAuditorMapInfoExist);
+							entityAuditorMapMod.setEntityAuditorMappingModJson(jsonResult);
+							entityAuditorMapMod.setLastModifiedBy(userModifyObj);
+							entityAuditorMapMod.setLastModifiedOn(entityAuditorMapInfo.getModifiedOn());
+							entityAuditorMapModRepo.save(entityAuditorMapMod);
+						} catch (Exception e) {
+							LOGGER.error(ErrorCode.EC0033.toString());
+							throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+
+						}
+					}	
+
+
+				}
+
+				entityAuditorMapInfoList.add(entityAuditorMapInfo);
+
+			}
+
+			for(EntityAuditorMapInfo obj:entityAuditorMapInfoList) {
+				entityAuditorMapRepo.save(obj);
+			}
+
+		}catch (Exception e) {
+			LOGGER.error(ErrorCode.EC0033.toString());
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	/**
+	 * This method will fetch the entity auditor mapping for approval or rejection 
+	 */
+	public List<EntityAuditorMapping> getEntityAuditorMappingForApproval(Long auditorId){
+		LOGGER.info("Fetching the Entity Auditor Mapping List: EntityAuditorMapProcessor.getEntityAuditorMappingForApproval");
+		List<EntityAuditorMapInfo> entityAuditorMapInfoList = new ArrayList<>();
+		List<EntityAuditorMapping> entityAuditorMapList=new ArrayList<>();
+		try {
+			Integer statusId = 1;
+			entityAuditorMapInfoList=entityAuditorMapRepo.getEntityAuditorMappingForApproval(auditorId,statusId,true);
+			EntityAuditorMapping entityAuditorMapping;
+			for(EntityAuditorMapInfo entityAuditMapInfoObj :  entityAuditorMapInfoList) {
+				entityAuditorMapping = new EntityAuditorMapping();
+				entityAuditorMapping.setEntityAuditorMapId(entityAuditMapInfoObj.getEntityAuditorMapId());
+				entityAuditorMapping.setEntityName(entityAuditMapInfoObj.getEntityIdFk().getEntityName());
+				entityAuditorMapping.setEntityCode(entityAuditMapInfoObj.getEntityIdFk().getEntityCode());
+				entityAuditorMapping.setReturnName(entityAuditMapInfoObj.getReturnIdFk().getReturnName());
+				entityAuditorMapping.setReturnCode(entityAuditMapInfoObj.getReturnIdFk().getReturnCode());
+				entityAuditorMapping.setUpload(entityAuditMapInfoObj.getUpload());
+				entityAuditorMapping.setReview(entityAuditMapInfoObj.getReview());
+				entityAuditorMapping.setView(entityAuditMapInfoObj.getView());
+				SimpleDateFormat formatter = new SimpleDateFormat(DD_SLASH_MM_SLASH_YYYY);
+
+				String endDate= formatter.format(entityAuditMapInfoObj.getEndDate().getTime());
+				String startDate=formatter.format(entityAuditMapInfoObj.getStartDate().getTime());
+				entityAuditorMapping.setTenureEndDate(endDate);
+				entityAuditorMapping.setTenureStartDate(startDate);
+				entityAuditorMapping.setRequestedDate(entityAuditMapInfoObj.getCreatedOn());
+				entityAuditorMapping.setRequestedByUserName(entityAuditMapInfoObj.getCreatedBy().getUserName());
+				entityAuditorMapList.add(entityAuditorMapping);
+			}
+		} catch (Exception e) {
+			LOGGER.error(ErrorCode.EC0033.toString());
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+		return entityAuditorMapList;
+
+	}
+	
+	/**
+	 * This method will process  the entity auditor mapping approval or rejection. 
+	 */
+	public void approveOrRejectEntityAuditorMapping(boolean approveType,EntityAuditorMapping entityAuditorMap) {
+		LOGGER.info("Processing Approval/Rejection of entity auditor mapping: EntityAuditorMapProcessor.approveOrRejectEntityAuditorMapping");
+		EntityAuditorMapInfo entityAuditMapInfoObj;
+		try {
+		entityAuditMapInfoObj=entityAuditorMapRepo.getEntityAuditorMapById(entityAuditorMap.getEntityAuditorMapId(),true);
+		UserMaster userObj = new UserMaster();
+		userObj.setUserId(entityAuditorMap.getAuditorId());
+		entityAuditMapInfoObj.setApprovedByFk(userObj);	
+		entityAuditMapInfoObj.setApprovedOn(DateManip.getCurrentDateTime());
+		if(approveType) {
+			entityAuditMapInfoObj.setAdminStatusIdFk(4);
+		}
+		else{
+			entityAuditMapInfoObj.setRejectComment(entityAuditorMap.getRejectComment());
+			entityAuditMapInfoObj.setAdminStatusIdFk(3);
+		}
+		entityAuditorMapRepo.save(entityAuditMapInfoObj);
+	}catch (Exception e) {
+		LOGGER.error(ErrorCode.EC0033.toString());
+		throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+	}
+}
+}

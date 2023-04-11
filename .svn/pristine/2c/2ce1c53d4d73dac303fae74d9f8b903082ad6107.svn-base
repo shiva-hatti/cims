@@ -1,0 +1,39 @@
+#Folder Path
+#filepath.root=C:/iFileProd
+#filepath.root=/home/IRIS/IFILE_FILES
+filepath.root=/iFile_Files
+#filepath.root=/home/irisdev/iFileShare/iFileProd
+
+filepath.upload.temp = /TEMP
+filePath.system.dest.path = /VALIDATE_META
+filePath.validate.meta.failed.path = /VALIDATE_META_FAILED
+filepath.instanceZip = /INSTANCE/uploaded/
+filepath.attachement = /INSTANCE/ATTACHEMENTS/
+filepath.xbrl.webform.instance = /iFile_Files/RENDERING/wform/idata
+filepath.xbrl.webform.shard = /RENDERING/wform/shred/
+filepath.pan.upload = /PAN_BULK_FILE_PATH
+filepath.groupMaster.upload = /GROUP_MASTER_BULK_FILE_PATH
+filePath.pan.master.file.path = /PAN_MASTER_FILE
+filePath.group.master.file.path = /GROUP_MASTER_FILE
+filePath.taxonomyPackageXml.fileName = /taxonomyPackage.xml
+returnTemplate.upload.path.zip = /RETURN_TEMPLATE_ZIP
+returnTemplate.upload.path=/RETURN_TEMPLATE
+xbrl.sdmx.template.file.name = Taxonomy.zip
+webform.FileName = /Webform.zip
+excel.to.html.xls.base.path=EBR-SDMX\\outputFolder\\Files
+excel.to.html.base.path=EBR-SDMX\\outputFolder\\Files
+submitDataToFusion = false
+fusion.base.path=FUSION_DSD
+
+server.ip = 10.2.245.138
+
+REPORTING_PERIOD_DATE_FORMAT_REGEX = ^([0-2][0-9]|(3)[0-1])(((0)[0-9])|((1)[0-2]))\\d{4}$
+
+generalInfoDateFormat.R013 = yyyy|MM|dd
+generalInfoDateFormat.R002 = ddMMyyyy
+generalInfoDateFormat.R088 = ddMMyyyy
+generalInfoDateFormat.R014 = ddMMyyyy
+
+webSockerServerOrigin=http://15.206.198.153
+webSockerBrokerName=notification
+filingInfoLabel = Filing Information

@@ -1,0 +1,55 @@
+/**
+ * 
+ */
+package com.iris.dto;
+
+import java.io.Serializable;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+/**
+ * @author sajadhav
+ *
+ */
+@JsonInclude(Include.NON_DEFAULT)
+public class RegulatorDto implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -1020241028404950411L;
+
+	private Integer regulatorId;
+
+	private String regulatorName;
+
+	/**
+	 * @return the regulatorId
+	 */
+	public Integer getRegulatorId() {
+		return regulatorId;
+	}
+
+	/**
+	 * @param regulatorId the regulatorId to set
+	 */
+	public void setRegulatorId(Integer regulatorId) {
+		this.regulatorId = regulatorId;
+	}
+
+	/**
+	 * @return the regulatorName
+	 */
+	public String getRegulatorName() {
+		return regulatorName;
+	}
+
+	/**
+	 * @param regulatorName the regulatorName to set
+	 */
+	public void setRegulatorName(String regulatorName) {
+		this.regulatorName = regulatorName;
+	}
+
+}

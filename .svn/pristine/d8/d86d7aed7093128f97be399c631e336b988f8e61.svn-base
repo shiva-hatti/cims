@@ -1,0 +1,177 @@
+/**
+ * 
+ */
+package com.iris.dto;
+
+import java.io.Serializable;
+
+/**
+ * @author Siddique
+ *
+ */
+public class TableElementMetaInfo  implements Serializable{
+	
+	
+	private static final long serialVersionUID = 1576591851106639703L;
+	private String csvColumnPosition;
+	private String csvTableCode;
+	private String csvRowPosition;
+	private long maxLength;
+	private long minLength;
+	private String regex;
+	private boolean isMandatory;
+	private long fieldTypeId;
+	private boolean isGrandTotalPresent;
+	private long totalRowCount;
+	private String methodURI; 
+	private String methodType;
+	private String tableName;
+	private boolean isNullAllow;
+	
+	
+
+	
+	public boolean isNullAllow() {
+		return isNullAllow;
+	}
+	public void setNullAllow(boolean isNullAllow) {
+		this.isNullAllow = isNullAllow;
+	}
+	public String getTableName() {
+		return tableName;
+	}
+	public void setTableName(String tableName) {
+		this.tableName = tableName;
+	}
+	public String getMethodURI() {
+		return methodURI;
+	}
+	public void setMethodURI(String methodURI) {
+		this.methodURI = methodURI;
+	}
+	public String getMethodType() {
+		return methodType;
+	}
+	public void setMethodType(String methodType) {
+		this.methodType = methodType;
+	}
+	public void setMandatory(boolean isMandatory) {
+		this.isMandatory = isMandatory;
+	}
+	public long getTotalRowCount() {
+		return totalRowCount;
+	}
+	public void setTotalRowCount(long totalRowCount) {
+		this.totalRowCount = totalRowCount;
+	}
+	/**
+	 * @return the isGrandTotalPresent
+	 */
+	public boolean isGrandTotalPresent() {
+		return isGrandTotalPresent;
+	}
+	/**
+	 * @param isGrandTotalPresent the isGrandTotalPresent to set
+	 */
+	public void setGrandTotalPresent(boolean isGrandTotalPresent) {
+		this.isGrandTotalPresent = isGrandTotalPresent;
+	}
+	/**
+	 * @return the fieldTypeId
+	 */
+	public long getFieldTypeId() {
+		return fieldTypeId;
+	}
+	/**
+	 * @param fieldTypeId the fieldTypeId to set
+	 */
+	public void setFieldTypeId(long fieldTypeId) {
+		this.fieldTypeId = fieldTypeId;
+	}
+	/**
+	 * @return the maxLength
+	 */
+	public long getMaxLength() {
+		return maxLength;
+	}
+	/**
+	 * @param maxLength the maxLength to set
+	 */
+	public void setMaxLength(long maxLength) {
+		this.maxLength = maxLength;
+	}
+	/**
+	 * @return the minLength
+	 */
+	public long getMinLength() {
+		return minLength;
+	}
+	/**
+	 * @param minLength the minLength to set
+	 */
+	public void setMinLength(long minLength) {
+		this.minLength = minLength;
+	}
+	/**
+	 * @return the regex
+	 */
+	public String getRegex() {
+		return regex;
+	}
+	/**
+	 * @param regex the regex to set
+	 */
+	public void setRegex(String regex) {
+		this.regex = regex;
+	}
+	/**
+	 * @return the isMandatory
+	 */
+	public boolean getIsMandatory() {
+		return isMandatory;
+	}
+	/**
+	 * @param isMandatory the isMandatory to set
+	 */
+	public void setIsMandatory(boolean isMandatory) {
+		this.isMandatory = isMandatory;
+	}
+	/**
+	 * @return the csvRowPosition
+	 */
+	public String getCsvRowPosition() {
+		return csvRowPosition;
+	}
+	/**
+	 * @param csvRowPosition the csvRowPosition to set
+	 */
+	public void setCsvRowPosition(String csvRowPosition) {
+		this.csvRowPosition = csvRowPosition;
+	}
+	/**
+	 * @return the csvColumnPosition
+	 */
+	public String getCsvColumnPosition() {
+		return csvColumnPosition;
+	}
+	/**
+	 * @param csvColumnPosition the csvColumnPosition to set
+	 */
+	public void setCsvColumnPosition(String csvColumnPosition) {
+		this.csvColumnPosition = csvColumnPosition;
+	}
+	/**
+	 * @return the csvTableCode
+	 */
+	public String getCsvTableCode() {
+		return csvTableCode;
+	}
+	/**
+	 * @param csvTableCode the csvTableCode to set
+	 */
+	public void setCsvTableCode(String csvTableCode) {
+		this.csvTableCode = csvTableCode;
+	}
+	
+	
+}

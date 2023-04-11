@@ -1,0 +1,77 @@
+package com.iris.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.iris.exception.ServiceException;
+import com.iris.model.NbfcProfileDetailsBean;
+import com.iris.repository.NbfcProfileDetailsRepo;
+import com.iris.service.GenericService;
+
+public class NbfcProfileDetailsService implements GenericService<NbfcProfileDetailsBean, Long> {
+	@Autowired
+	private NbfcProfileDetailsRepo nbfcProfileDetailsRepo;
+
+	@Override
+	public NbfcProfileDetailsBean add(NbfcProfileDetailsBean entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean update(NbfcProfileDetailsBean entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public List<NbfcProfileDetailsBean> getDataByIds(Long[] ids) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public NbfcProfileDetailsBean getDataById(Long id) throws ServiceException {
+		//return nbfcProfileDetailsRepo.getNbfcProfileDetails
+		return null;
+	}
+
+	@Override
+	public List<NbfcProfileDetailsBean> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<NbfcProfileDetailsBean> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<NbfcProfileDetailsBean> getDataByObject(Map<String, Object> columnValueMap, String methodName) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<NbfcProfileDetailsBean> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<NbfcProfileDetailsBean> getAllDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void deleteData(NbfcProfileDetailsBean bean) throws ServiceException {
+		// TODO Auto-generated method stub
+
+	}
+
+}

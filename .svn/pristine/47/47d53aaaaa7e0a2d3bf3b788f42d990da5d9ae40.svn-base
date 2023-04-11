@@ -1,0 +1,106 @@
+package com.iris.nbfc.service;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.exception.ServiceException;
+import com.iris.nbfc.model.NbfcEntityBean;
+import com.iris.nbfc.repository.NbfcEntityRepo;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.MethodConstants;
+
+@Service
+public class NBFCEntityService implements GenericService<NbfcEntityBean, Long> {
+    
+	private static final Logger LOGGER = LoggerFactory.getLogger(NBFCEntityService.class);
+
+	@Autowired
+	NbfcEntityRepo nbfcEntityRepo;
+
+	@Override
+	public NbfcEntityBean add(NbfcEntityBean nbfcEntityBean) throws ServiceException {
+		nbfcEntityRepo.updateNbfcEntityByCompPan(nbfcEntityBean.getCompPan());
+		nbfcEntityBean = nbfcEntityRepo.save(nbfcEntityBean);
+		return nbfcEntityBean;
+	}
+
+	@Override
+	public boolean update(NbfcEntityBean nbfcEntityBean) throws ServiceException {
+		try {
+			nbfcEntityRepo.save(nbfcEntityBean);
+			return true;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.toString(), e);
+		}
+	}
+
+	@Override
+	public NbfcEntityBean getDataById(Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public void deleteData(NbfcEntityBean bean) throws ServiceException {
+	}
+
+	@Override
+	public List<NbfcEntityBean> getDataByIds(Long[] ids) throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcEntityBean> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+		try {
+			List<String> panNumber  = null;
+			if(methodName.equalsIgnoreCase(MethodConstants.GET_NBFC_ENTITY_BY_PAN_NUMBER.getConstantVal())) {
+				panNumber = columnValueMap.get(ColumnConstants.PAN_NUMBER.getConstantVal());
+				return nbfcEntityRepo.getNbfcEntityByPanNumber(panNumber.get(0));
+			}
+			return Collections.emptyList();
+		}catch(Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<NbfcEntityBean> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName)
+			throws ServiceException {
+		try {
+			List<Long> userId  = null;
+			if(methodName.equalsIgnoreCase(MethodConstants.GET_NBFC_ENTITY_BY_USER_ID.getConstantVal())) {
+				userId = columnValueMap.get(ColumnConstants.USER_ID.getConstantVal());
+				return nbfcEntityRepo.getNbfcEntityByUserId(userId.get(0));
+			}
+			return Collections.emptyList();
+		}catch(Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<NbfcEntityBean> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcEntityBean> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcEntityBean> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	
+}

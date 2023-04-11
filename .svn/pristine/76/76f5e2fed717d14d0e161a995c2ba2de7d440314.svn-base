@@ -1,0 +1,135 @@
+package com.iris.formula.gen;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.iris.formula.gen.controller.AutoCalFormulaParts;
+import com.iris.formula.gen.controller.CrossFormulaParts;
+
+public class FormulaBean implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -6590192323182741600L;
+	
+	private String returnId;
+	private String formula;
+	private String errorCode;
+	private String formulaType;
+	private String dataType;
+	private String errorMessage;
+	private String returnCode;
+	private String elrIdPair;
+	private  Map<String,List<AutoCalFormulaParts>> normalFormua = new HashMap<>();
+	private Boolean isCrossElr;
+	private Integer formulaId;
+	private List<CrossFormulaParts> crossElrFormula = new ArrayList<>();
+	private Integer userId;
+	private String table;
+	private Map<String,Object> formulaJsonMap = new HashMap<>();
+	private String technicalErrorCode;
+	
+	public String getFormula() {
+		return formula;
+	}
+	public void setFormula(String formula) {
+		this.formula = formula;
+	}
+	public String getReturnId() {
+		return returnId;
+	}
+	public void setReturnId(String returnId) {
+		this.returnId = returnId;
+	}
+	public String getReturnCode() {
+		return returnCode;
+	}
+	public void setReturnCode(String returnCode) {
+		this.returnCode = returnCode;
+	}
+	public Map<String, List<AutoCalFormulaParts>> getNormalFormua() {
+		return normalFormua;
+	}
+	public void setNormalFormua(Map<String, List<AutoCalFormulaParts>> normalFormua) {
+		this.normalFormua = normalFormua;
+	}
+	public Boolean getIsCrossElr() {
+		return isCrossElr;
+	}
+	public void setIsCrossElr(Boolean isCrossElr) {
+		this.isCrossElr = isCrossElr;
+	}
+	public List<CrossFormulaParts> getCrossElrFormula() {
+		return crossElrFormula;
+	}
+	public void setCrossElrFormula(List<CrossFormulaParts> crossElrFormula) {
+		this.crossElrFormula = crossElrFormula;
+	}
+	public String getErrorCode() {
+		return errorCode;
+	}
+	public void setErrorCode(String errorCode) {
+		this.errorCode = errorCode;
+	}
+	public String getFormulaType() {
+		return formulaType;
+	}
+	public void setFormulaType(String formulaType) {
+		this.formulaType = formulaType;
+	}
+	public String getElrIdPair() {
+		return elrIdPair;
+	}
+	public void setElrIdPair(String elrIdPair) {
+		this.elrIdPair = elrIdPair;
+	}
+	public String getDataType() {
+		return dataType;
+	}
+	public void setDataType(String dataType) {
+		this.dataType = dataType;
+	}
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+	public void setErrorMessage(String errorMessage) {
+		this.errorMessage = errorMessage;
+	}
+	public Integer getFormulaId() {
+		return formulaId;
+	}
+	public void setFormulaId(Integer formulaId) {
+		this.formulaId = formulaId;
+	}
+	public Integer getUserId() {
+		return userId;
+	}
+	public void setUserId(Integer userId) {
+		this.userId = userId;
+	}
+	public String getTable() {
+		return table;
+	}
+	public void setTable(String table) {
+		this.table = table;
+	}
+	public Map<String, Object> getFormulaJsonMap() {
+		return formulaJsonMap;
+	}
+	public void setFormulaJsonMap(Map<String, Object> formulaJsonMap) {
+		this.formulaJsonMap = formulaJsonMap;
+	}
+	public String getTechnicalErrorCode() {
+		return technicalErrorCode;
+	}
+	public void setTechnicalErrorCode(String technicalErrorCode) {
+		this.technicalErrorCode = technicalErrorCode;
+	}
+	
+	
+
+}

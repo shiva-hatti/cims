@@ -1,0 +1,445 @@
+/**
+ * 
+ */
+package com.iris.service;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.EntityDto;
+import com.iris.dto.ReturnEntityDto;
+import com.iris.dto.ReturnEntityFreqDto;
+import com.iris.dto.ReturnEntityGroupDto;
+import com.iris.dto.ReturnEntityMapDto;
+import com.iris.dto.ReturnEntityOutputDto;
+import com.iris.dto.ReturnEntityQueryOutputDto;
+import com.iris.dto.UserDetailsDto;
+import com.iris.dto.UserDto;
+import com.iris.dto.UserRoleDto;
+import com.iris.exception.ApplicationException;
+import com.iris.service.impl.ReturnEntityMapServiceNew;
+import com.iris.service.impl.UserMasterService;
+import com.iris.service.impl.UserMasterServiceV2;
+import com.iris.service.impl.UserRoleReturnMappingService;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.GeneralConstants;
+
+/**
+ * @author apagaria
+ * 
+ * 
+ *         This service class is created to write business logic of all the API exposed on EntityMasterControllerV2 file
+ *
+ */
+@Service
+public class EntityMasterControllerServiceV2 {
+
+	private static final Logger LOGGER = LogManager.getLogger(EntityMasterControllerServiceV2.class);
+
+	/**
+	 * 
+	 */
+	@Autowired
+	private UserMasterService userMasterService;
+
+	@Autowired
+	private ReturnEntityMapServiceNew returnEntityMapServiceNew;
+
+	@Autowired
+	private UserRoleReturnMappingService userRoleReturnMappingService;
+
+	@Autowired
+	private UserMasterServiceV2 userMasterServiceV2;
+
+	/**
+	 * @param returnChannelMapReqDto
+	 * @param jobProcessId
+	 * @return
+	 * @throws ApplicationException
+	 */
+	public List<ReturnEntityQueryOutputDto> fetchReturnListByRoleNEntity(ReturnEntityMapDto returnChannelMapReqDto, String jobProcessId) throws ApplicationException {
+		List<ReturnEntityQueryOutputDto> returnEntityQueryOutputDtoList = null;
+		// Fetch user detail from user id
+		UserDto userDto = createUserDto(returnChannelMapReqDto);
+		UserDetailsDto userDetailsDto = userMasterServiceV2.getUserWithEntityDetails(userDto);
+
+		if (userDetailsDto != null) {
+			List<Long> roleIdList = validateRoles(returnChannelMapReqDto, userDetailsDto);
+			// Regulator / entity user check
+			if (GeneralConstants.REGULATOR_ROLE_TYPE_ID.getConstantLongVal().intValue() == userDetailsDto.getRoleTypeId()) {
+				validateEntities(returnChannelMapReqDto, userDetailsDto);
+				// regulator user flow
+				returnEntityQueryOutputDtoList = fetchReturnListforRegulatorUser(userDetailsDto, jobProcessId, returnChannelMapReqDto, roleIdList);
+			} else if (GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().intValue() == userDetailsDto.getRoleTypeId()) {
+				// entity user flow
+				returnEntityQueryOutputDtoList = fetchReturnListforEntityUser(userDetailsDto, jobProcessId, returnChannelMapReqDto, roleIdList);
+			}
+
+		} else {
+			throw new ApplicationException(ErrorCode.E0638.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString()));
+		}
+		return returnEntityQueryOutputDtoList;
+	}
+
+	/**
+	 * @param returnChannelMapReqDto
+	 * @param userDetailsDto
+	 * @throws ApplicationException
+	 */
+	private void validateEntities(ReturnEntityMapDto returnChannelMapReqDto, UserDetailsDto userDetailsDto) throws ApplicationException {
+		List<String> entityCodeListByInput = returnChannelMapReqDto.getEntCodeList();
+		if (!CollectionUtils.isEmpty(entityCodeListByInput)) {
+			List<EntityDto> entityDtoList = userDetailsDto.getEntityDtos();
+			List<String> entityCodeListByUser = new ArrayList<>();
+			for (EntityDto entityDto : entityDtoList) {
+				entityCodeListByUser.add(entityDto.getEntityCode());
+			}
+
+			if (!entityCodeListByUser.containsAll(entityCodeListByInput)) {
+				throw new ApplicationException(ErrorCode.E0639.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E0639.toString()));
+
+			}
+		} /*
+			 * else { throw new ApplicationException(ErrorCode.E1126.toString(),
+			 * ObjectCache.getErrorCodeKey(ErrorCode.E1126.toString())); }
+			 */
+
+	}
+
+	/**
+	 * @param returnChannelMapReqDto
+	 * @param userDetailsDto
+	 * @throws ApplicationException
+	 */
+	private List<Long> validateRoles(ReturnEntityMapDto returnChannelMapReqDto, UserDetailsDto userDetailsDto) throws ApplicationException {
+		Long roleId = returnChannelMapReqDto.getRoleId();
+		List<Long> roleIdList = new ArrayList<>();
+		if (roleId != null) {
+			List<UserRoleDto> userRoleDtoList = userDetailsDto.getUserRoleDtos();
+			Boolean isValidRoleId = false;
+			for (UserRoleDto userRoleDto : userRoleDtoList) {
+				if (userRoleDto.getUserRoleId().equals(roleId)) {
+					isValidRoleId = true;
+					break;
+				}
+			}
+			if (!isValidRoleId.equals(Boolean.TRUE)) {
+				throw new ApplicationException(ErrorCode.E0481.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString()));
+			} else {
+				roleIdList.add(roleId);
+			}
+		} else {
+			List<UserRoleDto> userRoleDtoList = userDetailsDto.getUserRoleDtos();
+			for (UserRoleDto userRoleDto : userRoleDtoList) {
+				roleIdList.add(userRoleDto.getUserRoleId());
+			}
+		}
+		return roleIdList;
+	}
+
+	/**
+	 * @param returnChannelMapReqDto
+	 * @return
+	 */
+	private UserDto createUserDto(ReturnEntityMapDto returnChannelMapReqDto) {
+		UserDto userDto = new UserDto();
+		userDto.setUserId(returnChannelMapReqDto.getUserId());
+		userDto.setIsActive(returnChannelMapReqDto.getIsActive());
+		userDto.setLangCode(returnChannelMapReqDto.getLangCode());
+		// Category
+		if (!CollectionUtils.isEmpty(returnChannelMapReqDto.getCategoryCodeList())) {
+			userDto.setCategoryCodes(returnChannelMapReqDto.getCategoryCodeList());
+		}
+
+		// Sub Category
+		if (!CollectionUtils.isEmpty(returnChannelMapReqDto.getSubCategoryCodeList())) {
+			userDto.setSubCategoryCodes(returnChannelMapReqDto.getSubCategoryCodeList());
+		}
+
+		return userDto;
+	}
+
+	/**
+	 * @param returnEntityMappingNewList
+	 * @param returnEntityOutputDtoList
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public List<ReturnEntityOutputDto> convertResultToOutputBean(List<ReturnEntityQueryOutputDto> returnEntityQueryOutputDtoList) {
+
+		Map<String, ReturnEntityOutputDto> returnEntityOutputDtoMap = new HashMap<>();
+
+		for (ReturnEntityQueryOutputDto returnEntityQueryOutputDto : returnEntityQueryOutputDtoList) {
+			if (returnEntityOutputDtoMap.containsKey(returnEntityQueryOutputDto.getReturnCode())) {
+				ReturnEntityOutputDto returnEntityOutputDto = returnEntityOutputDtoMap.get(returnEntityQueryOutputDto.getReturnCode());
+				Set<ReturnEntityDto> returnEntityDtoSet = returnEntityOutputDto.getReturnEntityDtoSet();
+				Boolean isEntityExist = false;
+				for (ReturnEntityDto returnEntityDto : returnEntityDtoSet) {
+					if (returnEntityDto.getEntityCode().equalsIgnoreCase(returnEntityQueryOutputDto.getEntityCode())) {
+						isEntityExist = true;
+					}
+				}
+				if (!isEntityExist) {
+					ReturnEntityDto returnEntityDto = new ReturnEntityDto();
+					returnEntityDto.setEntityCode(returnEntityQueryOutputDto.getEntityCode());
+					returnEntityDto.setEntityName(returnEntityQueryOutputDto.getEntityName());
+					returnEntityDto.setUploadChannel(returnEntityQueryOutputDto.getUploadChannel());
+					returnEntityDto.setApiChannel(returnEntityQueryOutputDto.getApiChannel());
+					returnEntityDto.setEmailChannel(returnEntityQueryOutputDto.getEmailChannel());
+					returnEntityDto.setWebChannel(returnEntityQueryOutputDto.getWebChannel());
+					returnEntityDto.setStsChannel(returnEntityQueryOutputDto.getStsChannel());
+					if (!StringUtils.isEmpty(returnEntityQueryOutputDto.getCategoryCode())) {
+						returnEntityDto.setCategoryCode(returnEntityQueryOutputDto.getCategoryCode());
+						returnEntityDto.setCategoryName(returnEntityQueryOutputDto.getCategoryName());
+					}
+					if (!StringUtils.isEmpty(returnEntityQueryOutputDto.getSubCategoryCode())) {
+						returnEntityDto.setSubCategoryCode(returnEntityQueryOutputDto.getSubCategoryCode());
+						returnEntityDto.setSubCategoryName(returnEntityQueryOutputDto.getSubCategoryName());
+					}
+
+					returnEntityDtoSet.add(returnEntityDto);
+					returnEntityOutputDto.setReturnEntityDtoSet(returnEntityDtoSet);
+					returnEntityOutputDto.setIsNonXbrl(returnEntityQueryOutputDto.getIsNonXbrl());
+					returnEntityOutputDto.setIsApplicableForDynamicWebForm(returnEntityQueryOutputDto.getIsApplicableForDynamicWebForm());
+					returnEntityOutputDtoMap.put(returnEntityQueryOutputDto.getReturnCode(), returnEntityOutputDto);
+				}
+			} else {
+				ReturnEntityOutputDto returnEntityOutputDto = new ReturnEntityOutputDto();
+
+				// return detail
+				returnEntityOutputDto.setReturnCode(returnEntityQueryOutputDto.getReturnCode());
+				returnEntityOutputDto.setReturnName(returnEntityQueryOutputDto.getReturnName());
+				returnEntityOutputDto.setReturnId(returnEntityQueryOutputDto.getReturnId());
+				returnEntityOutputDto.setIsNonXbrl(returnEntityQueryOutputDto.getIsNonXbrl());
+				returnEntityOutputDto.setIsApplicableForDynamicWebForm(returnEntityQueryOutputDto.getIsApplicableForDynamicWebForm());
+
+				// entity detail
+				Set<ReturnEntityDto> returnEntityDtoSet = new HashSet<>();
+				ReturnEntityDto returnEntityDto = new ReturnEntityDto();
+				returnEntityDto.setEntityCode(returnEntityQueryOutputDto.getEntityCode());
+				returnEntityDto.setEntityName(returnEntityQueryOutputDto.getEntityName());
+				returnEntityDto.setUploadChannel(returnEntityQueryOutputDto.getUploadChannel());
+				returnEntityDto.setApiChannel(returnEntityQueryOutputDto.getApiChannel());
+				returnEntityDto.setEmailChannel(returnEntityQueryOutputDto.getEmailChannel());
+				returnEntityDto.setWebChannel(returnEntityQueryOutputDto.getWebChannel());
+				returnEntityDto.setStsChannel(returnEntityQueryOutputDto.getStsChannel());
+				if (!StringUtils.isEmpty(returnEntityQueryOutputDto.getCategoryCode())) {
+					returnEntityDto.setCategoryCode(returnEntityQueryOutputDto.getCategoryCode());
+					returnEntityDto.setCategoryName(returnEntityQueryOutputDto.getCategoryName());
+				}
+				if (!StringUtils.isEmpty(returnEntityQueryOutputDto.getSubCategoryCode())) {
+					returnEntityDto.setSubCategoryCode(returnEntityQueryOutputDto.getSubCategoryCode());
+					returnEntityDto.setSubCategoryName(returnEntityQueryOutputDto.getSubCategoryName());
+				}
+				returnEntityDtoSet.add(returnEntityDto);
+				returnEntityOutputDto.setReturnEntityDtoSet(returnEntityDtoSet);
+
+				// Freq
+				if (!StringUtils.isBlank(returnEntityQueryOutputDto.getFreqCode())) {
+					ReturnEntityFreqDto returnEntityFreqDto = new ReturnEntityFreqDto();
+					returnEntityFreqDto.setFreqCode(returnEntityQueryOutputDto.getFreqCode());
+					returnEntityFreqDto.setFreqName(returnEntityQueryOutputDto.getFreqName());
+					returnEntityFreqDto.setFreqLabel(returnEntityQueryOutputDto.getFreqLabel());
+					returnEntityOutputDto.setReturnEntityFreqDto(returnEntityFreqDto);
+				}
+
+				// Group
+				if (returnEntityQueryOutputDto.getGroupId() != null) {
+					ReturnEntityGroupDto returnEntityGroupDto = new ReturnEntityGroupDto();
+					returnEntityGroupDto.setGroupId(returnEntityQueryOutputDto.getGroupId());
+					returnEntityGroupDto.setGroupName(returnEntityQueryOutputDto.getGroupName());
+					returnEntityOutputDto.setReturnEntityGroupDto(returnEntityGroupDto);
+				}
+
+				// Regulator
+				if (returnEntityQueryOutputDto.getRegulatorId() != null) {
+					returnEntityOutputDto.setRegulatorId(returnEntityQueryOutputDto.getRegulatorId());
+					returnEntityOutputDto.setRegulatorCode(returnEntityQueryOutputDto.getRegulatorCode());
+					returnEntityOutputDto.setRegulatorName(returnEntityQueryOutputDto.getRegulatorName());
+				}
+
+				returnEntityOutputDtoMap.put(returnEntityQueryOutputDto.getReturnCode(), returnEntityOutputDto);
+			}
+
+		}
+		List<ReturnEntityOutputDto> listOfReturnForUI = new ArrayList(returnEntityOutputDtoMap.values());
+		listOfReturnForUI.sort((ReturnEntityOutputDto r1, ReturnEntityOutputDto r2) -> r1.getReturnName().compareTo(r2.getReturnName()));
+		return listOfReturnForUI;
+
+	}
+
+	/**
+	 * @param userDetailsDto
+	 * @param jobProcessId
+	 * @throws ApplicationException
+	 */
+	private List<ReturnEntityQueryOutputDto> fetchReturnListforRegulatorUser(UserDetailsDto userDetailsDto, String jobProcessId, ReturnEntityMapDto returnChannelMapReqDto, List<Long> roleIdList) throws ApplicationException {
+		List<ReturnEntityQueryOutputDto> returnEntityQueryOutputDtoList = null;
+		List<ReturnEntityQueryOutputDto> returnEntityQueryOutputDtoListForEntity = null;
+		List<ReturnEntityQueryOutputDto> returnEntityQueryOutputDtoListForRole = null;
+
+		// Fetch Return list by entity
+		List<String> entityCodeList = new ArrayList<>();
+		setEntityCodeList(entityCodeList, returnChannelMapReqDto, userDetailsDto);
+		if (CollectionUtils.isEmpty(entityCodeList)) {
+			throw new ApplicationException(ErrorCode.E0646.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E0646.toString()));
+		}
+
+		// Fetch return by role
+		List<UserRoleDto> userRoleDtoList = userDetailsDto.getUserRoleDtos();
+		if (!CollectionUtils.isEmpty(userRoleDtoList)) {
+			// UserRoleReturnMapping
+			Instant roleQueryTimeStart = Instant.now();
+			returnEntityQueryOutputDtoListForRole = userRoleReturnMappingService.fetchReturnByRoleIds(roleIdList, userDetailsDto, returnChannelMapReqDto, entityCodeList);
+			Instant roleQueryTimeEnd = Instant.now();
+			LOGGER.info(jobProcessId + " Time taken in seconds for role Query - " + Duration.between(roleQueryTimeStart, roleQueryTimeEnd).getSeconds());
+		} else {
+			throw new ApplicationException(ErrorCode.E1555.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E1555.toString()));
+		}
+
+		return returnEntityQueryOutputDtoListForRole;
+	}
+
+	/**
+	 * @param userDetailsDto
+	 * @param entityCodeList
+	 * @param returnChannelMapReqDto
+	 * @throws ApplicationException
+	 */
+	private void setEntityCodeList(List<String> entityCodeList, ReturnEntityMapDto returnChannelMapReqDto, UserDetailsDto userDetailsDto) throws ApplicationException {
+		if (!CollectionUtils.isEmpty(returnChannelMapReqDto.getEntCodeList())) {
+			entityCodeList.addAll(returnChannelMapReqDto.getEntCodeList());
+		} else {
+			List<EntityDto> entityDtoList = userDetailsDto.getEntityDtos();
+			if (!CollectionUtils.isEmpty(entityDtoList)) {
+				for (EntityDto entityDto : entityDtoList) {
+					entityCodeList.add(entityDto.getEntityCode());
+				}
+			} else {
+				throw new ApplicationException(ErrorCode.E0639.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E0639.toString()));
+			}
+		}
+
+	}
+
+	/**
+	 * @param userDetailsDto
+	 * @param jobProcessingId
+	 * @throws ApplicationException
+	 */
+	private List<ReturnEntityQueryOutputDto> fetchReturnListforEntityUser(UserDetailsDto userDetailsDto, String jobProcessId, ReturnEntityMapDto returnChannelMapReqDto, List<Long> roleIdList) throws ApplicationException {
+		List<ReturnEntityQueryOutputDto> returnEntityQueryOutputDtoList = null;
+		// Fetch roles created by user ids
+		Set<Long> roleCreatedByUserSet = fetchUserIdListforRoleCreateByUsers(userDetailsDto.getUserRoleDtos(), jobProcessId, roleIdList);
+		if (!CollectionUtils.isEmpty(roleCreatedByUserSet)) {
+			// check the role type is regulator for roles created by users
+			Boolean isRegulatorUserCreatedRole = isRegulatorForRolesCreatedByUsers(roleCreatedByUserSet, jobProcessId);
+			if (isRegulatorUserCreatedRole) {
+				// fetch return by entity return mapping
+				returnEntityQueryOutputDtoList = fetchReturnByEntityReturnMapping(userDetailsDto, jobProcessId, returnChannelMapReqDto);
+			} else {
+				// fetch return by role return mapping
+				returnEntityQueryOutputDtoList = fetchReturnByRoleReturnMapping(userDetailsDto, jobProcessId, returnChannelMapReqDto, roleIdList);
+			}
+		} else {
+			throw new ApplicationException(ErrorCode.E1554.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E1554.toString()));
+		}
+		return returnEntityQueryOutputDtoList;
+	}
+
+	/**
+	 * @param userDetailsDto
+	 * @param jobProcessId
+	 * @throws ApplicationException
+	 */
+	private List<ReturnEntityQueryOutputDto> fetchReturnByEntityReturnMapping(UserDetailsDto userDetailsDto, String jobProcessId, ReturnEntityMapDto returnChannelMapReqDto) throws ApplicationException {
+		List<ReturnEntityQueryOutputDto> returnEntityQueryOutputDtoList = null;
+		List<EntityDto> entityDtoList = userDetailsDto.getEntityDtos();
+		if (!CollectionUtils.isEmpty(entityDtoList)) {
+			Long entityId = entityDtoList.get(0).getEntityId();
+			returnEntityQueryOutputDtoList = returnEntityMapServiceNew.fetchReturnByEntityCode(entityId, returnChannelMapReqDto);
+		} else {
+			throw new ApplicationException(ErrorCode.E0646.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E0646.toString()));
+		}
+		return returnEntityQueryOutputDtoList;
+	}
+
+	/**
+	 * @param userDetailsDto
+	 * @param jobProcessId
+	 * @return
+	 * @throws ApplicationException
+	 */
+	private List<ReturnEntityQueryOutputDto> fetchReturnByRoleReturnMapping(UserDetailsDto userDetailsDto, String jobProcessId, ReturnEntityMapDto returnChannelMapReqDto, List<Long> roleIdList) throws ApplicationException {
+		List<ReturnEntityQueryOutputDto> returnEntityQueryOutputDtoList = null;
+		List<UserRoleDto> userRoleDtoList = userDetailsDto.getUserRoleDtos();
+		if (!CollectionUtils.isEmpty(userRoleDtoList)) {
+			List<String> entityCodeList = new ArrayList<>();
+			setEntityCodeList(entityCodeList, returnChannelMapReqDto, userDetailsDto);
+			// UserRoleReturnMapping
+			returnEntityQueryOutputDtoList = userRoleReturnMappingService.fetchReturnByRoleIds(roleIdList, userDetailsDto, returnChannelMapReqDto, entityCodeList);
+
+			// Setting Entity code and name
+			if (!CollectionUtils.isEmpty(returnEntityQueryOutputDtoList)) {
+				List<ReturnEntityQueryOutputDto> tempReturnEntityQueryOutputDtoList = new ArrayList<>();
+				String entityCode = userDetailsDto.getEntityDtos().get(0).getEntityCode();
+				String entityName = userDetailsDto.getEntityDtos().get(0).getEntityName();
+				for (ReturnEntityQueryOutputDto returnEntityQueryOutputDto : returnEntityQueryOutputDtoList) {
+					returnEntityQueryOutputDto.setEntityCode(entityCode);
+					returnEntityQueryOutputDto.setEntityName(entityName);
+					tempReturnEntityQueryOutputDtoList.add(returnEntityQueryOutputDto);
+
+				}
+				returnEntityQueryOutputDtoList = tempReturnEntityQueryOutputDtoList;
+			}
+
+		} else {
+			throw new ApplicationException(ErrorCode.E1555.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E1555.toString()));
+		}
+		return returnEntityQueryOutputDtoList;
+	}
+
+	/**
+	 * @param roleCreatedByUserSet
+	 * @param jobProcessId
+	 * @return
+	 * @throws ApplicationException
+	 */
+	private Boolean isRegulatorForRolesCreatedByUsers(Set<Long> roleCreatedByUserSet, String jobProcessId) throws ApplicationException {
+		return userMasterService.isRegulatorForRolesCreatedByUsers(GeneralConstants.REGULATOR_ROLE_TYPE_ID.getConstantLongVal(), roleCreatedByUserSet);
+	}
+
+	/**
+	 * @param userRoleDtoList
+	 * @param jobProcessId
+	 * @return
+	 * @throws ApplicationException
+	 */
+	private Set<Long> fetchUserIdListforRoleCreateByUsers(List<UserRoleDto> userRoleDtoList, String jobProcessId, List<Long> roleIdList) throws ApplicationException {
+		Set<Long> roleCreatedByUserList = null;
+		if (!CollectionUtils.isEmpty(userRoleDtoList)) {
+			roleCreatedByUserList = new HashSet<>();
+			for (UserRoleDto userRoleDto : userRoleDtoList) {
+				if (roleIdList.contains(userRoleDto.getUserRoleId())) {
+					roleCreatedByUserList.add(userRoleDto.getCreatedByRole());
+				}
+			}
+		} else {
+			throw new ApplicationException("ER002", "User role not found");
+		}
+		return roleCreatedByUserList;
+	}
+}

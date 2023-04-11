@@ -1,0 +1,500 @@
+/**
+ * 
+ */
+package com.iris.sdmx.exceltohtml.service;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.format.CellFormat;
+import org.apache.poi.ss.format.CellFormatResult;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.iris.sdmx.agency.master.bean.AgencyMasterEnum;
+import com.iris.sdmx.agency.master.service.SdmxAgencyMasterService;
+import com.iris.sdmx.element.service.SdmxElementService;
+import com.iris.sdmx.exceltohtml.bean.CodeListDimension;
+import com.iris.sdmx.exceltohtml.bean.CommonDimension;
+import com.iris.sdmx.exceltohtml.bean.InputDimension;
+import com.iris.sdmx.exceltohtml.bean.ProcessUploadInputBean;
+import com.iris.sdmx.exceltohtml.bean.SDMXReturnModelBean;
+import com.iris.sdmx.exceltohtml.bean.SdmxModelCodesBean;
+import com.iris.sdmx.exceltohtml.bean.SdmxReturnModelInfoBean;
+import com.iris.sdmx.exceltohtml.bean.SdmxReturnPreviewBean;
+import com.iris.sdmx.exceltohtml.bean.SdmxReturnSheetInfoBean;
+import com.iris.sdmx.exceltohtml.entity.SdmxReturnModelInfoEntity;
+import com.iris.sdmx.exceltohtml.entity.SdmxReturnPreviewEntity;
+import com.iris.sdmx.exceltohtml.helper.SdmxModelCodesHelper;
+import com.iris.sdmx.status.entity.SdmxModuleDetailEntity;
+import com.iris.sdmx.status.entity.SdmxModuleStatus;
+import com.iris.sdmx.status.service.SdmxModuleStatusService;
+import com.iris.sdmx.util.SdmxUtil;
+import com.iris.util.ResourceUtil;
+import com.iris.util.SdmxModuleStatusCodeEnum;
+import com.iris.util.Validations;
+
+/**
+ * @author apagaria
+ *
+ */
+@Service
+public class SdmxUploadFileProcessorService {
+
+	/**
+	 * 
+	 */
+	@Autowired
+	private SdmxReturnPreviewService sdmxReturnPreviewService;
+
+	/**
+	 * 
+	 */
+	@Autowired
+	private SdmxReturnModelInfoService sdmxReturnModelInfoService;
+
+	@Autowired
+	private SdmxElementService sdmxElementService;
+
+	/**
+	 * 
+	 */
+	@Autowired
+	private SdmxModelCodesService sdmxModelCodesService;
+
+	/**
+	 * 
+	 */
+	@Autowired
+	private SdmxModuleStatusService sdmxModuleStatusService;
+
+	/**
+	 * 
+	 */
+	@Autowired
+	private SdmxAgencyMasterService sdmxAgencyMasterService;
+
+	private static final String HTML_EXT = ".html";
+
+	private static final String XLSX_EXT = ".xlsx";
+
+	/**
+	 * 
+	 */
+	@Autowired
+	private SdmxReturnSheetInfoService sdmxReturnSheetInfoService;
+
+	private static final Logger LOGGER = LogManager.getLogger(SdmxUploadFileProcessorService.class);
+
+	@SuppressWarnings("unused")
+	public void processUploadedFile(ProcessUploadInputBean processUploadInputBean, Long userId, Long returnTemplateId, String jobProcessId) throws IOException, EncryptedDocumentException, InvalidFormatException {
+
+		// Copy Xlsx file
+		LOGGER.debug("Job Processing Id - " + jobProcessId + ", @processUploadedFile Copy xlsx file START");
+		String destinationXlsFileName = copyXlsxFile(processUploadInputBean);
+		LOGGER.debug("Job Processing Id - " + jobProcessId + ", @processUploadedFile Copy xlsx file END");
+
+		// Copy HTML file
+		LOGGER.debug("Job Processing Id - " + jobProcessId + ", @processUploadedFile Copy html file START");
+		String destinationHtmlFileName = copyHtmlFile(processUploadInputBean);
+		LOGGER.debug("Job Processing Id - " + jobProcessId + ", @processUploadedFile Copy html file END");
+
+		// Save data in return preview
+		LOGGER.debug("Job Processing Id - " + jobProcessId + ", @processUploadedFile save data in return preview START");
+		List<SdmxReturnPreviewEntity> sdmxReturnPreviewEntities = null;
+
+		SdmxReturnPreviewBean sdmxReturnPreviewBean = saveSdmxReturnPreview(destinationHtmlFileName, destinationXlsFileName, userId, returnTemplateId, sdmxReturnPreviewEntities, processUploadInputBean);
+		LOGGER.debug("Job Processing Id - " + jobProcessId + ", @processUploadedFile save data in return preview END");
+
+		// Save data in Return sheet table
+		LOGGER.debug("Job Processing Id - " + jobProcessId + ", @processUploadedFile save data in return sheet info START");
+		// saveSdmxReturnSheetInfo(processUploadInputBean, userId, returnTemplateId,
+		// sdmxReturnPreviewEntities, sdmxReturnPreviewBean);
+		LOGGER.debug("Job Processing Id - " + jobProcessId + ", @processUploadedFile save data in return sheet info END");
+	}
+
+	/**
+	 * @param processUploadInputBean
+	 * @return
+	 * @throws IOException
+	 */
+	private String copyXlsxFile(ProcessUploadInputBean processUploadInputBean) throws IOException {
+		// Excel File Create
+		String destinationXlsFilePath = ResourceUtil.getKeyValue("filepath.root") + File.separator + ResourceUtil.getKeyValue("excel.to.html.xls.base.path") + File.separator + processUploadInputBean.getReturnCode() + File.separator + processUploadInputBean.getFileName() + XLSX_EXT;
+		File dir = new File(ResourceUtil.getKeyValue("filepath.root") + File.separator + ResourceUtil.getKeyValue("excel.to.html.xls.base.path") + File.separator + processUploadInputBean.getReturnCode() + File.separator);
+		if (!dir.exists())
+			dir.mkdirs();
+		SdmxUtil.copyFile(processUploadInputBean.getExcelFilePath(), destinationXlsFilePath);
+		return processUploadInputBean.getFileName() + XLSX_EXT;
+	}
+
+	/**
+	 * @param processUploadInputBean
+	 * @return
+	 * @throws IOException
+	 */
+	private String copyHtmlFile(ProcessUploadInputBean processUploadInputBean) throws IOException {
+		// HTML File create
+		String destinationHtmlFilePath = ResourceUtil.getKeyValue("filepath.root") + File.separator + ResourceUtil.getKeyValue("excel.to.html.base.path") + File.separator + processUploadInputBean.getReturnCode() + File.separator + processUploadInputBean.getFileName() + HTML_EXT;
+		File dir = new File(ResourceUtil.getKeyValue("filepath.root") + File.separator + ResourceUtil.getKeyValue("excel.to.html.base.path") + File.separator + processUploadInputBean.getReturnCode() + File.separator);
+		if (!dir.exists())
+			dir.mkdirs();
+		SdmxUtil.copyFile(processUploadInputBean.getHtmlFilePath(), destinationHtmlFilePath);
+		return processUploadInputBean.getFileName() + HTML_EXT;
+	}
+
+	/**
+	 * @param destinationHtmlFilePath
+	 * @param destinationXlsFilePath
+	 * @param userId
+	 * @param returnTemplateId
+	 */
+	@SuppressWarnings("unlikely-arg-type")
+	private SdmxReturnPreviewBean saveSdmxReturnPreview(String destinationHtmlFilePath, String destinationXlsFilePath, Long userId, Long returnTemplateId, List<SdmxReturnPreviewEntity> sdmxReturnPreviewEntities, ProcessUploadInputBean processUploadInputBean) {
+		// Deactivate old data templates
+		/*
+		 * ReturnTemplate returnTemplate = new ReturnTemplate();
+		 * returnTemplate.setReturnTemplateId(returnTemplateId);
+		 * sdmxReturnPreviewEntities =
+		 * sdmxReturnPreviewService.fetchActiveByReturnTemplateId(returnTemplate, true);
+		 * for (SdmxReturnPreviewEntity sdmxReturnPreviewEntity :
+		 * sdmxReturnPreviewEntities) { sdmxReturnPreviewEntity.setIsActive(false);
+		 * sdmxReturnPreviewEntity.setStatusId(SdmxDataTemplateStatus.DEACTIVATED.
+		 * getStatusId());
+		 * sdmxReturnPreviewEntity.setStatusMessage(SdmxDataTemplateStatus.DEACTIVATED.
+		 * getStatusMessage()); sdmxReturnPreviewService.add(sdmxReturnPreviewEntity); }
+		 */
+
+		// Save return preview
+		SdmxReturnPreviewBean sdmxReturnPreviewBean = new SdmxReturnPreviewBean();
+		sdmxReturnPreviewBean.setHtmlFilePath(destinationHtmlFilePath);
+		sdmxReturnPreviewBean.setXlsxFilePath(destinationXlsFilePath);
+		sdmxReturnPreviewBean.setUserSpecificFileName(processUploadInputBean.getUserSpecificFileName());
+		sdmxReturnPreviewBean.setCreatedBy(userId);
+		sdmxReturnPreviewBean.setReturnTemplateIdFk(returnTemplateId);
+		sdmxReturnPreviewBean.setIsActive(true);
+		sdmxReturnPreviewBean.setIsPublished(false);
+		sdmxReturnPreviewBean.setAgencyMasterIdFk(sdmxAgencyMasterService.findAgencyIdByAgencyCode(processUploadInputBean.getAgencyCode(), true));
+		SdmxModuleDetailEntity sdmxModuleDetailEntity = new SdmxModuleDetailEntity(1L);
+		Map<String, SdmxModuleStatus> sdmxModuleStatusMap = sdmxModuleStatusService.findModuleStatusByModuleIdNActive(sdmxModuleDetailEntity, true);
+		SdmxModuleStatus sdmxModuleStatus = sdmxModuleStatusMap.get(SdmxModuleStatusCodeEnum.UPLOADED.getStatusCode());
+		sdmxReturnPreviewBean.setModuleStatusId(sdmxModuleStatus.getModuleStatusId());
+		sdmxReturnPreviewBean.setModuleStatusCode(sdmxModuleStatus.getModuleStatusCode());
+		sdmxReturnPreviewBean.setModuleStatusMessage(sdmxModuleStatus.getModuleStatusLabel());
+		sdmxReturnPreviewBean.setOtherDetailJson(new Gson().toJson(processUploadInputBean));
+		Long returnSdmxReturnPreviewId = sdmxReturnPreviewService.saveEntityByBean(sdmxReturnPreviewBean);
+		sdmxReturnPreviewBean.setReturnPreviewTypeId(returnSdmxReturnPreviewId);
+
+		return sdmxReturnPreviewBean;
+	}
+
+	/**
+	 * @param processUploadInputBean
+	 * @param userId
+	 * @param returnTemplateId
+	 * @throws IOException
+	 * @throws InvalidFormatException
+	 * @throws EncryptedDocumentException
+	 */
+	@SuppressWarnings({ "unlikely-arg-type", "unused" })
+	private void saveSdmxReturnSheetInfo(ProcessUploadInputBean processUploadInputBean, Long userId, Long returnTemplateId, List<SdmxReturnPreviewEntity> sdmxReturnPreviewEntities, SdmxReturnPreviewBean sdmxReturnPreviewBean) throws EncryptedDocumentException, InvalidFormatException, IOException {
+		SdmxModuleDetailEntity sdmxModuleDetailEntity = new SdmxModuleDetailEntity(1L);
+		Map<String, SdmxModuleStatus> sdmxModuleStatusMap = sdmxModuleStatusService.findModuleStatusByModuleIdNActive(sdmxModuleDetailEntity, true);
+		SdmxModuleStatus sdmxModuleStatus = sdmxModuleStatusMap.get(SdmxModuleStatusCodeEnum.IN_PROGRESS.getStatusCode());
+		sdmxReturnPreviewBean.setModuleStatusId(sdmxModuleStatus.getModuleStatusId());
+		sdmxReturnPreviewBean.setModuleStatusCode(sdmxModuleStatus.getModuleStatusCode());
+		sdmxReturnPreviewBean.setModuleStatusMessage(sdmxModuleStatus.getModuleStatusLabel());
+		sdmxReturnPreviewService.saveEntityByBean(sdmxReturnPreviewBean);
+
+		Type listType = new TypeToken<ArrayList<SdmxReturnSheetInfoBean>>() {
+		}.getType();
+
+		List<SdmxReturnSheetInfoBean> sdmxReturnSheetInfoBeanList = new Gson().fromJson(new String(Base64.decodeBase64(processUploadInputBean.getSheetInfoBean().getBytes("utf-8"))), listType);
+		Type MapType = new TypeToken<Map<String, List<Integer>>>() {
+		}.getType();
+		Map<String, List<Integer>> sheetCellMapping = new Gson().fromJson(processUploadInputBean.getSheetCellMappingJson(), MapType);
+		Map<Integer, SdmxReturnModelInfoEntity> oldCellRefWithModelCodeMap = new HashMap<>();
+		Map<String, Long> sheetCodeNewIdMap = new HashMap<>();
+		sdmxReturnSheetInfoService.saveEntityByBean(sdmxReturnSheetInfoBeanList, returnTemplateId, userId, oldCellRefWithModelCodeMap, sheetCodeNewIdMap, sheetCellMapping, processUploadInputBean.getOldReturnTemplateId(), sdmxReturnPreviewBean, processUploadInputBean.getOldReturnPreviewId());
+
+		String xlsFilePath = ResourceUtil.getKeyValue("filepath.root") + File.separator + ResourceUtil.getKeyValue("excel.to.html.xls.base.path") + File.separator + processUploadInputBean.getReturnCode() + File.separator + processUploadInputBean.getFileName() + XLSX_EXT;
+
+		InputStream in = new FileInputStream(xlsFilePath);
+		Map<Integer, String> cellRefJsonMapping = new HashMap<>();
+		Workbook wb = null;
+		try {
+			wb = WorkbookFactory.create(in);
+			Sheet sheet = wb.getSheetAt(0);
+			Iterator<Row> rows = sheet.rowIterator();
+
+			int rowCount = 0;
+			while (rows.hasNext()) {
+				rowCount++;
+				Row row = rows.next();
+				String labelValue = "";
+				row.getLastCellNum();
+				Cell cell = row.getCell(2);
+				if (cell != null) {
+					CellStyle style = cell.getCellStyle();
+					// Set the value that is rendered for the cell
+					// also applies the format
+					CellFormat cf = CellFormat.getInstance(style.getDataFormatString());
+					CellFormatResult result = cf.apply(cell);
+					String content = result.text;
+					if (!StringUtils.isBlank(content)) {
+						cell = row.getCell(5);
+						style = cell.getCellStyle();
+						// Set the value that is rendered for the cell
+						// also applies the format
+						cf = CellFormat.getInstance(style.getDataFormatString());
+						result = cf.apply(cell);
+						if (!StringUtils.isBlank(result.text)) {
+							if (NumberUtils.isDigits(content)) {
+								cellRefJsonMapping.put(Integer.parseInt(content), result.text);
+							}
+						}
+					}
+				}
+			}
+		} catch (Exception ex) {
+			throw ex;
+		} finally {
+			wb.close();
+		}
+
+		LOGGER.debug("cellRefJsonMapping " + cellRefJsonMapping);
+		for (Map.Entry<Integer, String> entry : cellRefJsonMapping.entrySet()) {
+			Gson gson = new Gson();
+			SDMXReturnModelBean sdmxReturnModelBean = convertEleSDMXModelToJSON(entry.getValue());
+			String sdmxReturnModelJson = gson.toJson(sdmxReturnModelBean);
+			sdmxReturnModelJson = sortJsonStr(sdmxReturnModelJson, gson);
+			String sdmxReturnModelJsonBase64Enc = Base64.encodeBase64String(sdmxReturnModelJson.getBytes());
+			SdmxModelCodesBean sdmxModelCodesBean = sdmxModelCodesService.findEntityByModelCodeHash(sdmxReturnModelJsonBase64Enc);
+			Long modelCodeIdFk = null;
+			if (sdmxModelCodesBean == null) {
+				sdmxModelCodesBean = new SdmxModelCodesBean();
+				Long elementId = sdmxElementService.findByDsdCodeAndVerAndIsActive(sdmxReturnModelBean.getDsdId(), sdmxReturnModelBean.getElementVersion(), true, AgencyMasterEnum.RETURN.getAgencyCode());
+				sdmxModelCodesBean.setElementIdFk(elementId);
+				sdmxModelCodesBean.setModelDim(sdmxReturnModelJson);
+				sdmxModelCodesBean.setModelDimHash(sdmxReturnModelJsonBase64Enc);
+				sdmxModelCodesBean.setModelCode(SdmxModelCodesHelper.generateDMISeq(sdmxModelCodesService.findMaxDMIModelCodes("DMI")));
+				sdmxModelCodesBean.setIsActive(true);
+				modelCodeIdFk = sdmxModelCodesService.saveEntityByBean(sdmxModelCodesBean, userId);
+			} else {
+				modelCodeIdFk = sdmxModelCodesBean.getModelCodesId();
+			}
+
+			String sheetCode = null;
+			SdmxReturnModelInfoBean sdmxReturnModelInfoBean = new SdmxReturnModelInfoBean();
+			sdmxReturnModelInfoBean.setModelCodesIdFk(modelCodeIdFk);
+			sdmxReturnModelInfoBean.setReturnCellRef(entry.getKey());
+			sdmxReturnModelInfoBean.setIsActive(true);
+			for (Map.Entry<String, List<Integer>> sheetCellMappingEntry : sheetCellMapping.entrySet()) {
+				List<Integer> cellRefList = sheetCellMappingEntry.getValue();
+				sheetCode = sheetCellMappingEntry.getKey();
+				break;
+			}
+			if (!StringUtils.isBlank(sheetCode)) {
+				Long newReturnSheetInfoId = sheetCodeNewIdMap.get(sheetCode);
+				sdmxReturnModelInfoBean.setReturnSheetIdFk(newReturnSheetInfoId);
+			}
+			sdmxReturnModelInfoService.saveEntityByBean(sdmxReturnModelInfoBean, userId);
+		}
+		sdmxModuleStatus = sdmxModuleStatusMap.get(SdmxModuleStatusCodeEnum.UPLOADED_SUCCESSFULLY.getStatusCode());
+		sdmxReturnPreviewBean.setModuleStatusId(sdmxModuleStatus.getModuleStatusId());
+		sdmxReturnPreviewBean.setModuleStatusCode(sdmxModuleStatus.getModuleStatusCode());
+		sdmxReturnPreviewBean.setModuleStatusMessage(sdmxModuleStatus.getModuleStatusLabel());
+		sdmxReturnPreviewService.saveEntityByBean(sdmxReturnPreviewBean);
+	}
+
+	private String sortJsonStr(String jsonString, Gson gson) {
+		SortedMap<String, Object> retMap = gson.fromJson(jsonString, new TypeToken<TreeMap<String, Object>>() {
+		}.getType());
+		return gson.toJson(retMap);
+	}
+
+	private SDMXReturnModelBean convertEleSDMXModelToJSON(String input) {
+		if (StringUtils.isBlank(input)) {
+			return null;
+		}
+
+		String[] sdmxModelArrHash, sdmxModelArrSemiColon, sdmxModelArrHyphen, dimValPipe;
+		;
+		String splitVal;
+
+		String sdmxModel = input;
+
+		sdmxModelArrHash = sdmxModel.split("#"); // #
+
+		if (sdmxModelArrHash == null) {
+			return null;
+		}
+
+		SDMXReturnModelBean sdmxReturnModelBean = new SDMXReturnModelBean();
+
+		List<CodeListDimension> codeListDim;
+		List<CommonDimension> commonDimension;
+		List<InputDimension> inputDimension;
+
+		CodeListDimension codeList;
+		CommonDimension commonDim;
+		InputDimension inputDim;
+
+		for (String sdmxModelArrHashVal : sdmxModelArrHash) {
+			if (sdmxModelArrHashVal.contains("[Element]")) {
+				splitVal = sdmxModelArrHashVal.replace("[Element]", "");
+
+				sdmxModelArrSemiColon = splitVal.split(";"); // ;
+
+				if (sdmxModelArrSemiColon == null) {
+					continue;
+				}
+
+				for (String sdmxModelArrSemiColonVal : sdmxModelArrSemiColon) {
+					if (StringUtils.isEmpty(sdmxModelArrSemiColonVal)) {
+						continue;
+					}
+					sdmxReturnModelBean.setDsdId(Validations.trimInput(sdmxModelArrSemiColonVal));
+				}
+
+				continue;
+			} else if (sdmxModelArrHashVal.contains("[Codelist Dimension]")) {
+				splitVal = sdmxModelArrHashVal.replace("[Codelist Dimension]", "");
+
+				sdmxModelArrSemiColon = splitVal.split(";"); // ;
+
+				if (sdmxModelArrSemiColon == null) {
+					continue;
+				}
+
+				codeListDim = new ArrayList<>();
+
+				for (String sdmxModelArrSemiColonVal : sdmxModelArrSemiColon) {
+					if (StringUtils.isEmpty(sdmxModelArrSemiColonVal)) {
+						continue;
+					}
+
+					// sdmxModelArrHyphen =
+					// sdmxModelArrSemiColonVal.split(Config.CODE_LIST_DIM_SEPARATOR); // -
+					sdmxModelArrHyphen = sdmxModelArrSemiColonVal.split("[|]"); // |
+
+					if (sdmxModelArrHyphen == null || sdmxModelArrHyphen.length > 2) {
+						continue;
+					}
+
+					codeList = new CodeListDimension();
+					codeList.setDimConceptId(sdmxModelArrHyphen[0]);
+					if (sdmxModelArrHyphen == null || sdmxModelArrHyphen.length > 1) {
+						codeList.setClValueCode(sdmxModelArrHyphen[1]);
+					}
+
+					codeListDim.add(codeList);
+				}
+
+				if (!CollectionUtils.isEmpty(codeListDim)) {
+
+					codeListDim.sort((CodeListDimension s1, CodeListDimension s2) -> s1.getDimConceptId().compareTo(s2.getDimConceptId()));
+
+					sdmxReturnModelBean.setClosedDim(codeListDim);
+				}
+
+				continue;
+			} else if (sdmxModelArrHashVal.contains("[Common Dimension]")) {
+				splitVal = sdmxModelArrHashVal.replace("[Common Dimension]", "");
+
+				sdmxModelArrSemiColon = splitVal.split(";"); // ;
+
+				if (sdmxModelArrSemiColon == null) {
+					continue;
+				}
+
+				commonDimension = new ArrayList<>();
+
+				for (String sdmxModelArrSemiColonVal : sdmxModelArrSemiColon) {
+					if (StringUtils.isEmpty(sdmxModelArrSemiColonVal)) {
+						continue;
+					}
+					dimValPipe = sdmxModelArrSemiColonVal.split("[|]");
+
+					commonDim = new CommonDimension();
+
+					if (dimValPipe.length > 1) {
+						commonDim.setDimConceptId(dimValPipe[0].trim());
+						commonDim.setClValueCode(dimValPipe[1].trim());
+					} else {
+						commonDim.setDimConceptId(sdmxModelArrSemiColonVal);
+					}
+					commonDimension.add(commonDim);
+				}
+
+				if (!CollectionUtils.isEmpty(commonDimension)) {
+					commonDimension.sort((CommonDimension s1, CommonDimension s2) -> s1.getDimConceptId().compareTo(s2.getDimConceptId()));
+					sdmxReturnModelBean.setCommonDimension(commonDimension);
+				}
+				continue;
+			} else if (sdmxModelArrHashVal.contains("[Open Dimension]")) {
+				splitVal = sdmxModelArrHashVal.replace("[Open Dimension]", "");
+
+				sdmxModelArrSemiColon = splitVal.split(";"); // ;
+
+				if (sdmxModelArrSemiColon == null) {
+					continue;
+				}
+
+				inputDimension = new ArrayList<>();
+
+				for (String sdmxModelArrSemiColonVal : sdmxModelArrSemiColon) {
+					if (StringUtils.isEmpty(sdmxModelArrSemiColonVal)) {
+						continue;
+					}
+
+					dimValPipe = sdmxModelArrSemiColonVal.split("[|]");
+
+					inputDim = new InputDimension();
+
+					if (dimValPipe.length > 1) {
+						inputDim.setDimConceptId(dimValPipe[0].trim());
+						// inputDim.setClValueCode(dimValPipe[1].trim());
+					} else {
+						inputDim.setDimConceptId(sdmxModelArrSemiColonVal);
+					}
+					inputDimension.add(inputDim);
+				}
+				if (!CollectionUtils.isEmpty(inputDimension)) {
+					inputDimension.sort((InputDimension s1, InputDimension s2) -> s1.getDimConceptId().compareTo(s2.getDimConceptId()));
+					sdmxReturnModelBean.setOpenDimension(inputDimension);
+				}
+				continue;
+			} else {
+				continue;
+			}
+		}
+		return sdmxReturnModelBean;
+	}
+}

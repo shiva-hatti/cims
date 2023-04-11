@@ -1,0 +1,679 @@
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.iris.caching.ObjectCache;
+import com.iris.dto.DropDownGroup;
+import com.iris.dto.DropDownObject;
+import com.iris.dto.EditViewRoleDto;
+import com.iris.dto.EntityMasterDto;
+import com.iris.dto.ReturnGroupMappingDto;
+import com.iris.dto.ReturnGroupMappingRequest;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.dto.UserRoleDto;
+import com.iris.dto.UserRoleMgmtBean;
+import com.iris.exception.ServiceException;
+import com.iris.model.ActivityApplicableMenu;
+import com.iris.model.Category;
+import com.iris.model.EntityBean;
+import com.iris.model.LanguageMaster;
+import com.iris.model.Menu;
+import com.iris.model.MenuLabel;
+import com.iris.model.MenuRoleMap;
+import com.iris.model.Platform;
+import com.iris.model.RoleType;
+import com.iris.model.SubCategory;
+import com.iris.model.UserMaster;
+import com.iris.model.UserRole;
+import com.iris.model.UserRoleActivityMap;
+import com.iris.model.UserRoleEntityMapping;
+import com.iris.model.UserRoleLabel;
+import com.iris.model.UserRolePlatFormMap;
+import com.iris.model.UserRoleReturnMapping;
+import com.iris.model.WebServiceComponentUrl;
+import com.iris.model.WorkFlowActivity;
+import com.iris.repository.UserRoleEntityMappingRepo;
+import com.iris.service.GenericService;
+import com.iris.service.impl.EntityService;
+import com.iris.service.impl.LanguageMasterService;
+import com.iris.service.impl.MenuRoleMapService;
+import com.iris.service.impl.PortalRoleService;
+import com.iris.service.impl.RoleMapService;
+import com.iris.service.impl.UserMasterService;
+import com.iris.service.impl.UserRoleActivityMapService;
+import com.iris.service.impl.UserRoleReturnMappingService;
+import com.iris.service.impl.UserRoleService;
+import com.iris.util.AESV2;
+import com.iris.util.JsonUtility;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.util.constant.MethodConstants;
+import com.iris.webservices.client.CIMSRestWebserviceClient;
+
+
+/**
+ * This class is responsible for User Role Creation, save,update realted activities
+ * @author svishwakarma
+ *
+ */
+@RestController
+@RequestMapping("/service/rolemap")
+public class RoleMapController {
+	private static final Logger Logger = LoggerFactory.getLogger(RoleMapController.class);
+	private static final String SELECTED = "selected";
+
+	@Autowired
+	PlatFormController platFormController;
+
+	@Autowired
+	PortalRoleService portalRoleService;
+
+	@Autowired
+	RoleTypeController roleTypeController;
+
+	@Autowired
+	EntityMasterController entityMasterController;
+
+	@Autowired
+	ReturnGroupController  returnGroupController;
+
+	@Autowired
+	UserRoleService userRoleService;
+
+	@Autowired
+	LanguageMasterService languageMasterService;
+
+	@Autowired
+	EntityService entityService;
+
+	@Autowired
+	MenuRoleController menuRoleController;
+
+	@Autowired
+	MenuRoleMapService menuService;
+
+	@Autowired
+	UserRoleReturnMappingService userRoleReturnMappingService;
+
+	@Autowired
+	UserRoleEntityMappingRepo userRoleEntityMappingRepo;
+
+	@Autowired
+	RoleMapService roleMapService;
+
+	@Autowired
+	UserMasterService userMasterService;
+
+	@Autowired
+	WorkFlowActivityController workFlowActivityController;
+
+	@Autowired
+	ActivityApplicableMenuController activityApplicableMenuController;
+
+	@Autowired
+	private GenericService<WebServiceComponentUrl, Long> webServiceComponentService;
+
+	@Autowired
+	UserRoleActivityMapService userRoleActivityMapService;
+
+
+	@PostMapping("/init/{rollId}/{userid}")
+	@SuppressWarnings("unchecked")
+	public ServiceResponse getRoleMap(@RequestHeader(name = "JobProcessingId") String jobProcessId,@PathVariable("rollId") Long rollId,@PathVariable("userid") Long userId,@RequestBody UserRoleMgmtBean userRoleMgmtBean) throws Exception {
+		Logger.info("Requseting Portals {}",jobProcessId);
+		UserRoleMgmtBean responseData = new UserRoleMgmtBean();
+		responseData.setCurrentLocale(userRoleMgmtBean.getCurrentLocale());
+		LanguageMaster localeCode = languageMasterService.getDataById(userRoleMgmtBean.getCurrentLocale());
+		UserMaster userMaster = userMasterService.getDataById(userId);
+		UserRole userRole = userRoleService.getDataById(rollId);
+		if (userRole.getRoleType().getRoleTypeId()
+				.equals(GeneralConstants.REGULATOR_ROLE_TYPE_ID.getConstantLongVal())) {
+
+			// step 1: check if role id is RBI super user then prepare the bean and send
+			// response
+			if (userMaster.getDepartmentIdFk() != null) {
+				responseData.setDepartment(userMaster.getDepartmentIdFk().getRegulatorId());
+				if(Boolean.TRUE.equals(userMaster.getDepartmentIdFk().getIsMaster())) {
+					responseData.setDeptAdminFlag(true);
+				}
+			}
+			responseData.setDeptFlag(true);
+		}else {
+			responseData.setEntityFlag(true);
+		}
+
+		responseData.setUserId(userId);
+		responseData.setRoleType(userMaster.getRoleType().getRoleTypeId());
+
+		//List<UserRolePlatFormMap>  poralRoleMap = portalRoleService.getActiveDataFor(null, null);
+		/*
+		 * List<DropDownObject> portalRoleList =
+		 * poralRoleMap.stream().filter(f->f.getPlatForm().getIsActive()&&f.getUserRole(
+		 * ).getIsActive()).map(item->{ DropDownObject dto = new DropDownObject();
+		 * UserRoleLabel dispaly =
+		 * item.getUserRole().getUsrRoleLabelSet().stream().filter(label->label.
+		 * getLangIdFk().getLanguageId().compareTo(localeCode.getLanguageId())==0).
+		 * findFirst().orElse(null); dto.setDisplay(dispaly.getUserRoleLabel());
+		 * dto.setKey(item.getUserRole().getUserRoleId()); return dto;
+		 * }).collect(Collectors.toList()); if(portalRoleList!=null) {
+		 * responseData.setPortalRoleList(portalRoleList); } else {
+		 * responseData.setPortalRoleList(new ArrayList<>()); }
+		 */
+		ServiceResponse response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+
+		responseData.getPortalInputList().addAll((Collection<Platform>) platFormController.getAllPortal(jobProcessId,userId,rollId).getResponse());
+		//logic for role population
+
+		CIMSRestWebserviceClient restServiceClient = new CIMSRestWebserviceClient();
+
+		WebServiceComponentUrl componentUrl = getWebServiceComponentURL(
+				GeneralConstants.GET_ROLE_PLATFORM_LIST.getConstantVal(),
+				CIMSRestWebserviceClient.HTTP_METHOD_TYPE_POST);
+
+		Map<String, String> headerMap = new HashMap<>();
+		headerMap.put(GeneralConstants.JOB_PROCESSING_ID.getConstantVal(),
+				jobProcessId);
+		responseData.setEntityCode(userRoleMgmtBean.getEntityCode());
+		responseData.setUserName(AESV2.getInstance().encrypt(userMaster.getUserName()));
+		headerMap.put(GeneralConstants.UUID.getConstantVal(), jobProcessId);
+		responseData.setPlatFormCodeList(responseData.getPortalInputList().stream().map(item->item.getPlatFormCode()).collect(Collectors.toList()));
+		responseData.setLangCode(localeCode.getLanguageCode());
+		String responsestring =
+				restServiceClient.callRestWebServiceWithMultipleHeader(componentUrl, responseData, null,
+						headerMap);
+		//ServiceResponse serviceResponse = (ServiceResponse) webServiceResponseReader.readServiceResponse(ServiceResponse.class, responsestring, componentUrl.getUrlProduceType());
+		ObjectMapper mapper = new ObjectMapper();
+
+		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+		String resp = JsonUtility.extractResponseValueFromServiceResponseString(responsestring);
+		if(StringUtils.isNotBlank(resp)) {
+			EditViewRoleDto res = mapper.readValue(resp, EditViewRoleDto.class);
+			List<Long> excludeRoles = res.getUserRoleDtoList().stream().filter(item->StringUtils.equalsIgnoreCase(item.getPlatformMasterDTO().getPlatFormCode(),"IFILE")).map(item->item.getUserRoleId()).collect(Collectors.toList());
+			List<DropDownObject> portalRoleList = res.getUserRoleDtoList().stream().filter(item->!excludeRoles.contains(item.getUserRoleId())&&Boolean.TRUE.equals(item.getIsActive())).map(item->{
+				DropDownObject dto = new DropDownObject();
+				dto.setDisplay(item.getRoleName());
+				dto.setKey(item.getUserRoleId());
+				return dto;
+			}).collect(Collectors.toList());
+			if(portalRoleList!=null) {
+				responseData.setPortalRoleList(portalRoleList);
+			}
+			else {
+				responseData.setPortalRoleList(new ArrayList<>());
+			}
+		}
+		responseData.setRoleTypeInputList((List<RoleType>) roleTypeController.getRoleTypeByUserId(jobProcessId,userId).getResponse());
+		//remove nbfc role type
+		responseData.setRoleTypeInputList(responseData.getRoleTypeInputList().stream().filter(item->item.getRoleTypeId()!=4).collect(Collectors.toList()));
+		EntityMasterDto entityMasterDto = new EntityMasterDto();
+		entityMasterDto.setActive(true);
+		entityMasterDto.setRoleId(rollId);
+		entityMasterDto.setUserId(userId);
+		entityMasterDto.setIsCategoryWiseResponse(true);
+		entityMasterDto.setLanguageCode(localeCode.getLanguageCode());
+		List<Category> categoryList = (List<Category>) entityMasterController.getEntityMasterList(jobProcessId, entityMasterDto).getResponse();
+		Logger.info("Entity fetch complete {}",jobProcessId);
+		List<DropDownGroup> entityDropDown = new ArrayList<>(); 
+		if(categoryList!=null && !categoryList.isEmpty()) {
+			for(Category item : categoryList) {
+				if(item.getSubCategory()!=null) {
+					for(SubCategory subCat :item.getSubCategory()) {
+						DropDownGroup grp = new DropDownGroup();
+						grp.setDisplay(subCat.getSubCategoryName());
+						for(EntityBean ent : subCat.getEntity()) {
+							DropDownObject dropItem = new DropDownObject();
+							dropItem.setDisplay(ent.getEntityName());
+							dropItem.setKey(ent.getEntityId());
+							grp.getDropDownList().add(dropItem);
+						}
+						entityDropDown.add(grp);
+					}
+				}
+
+			}
+		}
+
+
+		responseData.setEntityInputGroupList(entityDropDown);
+		ReturnGroupMappingRequest returnGroupMappingRequest = new ReturnGroupMappingRequest();
+		returnGroupMappingRequest.setIsActive(true);
+		returnGroupMappingRequest.setUserId(userId);
+		returnGroupMappingRequest.setLangId(localeCode.getLanguageId());
+		returnGroupMappingRequest.setRoleId(rollId);
+
+		responseData.setReturnInputList((List<ReturnGroupMappingDto>) returnGroupController.getReturnGroups(jobProcessId, returnGroupMappingRequest).getResponse());
+		Logger.info("ReturnGroup fetch complete {}",jobProcessId);
+		List<MenuRoleMap> menulist =(List<MenuRoleMap>) menuRoleController.getAllMenu(jobProcessId, rollId).getResponse();
+		Logger.info("Menu fetch complete {}",jobProcessId);
+		List<MenuRoleMap> filterd;
+		if(responseData.isDeptFlag()) {
+			filterd = menulist.stream().filter(item->item.getMenuIDFk().getIsDept()&&item.getMenuIDFk().getIsActive()).collect(Collectors.toList());
+		}else {
+			filterd = menulist.stream().filter(item->item.getMenuIDFk().getIsEntity()&&item.getMenuIDFk().getIsActive()).collect(Collectors.toList());
+		}
+
+
+
+		List<DropDownObject> menuInList = new ArrayList<>();
+		if(filterd!=null) {
+			menuInList = filterd.stream().map(item->{
+				DropDownObject dto = new DropDownObject();
+				dto.setKey(item.getMenuIDFk().getMenuId());
+				item.getMenuIDFk().getMenuLabelSet().forEach(inner->{
+					if(inner.getLanguageIdFk().getLanguageId().equals(responseData.getCurrentLocale())) {
+						dto.setDisplay(inner.getMenuLabel());
+					}
+				});
+
+
+				return dto;
+			}).collect(Collectors.toList());
+
+			menuInList.sort((DropDownObject a1, DropDownObject a2)->a1.getDisplay().compareTo(a2.getDisplay()));
+		}
+		responseData.setMenuInputList(menuInList);
+
+		//prepare for Workflow Activity
+		responseData.setRoleIdExisting(userRoleMgmtBean.getRoleIdExisting());
+		prepareForWorkFlowActivity(responseData);
+		if(userRoleMgmtBean.getRoleIdExisting()!=null) {
+			List<UserRoleEntityMapping> roleentityList = userRoleEntityMappingRepo.findByUserRoleUserRoleIdAndIsActiveTrue(userRoleMgmtBean.getRoleIdExisting());
+			Logger.info("Selected Entity fetch complete {} ",jobProcessId);
+			List<DropDownObject> entityoutList = roleentityList.stream().map(item->{
+				DropDownObject dto = new DropDownObject();
+				dto.setKey(item.getEntity().getEntityId());
+				return dto;
+			}).collect(Collectors.toList());
+			responseData.setEntityOutList(entityoutList);
+			Logger.info(" Selected Entity Set complete {}",jobProcessId);
+			ReturnGroupMappingRequest returnGroupMappingRequestAlloted = new ReturnGroupMappingRequest();
+			returnGroupMappingRequestAlloted.setIsActive(true);
+			returnGroupMappingRequestAlloted.setUserId(userId);
+			returnGroupMappingRequestAlloted.setLangId(15l);
+			returnGroupMappingRequestAlloted.setRoleId(userRoleMgmtBean.getRoleIdExisting());
+
+			Map<String, Object> columnValueMap = new HashMap<>();
+			columnValueMap.put(ColumnConstants.ROLEID.getConstantVal(), userRoleMgmtBean.getRoleIdExisting());
+			List<UserRoleReturnMapping> roleReturnMap = userRoleReturnMappingService.getDataByObject(columnValueMap, "getUserRoleReturnMappingByUserId");
+			if(roleReturnMap!=null&&responseData.getReturnInputList()!=null) {
+				responseData.getReturnInputList().forEach(item -> {
+					item.getReturnList().forEach(returnItem->{
+						roleReturnMap.forEach(outItem->{
+							if(returnItem.getReturnId().equals(outItem.getReturnIdFk().getReturnId())) {
+								returnItem.setSelected(SELECTED);
+							}
+						});
+					});
+
+				});
+			}
+			Logger.info("Selected returnGroup fetch complete {} ",jobProcessId);
+			List<MenuRoleMap> menuOutList =  (List<MenuRoleMap>) menuRoleController.getAllMenu(jobProcessId, userRoleMgmtBean.getRoleIdExisting()).getResponse();
+			Logger.info(" Selected Menu fetch complete {}",jobProcessId);
+			List<DropDownObject> menuoutDropList = menuOutList.stream().map(item->{
+				DropDownObject dto = new DropDownObject();
+				dto.setKey(item.getMenuIDFk().getMenuId());
+				item.getMenuIDFk().getMenuLabelSet().forEach(inner->{
+					if(inner.getLanguageIdFk().getLanguageId().equals(responseData.getCurrentLocale())) {
+						dto.setDisplay(inner.getMenuLabel());
+					}
+				});
+				return dto;
+			}).collect(Collectors.toList());
+			responseData.setMenuOutList(menuoutDropList);
+			Logger.info(" Selected Menu Set complete {}",jobProcessId);
+			UserRole role = userRoleService.getDataById(userRoleMgmtBean.getRoleIdExisting());
+			responseData.setRoleDesc(role.getRoleDesc());
+			responseData.setRollName(role.getRoleName());
+			Long isActive = Boolean.TRUE.equals(role.getIsActive())?1l:0l;
+			responseData.setIsActive(isActive);
+			responseData.setRoleType(role.getRoleType().getRoleTypeId());
+			if(role.getUserRolePlatFormMap()!=null) {
+				Optional<UserRolePlatFormMap> portaMap = role.getUserRolePlatFormMap().stream().filter(item->org.apache.commons.lang.StringUtils.equals(item.getPlatForm().getPlatFormCode(), userRoleMgmtBean.getPortalCode())).findFirst();
+				if(portaMap.isPresent()) {
+					responseData.setPortal(portaMap.get().getPlatForm().getPlatFormId());
+				}
+			}
+			List<UserRoleLabel> hindiLabel = role.getUsrRoleLabelSet().stream().filter(item->StringUtils.equals(item.getLangIdFk().getLanguageCode(),"hi")).collect(Collectors.toList());
+			if(hindiLabel!=null && !hindiLabel.isEmpty()) {
+				responseData.setRollNameHindi(hindiLabel.get(0).getUserRoleLabel());
+			}
+		}
+		// super admin menu list 
+		if(responseData.isDeptAdminFlag()) {
+			List<MenuRoleMap> deptMenu = menulist.stream().filter(item->item.getMenuIDFk().getIsDept()&&item.getMenuIDFk().getIsActive()).collect(Collectors.toList());
+			StringBuilder deptMenuOption = new StringBuilder();
+			if(deptMenu!=null && !deptMenu.isEmpty() ) {
+				deptMenu.sort((MenuRoleMap a1, MenuRoleMap a2)->{
+					for(MenuLabel inner : a1.getMenuIDFk().getMenuLabelSet()){
+						if(inner.getLanguageIdFk().getLanguageId().equals(responseData.getCurrentLocale())) {
+							for(MenuLabel inner2 : a2.getMenuIDFk().getMenuLabelSet()){
+								if(inner2.getLanguageIdFk().getLanguageId().equals(responseData.getCurrentLocale())) {
+									return inner.getMenuLabel().compareTo(inner2.getMenuLabel());
+								}
+							}
+						}
+					}
+					return a1.getMenuIDFk().getMenuDesc().compareTo(a2.getMenuIDFk().getMenuDesc());
+				});
+				for (MenuRoleMap item : deptMenu) {
+					item.getMenuIDFk().getMenuLabelSet().forEach(inner->{
+						String selected = StringUtils.EMPTY;
+						for(DropDownObject menuOut :responseData.getMenuOutList()) {
+							if(menuOut.getKey().compareTo(item.getMenuIDFk().getMenuId())==0) {
+								selected=SELECTED;
+							}
+
+						}
+						if(inner.getLanguageIdFk().getLanguageId().equals(responseData.getCurrentLocale())) {
+							deptMenuOption.append("<option value='" + item.getMenuIDFk().getMenuId() + "'"+selected+" >" + inner.getMenuLabel() + "</option>");
+						}
+					});
+
+				}
+			}
+			List<Menu> entityMenu  = menuService.getMenuForEntity();
+			StringBuilder entMenuOption = new StringBuilder();
+			if(entityMenu!=null && !entityMenu.isEmpty() ) {
+				entityMenu.sort((Menu a1, Menu a2)->{
+					for(MenuLabel inner : a1.getMenuLabelSet()){
+						if(inner.getLanguageIdFk().getLanguageId().equals(responseData.getCurrentLocale())) {
+							for(MenuLabel inner2 : a2.getMenuLabelSet()){
+								if(inner2.getLanguageIdFk().getLanguageId().equals(responseData.getCurrentLocale())) {
+									return inner.getMenuLabel().compareTo(inner2.getMenuLabel());
+								}
+							}
+						}
+					}
+					return a1.getMenuDesc().compareTo(a2.getMenuDesc());});
+
+
+				for (Menu item : entityMenu) {
+					item.getMenuLabelSet().forEach(inner->{
+						String selected = StringUtils.EMPTY;
+						for(DropDownObject menuOut :responseData.getMenuOutList()) {
+							if(menuOut.getKey().compareTo(item.getMenuId())==0) {
+								selected=SELECTED;
+							}
+
+						}
+						if(inner.getLanguageIdFk().getLanguageId().equals(responseData.getCurrentLocale())) {
+							entMenuOption.append("<option value='" + item.getMenuId() + "'"+selected+" >" + inner.getMenuLabel() + "</option>");
+						}
+					});
+
+				}
+			}
+			
+			responseData.setDeptMenuOption(deptMenuOption.toString());
+			responseData.setEntMenuOption(entMenuOption.toString());
+			responseData.setAutMenuOption(getAuditorMenu(responseData));
+		}
+		List<LanguageMaster> languegeList = languageMasterService.getAllActiveLanguage();
+		List<DropDownObject> languageInDropDown = languegeList.stream().map(item->{
+			DropDownObject dto = new DropDownObject();
+			dto.setKey(item.getLanguageId());
+			dto.setDisplay(item.getLanguageName());
+			return dto;
+		}).collect(Collectors.toList());
+		responseData.setLanguageInDropDown(languageInDropDown);
+		response.setResponse(responseData);
+		Logger.info("init complete {}",jobProcessId);
+		return response;
+	}
+
+	
+	/**
+	 * Prepares Menu option for Auditor
+	 * @param responseData
+	 * @return
+	 */
+	private String getAuditorMenu(UserRoleMgmtBean responseData) {
+		List<Menu> audMenu  = menuService.getMenuForAuditor();
+		StringBuilder autMenuOption = new StringBuilder();
+		if(audMenu!=null && !audMenu.isEmpty() ) {
+			audMenu.sort((Menu a1, Menu a2)->{
+				for(MenuLabel inner : a1.getMenuLabelSet()){
+					if(inner.getLanguageIdFk().getLanguageId().equals(responseData.getCurrentLocale())) {
+						for(MenuLabel inner2 : a2.getMenuLabelSet()){
+							if(inner2.getLanguageIdFk().getLanguageId().equals(responseData.getCurrentLocale())) {
+								return inner.getMenuLabel().compareTo(inner2.getMenuLabel());
+							}
+						}
+					}
+				}
+				return a1.getMenuDesc().compareTo(a2.getMenuDesc());});
+
+
+			for (Menu item : audMenu) {
+				item.getMenuLabelSet().forEach(inner->{
+					String selected = StringUtils.EMPTY;
+					for(DropDownObject menuOut :responseData.getMenuOutList()) {
+						if(menuOut.getKey().compareTo(item.getMenuId())==0) {
+							selected=SELECTED;
+						}
+
+					}
+					if(inner.getLanguageIdFk().getLanguageId().equals(responseData.getCurrentLocale())) {
+						autMenuOption.append("<option value='" + item.getMenuId() + "'"+selected+" >" + inner.getMenuLabel() + "</option>");
+					}
+				});
+
+			}
+		}
+		return autMenuOption.toString();
+		
+	}
+
+	private WebServiceComponentUrl getWebServiceComponentURL(String componentName, String methodType) {
+		Map<String, List<String>> valueMap = new HashMap<>();
+
+		List<String> valueList = new ArrayList<>();
+		valueList.add(componentName);
+		valueMap.put(ColumnConstants.COMPONENTTYPE.getConstantVal(), valueList);
+
+		valueList = new ArrayList<>();
+		valueList.add(methodType);
+		valueMap.put(ColumnConstants.METHODTYPE.getConstantVal(), valueList);
+
+		WebServiceComponentUrl componentUrl = null;
+		try {
+			componentUrl = webServiceComponentService.getDataByColumnValue(valueMap,
+					MethodConstants.GET_ACTIVE_DATA_BY_COMPONENTTYPE_METHODTYPE.getConstantVal()).get(0);
+		} catch (ServiceException e) {
+			Logger.error(ErrorConstants.DEFAULT_ERROR.getConstantVal(), e);
+		}
+		return componentUrl;
+	}
+
+	/**
+	 * Prepares for WorkFlow Activity
+	 * @param responseData
+	 */
+	@SuppressWarnings("unchecked")
+	private void prepareForWorkFlowActivity(UserRoleMgmtBean responseData) {
+		List<WorkFlowActivity> deptDropDownAct = (List<WorkFlowActivity>) workFlowActivityController.getWorkFlowActivity(true).getResponse();
+		List<DropDownObject> deptDropActivity = deptDropDownAct.stream().map(item->{
+			DropDownObject dto = new DropDownObject();
+			dto.setDisplay(item.getActivityDesc());
+			dto.setKey(item.getActivityId());
+			return dto;
+		}).collect(Collectors.toList());
+		responseData.setActivityDeptInDropDown(deptDropActivity);
+		List<WorkFlowActivity> entDropDownAct = (List<WorkFlowActivity>) workFlowActivityController.getWorkFlowActivity(false).getResponse();
+
+		List<DropDownObject> entDropActivity = entDropDownAct.stream().map(item->{
+			DropDownObject dto = new DropDownObject();
+			dto.setDisplay(item.getActivityDesc());
+			dto.setKey(item.getActivityId());
+			return dto;
+		}).collect(Collectors.toList());
+		responseData.setActivityEntInDropDown(entDropActivity);
+		List<ActivityApplicableMenu> aplicableDept = (List<ActivityApplicableMenu>) activityApplicableMenuController.getActivityApplicableMenu(true).getResponse();
+		List<Long> applicableDeptList = aplicableDept.stream().map(item->{
+			return item.getMenuIdFk();
+		}).collect(Collectors.toList());
+		responseData.setApprvRejectActivityDept(applicableDeptList);
+		List<ActivityApplicableMenu> aplicableEnt = (List<ActivityApplicableMenu>) activityApplicableMenuController.getActivityApplicableMenu(false).getResponse();
+		List<Long> applicableEntList = aplicableEnt.stream().map(item->{
+			if(!item.getActivityIdFk().getActivityId().equals(4l)) {
+				return item.getMenuIdFk();
+			}
+			return null;
+
+		}).collect(Collectors.toList());
+		responseData.setApprvRejectActivityEnt(applicableEntList);
+		List<Long> applicablUploadList = aplicableEnt.stream().map(item->{
+			if(item.getActivityIdFk().getActivityId().equals(4l)) {
+				return item.getMenuIdFk();
+			}
+			return null;
+
+		}).collect(Collectors.toList());
+		responseData.setUploadActivity(applicablUploadList);
+		if(responseData.getRoleIdExisting()!=null) {
+			List<UserRoleActivityMap> userRoleActivity = userRoleActivityMapService.findByRoleUserRoleId(responseData.getRoleIdExisting());
+			if(userRoleActivity!=null) {
+				userRoleActivity.forEach(item->{
+					responseData.getActivityDeptInDropDown().forEach(dropitem->{
+						if(dropitem.getKey().equals(item.getWorkFlowActivity().getActivityId())) {
+							dropitem.setSelected(SELECTED);
+						}
+					});
+
+					responseData.getActivityEntInDropDown().forEach(dropitem->{
+						if(dropitem.getKey().equals(item.getWorkFlowActivity().getActivityId())) {
+							dropitem.setSelected(SELECTED);
+						}
+					});
+
+
+				});
+			}
+		}
+	}
+
+	@PostMapping("/saveOrModify")
+	public ServiceResponse saveOrModify(@RequestHeader(name = "JobProcessingId")  String jobProcessId,@RequestBody UserRoleMgmtBean userRoleMgmt,Boolean add) throws JsonProcessingException {
+		Logger.info("Requseting saveOrModify {}",jobProcessId);
+		boolean status = roleMapService.saveOrUpdate(userRoleMgmt,add);
+		ServiceResponse response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+		response.setStatus(status);
+		Logger.info("Requset saveOrModify complete {}",jobProcessId);
+		return response;
+
+	}
+
+
+	@PostMapping("/editView")
+	public ServiceResponse getEditView(@RequestHeader(name = "JobProcessingId")  String jobProcessId,@RequestBody UserRoleMgmtBean userRoleMgmt,Boolean add) {
+		Logger.debug("Requset editView {} with id {}",userRoleMgmt,jobProcessId);
+		ServiceResponse response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+		List<UserRoleLabel> roles = roleMapService.getEditView(userRoleMgmt);
+		Logger.info("fetched roles editView {} with size  {}",roles,roles.size());
+		List<UserRoleDto> roleDto = roles.stream().map(item->{
+			UserRoleDto dto = new UserRoleDto();
+			BeanUtils.copyProperties(item.getUserRoleIdFk(),dto);
+			Set<String> platForm= new HashSet<>();
+			item.getUserRoleIdFk().getUserRolePlatFormMap().forEach(itemm->{
+				platForm.add(itemm.getPlatForm().getPlatFormCode());
+			});
+			dto.setPlatformCode(platForm.toString());
+			return dto;
+		}).collect(Collectors.toList());
+		response.setResponse(roleDto);
+		response.setStatus(true);
+		Logger.info("Requset editView complete {}",jobProcessId);
+		return response;
+
+	}
+
+	@PostMapping("/getHistory")
+	public ServiceResponse getHistory(@RequestHeader(name = "JobProcessingId")  String jobProcessId,@RequestBody UserRoleMgmtBean userRoleMgmt) {
+		Logger.info("Requset getHistory {}",jobProcessId);
+		ServiceResponse response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+		response.setResponse(roleMapService.getRoleMapHistory(userRoleMgmt));
+		response.setStatus(true);
+		Logger.info("Requset getHistory complete {}",jobProcessId);
+		return response;
+
+	}
+
+
+	@PostMapping("/checkNameExists")
+	public ServiceResponse checkNameExists(@RequestHeader(name = "JobProcessingId")  String jobProcessId,@RequestBody UserRoleMgmtBean userRoleMgmt) {
+		Logger.info("Requset checkNameExists {}",jobProcessId);
+		List<UserRoleLabel> rowCount = new ArrayList<>();
+		if(!StringUtils.isNotBlank(userRoleMgmt.getOldRoleName())||(!StringUtils.equals(userRoleMgmt.getOldRoleName(),userRoleMgmt.getRollName()))){
+			List<UserRoleLabel> roles = roleMapService.getEditView(userRoleMgmt);
+			rowCount = roles.stream().filter(item->StringUtils.equals(item.getUserRoleIdFk().getRoleName(),userRoleMgmt.getRollName())).collect(Collectors.toList());
+		}
+		ServiceResponse response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+		response.setResponse(rowCount.size());
+		response.setStatus(true);
+		Logger.info("Requset checkNameExists complete {}",jobProcessId);
+		return response;
+	}
+
+	@PostMapping("/addReturnDeptMapping")
+	public ServiceResponse addReturnMappingForDeptSuperUser(@RequestHeader(name = "JobProcessingId")  String jobProcessId,@RequestBody UserRoleMgmtBean userRoleMgmt) {
+		Logger.info("Requseting addReturnMappingForDeptSuperUser {}",jobProcessId);
+		ServiceResponse response = null;
+		UserRoleReturnMapping entity = null;
+		try {
+			entity = new UserRoleReturnMapping(userRoleMgmt.getRoleId(),userRoleMgmt.getReturnId(),null,Boolean.TRUE);
+			UserMaster user = new UserMaster();
+			user.setUserId(userRoleMgmt.getUserId());
+			entity.setCreatedBy(user);
+			entity.setCreatedOn(new Date());
+			entity.setLastModifiedOn(new Date());
+			entity.setUserModify(user);
+			entity = userRoleReturnMappingService.add(entity);
+
+		} catch(Exception e) {
+			Logger.error("Exception while mapping return to Dept Super User for job processingid {} ",jobProcessId, e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+		}
+		if(entity.getRoleReturnId() != null) {
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			response.setStatus(true);
+		} else {
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0772.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0772.toString())).build();
+			response.setStatus(false);
+		}
+		Logger.info("Requset addReturnMappingForDeptSuperUser complete {}",jobProcessId);
+		return response;
+
+	}
+
+
+}

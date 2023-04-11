@@ -1,0 +1,238 @@
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.google.gson.Gson;
+import com.iris.caching.ObjectCache;
+import com.iris.dateutility.util.DateManip;
+import com.iris.dto.SapBoDeatilsBean;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.model.EntityBean;
+import com.iris.model.EntityLabelBean;
+import com.iris.model.Return;
+import com.iris.model.ReturnsUploadDetails;
+import com.iris.model.SapBoDetails;
+import com.iris.model.SapBoEBRPilotDetails;
+import com.iris.repository.EntityRepo;
+import com.iris.repository.ReturnRepo;
+import com.iris.service.impl.ReturnUploadDetailsService;
+import com.iris.service.impl.SapBoReportEBRPilotService;
+import com.iris.service.impl.SapBoReportService;
+import com.iris.util.UtilMaster;
+import com.iris.util.Validations;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.util.constant.MethodConstants;
+
+/**
+ * @author psawant
+ * @version 1.0
+ * @date 10/09/2020
+ */
+@RestController
+@RequestMapping("/service/sapBoReport")
+public class SapBoReportController {
+
+	static final Logger logger = LogManager.getLogger(SapBoReportController.class);
+
+	@Autowired
+	private SapBoReportService sapBoReportService;
+
+	@Autowired
+	private SapBoReportEBRPilotService sapBoEBRPilotReportService;
+
+	@Autowired
+	private ReturnRepo returnRepo;
+
+	@Autowired
+	private EntityRepo entityRepo;
+
+	@Autowired
+	private ReturnUploadDetailsService returnUploadDetailsService;
+
+	@GetMapping(value = "/getAllSapBoDetails")
+	public ServiceResponse getAllSapBoDetails(@RequestHeader(name = "AppId") String appId, @RequestHeader(name = "JobProcessingId") String jobProcessingId) {
+		try {
+			logger.info("fetch SAP BO Report Details controller started ");
+			List<SapBoDetails> sapBoDetailsList = sapBoReportService.getAllDataFor(null, null);
+			SapBoDeatilsBean sapBoDeatilsBean = new SapBoDeatilsBean();
+			List<SapBoDeatilsBean> sapBoDeatilsBeanList = new ArrayList<>();
+			for (SapBoDetails sapBoDetails : sapBoDetailsList) {
+				sapBoDeatilsBean = new SapBoDeatilsBean();
+				sapBoDeatilsBean.setUsername(sapBoDetails.getUsername());
+				sapBoDeatilsBean.setAuthenticateUrl(sapBoDetails.getAuthenticateUrl());
+				sapBoDeatilsBean.setBankNameKey(sapBoDetails.getBankNameKey());
+				sapBoDeatilsBean.setiDocIdKey(sapBoDetails.getiDocIdKey());
+				sapBoDeatilsBean.setPassword(sapBoDetails.getPassword());
+				sapBoDeatilsBean.setPeriodEndedKey(sapBoDetails.getPeriodEndedKey());
+				sapBoDeatilsBean.setSerSessionKey(sapBoDetails.getSerSessionKey());
+				sapBoDeatilsBean.setReportUrl(sapBoDetails.getReportUrl());
+				if (sapBoDetails.getUpdatedBy() != null) {
+					sapBoDeatilsBean.setReturnCode(sapBoDetails.getUpdatedBy().getUserName());
+				} else {
+					sapBoDeatilsBean.setReturnCode("null");
+				}
+				if (sapBoDetails.getUpdatedOn() != null) {
+					sapBoDeatilsBean.setUploadedDate(sapBoDetails.getUpdatedOn());
+				} else {
+					sapBoDeatilsBean.setUploadedDate(null);
+				}
+				
+				sapBoDeatilsBean.setPkId(sapBoDetails.getSapBoDetailsId());
+				sapBoDeatilsBeanList.add(sapBoDeatilsBean);
+			}
+			return new ServiceResponseBuilder().setStatus(true).setResponse(new Gson().toJson(sapBoDeatilsBeanList)).build();
+		} catch (Exception e) {
+			logger.info("fetch SAP BO Details controller started ", e);
+			return new ServiceResponseBuilder().setStatus(false).setResponse(null).build();
+		}
+	}
+
+	@PostMapping(value = "/updateSapBoDetails")
+	public ServiceResponse updateSapBoDetails(@RequestHeader(name = "AppId") String appId, @RequestHeader(name = "JobProcessingId") String jobProcessingId,
+			@RequestBody SapBoDetails sapBoDetailsObj) {
+		logger.info("Update SAP BO Details controller started");
+		try {
+			SapBoDetails sapBoDeatils = sapBoReportService.getDataById(sapBoDetailsObj.getSapBoDetailsId());
+			sapBoDeatils.setUsername(sapBoDetailsObj.getUsername());
+			sapBoDeatils.setPassword(sapBoDetailsObj.getPassword());
+			sapBoDeatils.setAuthenticateUrl(sapBoDetailsObj.getAuthenticateUrl());
+			sapBoDeatils.setBankNameKey(sapBoDetailsObj.getBankNameKey());
+			sapBoDeatils.setiDocIdKey(sapBoDetailsObj.getiDocIdKey());
+			sapBoDeatils.setPeriodEndedKey(sapBoDetailsObj.getPeriodEndedKey());
+			sapBoDeatils.setSerSessionKey(sapBoDetailsObj.getSerSessionKey());
+			sapBoDeatils.setReportUrl(sapBoDetailsObj.getReportUrl());
+			sapBoDeatils.setUpdatedBy(sapBoDetailsObj.getUpdatedBy());
+			sapBoDeatils.setUpdatedOn(DateManip.getCurrentDateTime());
+			sapBoReportService.update(sapBoDeatils);
+			return new ServiceResponseBuilder().setStatus(true).setResponse(new Gson().toJson(sapBoDetailsObj)).build();
+		} catch (Exception e) {
+			logger.info("Update SAP BO Report Details controller started ", e);
+			return new ServiceResponseBuilder().setStatus(false).setResponse(null).build();
+		}
+	}
+
+	@PostMapping(value = "/getSapBoReportDetails/{returnCode}/{entityCode}")
+	public ServiceResponse getSapBoReportDetails(@RequestHeader(name = "AppId") String appId, @RequestHeader(name = "JobProcessingId") String jobProcessingId, 
+			@PathVariable String returnCode, @PathVariable String entityCode) {
+		logger.info("fetch SAP BO Report Details controller started " + returnCode + "_" + entityCode);
+
+		if (UtilMaster.isEmpty(returnCode)) {
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0784.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0784.toString())).build();
+		}
+		SapBoDetails sapBoDeatils = sapBoReportService.getDataById(1);
+
+		SapBoDeatilsBean sapBoDeatilsBean = new SapBoDeatilsBean();
+		if (sapBoDeatils != null) {
+			sapBoDeatilsBean.setUsername(sapBoDeatils.getUsername());
+			sapBoDeatilsBean.setPassword(sapBoDeatils.getPassword());
+			sapBoDeatilsBean.setAuthenticateUrl(sapBoDeatils.getAuthenticateUrl());
+			sapBoDeatilsBean.setReportUrl(sapBoDeatils.getReportUrl());
+			sapBoDeatilsBean.setiDocIdKey(sapBoDeatils.getiDocIdKey());
+			sapBoDeatilsBean.setPeriodEndedKey(sapBoDeatils.getPeriodEndedKey());
+			sapBoDeatilsBean.setBankNameKey(sapBoDeatils.getBankNameKey());
+			sapBoDeatilsBean.setSerSessionKey(sapBoDeatils.getSerSessionKey());
+		}
+
+		Return returnObj = returnRepo.findByReturnCode(returnCode);
+		if (!Validations.isEmpty(returnObj.getReturnDocId())) {
+			sapBoDeatilsBean.setReturnDocId(returnObj.getReturnDocId());
+		}
+		sapBoDeatilsBean.setReturnCode(returnCode);
+
+		EntityBean entityBean = entityRepo.findByEntityCode(entityCode);
+		for (EntityLabelBean entLblObj : entityBean.getEntityLabelSet()) {
+			if (entLblObj.getLanguageMaster().getLanguageCode().equals(GeneralConstants.DEFAULT_LANG_CODE.getConstantVal())) {
+				sapBoDeatilsBean.setEntityName(entLblObj.getEntityNameLabel());
+				break;
+			}
+		}
+		sapBoDeatilsBean.setEntityCode(entityCode);
+
+		return new ServiceResponseBuilder().setStatus(true).setResponse(new Gson().toJson(sapBoDeatilsBean)).build();
+	}
+
+	@PostMapping(value = "/getSapBoReportDetailsForEBRPilot/{returnCode}/{entityCode}")
+	public ServiceResponse getSapBoReportDetailsForEBRPilot(@RequestHeader(name = "AppId") String appId, @RequestHeader(name = "JobProcessingId") String jobProcessingId, 
+			@PathVariable String returnCode, @PathVariable String entityCode) {
+		logger.info("fetch SAP BO EBR Pilot Report Details controller started " + returnCode + "_" + entityCode);
+
+		if (UtilMaster.isEmpty(returnCode)) {
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0784.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0784.toString())).build();
+		}
+		List<SapBoEBRPilotDetails> sapBoEBRPilotDeatilsList = sapBoEBRPilotReportService.getAllDataFor(null, null);
+
+		SapBoDeatilsBean sapBoDeatilsBean = new SapBoDeatilsBean();
+		if (!CollectionUtils.isEmpty(sapBoEBRPilotDeatilsList)) {
+			sapBoDeatilsBean.setUsername(sapBoEBRPilotDeatilsList.get(0).getUsername());
+			sapBoDeatilsBean.setPassword(sapBoEBRPilotDeatilsList.get(0).getPassword());
+			sapBoDeatilsBean.setAuthenticateUrl(sapBoEBRPilotDeatilsList.get(0).getAuthenticateUrl());
+			sapBoDeatilsBean.setReportUrl(sapBoEBRPilotDeatilsList.get(0).getReportUrl());
+			sapBoDeatilsBean.setiDocIdKey(sapBoEBRPilotDeatilsList.get(0).getiDocIdKey());
+			sapBoDeatilsBean.setPeriodEndedKey(sapBoEBRPilotDeatilsList.get(0).getPeriodEndedKey());
+			sapBoDeatilsBean.setBankNameKey(sapBoEBRPilotDeatilsList.get(0).getBankNameKey());
+			sapBoDeatilsBean.setSerSessionKey(sapBoEBRPilotDeatilsList.get(0).getSerSessionKey());
+		}
+
+		sapBoDeatilsBean.setReturnDocId("ATExI1b0_mBKp_36Ll_Pt60");
+		sapBoDeatilsBean.setReturnCode(returnCode);
+
+		EntityBean entityBean = entityRepo.findByEntityCode(entityCode);
+		for (EntityLabelBean entLblObj : entityBean.getEntityLabelSet()) {
+			if (entLblObj.getLanguageMaster().getLanguageCode().equals(GeneralConstants.DEFAULT_LANG_CODE.getConstantVal())) {
+				sapBoDeatilsBean.setEntityName(entLblObj.getEntityNameLabel());
+				break;
+			}
+		}
+		sapBoDeatilsBean.setEntityCode(entityCode);
+
+		return new ServiceResponseBuilder().setStatus(true).setResponse(new Gson().toJson(sapBoDeatilsBean)).build();
+	}
+
+	@PostMapping(value = "/checkLatestFilingForSapBoReport/{returnCode}/{entityCode}")
+	public ServiceResponse checkLatestFilingForSapBoReport(@RequestHeader(name = "AppId") String appId, 
+			@RequestHeader(name = "JobProcessingId") String jobProcessingId, @PathVariable String returnCode, @PathVariable String entityCode) {
+		logger.info("checkLatestFiling method started " + returnCode + "_" + entityCode);
+
+		if (UtilMaster.isEmpty(returnCode)) {
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0784.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0784.toString())).build();
+		}
+
+		Map<String, List<String>> valueMap = new HashMap<>();
+
+		EntityBean entityBean = entityRepo.findByEntityCode(entityCode);
+		List<String> valueList = new ArrayList<>();
+		valueList.add(entityBean.getEntityId() + "");
+		valueMap.put(ColumnConstants.ENTITYID.getConstantVal(), valueList);
+
+		Return returnObj = returnRepo.findByReturnCode(returnCode);
+		valueList = new ArrayList<>();
+		valueList.add(returnObj.getReturnId() + "");
+		valueMap.put(ColumnConstants.RETURNID.getConstantVal(), valueList);
+		List<ReturnsUploadDetails> returnsUploadDetailsList = returnUploadDetailsService.getDataByColumnValue(valueMap, MethodConstants.GET_FILING_RETURN_ENTITY_WISE.getConstantVal());
+
+		SapBoDeatilsBean sapBoDeatilsBean = new SapBoDeatilsBean();
+		sapBoDeatilsBean.setUploadId(returnsUploadDetailsList.get(0).getUploadId());
+		sapBoDeatilsBean.setUploadedDate(returnsUploadDetailsList.get(0).getUploadedDate());
+
+		return new ServiceResponseBuilder().setStatus(true).setResponse(new Gson().toJson(sapBoDeatilsBean)).build();
+	}
+
+}

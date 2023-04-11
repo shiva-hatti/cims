@@ -1,0 +1,108 @@
+/**
+ * 
+ */
+package com.iris.model;
+
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+/**
+ * @author sajadhav
+ *
+ */
+@Entity
+@Table(name = "TBL_RETURN_ENTITY_MAPP_NEW_MOD")
+public class ReturnEntityMappingNewMod {
+	
+	@Id
+	@Column(name = "RET_ENT_MAP_MOD_ID")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long retEntMapModId;
+	
+	@ManyToOne
+	@JoinColumn(name = "ENTITY_ID_FK")
+	private EntityBean entity;
+	
+	@ManyToOne
+	@JoinColumn(name = "CREATED_BY_FK")
+	private UserMaster createdBy;
+	
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+	
+	@Column(name = "RET_ENT_MAPP_JSON_DATA")
+	private String retEntMapJsonData;
+
+	@Column(name = "MODE")
+	private String module;
+	
+	@Transient
+	private String createdOnString;
+	
+	public String getCreatedOnString() {
+		return createdOnString;
+	}
+
+	public void setCreatedOnString(String createdOnString) {
+		this.createdOnString = createdOnString;
+	}
+
+	public String getModule() {
+		return module;
+	}
+
+	public void setModule(String module) {
+		this.module = module;
+	}
+
+	public Long getRetEntMapModId() {
+		return retEntMapModId;
+	}
+
+	public void setRetEntMapModId(Long retEntMapModId) {
+		this.retEntMapModId = retEntMapModId;
+	}
+
+	public EntityBean getEntity() {
+		return entity;
+	}
+
+	public void setEntity(EntityBean entity) {
+		this.entity = entity;
+	}
+
+
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	public String getRetEntMapJsonData() {
+		return retEntMapJsonData;
+	}
+
+	public void setRetEntMapJsonData(String retEntMapJsonData) {
+		this.retEntMapJsonData = retEntMapJsonData;
+	}
+	
+}

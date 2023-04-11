@@ -1,0 +1,38 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+
+import com.iris.util.Validations;
+
+public class HeaderBean implements Serializable {
+
+	private static final long serialVersionUID = 6582772342809776925L;
+	private int headerId;
+	private String headerLabel;
+	private Float headerOrder;
+
+	public int getHeaderId() {
+		return headerId;
+	}
+
+	public void setHeaderId(int headerId) {
+		this.headerId = headerId;
+	}
+
+	public String getHeaderLabel() {
+		return headerLabel;
+	}
+
+	public void setHeaderLabel(String headerLabel) {
+		this.headerLabel = Validations.trimInput(headerLabel);
+	}
+
+	public Float getHeaderOrder() {
+		return headerOrder;
+	}
+
+	public void setHeaderOrder(Float headerOrder) {
+		this.headerOrder = headerOrder;
+	}
+
+}

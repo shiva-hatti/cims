@@ -1,0 +1,299 @@
+package com.iris.service.impl;
+
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import javax.sql.DataSource;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+
+import com.iris.dto.Action;
+import com.iris.dto.WorkflowJsonBean;
+import com.iris.dto.WorkflowReturnMappingInfo;
+import com.iris.exception.ServiceException;
+import com.iris.model.FilingStatus;
+import com.iris.model.ReturnApprovalDetail;
+import com.iris.model.ReturnsUploadDetails;
+import com.iris.model.WorkFlowActivity;
+import com.iris.model.WorkFlowMasterBean;
+import com.iris.model.WorkflowReturnMapping;
+import com.iris.repository.ReturnUploadDetailsRepository;
+import com.iris.repository.WorkflowRepo;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.util.constant.MethodConstants;
+import com.iris.workflow.WorkflowUtility;
+
+@Service
+public class WorkflowService implements GenericService<WorkflowReturnMapping, Long> {
+
+	private static final Logger LOGGER = LogManager.getLogger(WorkflowService.class);
+
+	@Autowired
+	private WorkflowRepo workflowRepo;
+
+	@Autowired
+	DataSource datasource;
+
+	@Autowired
+	private ReturnUploadDetailsRepository returnUploadDetailsRepository;
+
+	@Autowired
+	private ReturnUploadDetailsService returnsUploadDetailsService;
+
+	@Override
+	public WorkflowReturnMapping add(WorkflowReturnMapping entity) throws ServiceException {
+		return workflowRepo.save(entity);
+	}
+
+	@Override
+	public boolean update(WorkflowReturnMapping entity) throws ServiceException {
+		workflowRepo.save(entity);
+		return false;
+	}
+
+	@Override
+	public List<WorkflowReturnMapping> getDataByIds(Long[] ids) throws ServiceException {
+		return workflowRepo.getDataByWorkflowIdIn(ids);
+	}
+
+	@Override
+	public List<WorkflowReturnMapping> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<WorkflowReturnMapping> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<WorkflowReturnMapping> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		try {
+			return workflowRepo.findByActiveTrue();
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<WorkflowReturnMapping> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public void deleteData(WorkflowReturnMapping bean) throws ServiceException {
+
+	}
+
+	@Override
+	public WorkflowReturnMapping getDataById(Long id) throws ServiceException {
+		try {
+			return workflowRepo.getDataByWorkflowId(id);
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<WorkflowReturnMapping> getDataByObject(Map<String, Object> columnValueMap, String methodName) throws ServiceException {
+
+		try {
+			Long returnId = null;
+			Long channelId = null;
+			for (String columnName : columnValueMap.keySet()) {
+				if (columnName.equalsIgnoreCase(ColumnConstants.RETURNID.getConstantVal())) {
+					returnId = (Long) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.CHANNEL_ID.getConstantVal())) {
+					channelId = (Long) columnValueMap.get(columnName);
+				}
+			}
+			if (methodName.equalsIgnoreCase(MethodConstants.GET_WORKFLOW_BY_RETURN_ID_AND_CHANNEL_ID.getConstantVal())) {
+				return workflowRepo.findByReturnIdFkReturnIdAndChannelIdFkUploadChannelIdAndActiveTrue(returnId, channelId);
+			}
+			return null;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	public List<WorkflowReturnMapping> fetchWorkFlowData(Long workflowId) {
+		try {
+			return workflowRepo.fetchWorkFlowData(workflowId);
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	public boolean addUpdateWorkflowData(List<WorkflowReturnMappingInfo> workflowList) {
+		Long userId = null;
+		WorkFlowMasterBean workFlowMasterBean = new WorkFlowMasterBean();
+		List<String> returnChannelList = new ArrayList<>();
+		try (Connection con = datasource.getConnection(); CallableStatement stmt = con.prepareCall(GeneralConstants.SP_WORKFLOW_RETURN_MAPPING.getConstantVal());) {
+
+			for (WorkflowReturnMappingInfo workflowListItr : workflowList) {
+				userId = workflowListItr.getLastUpdatedBy().getUserId();
+				workFlowMasterBean.setWorkflowId(workflowListItr.getWorkFlowMaster().getWorkflowId());
+				if (workflowListItr.isApiChannel()) {
+					returnChannelList.add(GeneralConstants.API_CHANNEL.getConstantLongVal() + "~" + workflowListItr.getReturnIdFk().getReturnId() + "~" + 1);
+				} else {
+					returnChannelList.add(GeneralConstants.API_CHANNEL.getConstantLongVal() + "~" + workflowListItr.getReturnIdFk().getReturnId() + "~" + 0);
+				}
+				if (workflowListItr.isUploadChannel()) {
+					returnChannelList.add(GeneralConstants.UPLOAD_CHANNEL.getConstantLongVal() + "~" + workflowListItr.getReturnIdFk().getReturnId() + "~" + 1);
+				} else {
+					returnChannelList.add(GeneralConstants.UPLOAD_CHANNEL.getConstantLongVal() + "~" + workflowListItr.getReturnIdFk().getReturnId() + "~" + 0);
+				}
+				if (workflowListItr.isEmailChannel()) {
+					returnChannelList.add(GeneralConstants.EMAIL_CHANNEL.getConstantLongVal() + "~" + workflowListItr.getReturnIdFk().getReturnId() + "~" + 1);
+				} else {
+					returnChannelList.add(GeneralConstants.EMAIL_CHANNEL.getConstantLongVal() + "~" + workflowListItr.getReturnIdFk().getReturnId() + "~" + 0);
+				}
+				if (workflowListItr.isStsChannel()) {
+					returnChannelList.add(GeneralConstants.SYSTEM_CHANNEL.getConstantLongVal() + "~" + workflowListItr.getReturnIdFk().getReturnId() + "~" + 1);
+				} else {
+					returnChannelList.add(GeneralConstants.SYSTEM_CHANNEL.getConstantLongVal() + "~" + workflowListItr.getReturnIdFk().getReturnId() + "~" + 0);
+				}
+				if (workflowListItr.isWebChannel()) {
+					returnChannelList.add(GeneralConstants.WEB_CHANNEL.getConstantLongVal() + "~" + workflowListItr.getReturnIdFk().getReturnId() + "~" + 1);
+				} else {
+					returnChannelList.add(GeneralConstants.WEB_CHANNEL.getConstantLongVal() + "~" + workflowListItr.getReturnIdFk().getReturnId() + "~" + 0);
+				}
+			}
+			stmt.setString(1, returnChannelList.toString().substring(1, returnChannelList.toString().length() - 1));
+			stmt.setLong(2, workFlowMasterBean.getWorkflowId());
+			stmt.setLong(3, userId);
+			stmt.registerOutParameter(4, Types.INTEGER);
+
+			stmt.executeQuery();
+			int number = stmt.getInt(4);
+			if (number > 0) {
+				returnChannelList = new ArrayList<>();
+				return false;
+			}
+			returnChannelList = new ArrayList<>();
+			return true;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Transactional(rollbackFor = Exception.class)
+	public void prepareObjectForWorkflowAndBusinessValidationSuccess(ReturnsUploadDetails returnUploadDetails) throws Exception {
+		LOGGER.info("Workflow Trigger process started for upload ID : " + returnUploadDetails.getUploadId());
+		LOGGER.error("Workflow Trigger process started for upload ID : " + returnUploadDetails.getUploadId());
+		String json = returnUploadDetails.getWorkFlowMaster().getWorkFlowJson();
+		//		LOGGER.info("Workflow json string: " + json);
+		WorkflowJsonBean workflowJsonBean = WorkflowUtility.getWorkflowJsonBeanOfCurrentStep(json, returnUploadDetails.getCurrentWFStep());
+		if (workflowJsonBean.getFilingStatusId() <= 0) {
+			LOGGER.error("FILLING status can not be 0");
+		}
+		returnUploadDetails.setAlertTypeId(workflowJsonBean.getNotify().getEmailalerttype());
+		List<ReturnApprovalDetail> returnApprovalDtlList = new ArrayList<>();
+		getReturnApprovalDtlList(returnApprovalDtlList, returnUploadDetails, workflowJsonBean.getNextStep(), json);
+
+		FilingStatus filingStatus = getFillingStatus(returnApprovalDtlList, workflowJsonBean.getFilingStatusId());
+		returnUploadDetails.setFilingStatus(filingStatus);
+		if (CollectionUtils.isEmpty(returnUploadDetails.getReturnApprovalDetailsList())) {
+			returnUploadDetails.setReturnApprovalDetailsList(returnApprovalDtlList);
+		} else {
+			returnUploadDetails.getReturnApprovalDetailsList().addAll(returnApprovalDtlList);
+		}
+		LOGGER.info("Workflow Trigger process end for upload ID : " + returnUploadDetails.getUploadId() + " Having status : " + filingStatus.getFilingStatusId());
+		LOGGER.error("Workflow Trigger process end for upload ID : " + returnUploadDetails.getUploadId() + " Having status : " + filingStatus.getFilingStatusId());
+		returnsUploadDetailsService.add(returnUploadDetails);
+	}
+
+	private FilingStatus getFillingStatus(List<ReturnApprovalDetail> returnApprovalDtlList, int filingStatusId) {
+		for (int i = returnApprovalDtlList.size() - 1; i >= 0; i--) {
+			if (returnApprovalDtlList.get(i).getFilingStatusId() != 0) {
+				FilingStatus filingStatus = new FilingStatus();
+				filingStatus.setFilingStatusId(returnApprovalDtlList.get(i).getFilingStatusId());
+				return filingStatus;
+			} else {
+				continue;
+			}
+		}
+		FilingStatus filingStatus = new FilingStatus();
+		filingStatus.setFilingStatusId(filingStatusId);
+		return filingStatus;
+	}
+
+	private void getReturnApprovalDtlList(List<ReturnApprovalDetail> returnApprovalDetails, ReturnsUploadDetails returnsUploadDetails, int stepNo, String workflowJson) {
+		ReturnApprovalDetail newReturnApprovalDetail = new ReturnApprovalDetail();
+		newReturnApprovalDetail.setReturnUploadDetails(returnsUploadDetails);
+		WorkflowJsonBean workflowJsonBean = null;
+		try {
+			workflowJsonBean = WorkflowUtility.getWorkflowJsonBeanOfCurrentStep(workflowJson, stepNo);
+			newReturnApprovalDetail.setWorkflowStep(workflowJsonBean.getStepNo());
+			WorkFlowActivity workFlowActivity = new WorkFlowActivity();
+			workFlowActivity.setActivityId(new Long(workflowJsonBean.getActivities().get(0).getActivityId() + ""));
+
+			newReturnApprovalDetail.setWorkFlowActivity(workFlowActivity);
+			newReturnApprovalDetail.setCreationTime(new Date());
+
+			if (workflowJsonBean.isAutoApproved()) {
+				newReturnApprovalDetail.setComment("AUTO_APPROVED");
+				newReturnApprovalDetail.setReviewStatus("APPROVED");
+				Action action = workflowJsonBean.getActions().stream().filter(f -> f.getActionStatusId() == 1).findAny().orElse(null);
+				if (action != null) {
+					if (action.getNextStep() != 0) {
+						newReturnApprovalDetail.setFilingStatusId(action.getFilingStatusId());
+						newReturnApprovalDetail.setComplete(false);
+						returnApprovalDetails.add(newReturnApprovalDetail);
+						getReturnApprovalDtlList(returnApprovalDetails, returnsUploadDetails, action.getNextStep(), workflowJson);
+					} else {
+						newReturnApprovalDetail.setFilingStatusId(action.getFilingStatusId());
+						newReturnApprovalDetail.setComplete(true);
+						returnApprovalDetails.add(newReturnApprovalDetail);
+					}
+				}
+			} else {
+				newReturnApprovalDetail.setComplete(false);
+				returnApprovalDetails.add(newReturnApprovalDetail);
+			}
+		} catch (Exception e) {
+			LOGGER.error("Exception :", e);
+		}
+	}
+
+	@Transactional(rollbackFor = Exception.class)
+	public int updateFilingStatusOfETLFailedRecord() {
+		List<Long> uploadIds = returnUploadDetailsRepository.getETLFailedRecord();
+
+		if (!CollectionUtils.isEmpty(uploadIds)) {
+			// Update Status of ETL failed record
+			return returnUploadDetailsRepository.updateFilingStatusOfETLFailedRecord(uploadIds);
+		} else {
+			return 0;
+		}
+	}
+
+	public List<WorkflowReturnMapping> fetchWorkFlowDtoData() throws ServiceException {
+		try {
+			return workflowRepo.fetchWorkFlowDtoData();
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	public List<WorkflowReturnMapping> fetchWorkFlowDtoData(Long workflowId) {
+		try {
+			return workflowRepo.fetchWorkFlowDtoData(workflowId);
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+}

@@ -1,0 +1,115 @@
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.Option;
+import com.iris.dto.OptionBean;
+import com.iris.dto.Options;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.dto.XbrlWebFormDto;
+import com.iris.model.CountryRiskMapping;
+import com.iris.service.impl.CountryRiskMappingService;
+import com.iris.util.Validations;
+import com.iris.util.constant.ErrorCode;
+
+/**
+ * @author Shivabasava Hatti
+ *
+ */
+
+@RestController
+@RequestMapping("/service/countryRiskMapping")
+public class CountryRiskMappingController {
+	
+	private static final Logger logger = LogManager.getLogger(CountryRiskMappingController.class);
+	
+	@Autowired
+	private CountryRiskMappingService countryRiskMappingService;
+	
+	@PostMapping("/getCountryRiskMappingDetails/{returnCode}")
+	public ServiceResponse getCountryRiskMappingDetails(@PathVariable(name = "returnCode") String returnCode) {
+		ServiceResponse response = null;
+		try {
+			List<CountryRiskMapping> countryRiskMappingList = new ArrayList<>();
+			List<Option> optionList = new ArrayList<>();
+			Option option = null;
+			Options options = new Options();
+			if (Validations.isEmpty(returnCode)) {
+				logger.error("returnCode is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0889.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString())).build();
+			}
+			countryRiskMappingList = countryRiskMappingService.findCountryRiskMappingDetailsByReturnCode(returnCode);
+			if (CollectionUtils.isEmpty(countryRiskMappingList)) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0660.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0660.toString())).build();
+			}
+			for (CountryRiskMapping countryRiskMapping : countryRiskMappingList) {
+				option = new Option();
+				option.setKey(countryRiskMapping.getCountryIdFk().getCountryName());
+				option.setValue(countryRiskMapping.getRiskClassification());
+				optionList.add(option);
+			}
+			options.setOptionList(optionList);
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			response.setResponse(options);
+			return response;
+		} catch (Exception e) {
+			logger.error("Exception occoured while featch Country Risk Mapping Details list" + e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+		}
+
+	}
+	
+	@PostMapping("/getCountryRiskMappingDetailsWebform")
+	public ServiceResponse getCountryRiskMappingDetailsWebform(@RequestBody XbrlWebFormDto xbrlWebFormDto) {
+		ServiceResponse response = null;
+		try {
+			List<CountryRiskMapping> countryRiskMappingList = new ArrayList<>();
+			List<Option> optionList = new ArrayList<>();
+			Option option = null;
+			Options options = new Options();
+			OptionBean optionBean = new OptionBean();
+			List<OptionBean> optionBeanList = new ArrayList<>();
+			if (Validations.isEmpty(xbrlWebFormDto.getReturnCode())) {
+				logger.error("returnCode is empty");
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0889.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString())).build();
+			}
+			countryRiskMappingList = countryRiskMappingService.findCountryRiskMappingDetailsByReturnCode(xbrlWebFormDto.getReturnCode());
+			if (CollectionUtils.isEmpty(countryRiskMappingList)) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0660.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0660.toString())).build();
+			}
+			for (CountryRiskMapping countryRiskMapping : countryRiskMappingList) {
+				option = new Option();
+				optionBean = new OptionBean();
+				optionBeanList = new ArrayList<>();
+				option.setKey(countryRiskMapping.getCountryIdFk().getCountryName());
+				option.setValue(countryRiskMapping.getCountryIdFk().getCountryName());
+				optionBean.setKey(countryRiskMapping.getRiskClassification());
+				optionBean.setValue(countryRiskMapping.getRiskClassification());
+				optionBeanList.add(optionBean);
+				option.setDetailsList(optionBeanList);
+				optionList.add(option);
+			}
+			options.setOptionList(optionList);
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			response.setResponse(options);
+			return response;
+		} catch (Exception e) {
+			logger.error("Exception occoured while featch Country Risk Mapping Details list" + e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0692.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0692.toString())).build();
+		}
+
+	}
+}

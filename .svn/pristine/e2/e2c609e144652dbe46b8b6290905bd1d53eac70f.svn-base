@@ -1,0 +1,22 @@
+/**
+ * 
+ */
+package com.iris.sdmx.dimesnsion.repo;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.iris.sdmx.dimesnsion.entity.DimensionMasterMod;
+
+/**
+ * @author sajadhav
+ *
+ */
+@Repository
+public interface DimensionModRepo extends JpaRepository<DimensionMasterMod, Long>{
+
+	List<DimensionMasterMod> findByDimCodeInAndAdminStatusId(List<String> dimCode, int adminStatus);
+	
+}

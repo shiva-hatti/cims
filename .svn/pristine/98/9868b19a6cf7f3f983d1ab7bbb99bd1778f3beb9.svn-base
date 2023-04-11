@@ -1,0 +1,52 @@
+/**
+ * 
+ */
+package com.iris.sdmx.util;
+
+import java.io.Serializable;
+
+/**
+ * @author sajadhav
+ *
+ */
+public class RestClientResponse implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	private int statusCode;
+	
+	private String restClientResponse;
+
+	/**
+	 * @return the statusCode
+	 */
+	public int getStatusCode() {
+		return statusCode;
+	}
+
+	/**
+	 * @param statusCode the statusCode to set
+	 */
+	public void setStatusCode(int statusCode) {
+		this.statusCode = statusCode;
+	}
+
+	/**
+	 * @return the restClientResponse
+	 */
+	public String getRestClientResponse() {
+		return restClientResponse;
+	}
+
+	/**
+	 * @param restClientResponse the restClientResponse to set
+	 */
+	public void setRestClientResponse(String restClientResponse) {
+		this.restClientResponse = restClientResponse;
+	}
+	
+
+}

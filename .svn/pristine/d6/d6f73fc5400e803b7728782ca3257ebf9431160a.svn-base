@@ -1,0 +1,126 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+
+import com.iris.util.Validations;
+
+
+public class DataBean implements Serializable {
+
+	private static final long serialVersionUID = -2634160629959428295L;
+	private String tblId;
+	private String eleTag;
+	private String colTag;
+	private String langCode;
+	private String value;
+	private String footnote;
+	private String dropdownValue;
+	private String blockNumber;
+
+	/**
+	 * @return the eleTag
+	 */
+	public String getEleTag() {
+		return eleTag;
+	}
+
+	/**
+	 * @param eleTag the eleTag to set
+	 */
+	public void setEleTag(String eleTag) {
+		this.eleTag = Validations.trimInput(eleTag);
+	}
+
+	/**
+	 * @return the colTag
+	 */
+	public String getColTag() {
+		return colTag;
+	}
+
+	/**
+	 * @param colTag the colTag to set
+	 */
+	public void setColTag(String colTag) {
+		this.colTag = Validations.trimInput(colTag);
+	}
+
+	/**
+	 * @return the langCode
+	 */
+	public String getLangCode() {
+		return langCode;
+	}
+
+	/**
+	 * @param langCode the langCode to set
+	 */
+	public void setLangCode(String langCode) {
+		this.langCode = Validations.trimInput(langCode);
+	}
+
+	/**
+	 * @return the value
+	 */
+	public String getValue() {
+		return value;
+	}
+
+	/**
+	 * @param value the value to set
+	 */
+	public void setValue(String value) {
+		this.value = Validations.trimInput(value);
+	}
+
+	/**
+	 * @return the tblId
+	 */
+	public String getTblId() {
+		return tblId;
+	}
+
+	/**
+	 * @param tblId the tblId to set
+	 */
+	public void setTblId(String tblId) {
+		this.tblId = tblId;
+	}
+
+	/**
+	 * @return the footnote
+	 */
+	public String getFootnote() {
+		return footnote;
+	}
+
+	/**
+	 * @param footnote the footnote to set
+	 */
+	public void setFootnote(String footnote) {
+		this.footnote = footnote;
+	}
+
+	/**
+	 * @return the dropdownValue
+	 */
+	public String getDropdownValue() {
+		return dropdownValue;
+	}
+
+	/**
+	 * @param dropdownValue the dropdownValue to set
+	 */
+	public void setDropdownValue(String dropdownValue) {
+		this.dropdownValue = Validations.trimInput(dropdownValue);
+	}
+
+	public String getBlockNumber() {
+		return blockNumber;
+	}
+
+	public void setBlockNumber(String blockNumber) {
+		this.blockNumber = Validations.trimInput(blockNumber);
+	}
+
+}

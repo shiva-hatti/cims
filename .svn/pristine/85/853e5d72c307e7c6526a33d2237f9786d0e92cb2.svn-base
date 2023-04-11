@@ -1,0 +1,158 @@
+/**
+ * 
+ */
+package com.iris.dto;
+
+import java.io.Serializable;
+
+/**
+ * @author Siddique
+ *
+ */
+public class ReturnCsvInfo implements Serializable{
+
+	private static final long serialVersionUID = 5408829781363891186L;
+
+	private String firstColumnLabel;
+	private String firstColumnTag;
+	private String secondColumnLable;
+	private String secondColumnTag;
+	private boolean isTotalRowCountPresent;
+	private boolean isSerialNumberPresent;
+	private String totalRowCountLabel;
+	private String totalRowCountTag;
+	private boolean isSecondColumnRequired;
+	private boolean isGrandTotalPresent;
+	private boolean checkIfSerialNumberRequired;   // R143
+	
+	
+	
+	
+	public boolean isCheckIfSerialNumberRequired() {
+		return checkIfSerialNumberRequired;
+	}
+	public void setCheckIfSerialNumberRequired(boolean checkIfSerialNumberRequired) {
+		this.checkIfSerialNumberRequired = checkIfSerialNumberRequired;
+	}
+	/**
+	 * @return the isGrandTotalPresent
+	 */
+	public boolean isGrandTotalPresent() {
+		return isGrandTotalPresent;
+	}
+	/**
+	 * @param isGrandTotalPresent the isGrandTotalPresent to set
+	 */
+	public void setGrandTotalPresent(boolean isGrandTotalPresent) {
+		this.isGrandTotalPresent = isGrandTotalPresent;
+	}
+	/**
+	 * @return the firstColumnLabel
+	 */
+	public String getFirstColumnLabel() {
+		return firstColumnLabel;
+	}
+	/**
+	 * @param firstColumnLabel the firstColumnLabel to set
+	 */
+	public void setFirstColumnLabel(String firstColumnLabel) {
+		this.firstColumnLabel = firstColumnLabel;
+	}
+	/**
+	 * @return the firstColumnTag
+	 */
+	public String getFirstColumnTag() {
+		return firstColumnTag;
+	}
+	/**
+	 * @param firstColumnTag the firstColumnTag to set
+	 */
+	public void setFirstColumnTag(String firstColumnTag) {
+		this.firstColumnTag = firstColumnTag;
+	}
+	/**
+	 * @return the secondColumnLable
+	 */
+	public String getSecondColumnLable() {
+		return secondColumnLable;
+	}
+	/**
+	 * @param secondColumnLable the secondColumnLable to set
+	 */
+	public void setSecondColumnLable(String secondColumnLable) {
+		this.secondColumnLable = secondColumnLable;
+	}
+	/**
+	 * @return the secondColumnTag
+	 */
+	public String getSecondColumnTag() {
+		return secondColumnTag;
+	}
+	/**
+	 * @param secondColumnTag the secondColumnTag to set
+	 */
+	public void setSecondColumnTag(String secondColumnTag) {
+		this.secondColumnTag = secondColumnTag;
+	}
+	/**
+	 * @return the isTotalRowCountPresent
+	 */
+	public boolean isTotalRowCountPresent() {
+		return isTotalRowCountPresent;
+	}
+	/**
+	 * @param isTotalRowCountPresent the isTotalRowCountPresent to set
+	 */
+	public void setTotalRowCountPresent(boolean isTotalRowCountPresent) {
+		this.isTotalRowCountPresent = isTotalRowCountPresent;
+	}
+	/**
+	 * @return the isSerialNumberPresent
+	 */
+	public boolean isSerialNumberPresent() {
+		return isSerialNumberPresent;
+	}
+	/**
+	 * @param isSerialNumberPresent the isSerialNumberPresent to set
+	 */
+	public void setSerialNumberPresent(boolean isSerialNumberPresent) {
+		this.isSerialNumberPresent = isSerialNumberPresent;
+	}
+	/**
+	 * @return the totalRowCountLabel
+	 */
+	public String getTotalRowCountLabel() {
+		return totalRowCountLabel;
+	}
+	/**
+	 * @param totalRowCountLabel the totalRowCountLabel to set
+	 */
+	public void setTotalRowCountLabel(String totalRowCountLabel) {
+		this.totalRowCountLabel = totalRowCountLabel;
+	}
+	/**
+	 * @return the totalRowCountTag
+	 */
+	public String getTotalRowCountTag() {
+		return totalRowCountTag;
+	}
+	/**
+	 * @param totalRowCountTag the totalRowCountTag to set
+	 */
+	public void setTotalRowCountTag(String totalRowCountTag) {
+		this.totalRowCountTag = totalRowCountTag;
+	}
+	/**
+	 * @return the isSecondColumnRequired
+	 */
+	public boolean isSecondColumnRequired() {
+		return isSecondColumnRequired;
+	}
+	/**
+	 * @param isSecondColumnRequired the isSecondColumnRequired to set
+	 */
+	public void setSecondColumnRequired(boolean isSecondColumnRequired) {
+		this.isSecondColumnRequired = isSecondColumnRequired;
+	}
+	
+}

@@ -1,0 +1,24 @@
+/**
+ * 
+ */
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.iris.model.PanMaster;
+
+
+/**
+ * @author Siddique
+ *
+ */
+
+public interface PanMasterRepo extends JpaRepository<PanMaster, Long>{
+
+	@Query("select distinct new com.iris.model.PanMaster(pm.panNumber, pm.borrowerName ) FROM PanMaster pm order by pm.panNumber asc")
+	List<PanMaster> getPanMasterData();
+
+}

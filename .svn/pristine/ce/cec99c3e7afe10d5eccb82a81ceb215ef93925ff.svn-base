@@ -1,0 +1,67 @@
+/**
+ * 
+ */
+package com.iris.nbfc.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.iris.nbfc.model.NbfcCertificationDetails;
+
+/**
+ * @author pmohite
+ */
+@Repository
+public interface NbfcCertificationDetailsRepo extends JpaRepository<NbfcCertificationDetails, Long> {
+
+	@Transactional
+	@Modifying
+	@Query(value = "Update NbfcCertificationDetails SET isActive = '0'  where compPan = :panNumber")
+	void updateNbfcEntityByCompPan(@Param("panNumber") String panNumber);
+
+	@Query(value = "from NbfcCertificationDetails where corRegIdFk.corRegistrationId = :nbfcEntityId and nbfcPageMaster.pageMasterId = :pageNo")
+	List<NbfcCertificationDetails> getNbfcCertificationDetilsbyNbfcEntityIdAndPageNo(@Param("nbfcEntityId") Long nbfcEntityId, @Param("pageNo") Long pageNo);
+
+	@Query(value = "from NbfcCertificationDetails where corRegIdFk.corRegistrationId = :nbfcEntityId and nbfcPageMaster.pageMasterId = :pageNo and nbfcSubPageMaster.subPageMasterId = :subPageNo")
+	List<NbfcCertificationDetails> getNbfcCertificationDetilsbyNbfcEntityIdAndPageNoAndSubPageNo(@Param("nbfcEntityId") Long nbfcEntityId, @Param("pageNo") Long pageNo, @Param("subPageNo") Long subPageNo);
+
+	@Query(value = "from NbfcCertificationDetails where corRegIdFk.corRegistrationId = :nbfcEntityId and nbfcPageMaster.pageMasterId = :pageNo and nbfcSubPageMaster.subPageMasterId = :subPageNo and nbfcCompanyTypeOtherIdFk.companyTypeOtherId = :companyOtherTypeId")
+	List<NbfcCertificationDetails> getNbfcCertificationDetilsbyNbfcEntityIdAndPageNoAndSubPageNoAndComapnyOtherTypeId(@Param("nbfcEntityId") Long nbfcEntityId, @Param("pageNo") Long pageNo, @Param("subPageNo") Long subPageNo, @Param("companyOtherTypeId") Long companyOtherTypeId);
+
+	@Query(value = "from NbfcCertificationDetails where userIdFk.userId = :userId and nbfcPageMaster.pageMasterId = :pageNo")
+	List<NbfcCertificationDetails> getNbfcCertificationDetilsbyUserId(@Param("userId") Long userId, @Param("pageNo") Long pageNo);
+
+	@Query(value = "from NbfcCertificationDetails where userIdFk.userId = :userId and nbfcPageMaster.pageMasterId = :pageNo and nbfcSubPageMaster.subPageMasterId = :subPageNo")
+	List<NbfcCertificationDetails> getNbfcCertificationDetilsbyUserIdAndSubPageNo(@Param("userId") Long userId, @Param("pageNo") Long pageNo, @Param("subPageNo") Long subPageNo);
+
+	@Query(value = "from NbfcCertificationDetails where userIdFk.userId = :userId and nbfcPageMaster.pageMasterId = :pageNo and nbfcSubPageMaster.subPageMasterId = :subPageNo and nbfcCompanyTypeOtherIdFk.companyTypeOtherId = :companyOtherTypeId")
+	List<NbfcCertificationDetails> getNbfcCertificationDetilsbyUserIdAndSubPageNoAndComapnyOtherTypeId(@Param("userId") Long userId, @Param("pageNo") Long pageNo, @Param("subPageNo") Long subPageNo, @Param("companyOtherTypeId") Long companyOtherTypeId);
+
+	@Query(value = "from NbfcCertificationDetails where userIdFk.userId = :userId and nbfcPageMaster.pageMasterId = :pageNo and nbfcCompanyTypeOtherIdFk.companyTypeOtherId = :companyOtherTypeId")
+	List<NbfcCertificationDetails> getNbfcCertificationDetilsbyUserIdAndPageNoAndComapnyOtherTypeId(@Param("userId") Long userId, @Param("pageNo") Long pageNo, @Param("companyOtherTypeId") Long companyOtherTypeId);
+
+	NbfcCertificationDetails findByNbfcCerDetalId(Long nbfcCerDetalId);
+
+	@Query(value = "select * from TBL_NBFC_CERTIFICATION_DETAILS nbfc , (SELECT (case when Max(UPDATED_ON)>max(CREATED_ON) THEN  Max(UPDATED_ON) ELSE  max(CREATED_ON) END) as dat FROM TBL_NBFC_CERTIFICATION_DETAILS where USER_ID_FK =:userId ) dateView where (nbfc.UPDATED_ON = dateView.dat or nbfc.CREATED_ON = dateView.dat) and nbfc.USER_ID_FK =:userId", nativeQuery = true)
+	List<NbfcCertificationDetails> getNbfcCertificationDetilsbyUserIdAndEntityId(@Param("userId") Long userId);
+
+	@Transactional
+	@Modifying
+	@Query(value = "delete from NbfcCertificationDetails where corRegIdFk.corRegistrationId = :nbfcEntityId and nbfcPageMaster.pageMasterId = :pageNo and nbfcSubPageMaster.subPageMasterId between :startPageNo and :endPageNo ")
+	void deleteNbfcCertificationDetilsForPage11(@Param("nbfcEntityId") Long nbfcEntityId, @Param("pageNo") Long pageNo, @Param("startPageNo") Long startPageNo, @Param("endPageNo") Long endPageNo);
+
+	@Transactional
+	@Modifying
+	@Query(value = "delete from NbfcCertificationDetails where corRegIdFk.corRegistrationId = :nbfcEntityId and nbfcPageMaster.pageMasterId = :pageNo")
+	void deleteNbfcCertificationDetilsOfOtherPages(@Param("nbfcEntityId") Long nbfcEntityId, @Param("pageNo") Long pageNo);
+
+	@Query(value = "from NbfcCertificationDetails where userIdFk.userId = :userId and corRegIdFk.corRegistrationId = :nbfcEntityId")
+	List<NbfcCertificationDetails> getAllNbfcCertificationDetilsbyUserId(@Param("userId") Long userId, @Param("nbfcEntityId") Long nbfcEntityId);
+
+}

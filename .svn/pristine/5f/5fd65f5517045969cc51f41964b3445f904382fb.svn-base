@@ -1,0 +1,185 @@
+/**
+ * 
+ */
+package com.iris.sdmx.exceltohtml.bean;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import com.iris.util.Validations;
+
+
+/**
+ * @author apagaria
+ *
+ */
+public class SdmxModelCodesBean implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * 
+	 */
+	private Long modelCodesId;
+	
+	private String modelDim;
+	
+	private String modelCode;
+
+	private Long elementIdFk;
+	
+	private String elementVer;
+	
+	private String elementLabel;
+	
+	private String dsdCode;
+
+	private Long createdBy;
+	
+	private String createdByName;
+
+	private Date createdOn;
+
+	/**
+	 * @return the modelCodesId
+	 */
+	public Long getModelCodesId() {
+		return modelCodesId;
+	}
+
+	/**
+	 * @param modelCodesId the modelCodesId to set
+	 */
+	public void setModelCodesId(Long modelCodesId) {
+		this.modelCodesId = modelCodesId;
+	}
+
+	/**
+	 * @return the modelDim
+	 */
+	public String getModelDim() {
+		return modelDim;
+	}
+
+	/**
+	 * @param modelDim the modelDim to set
+	 */
+	public void setModelDim(String modelDim) {
+		this.modelDim = Validations.trimInput(modelDim);
+	}
+
+	/**
+	 * @return the modelCode
+	 */
+	public String getModelCode() {
+		return modelCode;
+	}
+
+	/**
+	 * @param modelCode the modelCode to set
+	 */
+	public void setModelCode(String modelCode) {
+		this.modelCode = Validations.trimInput(modelCode);
+	}
+
+	/**
+	 * @return the elementIdFk
+	 */
+	public Long getElementIdFk() {
+		return elementIdFk;
+	}
+
+	/**
+	 * @param elementIdFk the elementIdFk to set
+	 */
+	public void setElementIdFk(Long elementIdFk) {
+		this.elementIdFk = elementIdFk;
+	}
+
+	/**
+	 * @return the elementVer
+	 */
+	public String getElementVer() {
+		return elementVer;
+	}
+
+	/**
+	 * @param elementVer the elementVer to set
+	 */
+	public void setElementVer(String elementVer) {
+		this.elementVer = Validations.trimInput(elementVer);
+	}
+
+	/**
+	 * @return the elementLabel
+	 */
+	public String getElementLabel() {
+		return elementLabel;
+	}
+
+	/**
+	 * @param elementLabel the elementLabel to set
+	 */
+	public void setElementLabel(String elementLabel) {
+		this.elementLabel = Validations.trimInput(elementLabel);
+	}
+
+	/**
+	 * @return the dsdCode
+	 */
+	public String getDsdCode() {
+		return dsdCode;
+	}
+
+	/**
+	 * @param dsdCode the dsdCode to set
+	 */
+	public void setDsdCode(String dsdCode) {
+		this.dsdCode = Validations.trimInput(dsdCode);
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public Long getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(Long createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the createdByName
+	 */
+	public String getCreatedByName() {
+		return createdByName;
+	}
+
+	/**
+	 * @param createdByName the createdByName to set
+	 */
+	public void setCreatedByName(String createdByName) {
+		this.createdByName = createdByName;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+}

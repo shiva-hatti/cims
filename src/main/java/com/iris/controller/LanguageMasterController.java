@@ -1,0 +1,143 @@
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.ldap.embedded.EmbeddedLdapProperties.Validation;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.dto.ChartBean;
+import com.iris.dto.ErrorLableDto;
+import com.iris.dto.FieldLableDto;
+import com.iris.dto.LanguageMasterDto;
+import com.iris.dto.CommonLableDto;
+import com.iris.dto.SdmxLabelDto;
+import com.iris.dto.ServiceResponse;
+import com.iris.model.ErrorKeyLabel;
+import com.iris.model.FieldKeyLabel;
+import com.iris.model.GridFormKeyLabel;
+import com.iris.model.LanguageMaster;
+import com.iris.repository.ErrorKeyLabelRepo;
+import com.iris.repository.FieldKeyLabelRepo;
+import com.iris.repository.GridFormKeyLabelRepo;
+import com.iris.service.impl.LanguageMasterService;
+import com.iris.util.Validations;
+import com.iris.util.constant.ErrorConstants;
+
+@RestController
+@RequestMapping("/service/labelController")
+public class LanguageMasterController {
+
+	static final Logger LOGGER = LogManager.getLogger(LanguageMasterController.class);
+
+	@Autowired
+	LanguageMasterService languageMasterService;
+
+	@Autowired
+	private ErrorKeyLabelRepo errorKeyLabelRepo;
+
+	@Autowired
+	private FieldKeyLabelRepo fieldKeyLabelRepo;
+
+	@Autowired
+	private GridFormKeyLabelRepo gridFormKeyLabelRepo;
+
+	@GetMapping("/loadLangList")
+	public ServiceResponse loadLangList() {
+		List<LanguageMasterDto> responseList = null;
+		try {
+			List<LanguageMaster> languageMasterList = languageMasterService.getAllActiveLanguage();
+			if (!Validations.isEmpty(languageMasterList)) {
+				responseList = new ArrayList<>();
+				for (LanguageMaster languageMaster : languageMasterList) {
+					LanguageMasterDto langDto = new LanguageMasterDto();
+					langDto.setLanguageCode(languageMaster.getLanguageCode());
+					langDto.setDirection(languageMaster.getDirection());
+					langDto.setLanguageName(languageMaster.getLanguageName());
+					responseList.add(langDto);
+				}
+			}
+
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(responseList).build();
+
+		} catch (Exception e) {
+
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorConstants.DEFAULT_ERROR.getConstantVal()).setStatusMessage(ErrorConstants.DEFAULT_MSG.getConstantVal()).build();
+		}
+	}
+
+	@GetMapping("/loadLables/{languageCode}")
+	public ServiceResponse loadLables(@PathVariable("languageCode") String languageCode) throws Exception {
+		try {
+
+			LanguageMaster languageMaster = languageMasterService.getAllActiveLanguageWrapper(languageCode);
+
+			List<ErrorLableDto> errorLabelDtoList = null;
+			List<FieldLableDto> fieldLabelDtoList = null;
+			List<CommonLableDto> commonLableDtoList = null;
+
+			if (languageMaster != null) {
+
+				List<ErrorKeyLabel> errorKeyLableList = errorKeyLabelRepo.loadAllErrorKeyLableByLanguageId(languageMaster.getLanguageId());
+				List<FieldKeyLabel> fieldKeyLableList = fieldKeyLabelRepo.loadAllFiedldKeyLableByLanguageId(languageMaster.getLanguageId());
+				List<GridFormKeyLabel> gridKeyLableList = gridFormKeyLabelRepo.loadAllFiedldKeyLableByLanguageId(languageMaster.getLanguageId());
+
+				if (!Validations.isEmpty(errorKeyLableList)) {
+					errorLabelDtoList = new ArrayList<>();
+					for (ErrorKeyLabel errorKeyLabel : errorKeyLableList) {
+						ErrorLableDto errorLabelDto = new ErrorLableDto();
+						errorLabelDto.setErrorCode(errorKeyLabel.getErrorCode());
+						errorLabelDto.setErrorKey(errorKeyLabel.getErrorKey());
+						errorLabelDto.setErrorDispLable(errorKeyLabel.getErrorKeyLable());
+						errorLabelDto.setLanguageCode(errorKeyLabel.getLanguageCode());
+						errorLabelDtoList.add(errorLabelDto);
+					}
+				}
+
+				if (!Validations.isEmpty(fieldKeyLableList)) {
+					fieldLabelDtoList = new ArrayList<>();
+					for (FieldKeyLabel fieldKeyLabel : fieldKeyLableList) {
+						FieldLableDto fieldLabelDto = new FieldLableDto();
+						fieldLabelDto.setFieldKey(fieldKeyLabel.getFieldKey());
+						fieldLabelDto.setFieldDispLable(fieldKeyLabel.getFieldKeyLable());
+						fieldLabelDto.setLanguageCode(fieldKeyLabel.getLanguageCode());
+						fieldLabelDtoList.add(fieldLabelDto);
+					}
+				}
+
+				if (!Validations.isEmpty(gridKeyLableList)) {
+					commonLableDtoList = new ArrayList<>();
+					for (GridFormKeyLabel gridFormKeyLabel : gridKeyLableList) {
+						CommonLableDto commonLableDto = new CommonLableDto();
+						commonLableDto.setCommonDispLable(gridFormKeyLabel.getGridFormKeyLable());
+						commonLableDto.setCommonKey(gridFormKeyLabel.getGridFromKey());
+						commonLableDto.setLanguageCode(gridFormKeyLabel.getLanguageCode());
+						commonLableDtoList.add(commonLableDto);
+					}
+				}
+			}
+
+			SdmxLabelDto sdmxLabelDto = new SdmxLabelDto();
+			sdmxLabelDto.setErrorlabelDto(errorLabelDtoList);
+			sdmxLabelDto.setFildlabelDto(fieldLabelDtoList);
+			sdmxLabelDto.setCommonlabelDto(commonLableDtoList);
+
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(sdmxLabelDto).build();
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorConstants.DEFAULT_ERROR.getConstantVal()).setStatusMessage(ErrorConstants.DEFAULT_MSG.getConstantVal()).build();
+		}
+
+	}
+
+}

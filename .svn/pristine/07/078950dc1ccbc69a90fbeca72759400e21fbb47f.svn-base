@@ -1,0 +1,142 @@
+package com.iris.nbfc.model;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+/**
+ * @author pmohite
+ */
+@Entity
+@Table(name = "TBL_NBFC_DISPLAY_MESSAGES")
+public class NbfcDisplayMessages {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "NBFC_DISPLAY_MSG_ID")
+	private int displayMsgId;
+
+	@Column(name = "MESSAGE_TITLE")
+	private String msgTitle;
+
+	@Column(name = "NBFC_DISPLAY_MSG")
+	private String displayMsg;
+
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	@Column(name = "MESSAGE_TITLE_BIL")
+	private String msgTitleBil;
+
+	@Column(name = "NBFC_DISPLAY_MSG_BIL")
+	private String displayMsgBil;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "NBFC_COMPANY_TYPE_FK")
+	private NbfcCompanyType companyType;
+
+	/**
+	 * @return the displayMsgId
+	 */
+	public int getDisplayMsgId() {
+		return displayMsgId;
+	}
+
+	/**
+	 * @param displayMsgId the displayMsgId to set
+	 */
+	public void setDisplayMsgId(int displayMsgId) {
+		this.displayMsgId = displayMsgId;
+	}
+
+	/**
+	 * @return the msgTitle
+	 */
+	public String getMsgTitle() {
+		return msgTitle;
+	}
+
+	/**
+	 * @param msgTitle the msgTitle to set
+	 */
+	public void setMsgTitle(String msgTitle) {
+		this.msgTitle = msgTitle;
+	}
+
+	/**
+	 * @return the displayMsg
+	 */
+	public String getDisplayMsg() {
+		return displayMsg;
+	}
+
+	/**
+	 * @param displayMsg the displayMsg to set
+	 */
+	public void setDisplayMsg(String displayMsg) {
+		this.displayMsg = displayMsg;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the msgTitleBil
+	 */
+	public String getMsgTitleBil() {
+		return msgTitleBil;
+	}
+
+	/**
+	 * @param msgTitleBil the msgTitleBil to set
+	 */
+	public void setMsgTitleBil(String msgTitleBil) {
+		this.msgTitleBil = msgTitleBil;
+	}
+
+	/**
+	 * @return the displayMsgBil
+	 */
+	public String getDisplayMsgBil() {
+		return displayMsgBil;
+	}
+
+	/**
+	 * @param displayMsgBil the displayMsgBil to set
+	 */
+	public void setDisplayMsgBil(String displayMsgBil) {
+		this.displayMsgBil = displayMsgBil;
+	}
+
+	/**
+	 * @return the companyType
+	 */
+	public NbfcCompanyType getCompanyType() {
+		return companyType;
+	}
+
+	/**
+	 * @param companyType the companyType to set
+	 */
+	public void setCompanyType(NbfcCompanyType companyType) {
+		this.companyType = companyType;
+	}
+
+}

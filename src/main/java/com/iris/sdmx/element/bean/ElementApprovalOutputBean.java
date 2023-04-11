@@ -1,0 +1,257 @@
+package com.iris.sdmx.element.bean;
+
+import java.io.Serializable;
+import java.util.Date;
+
+/**
+ * @author vjadhav
+ *
+ */
+public class ElementApprovalOutputBean implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	private Long elementTempId;
+
+	private String dsdCode;
+
+	private String elementVer;
+
+	private Long createdBy;
+
+	private String createdByName;
+
+	private Date createdOn;
+
+	private Long statusId;
+
+	private String statusLabel;
+
+	private Long actionStatusId;
+
+	private String actionStatusLabel;
+
+	private Long elementIdFk;
+
+	private Long createdOnLong;
+
+	private String sdmxElementEntityJson;
+
+	private String agencyLabel;
+
+	/**
+	 * @return the agencyLabel
+	 */
+	public String getAgencyLabel() {
+		return agencyLabel;
+	}
+
+	/**
+	 * @param agencyLabel the agencyLabel to set
+	 */
+	public void setAgencyLabel(String agencyLabel) {
+		this.agencyLabel = agencyLabel;
+	}
+
+	/**
+	 * @return the agencyCode
+	 */
+	public String getAgencyCode() {
+		return agencyCode;
+	}
+
+	/**
+	 * @param agencyCode the agencyCode to set
+	 */
+	public void setAgencyCode(String agencyCode) {
+		this.agencyCode = agencyCode;
+	}
+
+	private String agencyCode;
+
+	/**
+	 * @return the elementTempId
+	 */
+	public Long getElementTempId() {
+		return elementTempId;
+	}
+
+	/**
+	 * @param elementTempId the elementTempId to set
+	 */
+	public void setElementTempId(Long elementTempId) {
+		this.elementTempId = elementTempId;
+	}
+
+	/**
+	 * @return the dsdCode
+	 */
+	public String getDsdCode() {
+		return dsdCode;
+	}
+
+	/**
+	 * @param dsdCode the dsdCode to set
+	 */
+	public void setDsdCode(String dsdCode) {
+		this.dsdCode = dsdCode;
+	}
+
+	/**
+	 * @return the elementVer
+	 */
+	public String getElementVer() {
+		return elementVer;
+	}
+
+	/**
+	 * @param elementVer the elementVer to set
+	 */
+	public void setElementVer(String elementVer) {
+		this.elementVer = elementVer;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public Long getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(Long createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the createdByName
+	 */
+	public String getCreatedByName() {
+		return createdByName;
+	}
+
+	/**
+	 * @param createdByName the createdByName to set
+	 */
+	public void setCreatedByName(String createdByName) {
+		this.createdByName = createdByName;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the statusId
+	 */
+	public Long getStatusId() {
+		return statusId;
+	}
+
+	/**
+	 * @param statusId the statusId to set
+	 */
+	public void setStatusId(Long statusId) {
+		this.statusId = statusId;
+	}
+
+	/**
+	 * @return the statusLabel
+	 */
+	public String getStatusLabel() {
+		return statusLabel;
+	}
+
+	/**
+	 * @param statusLabel the statusLabel to set
+	 */
+	public void setStatusLabel(String statusLabel) {
+		this.statusLabel = statusLabel;
+	}
+
+	/**
+	 * @return the actionStatusId
+	 */
+	public Long getActionStatusId() {
+		return actionStatusId;
+	}
+
+	/**
+	 * @param actionStatusId the actionStatusId to set
+	 */
+	public void setActionStatusId(Long actionStatusId) {
+		this.actionStatusId = actionStatusId;
+	}
+
+	/**
+	 * @return the actionStatusLabel
+	 */
+	public String getActionStatusLabel() {
+		return actionStatusLabel;
+	}
+
+	/**
+	 * @param actionStatusLabel the actionStatusLabel to set
+	 */
+	public void setActionStatusLabel(String actionStatusLabel) {
+		this.actionStatusLabel = actionStatusLabel;
+	}
+
+	/**
+	 * @return the elementIdFk
+	 */
+	public Long getElementIdFk() {
+		return elementIdFk;
+	}
+
+	/**
+	 * @param elementIdFk the elementIdFk to set
+	 */
+	public void setElementIdFk(Long elementIdFk) {
+		this.elementIdFk = elementIdFk;
+	}
+
+	/**
+	 * @return the createdOnLong
+	 */
+	public Long getCreatedOnLong() {
+		return createdOnLong;
+	}
+
+	/**
+	 * @param createdOnLong the createdOnLong to set
+	 */
+	public void setCreatedOnLong(Long createdOnLong) {
+		this.createdOnLong = createdOnLong;
+	}
+
+	/**
+	 * @return the sdmxElementEntityJson
+	 */
+	public String getSdmxElementEntityJson() {
+		return sdmxElementEntityJson;
+	}
+
+	/**
+	 * @param sdmxElementEntityJson the sdmxElementEntityJson to set
+	 */
+	public void setSdmxElementEntityJson(String sdmxElementEntityJson) {
+		this.sdmxElementEntityJson = sdmxElementEntityJson;
+	}
+
+}

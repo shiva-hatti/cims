@@ -1,0 +1,90 @@
+/**
+ * 
+ */
+package com.iris.validator;
+
+import java.io.Serializable;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.iris.caching.ObjectCache;
+import com.iris.exception.ApplicationException;
+import com.iris.service.impl.ReturnTemplateService;
+import com.iris.service.impl.UserMasterService;
+import com.iris.util.constant.ErrorCode;
+
+/**
+ * @author apagaria
+ *
+ */
+@Component
+public class CIMSCommonValidator  implements Serializable {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2235878211430080470L;
+
+	/**
+	 * 
+	 */
+	private static final Logger LOGGER = LogManager.getLogger(CIMSCommonValidator.class);
+
+	/**
+	 * 
+	 */
+	@Autowired
+	private UserMasterService userMasterService;
+	
+	/**
+	 * 
+	 */
+	@Autowired
+	private ReturnTemplateService returnTemplateService;
+	
+	/**
+	 * @param jobProcessId
+	 * @throws ApplicationException
+	 */
+	public void validateJobProcessingId(String jobProcessId) throws ApplicationException {
+		if (StringUtils.isBlank(jobProcessId)) {
+			LOGGER.error("Job Processing Id Blank");
+			throw new ApplicationException(ErrorCode.E1450.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E1450.toString()));
+		}
+	}
+	
+	/**
+	 * @param userId
+	 * @throws ApplicationException
+	 */
+	public void validateUser(Long userId) throws ApplicationException {
+		
+		if (userId == null) {
+			LOGGER.error("User Blank");
+			throw new ApplicationException(ErrorCode.E0789.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E0789.toString()));
+		} else if (StringUtils.isBlank(userMasterService.getUserNameByUserId(userId))) {
+			LOGGER.error("User not found");
+			throw new ApplicationException(ErrorCode.E0638.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E0804.toString()));
+		}
+	}
+	
+	
+	/**
+	 * @param returnTemplateId
+	 * @throws ApplicationException
+	 */
+	public void validateReturnTemplate(Long returnTemplateId) throws ApplicationException {
+		if (returnTemplateId == null) {
+			LOGGER.error("Return Template Id blank");
+			throw new ApplicationException(ErrorCode.E1456.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E1456.toString()));
+		} else if (!returnTemplateService.isReturnTemplateExist(returnTemplateId)) {
+			LOGGER.error("Return Template Id not found");
+			throw new ApplicationException(ErrorCode.E1457.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E1457.toString()));
+		}
+	}
+
+}

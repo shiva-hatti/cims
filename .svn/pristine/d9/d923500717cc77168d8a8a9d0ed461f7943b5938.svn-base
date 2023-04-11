@@ -1,0 +1,22 @@
+/**
+ * 
+ */
+package com.iris.sdmx.elementdimensionmapping.repo;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.iris.sdmx.elementdimensionmapping.entity.ElementDimension;
+
+/**
+ * @author sajadhav
+ *
+ */
+public interface ElementDimensionRepo extends JpaRepository<ElementDimension, Long>{
+
+	List<ElementDimension> findByIsActiveTrue();
+	
+	ElementDimension findByElementDsdCodeAndElementElementVer(String dsdCode, String elementVersion);
+	
+}

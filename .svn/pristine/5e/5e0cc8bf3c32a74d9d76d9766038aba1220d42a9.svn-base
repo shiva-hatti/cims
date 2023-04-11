@@ -1,0 +1,139 @@
+package com.iris.service.impl;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.dateutility.enums.DateConstants;
+import com.iris.dateutility.util.DateManip;
+import com.iris.exception.ServiceException;
+import com.iris.model.MISPendingMailSentHist;
+import com.iris.repository.MISPendingMailSentHistRepo;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.MethodConstants;
+
+/**
+ * @author pradnyam
+ *
+ */
+@Service
+public class MISPendingMailSentHistService implements GenericService<MISPendingMailSentHist, Long>{
+
+	@Autowired
+	MISPendingMailSentHistRepo misPendingMailSentHistRepo;
+
+	@Override
+	public MISPendingMailSentHist add(MISPendingMailSentHist entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return misPendingMailSentHistRepo.save(entity);
+	}
+
+	@Override
+	public boolean update(MISPendingMailSentHist entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public List<MISPendingMailSentHist> getDataByIds(Long[] ids) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public MISPendingMailSentHist getDataById(Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<MISPendingMailSentHist> getDataByColumnValue(Map<String, List<String>> columnValueMap,
+			String methodName) throws ServiceException {
+
+		try {
+			List<String> returnIdList = null;
+			List<String> entityIdList = null;
+			List<String> conRetCodeList = new ArrayList<>();
+			List<String> conEntCodeList = new ArrayList<>();
+			List<Date> endDateList = new ArrayList<>(); 
+
+
+			for (String columnName : columnValueMap.keySet()) {
+				if (columnValueMap.get(columnName) != null && !columnValueMap.get(columnName).isEmpty()) {
+					 if (columnName.equalsIgnoreCase(ColumnConstants.RETURN_ID_LIST.getConstantVal())) {
+						returnIdList = columnValueMap.get(columnName);
+						conRetCodeList = returnIdList.stream()
+		                        .distinct()
+		                        .collect(Collectors.toList());
+						
+					} else if (columnName.equalsIgnoreCase(ColumnConstants.ENTITY_ID_LIST.getConstantVal())) {
+						entityIdList = columnValueMap.get(columnName);
+						conEntCodeList = entityIdList.stream()
+		                        .distinct()
+		                        .collect(Collectors.toList());
+						
+					}else if (columnName.equalsIgnoreCase(ColumnConstants.END_DATE_LIST.getConstantVal())) {
+						List<String> tempEndDateList = columnValueMap.get(columnName);
+						List<String> distinctElements = tempEndDateList.stream()
+		                        .distinct()
+		                        .collect(Collectors.toList());
+						for (String endDates : distinctElements) {
+							System.out.println("endDates:"+endDates);
+							endDateList.add(DateManip.convertStringToDate(endDates,  DateConstants.YYYY_MM_DD.getDateConstants()));
+						}
+					}
+				}
+			}
+			 if (methodName.equalsIgnoreCase(MethodConstants.GET_MIS_PENDING_EMAIL_HIST_DATA.getConstantVal())) {
+					return misPendingMailSentHistRepo.getDataByEntityReturnEndDate(conRetCodeList, conEntCodeList, endDateList);
+				} 
+				
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+		return null;
+	}
+
+	@Override
+	public List<MISPendingMailSentHist> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap,
+			String methodName) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<MISPendingMailSentHist> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<MISPendingMailSentHist> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<MISPendingMailSentHist> getAllDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void deleteData(MISPendingMailSentHist bean) throws ServiceException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void saveAll(List<MISPendingMailSentHist> misPendingMailSentHistListForInsertUpdate) {
+		misPendingMailSentHistRepo.saveAll(misPendingMailSentHistListForInsertUpdate);
+	}
+}

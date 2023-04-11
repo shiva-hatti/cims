@@ -1,0 +1,115 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+import com.iris.util.Validations;
+
+/**
+ * @author psheke
+ * @date 27/10/2020
+ */
+@Entity
+@Table(name = "TBL_AUDIT_FIRM_LABEL")
+public class AuditFirmLabelInfo implements Serializable {
+
+	private static final long serialVersionUID = 8571647274895761039L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "AUDIT_FIRM_LABEL_ID")
+	private Long auditFirmLabelId;
+
+	@ManyToOne
+	@JoinColumn(name = "LANGUAGE_ID_FK")
+	private LanguageMaster languageMaster;
+
+	@ManyToOne
+	@JoinColumn(name = "AUDIT_FIRM_ID_FK")
+	private AuditFirmInfo auditFirmIdFk;
+
+	@Column(name = "AUDIT_FIRM_NAME_LABEL")
+	private String auditFirmNameLabel;
+
+	@Column(name = "LAST_MODIFIED_ON")
+	private Date lastModifiedOn;
+
+	@ManyToOne
+	@JoinColumn(name = "LAST_MODIFIED_BY_FK")
+	private UserMaster lastModifiedBy;
+
+	@Column(name = "LAST_UPDATED_ON")
+	private Date lastUpdatedOn;
+
+	public Long getAuditFirmLabelId() {
+		return auditFirmLabelId;
+	}
+
+	public void setAuditFirmLabelId(Long auditFirmLabelId) {
+		this.auditFirmLabelId = auditFirmLabelId;
+	}
+
+	public LanguageMaster getLanguageMaster() {
+		return languageMaster;
+	}
+
+	public void setLanguageMaster(LanguageMaster languageMaster) {
+		this.languageMaster = languageMaster;
+	}
+
+	public String getAuditFirmNameLabel() {
+		return auditFirmNameLabel;
+	}
+
+	public void setAuditFirmNameLabel(String auditFirmNameLabel) {
+		this.auditFirmNameLabel = Validations.trimInput(auditFirmNameLabel);
+	}
+
+	public Date getLastModifiedOn() {
+		return lastModifiedOn;
+	}
+
+	public void setLastModifiedOn(Date lastModifiedOn) {
+		this.lastModifiedOn = lastModifiedOn;
+	}
+
+	public UserMaster getLastModifiedBy() {
+		return lastModifiedBy;
+	}
+
+	public void setLastModifiedBy(UserMaster lastModifiedBy) {
+		this.lastModifiedBy = lastModifiedBy;
+	}
+
+	public Date getLastUpdatedOn() {
+		return lastUpdatedOn;
+	}
+
+	public void setLastUpdatedOn(Date lastUpdatedOn) {
+		this.lastUpdatedOn = lastUpdatedOn;
+	}
+
+	/**
+	 * @return the auditFirmIdFk
+	 */
+	public AuditFirmInfo getAuditFirmIdFk() {
+		return auditFirmIdFk;
+	}
+
+	/**
+	 * @param auditFirmIdFk the auditFirmIdFk to set
+	 */
+	public void setAuditFirmIdFk(AuditFirmInfo auditFirmIdFk) {
+		this.auditFirmIdFk = auditFirmIdFk;
+	}
+
+}

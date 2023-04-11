@@ -1,0 +1,236 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Set;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.iris.util.Validations;
+
+@Entity
+@Table(name = "TBL_GROUP_MASTER_TEMP")
+@JsonInclude(Include.NON_NULL)
+public class GroupMasterTemp implements Serializable {
+
+	private static final long serialVersionUID = -9002720451376495025L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "GROUP_ID")
+	private Long groupId;
+
+	@Column(name = "GROUP_CODE")
+	private String groupCode;
+
+	@Column(name = "GROUP_NAME")
+	private String groupName;
+
+	@Column(name = "ALTERNATE_NAME")
+	private String alternateName;
+
+	@Column(name = "REMARK")
+	private String remark;
+
+	@Column(name = "MOBILE_NUMBER")
+	private Long mobileNumber;
+
+	@Column(name = "VERIFICATION_STATUS")
+	private Integer verificationStatus;
+
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+
+	@Column(name = "ENTRY_TYPE")
+	private Integer entryType;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "ENTITY_ID_FK")
+	private EntityBean entityBean;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "CREATED_BY_FK")
+	private UserMaster createdBy;
+
+	@Column(name = "COMMENT")
+	private String comment;
+    
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "GROUP_ID_FK")
+	private GroupMasterTemp groupIdFk;
+//	@ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+//	@JoinTable(name = "TBL_GROUP_COMPANY", joinColumns = {@JoinColumn(name = "GROUP_ID_FK", referencedColumnName = "GROUP_ID")}, 
+//	inverseJoinColumns = {@JoinColumn(name = "COMPANY_ID_FK", referencedColumnName = "COMPANY_ID")})
+    
+	
+	//@OneToMany(cascade = CascadeType.ALL)
+	/*
+	 * @JoinTable( name = "TBL_GROUP_COMPANY_MAP", joinColumns = @JoinColumn(name =
+	 * "GROUP_ID_FK"), inverseJoinColumns = @JoinColumn(name =
+	 * "GROUP_COMPANY_ID_FK") )
+	 */
+	
+	@ManyToMany(cascade = { CascadeType.MERGE, CascadeType.REFRESH })
+	@JoinTable(name = "TBL_GROUP_COMPANY_MAP", joinColumns = {
+			@JoinColumn(name = "GROUP_ID_FK") }, inverseJoinColumns = { @JoinColumn(name = "GROUP_COMPANY_ID_FK") })
+	private Set<GroupCompany> groupCompanySet;
+	
+	@Column(name="IS_BULK_UPLOAD")
+	private Boolean isBulkUpload;
+	
+	@ManyToOne
+	@JoinColumn(name = "APPROVED_BY_FK")
+	private UserMaster approvedByFk;
+	
+	@Column(name = "APPROVED_ON")
+	private Date approvedOn;
+	
+	public Boolean getIsBulkUpload() {
+		return isBulkUpload;
+	}
+
+	public void setIsBulkUpload(Boolean isBulkUpload) {
+		this.isBulkUpload = isBulkUpload;
+	}
+
+	public Long getGroupId() {
+		return groupId;
+	}
+
+	public void setGroupId(Long groupId) {
+		this.groupId = groupId;
+	}
+
+	public String getGroupCode() {
+		return groupCode;
+	}
+
+	public void setGroupCode(String groupCode) {
+		this.groupCode = Validations.trimInput(groupCode);
+	}
+
+	public String getGroupName() {
+		return groupName;
+	}
+
+	public void setGroupName(String groupName) {
+		this.groupName = Validations.trimInput(groupName);
+	}
+
+	public String getAlternateName() {
+		return alternateName;
+	}
+
+	public void setAlternateName(String alternateName) {
+		this.alternateName = Validations.trimInput(alternateName);
+	}
+
+	public String getRemark() {
+		return remark;
+	}
+
+	public void setRemark(String remark) {
+		this.remark = Validations.trimInput(remark);
+	}
+
+	public Long getMobileNumber() {
+		return mobileNumber;
+	}
+
+	public void setMobileNumber(Long mobileNumber) {
+		this.mobileNumber = mobileNumber;
+	}
+
+	public Integer getVerificationStatus() {
+		return verificationStatus;
+	}
+
+	public void setVerificationStatus(Integer verificationStatus) {
+		this.verificationStatus = verificationStatus;
+	}
+
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	public Integer getEntryType() {
+		return entryType;
+	}
+
+	public void setEntryType(Integer entryType) {
+		this.entryType = entryType;
+	}
+
+	public EntityBean getEntityBean() {
+		return entityBean;
+	}
+
+	public void setEntityBean(EntityBean entityBean) {
+		this.entityBean = entityBean;
+	}
+
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	public String getComment() {
+		return comment;
+	}
+
+	public void setComment(String comment) {
+		this.comment = comment;
+	}
+
+	public Set<GroupCompany> getGroupCompanySet() {
+		return groupCompanySet;
+	}
+
+	public void setGroupCompanySet(Set<GroupCompany> groupCompanySet) {
+		this.groupCompanySet = groupCompanySet;
+	}
+
+	public GroupMasterTemp getGroupIdFk() {
+		return groupIdFk;
+	}
+
+	public void setGroupIdFk(GroupMasterTemp groupIdFk) {
+		this.groupIdFk = groupIdFk;
+	}
+
+	public UserMaster getApprovedByFk() {
+		return approvedByFk;
+	}
+
+	public void setApprovedByFk(UserMaster approvedByFk) {
+		this.approvedByFk = approvedByFk;
+	}
+
+	public Date getApprovedOn() {
+		return approvedOn;
+	}
+
+	public void setApprovedOn(Date approvedOn) {
+		this.approvedOn = approvedOn;
+	}
+}

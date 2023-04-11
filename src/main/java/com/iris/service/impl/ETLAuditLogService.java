@@ -1,0 +1,47 @@
+/**
+ * 
+ */
+package com.iris.service.impl;
+
+import java.util.Date;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.iris.model.ETLAuditLog;
+import com.iris.repository.ETLAuditLogRepo;
+
+/**
+ * @author akhandagale
+ *
+ */
+@Service
+public class ETLAuditLogService {
+
+	@Autowired
+	private ETLAuditLogRepo eTLAuditLogRepo;
+
+	public ETLAuditLog add(ETLAuditLog eTLAuditLog) {
+		return eTLAuditLogRepo.save(eTLAuditLog);
+	}
+
+	public List<ETLAuditLog> getDataByUploadId(Long uploadId) {
+		return eTLAuditLogRepo.findByReturnUploadDetailsUploadIdOrderByAuditIdDesc(uploadId);
+	}
+
+	public List<ETLAuditLog> getDataByAuditLogId(Long uploadId) {
+		return eTLAuditLogRepo.findByAuditId(uploadId);
+	}
+
+	@Transactional
+	public int updateAuditLogStatus(long auditId, long status) {
+		return eTLAuditLogRepo.updateAuditLogStatus(auditId, status, new Date());
+	}
+
+	public ETLAuditLog findByUploadIdAndStatus(Long uploadId, Long status) {
+		return eTLAuditLogRepo.findByReturnUploadDetailsUploadIdAndStatus(uploadId, status);
+	}
+
+}

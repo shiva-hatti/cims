@@ -1,0 +1,59 @@
+package com.iris.ebr.business.technical.metadata.bean;
+
+import java.io.Serializable;
+
+public class EbrRbrTableDto implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 9072953023261223628L;
+	
+	private String elementCode;
+	private String elementVer;
+	private String ebrTableName;
+	private String busMetaDataTableName;
+	private String returnCode;
+	private String rbrTableName;
+	public String getElementCode() {
+		return elementCode;
+	}
+	public void setElementCode(String elementCode) {
+		this.elementCode = elementCode;
+	}
+	public String getElementVer() {
+		return elementVer;
+	}
+	public void setElementVer(String elementVer) {
+		this.elementVer = elementVer;
+	}
+	public String getEbrTableName() {
+		return ebrTableName;
+	}
+	public void setEbrTableName(String ebrTableName) {
+		this.ebrTableName = ebrTableName;
+	}
+	public String getBusMetaDataTableName() {
+		return busMetaDataTableName;
+	}
+	public void setBusMetaDataTableName(String busMetaDataTableName) {
+		this.busMetaDataTableName = busMetaDataTableName;
+	}
+	public String getReturnCode() {
+		return returnCode;
+	}
+	public void setReturnCode(String returnCode) {
+		this.returnCode = returnCode;
+	}
+	public String getRbrTableName() {
+		return rbrTableName;
+	}
+	public void setRbrTableName(String rbrTableName) {
+		this.rbrTableName = rbrTableName;
+	}
+	
+	
+	
+	
+
+}

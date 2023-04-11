@@ -1,0 +1,95 @@
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.Return;
+
+public interface ReturnRepo extends JpaRepository<Return, Long> {
+	 
+	List<Return> getDataByReturnIdInAndIsActiveTrue(Long[] returnIds);
+	Return getDataByReturnIdAndIsActiveTrue(Long returnId);
+	List<Return> getDataByReturnCodeInIgnoreCaseAndIsActiveTrue(List<String> returnCodeList);
+	List<Return> getDataByOldReturnCodeInIgnoreCaseAndIsActiveTrue(List<String> returnCodeList);
+	
+	@Query(value = "select new com.iris.model.Return(ret.returnId, ret.returnCode, retLable.returnLabel, userRoleRet.isActive) from UserRoleReturnMapping userRoleRet,"
+			+ " Return ret, ReturnLabel retLable, LanguageMaster langMas" 
+			+ " where userRoleRet.roleIdFk.userRoleId =:roleId and userRoleRet.isActive =:isActive "
+			+ " and langMas.languageCode =:langCode"
+			+ " and ret.isActive =:isActive"
+			+ " and langMas.languageId = retLable.langIdFk.languageId "
+			+ " and ret.returnId = retLable.returnIdFk.returnId and ret.returnId = userRoleRet.returnIdFk.returnId")
+	List<Return> getListOfReturnMappeToRoleId(@Param("roleId") Long roleId, @Param("isActive") boolean isActive,@Param("langCode") String langCode);
+	
+	@Query(value = "SELECT new com.iris.model.Return(ret.returnId, ret.returnCode, retLable.returnLabel, grp.returnGroupMapId, retgrplable.groupLabel) FROM Return ret, UserRoleReturnMapping map, ReturnGroupMapping grp," + 
+			" ReturnEntityMappingNew entmap, ReturnLabel retLable, ReturnGroupLabelMapping retgrplable," + 
+			" LanguageMaster lang, EntityBean ent" + 
+			" where ret.isActive =:isActive and map.isActive =:isActive and grp.isActive =:isActive and entmap.isActive =:isActive" + 
+			" and lang.isActive =:isActive " + 
+			" and map.roleIdFk.userRoleId =:roleId and ent.entityCode =:entCode" + 
+			" and lang.languageCode =:langCode" + 
+			" and entmap.entity.entityId = ent.entityId" + 
+			" and entmap.returnObj.returnId = ret.returnId" + 
+			" and map.returnIdFk.returnId = ret.returnId" + 
+			" and ret.returnGroupMapIdFk.returnGroupMapId = grp.returnGroupMapId" + 
+			" and ret.returnId = retLable.returnIdFk.returnId" + 
+			" and grp.returnGroupMapId = retgrplable.returnGroupMapIdFk.returnGroupMapId" + 
+			" and retgrplable.langIdFk.languageId= lang.languageId" + 
+			" and retLable.langIdFk.languageId= lang.languageId")
+	List<Return> getRegulatorUserReturnListBasedUponEntity(@Param("roleId") Long roleId, @Param("isActive") boolean isActive,@Param("langCode") String langCode,@Param("entCode") String entCode);
+
+	@Query("SELECT new com.iris.model.Return(ret.returnId, ret.returnCode, retLbl.returnLabel, grp.returnGroupMapId, grplbl.groupLabel) FROM "
+			+ " ReturnEntityMappingNew entMap, EntityBean en,  Return ret, ReturnLabel retLbl, "
+			+ " ReturnGroupMapping grp, ReturnGroupLabelMapping grplbl, LanguageMaster lang"  
+			+ " where en.entityCode =:entityCode and lang.languageCode =:langCode "
+			+ " and ret.isActive =:isActive and en.isActive =:isActive and entMap.isActive =:isActive and grp.isActive =:isActive and en.entityId = entMap.entity.entityId "
+			+ " and entMap.returnObj.returnId = ret.returnId and ret.returnId = retLbl.returnIdFk.returnId "
+			+ " and retLbl.langIdFk.languageId = lang.languageId and ret.returnGroupMapIdFk.returnGroupMapId = grp.returnGroupMapId "
+			+ " and grp.returnGroupMapId = grplbl.returnGroupMapIdFk.returnGroupMapId and grplbl.langIdFk.languageId = lang.languageId")
+	List<Return> getReturnListBasedUponEntityId(@Param("entityCode") String entityCode, @Param("isActive") boolean isActive, @Param("langCode") String langCode);
+	
+	@Query("SELECT new com.iris.model.Return(ret.returnId, ret.returnCode, retLbl.returnLabel) FROM "
+			+ "  Return ret, ReturnLabel retLbl, "
+			+ "  LanguageMaster lang"  
+			+ " where lang.languageCode =:langCode and ret.returnId IN (:retIds)"
+			+ " and ret.isActive =:isActive "
+			+ " and ret.returnId = retLbl.returnIdFk.returnId "
+			+ " and retLbl.langIdFk.languageId = lang.languageId ")
+	List<Return> getReturnListWithLabelBasedUponReturnIds(@Param("isActive") boolean isActive, @Param("langCode") String langCode, @Param("retIds") List<Long> retIds);
+	
+	@Query("SELECT new com.iris.model.Return(ret.returnId, ret.returnCode, retLbl.returnLabel,ret.frequency) FROM "
+			+ "  Return ret, ReturnLabel retLbl, "
+			+ "  LanguageMaster lang"  
+			+ " where lang.languageCode =:langCode and ret.returnId IN (:retIds)"
+			+ " and ret.isActive =:isActive "
+			+ " and ret.returnId = retLbl.returnIdFk.returnId "
+			+ " and retLbl.langIdFk.languageId = lang.languageId ")
+	List<Return> getReturnListWithFrequencyBasedUponReturnIds(@Param("isActive") boolean isActive, @Param("langCode") String langCode, @Param("retIds") List<Long> retIds);
+	
+	
+	@Query("FROM Return where isActive = '1' and returnGroupMapIdFk is null")
+	List<Return> getReturnListWithoutReturnGroup();
+	
+	@Query("SELECT new com.iris.model.Return(ret.returnId, ret.returnCode, retLbl.returnLabel) FROM "
+			+ "  Return ret, ReturnLabel retLbl, "
+			+ "  LanguageMaster lang"  
+			+ " where lang.languageCode =:langCode"
+			+ " and ret.isActive =:isActive "
+			+ " and ret.returnId = retLbl.returnIdFk.returnId "
+			+ " and retLbl.langIdFk.languageId = lang.languageId ")
+	List<Return> getAllReturnListWithLabelBasedUponReturnIds(@Param("isActive") boolean isActive, @Param("langCode") String langCode);
+	
+	@Query("FROM Return ret where ret.isActive = 1 and ret.frequency.frequencyId =:frequencyId")
+	List<Return> getDataByFrequencyId(@Param("frequencyId") Long frequencyId);
+	
+	@Query("FROM Return ret where ret.isActive = 1 and ret.returnCode =:returnCode")
+	Return findByReturnCode(@Param("returnCode") String returnCode);
+	
+	@Query("FROM Return ret where ret.returnGroupMapIdFk.returnGroupMapId =:returnGroupMapId")
+	List<Return> fetchReturnNameListbyGroupMapId(@Param("returnGroupMapId") Long returnGroupMapId);
+	
+	
+}

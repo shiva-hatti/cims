@@ -1,0 +1,92 @@
+/**
+ * 
+ */
+package com.iris.sdmx.lockrecord.validator;
+
+import java.io.Serializable;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.iris.exception.ApplicationException;
+import com.iris.sdmx.lockrecord.bean.SdmxLockRecordSetBean;
+import com.iris.validator.CIMSCommonValidator;
+
+/**
+ * @author apagaria
+ *
+ */
+@Component
+public class SdmxLockRecordValidator implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * 
+	 */
+	private static final Logger LOGGER = LogManager.getLogger(SdmxLockRecordValidator.class);
+
+	/**
+	 * 
+	 */
+	@Autowired
+	private CIMSCommonValidator cimsCommonValidator;
+
+	/**
+	 * @param userId
+	 * @param jobProcessId
+	 * @throws ApplicationException
+	 */
+	public void validateCheckLockRecordStatus(Long userId, String jobProcessId, String recordDetailJson)
+			throws ApplicationException {
+		LOGGER.info("START - Validation request for CheckLockRecordStatus with Job Processing ID : " + jobProcessId);
+
+		// Validate Job Processing Id
+		cimsCommonValidator.validateJobProcessingId(jobProcessId);
+		// Validate User
+		cimsCommonValidator.validateUser(userId);
+		LOGGER.info("END - Validation request for CheckLockRecordStatus with Job Processing ID : " + jobProcessId);
+	}
+	
+	/**
+	 * @param userId
+	 * @param jobProcessId
+	 * @throws ApplicationException
+	 */
+	public void validateUpdateLockOnRecordStatus(Long userId, String jobProcessId, String recordDetailJson)
+			throws ApplicationException {
+		LOGGER.info("START - Validation request for validateUpdateLockOnRecordStatus with Job Processing ID : " + jobProcessId);
+
+		// Validate Job Processing Id
+		cimsCommonValidator.validateJobProcessingId(jobProcessId);
+		// Validate User
+		cimsCommonValidator.validateUser(userId);
+		LOGGER.info("END - Validation request for validateUpdateLockOnRecordStatus with Job Processing ID : " + jobProcessId);
+	}
+	
+	
+	/**
+	 * @param userId
+	 * @param jobProcessId
+	 * @param sdmxLockRecordSetBean
+	 * @throws ApplicationException
+	 */
+	public void validateSetLockOnRecord(Long userId, String jobProcessId, SdmxLockRecordSetBean sdmxLockRecordSetBean)
+			throws ApplicationException {
+		LOGGER.info("START - Validation request for SetLockOnRecord with Job Processing ID : " + jobProcessId);
+
+		// Validate Job Processing Id
+		cimsCommonValidator.validateJobProcessingId(jobProcessId);
+		// Validate User
+		cimsCommonValidator.validateUser(userId);
+		LOGGER.info("END - Validation request for SetLockOnRecord with Job Processing ID : " + jobProcessId);
+	}
+	
+	
+
+}

@@ -1,0 +1,265 @@
+/**
+ * 
+ */
+package com.iris.sdmx.exceltohtml.validator;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.iris.caching.ObjectCache;
+import com.iris.exception.ApplicationException;
+import com.iris.model.ReturnTemplate;
+import com.iris.sdmx.exceltohtml.bean.PreviewPublishBean;
+import com.iris.sdmx.exceltohtml.bean.SdmxReturnPreviewBean;
+import com.iris.sdmx.exceltohtml.entity.SdmxReturnPreviewEntity;
+import com.iris.sdmx.exceltohtml.repo.SdmxReturnPreviewRepo;
+import com.iris.sdmx.exceltohtml.service.SdmxReturnPreviewService;
+import com.iris.sdmx.lockrecord.entity.SdmxLockRecordEntity;
+import com.iris.sdmx.lockrecord.service.SdmxLockRecordService;
+import com.iris.util.constant.ErrorCode;
+import com.iris.validator.CIMSCommonValidator;
+
+/**
+ * @author apagaria
+ *
+ */
+@Component
+public class SdmxRetrunPreviewValidator {
+
+	/**
+	 * 
+	 */
+	private static final Logger LOGGER = LogManager.getLogger(SdmxRetrunPreviewValidator.class);
+	
+	/**
+	 * 
+	 */
+	@Autowired
+	private CIMSCommonValidator cimsCommonValidator;
+	
+	@Autowired
+	private SdmxReturnPreviewService sdmxReturnPreviewService;
+	
+	@Autowired
+	private SdmxReturnPreviewRepo sdmxReturnPreviewRepo;
+	
+	@Autowired
+	private SdmxLockRecordService sdmxLockRecordService;
+
+	/**
+	 * @param userId
+	 * @param jobProcessId
+	 * @throws ApplicationException
+	 */
+	public void validateFetchAllRecord(Long userId, String jobProcessId) throws ApplicationException {
+		LOGGER.info("START - Validation request for Fetch All Record with Job Processing ID : " + jobProcessId);
+
+		// Validate Job Processing Id
+		cimsCommonValidator.validateJobProcessingId(jobProcessId);
+		// Validate User
+		cimsCommonValidator.validateUser(userId);
+		LOGGER.info("END - Validation request for Fetch All Record with Job Processing ID : " + jobProcessId);
+	}
+
+	/**
+	 * @param userId
+	 * @param jobProcessId
+	 * @param returnTemplateId
+	 * @throws ApplicationException
+	 */
+	public void validateFetchHtmlById(Long userId, String jobProcessId, Long returnTemplateId)
+			throws ApplicationException {
+		LOGGER.info("START - Validation request for Fetch Html By Id with Job Processing ID : " + jobProcessId);
+
+		// Job Processing Id
+		cimsCommonValidator.validateJobProcessingId(jobProcessId);
+
+		// Validate User
+		cimsCommonValidator.validateUser(userId);
+		
+		// Return Template
+		cimsCommonValidator.validateReturnTemplate(returnTemplateId);
+		LOGGER.info("END - Validation request for Fetch Html By Id with Job Processing ID : " + jobProcessId);
+	}
+	
+	public void validatePublishReturnTemplate(Long userId, String jobProcessId, SdmxReturnPreviewBean sdmxReturnPreviewBean)
+			throws ApplicationException {
+		LOGGER.info("START - Validation request to publish return template with Job Processing ID : " + jobProcessId);
+
+		// Job Processing Id
+		cimsCommonValidator.validateJobProcessingId(jobProcessId);
+
+		// Validate User
+		cimsCommonValidator.validateUser(userId);
+		
+		// Return Template
+		cimsCommonValidator.validateReturnTemplate(sdmxReturnPreviewBean.getReturnTemplateIdFk());
+		
+		isTemplatePreviewExist(sdmxReturnPreviewBean.getReturnTemplateIdFk(),sdmxReturnPreviewBean.getReturnPreviewTypeId());
+		
+		isTemplatePublished(sdmxReturnPreviewBean.getReturnTemplateIdFk(),sdmxReturnPreviewBean.getReturnPreviewTypeId());
+		
+		validateVersion(sdmxReturnPreviewBean.getEbrVersion());
+		
+		validateFromDate(sdmxReturnPreviewBean.getValidFromDate());
+		
+		validateDesc(sdmxReturnPreviewBean.getDescription());
+		
+		validateEbrVersionExist(sdmxReturnPreviewBean);
+		
+		checkCellRefLock(sdmxReturnPreviewBean.getReturnTemplateIdFk(),sdmxReturnPreviewBean.getReturnPreviewTypeId(),jobProcessId);
+		LOGGER.info("END - Validation request to publish return template with Job Processing ID : " + jobProcessId);
+	}
+	
+	public void validateActivateDeactivateTemplate(Long userId, String jobProcessId, SdmxReturnPreviewBean sdmxReturnPreviewBean)
+			throws ApplicationException {
+		LOGGER.info("START - Validation request to publish return template with Job Processing ID : " + jobProcessId);
+
+		// Job Processing Id
+		cimsCommonValidator.validateJobProcessingId(jobProcessId);
+
+		// Validate User
+		cimsCommonValidator.validateUser(userId);
+		
+		// Return Template
+		cimsCommonValidator.validateReturnTemplate(sdmxReturnPreviewBean.getReturnTemplateIdFk());
+		
+		validateReturnPreviewId(sdmxReturnPreviewBean.getReturnPreviewTypeId());
+		
+		ReturnTemplate returnTemplate = new ReturnTemplate();
+		returnTemplate.setReturnTemplateId(sdmxReturnPreviewBean.getReturnTemplateIdFk());
+		SdmxReturnPreviewEntity sdmxReturnPreviewEntity = sdmxReturnPreviewRepo.fetchReturnTemplateActive(returnTemplate,sdmxReturnPreviewBean.getReturnPreviewTypeId());
+		sdmxReturnPreviewBean.setReturnCode(sdmxReturnPreviewEntity.getReturnTemplateIdFk().getReturnObj().getReturnCode());
+		
+		isTemplatePreviewExist(sdmxReturnPreviewBean.getReturnTemplateIdFk(),sdmxReturnPreviewBean.getReturnPreviewTypeId());
+		
+
+		//validateModuleStatusId(sdmxReturnPreviewBean.getModuleStatusId());
+		
+		/*
+		 * Long moduleStatusId = sdmxReturnPreviewBean.getModuleStatusId();
+		 * if(moduleStatusId != 3 && moduleStatusId != 5) { throw new
+		 * ApplicationException(ErrorCode.E0612.toString(),
+		 * ObjectCache.getErrorCodeKey(ErrorCode.E0612.toString())); }else
+		 * if(moduleStatusId == 3 &&
+		 * sdmxReturnPreviewEntity.getIsPublished().equals(Boolean.TRUE)) {
+		 * validateFromDate(sdmxReturnPreviewBean.getValidFromDate());
+		 * validateDesc(sdmxReturnPreviewBean.getDescription()); }
+		 */
+		
+		LOGGER.info("END - Validation request to publish return template with Job Processing ID : " + jobProcessId);
+	}
+	
+	public void validateCellCalculation(Long userId, String jobProcessId, PreviewPublishBean previewPublishBean)
+			throws ApplicationException {
+		LOGGER.info("START - validate Cell Calculation request to publish return template with Job Processing ID : " + jobProcessId);
+
+		// Job Processing Id
+		cimsCommonValidator.validateJobProcessingId(jobProcessId);
+
+		// Validate User
+		cimsCommonValidator.validateUser(userId);
+		
+		validateReturnPreviewId(previewPublishBean.getReturnPreviewTypeId());
+		
+		isTemplatePreviewExist(previewPublishBean.getReturnTemplateIdFk(),previewPublishBean.getReturnPreviewTypeId());
+		
+		LOGGER.info("END - validate Cell Calculation request to publish return template with Job Processing ID : " + jobProcessId);
+	}
+	
+	public void validateGetTemplateFileBasePath(Long userId, String jobProcessId)
+			throws ApplicationException {
+		LOGGER.info("START - validate Get template file base path request to publish return template with Job Processing ID : " + jobProcessId);
+
+		// Job Processing Id
+		cimsCommonValidator.validateJobProcessingId(jobProcessId);
+
+		// Validate User
+		cimsCommonValidator.validateUser(userId);
+		
+		LOGGER.info("END - validate Get template file base path request to publish return template with Job Processing ID : " + jobProcessId);
+	}
+	
+	public void isTemplatePreviewExist(Long returnTemplateIdFk, Long returnPreviewId) throws ApplicationException {
+		
+		Boolean isPreviewExist = sdmxReturnPreviewService.isReturnTemplatePreviewExist(returnTemplateIdFk,returnPreviewId);
+		if(isPreviewExist.equals(Boolean.FALSE)) {
+			throw new ApplicationException(ErrorCode.E1457.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E1457.toString()));
+
+		}
+	}
+
+	public void isTemplatePublished(Long returnTemplateIdFk, Long returnPreviewId) throws ApplicationException {
+		
+		Boolean isPublished = sdmxReturnPreviewService.isReturnTemplatePublished(returnTemplateIdFk,returnPreviewId);
+		if(isPublished.equals(Boolean.TRUE)) {
+			throw new ApplicationException(ErrorCode.E0606.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E0606.toString()));
+
+		}
+		
+	}
+	
+	public void validateVersion(String ebrVersion) throws ApplicationException {
+		 if (ebrVersion == null) {
+			throw new ApplicationException(ErrorCode.E0558.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E0558.toString()));
+		} 
+		
+	}
+	
+	public void validateFromDate(Date validFromDate) throws ApplicationException {
+		if(validFromDate == null) {
+			throw new ApplicationException(ErrorCode.E0941.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E0941.toString()));
+		}
+	}
+	
+	public void validateDesc(String description) throws ApplicationException {
+		 if (description == null) {
+			throw new ApplicationException(ErrorCode.E0945.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E0945.toString()));
+		}
+	}
+	
+	public void validateReturnPreviewId(Long returnPreviewId) throws ApplicationException {
+		 if (returnPreviewId == null) {
+			 throw new ApplicationException(ErrorCode.E1000.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E1000.toString()));
+			}
+	}
+	
+	public void validateModuleStatusId(Long moduleStatusId) throws ApplicationException {
+		if(moduleStatusId == null) {
+			throw new ApplicationException(ErrorCode.E1075.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E1075.toString()));
+		} 	
+	}
+	
+	public void validateEbrVersionExist(SdmxReturnPreviewBean sdmxReturnPreviewBean) throws ApplicationException {
+		List<String> returnCodeList = new ArrayList<>();
+		returnCodeList.add(sdmxReturnPreviewBean.getReturnCode());
+		List<SdmxReturnPreviewEntity> sdmxReturnPreviewEntityList = new ArrayList<>();
+		sdmxReturnPreviewEntityList=sdmxReturnPreviewRepo.getAllRbrEbrVersions(returnCodeList);
+		
+		if(!sdmxReturnPreviewEntityList.isEmpty()) {
+			for(SdmxReturnPreviewEntity obj : sdmxReturnPreviewEntityList) {
+				if(obj.getEbrVersion() != null) {
+					if(obj.getEbrVersion().equals(sdmxReturnPreviewBean.getEbrVersion())) {
+						
+						throw new ApplicationException(ErrorCode.E1129.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E1129.toString()));
+					}
+				}
+				
+			}
+		}
+		
+	}
+	
+	public void checkCellRefLock(Long returnTemplateIdFk,Long returnPreviewTypeId, String jobProcessId) throws ApplicationException {
+		List<SdmxLockRecordEntity> sdmxLockRecordEntityList = sdmxLockRecordService.getMultipleCellRefLock(returnTemplateIdFk,returnPreviewTypeId,jobProcessId);
+		if(!sdmxLockRecordEntityList.isEmpty()) {
+			throw new ApplicationException(ErrorCode.E1196.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E1196.toString()));
+		}
+	}
+}

@@ -1,0 +1,23 @@
+
+package com.iris.sdmx.returnentmapp.repo;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.iris.sdmx.returnentmapp.bean.SDMXReturnEntityMapp;
+
+/**
+ * @author sagar jadhav
+ *
+ */
+public interface SDMXReturnEntityMapRepo extends JpaRepository<SDMXReturnEntityMapp, Long> {
+
+	@Query(value = " select new com.iris.sdmx.returnentmapp.bean.SDMXReturnEntityMapp(ret.returnId, ret.returnCode, ent.entityId, ent.entityCode, ret.returnPropertyIdFk.returnProprtyId) "
+			+ " from Return ret, SDMXReturnEntityMapp map, EntityBean ent where map.isActive = 1 "
+			+ " and ent.isActive = 1 and ret.isActive = 1 "
+			+ " and ret.returnId =  map.returnObj.returnId and map.entity.entityId = ent.entityId and ret.returnId in (:returnIds)")
+	List<SDMXReturnEntityMapp> getReturnEntityMappingData(List<Long> returnIds);
+	
+}

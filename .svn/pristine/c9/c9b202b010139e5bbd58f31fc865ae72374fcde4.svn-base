@@ -1,0 +1,238 @@
+/**
+ * 
+ */
+package com.iris.sdmx.lockrecord.entity;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.iris.model.UserMaster;
+
+/**
+ * @author apagaria
+ *
+ */
+@Entity
+@Table(name = "TBL_SDMX_LOCK_RECORD")
+@JsonInclude(Include.NON_NULL)
+public class SdmxLockRecordEntity implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * 
+	 */
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "LOCK_RECORD_ID")
+	private Long lockRecordId;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "LOCKED_BY")
+	private UserMaster lockedBy;
+	
+	@Column(name = "MODULE_ID")
+	private Long moduleId;
+	
+	@Column(name = "RECORD_DETAIL_JSON")
+	private String recordDetailJson;
+	
+	@Column(name = "RECORD_DETAIL_ENCODE")
+	private String recordDetailEncode;
+	
+	@Column(name = "RECORD_LOCK_PERIOD")
+	private Long recordLockPeriod;
+	
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "CREATED_BY")
+	private UserMaster createdBy;
+	
+
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "RELEASED_BY")
+	private UserMaster releasedBy;
+	
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "RELEASED_ON")
+	private Date releasedOn;
+
+	/**
+	 * @return the lockRecordId
+	 */
+	public Long getLockRecordId() {
+		return lockRecordId;
+	}
+
+	/**
+	 * @param lockRecordId the lockRecordId to set
+	 */
+	public void setLockRecordId(Long lockRecordId) {
+		this.lockRecordId = lockRecordId;
+	}
+
+	/**
+	 * @return the lockedBy
+	 */
+	public UserMaster getLockedBy() {
+		return lockedBy;
+	}
+
+	/**
+	 * @param lockedBy the lockedBy to set
+	 */
+	public void setLockedBy(UserMaster lockedBy) {
+		this.lockedBy = lockedBy;
+	}
+
+	/**
+	 * @return the moduleId
+	 */
+	public Long getModuleId() {
+		return moduleId;
+	}
+
+	/**
+	 * @param moduleId the moduleId to set
+	 */
+	public void setModuleId(Long moduleId) {
+		this.moduleId = moduleId;
+	}
+
+	/**
+	 * @return the recordDetailJson
+	 */
+	public String getRecordDetailJson() {
+		return recordDetailJson;
+	}
+
+	/**
+	 * @param recordDetailJson the recordDetailJson to set
+	 */
+	public void setRecordDetailJson(String recordDetailJson) {
+		this.recordDetailJson = recordDetailJson;
+	}
+
+	/**
+	 * @return the recordDetailEncode
+	 */
+	public String getRecordDetailEncode() {
+		return recordDetailEncode;
+	}
+
+	/**
+	 * @param recordDetailEncode the recordDetailEncode to set
+	 */
+	public void setRecordDetailEncode(String recordDetailEncode) {
+		this.recordDetailEncode = recordDetailEncode;
+	}
+
+	/**
+	 * @return the recordLockPeriod
+	 */
+	public Long getRecordLockPeriod() {
+		return recordLockPeriod;
+	}
+
+	/**
+	 * @param recordLockPeriod the recordLockPeriod to set
+	 */
+	public void setRecordLockPeriod(Long recordLockPeriod) {
+		this.recordLockPeriod = recordLockPeriod;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the releasedBy
+	 */
+	public UserMaster getReleasedBy() {
+		return releasedBy;
+	}
+
+	/**
+	 * @param releasedBy the releasedBy to set
+	 */
+	public void setReleasedBy(UserMaster releasedBy) {
+		this.releasedBy = releasedBy;
+	}
+
+	/**
+	 * @return the releasedOn
+	 */
+	public Date getReleasedOn() {
+		return releasedOn;
+	}
+
+	/**
+	 * @param releasedOn the releasedOn to set
+	 */
+	public void setReleasedOn(Date releasedOn) {
+		this.releasedOn = releasedOn;
+	}
+
+	
+}

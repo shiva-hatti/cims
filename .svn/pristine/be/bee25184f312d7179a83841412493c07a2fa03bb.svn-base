@@ -1,0 +1,83 @@
+package com.iris.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.exception.ServiceException;
+import com.iris.model.Currency;
+import com.iris.repository.CurrencyRepository;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ErrorConstants;
+
+/**
+ * @author psawant
+ * @date 08/01/2020
+ * @version 1.0
+ */
+@Service
+public class CurrencyMasterService implements GenericService<Currency, Long> {
+	
+	@Autowired
+	CurrencyRepository currencyRepo;
+
+	@Override
+	public Currency add(Currency entity) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public boolean update(Currency entity) throws ServiceException {
+		return false;
+	}
+
+	@Override
+	public List<Currency> getDataByIds(Long[] ids) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public Currency getDataById(Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<Currency> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<Currency> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<Currency> getDataByObject(Map<String, Object> columnValueMap, String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<Currency> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		try {
+			if (bean.equals(Currency.class) && id == null) {
+				return currencyRepo.findByIsActiveTrue();
+			}
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+		return null;
+	}
+
+	@Override
+	public List<Currency> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public void deleteData(Currency bean) throws ServiceException {
+
+	}
+
+}

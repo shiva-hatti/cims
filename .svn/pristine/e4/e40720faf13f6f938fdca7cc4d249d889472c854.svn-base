@@ -1,0 +1,42 @@
+/**
+ * 
+ */
+package com.iris.sdmx.exceltohtml.validator;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.stereotype.Component;
+
+import com.iris.exception.ApplicationException;
+
+/**
+ * @author apagaria
+ *
+ */
+@Component
+public class SdmxRetrunPreviewValidator {
+
+	private static final Logger LOGGER = LogManager.getLogger(SdmxRetrunPreviewValidator.class);
+
+	/**
+	 * @param userId
+	 * @param jobProcessId
+	 * @throws ApplicationException
+	 */
+	public void validateFetchAllRecord(Long userId, String jobProcessId) throws ApplicationException {
+		LOGGER.info("START - Validation request for Fetch All Record with Job Processing ID : " + jobProcessId);
+		LOGGER.info("END - Validation request for Fetch All Record with Job Processing ID : " + jobProcessId);
+	}
+	
+	/**
+	 * @param userId
+	 * @param jobProcessId
+	 * @param returnTemplateId
+	 * @throws ApplicationException
+	 */
+	public void validateFetchHtmlById(Long userId, String jobProcessId, Long returnTemplateId) throws ApplicationException {
+		LOGGER.info("START - Validation request for Fetch Html By Id with Job Processing ID : " + jobProcessId);
+		LOGGER.info("END - Validation request for Fetch Html By Id with Job Processing ID : " + jobProcessId);
+	}
+
+}

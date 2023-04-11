@@ -1,0 +1,107 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Set;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+
+import com.iris.formula.gen.AutoCalVesrion;
+import com.iris.util.Validations;
+
+@Entity
+@Table(name = "TBL_AUTO_CALCULATION_FORMULA")
+public class AutoCalculationFormula implements Serializable {
+
+	private static final long serialVersionUID = -1901064284981222619L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "AUTO_CAL_FORMULA_ID")
+	private Long autoCalFormulaId;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "RETURN_ID_FK")
+	private Return returnIdFk;
+
+	@OneToOne(mappedBy = "autoFormula")
+	private AutoCalVesrion autoCalVesrion;
+
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	@Column(name = "FORMULA_JSON")
+	private String formulaJson;
+
+	@Column(name = "CROSS_ELR_JSON")
+	private String crossElrJson;
+
+	@OneToMany(mappedBy = "autoCalFormulaFk")
+	private Set<AutoCalVersionMap> autoCalVersionMap;
+
+	public Long getAutoCalFormulaId() {
+		return autoCalFormulaId;
+	}
+
+	public void setAutoCalFormulaId(Long autoCalFormulaId) {
+		this.autoCalFormulaId = autoCalFormulaId;
+	}
+
+	public Return getReturnIdFk() {
+		return returnIdFk;
+	}
+
+	public void setReturnIdFk(Return returnIdFk) {
+		this.returnIdFk = returnIdFk;
+	}
+
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	public String getFormulaJson() {
+		return formulaJson;
+	}
+
+	public void setFormulaJson(String formulaJson) {
+		this.formulaJson = Validations.trimInput(formulaJson);
+	}
+
+	public String getCrossElrJson() {
+		return crossElrJson;
+	}
+
+	public void setCrossElrJson(String crossElrJson) {
+		this.crossElrJson = Validations.trimInput(crossElrJson);
+	}
+
+	public Set<AutoCalVersionMap> getAutoCalVersionMap() {
+		return autoCalVersionMap;
+	}
+
+	public void setAutoCalVersionMap(Set<AutoCalVersionMap> autoCalVersionMap) {
+		this.autoCalVersionMap = autoCalVersionMap;
+	}
+
+	public AutoCalVesrion getAutoCalVesrion() {
+		return autoCalVesrion;
+	}
+
+	public void setAutoCalVesrion(AutoCalVesrion autoCalVesrion) {
+		this.autoCalVesrion = autoCalVesrion;
+	}
+
+}

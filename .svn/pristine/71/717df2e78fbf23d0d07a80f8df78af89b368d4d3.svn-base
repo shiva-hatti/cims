@@ -1,0 +1,86 @@
+package com.iris.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.exception.ServiceException;
+import com.iris.model.LanguageMaster;
+import com.iris.repository.LanguageMasterRepo;
+import com.iris.service.GenericService;
+@Service	
+public class LanguageMasterService implements GenericService<LanguageMaster, Long> {
+	
+	@Autowired
+	LanguageMasterRepo repo;
+
+	@Override
+	public LanguageMaster add(LanguageMaster entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean update(LanguageMaster entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public List<LanguageMaster> getDataByIds(Long[] ids) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public LanguageMaster getDataById(Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return repo.findByLanguageId(id).get(0);
+	}
+
+	@Override
+	public List<LanguageMaster> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<LanguageMaster> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName)
+			throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<LanguageMaster> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<LanguageMaster> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<LanguageMaster> getAllDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void deleteData(LanguageMaster bean) throws ServiceException {
+		// TODO Auto-generated method stub
+
+	}
+	
+	public List<LanguageMaster> getAllActiveLanguage(){
+		return repo.findByIsActiveTrue();
+	}
+	
+}

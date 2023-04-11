@@ -1,0 +1,259 @@
+/**
+ * 
+ */
+package com.iris.sdmx.exceltohtml.entity;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.persistence.Transient;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.iris.model.ReturnTemplate;
+import com.iris.model.UserMaster;
+
+/**
+ * @author apagaria
+ *
+ */
+@Entity
+@Table(name = "TBL_SDMX_RETURN_SHEET_INFO")
+@JsonInclude(Include.NON_NULL)
+public class SdmxReturnSheetInfoEntity implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * 
+	 */
+	public SdmxReturnSheetInfoEntity() {
+		super();
+	}
+
+	/**
+	 * @param returnSheetInfoId
+	 */
+	public SdmxReturnSheetInfoEntity(Long returnSheetInfoId) {
+		super();
+		this.returnSheetInfoId = returnSheetInfoId;
+	}
+
+	/**
+	 * 
+	 */
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "RETURN_SHEET_INFO_ID")
+	private Long returnSheetInfoId;
+
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "RETURN_TEMPLATE_ID_FK")
+	private ReturnTemplate returnTemplateIdFk;
+
+	@Column(name = "SHEET_CODE")
+	private String sheetCode;
+
+	@Column(name = "SHEET_NAME")
+	private String sheetName;
+
+	@Column(name = "SECTION_CODE")
+	private String sectionCode;
+
+	@Column(name = "SECTION_NAME")
+	private String sectionName;
+
+	@Column(name = "NO_OF_DATA_POINTS")
+	private Integer noOfDataPoints;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "CREATED_BY")
+	private UserMaster createdBy;
+
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+
+	@Column(name = "RETURN_PREVIEW_ID_FK")
+	private Long returnPreviewIdFk;
+
+	@Transient
+	private Long totalCells;
+
+	public SdmxReturnSheetInfoEntity(Long returnTemplateIdFk, Long totalCells, Long returnPreviewId) {
+		super();
+		this.returnTemplateIdFk = new ReturnTemplate(returnTemplateIdFk);
+		this.totalCells = totalCells;
+		this.returnPreviewIdFk = returnPreviewId;
+	}
+
+	/**
+	 * @return the returnSheetInfoId
+	 */
+	public Long getReturnSheetInfoId() {
+		return returnSheetInfoId;
+	}
+
+	/**
+	 * @param returnSheetInfoId the returnSheetInfoId to set
+	 */
+	public void setReturnSheetInfoId(Long returnSheetInfoId) {
+		this.returnSheetInfoId = returnSheetInfoId;
+	}
+
+	/**
+	 * @return the returnTemplateIdFk
+	 */
+	public ReturnTemplate getReturnTemplateIdFk() {
+		return returnTemplateIdFk;
+	}
+
+	/**
+	 * @param returnTemplateIdFk the returnTemplateIdFk to set
+	 */
+	public void setReturnTemplateIdFk(ReturnTemplate returnTemplateIdFk) {
+		this.returnTemplateIdFk = returnTemplateIdFk;
+	}
+
+	/**
+	 * @return the sheetCode
+	 */
+	public String getSheetCode() {
+		return sheetCode;
+	}
+
+	/**
+	 * @param sheetCode the sheetCode to set
+	 */
+	public void setSheetCode(String sheetCode) {
+		this.sheetCode = sheetCode;
+	}
+
+	/**
+	 * @return the sheetName
+	 */
+	public String getSheetName() {
+		return sheetName;
+	}
+
+	/**
+	 * @param sheetName the sheetName to set
+	 */
+	public void setSheetName(String sheetName) {
+		this.sheetName = sheetName;
+	}
+
+	/**
+	 * @return the sectionCode
+	 */
+	public String getSectionCode() {
+		return sectionCode;
+	}
+
+	/**
+	 * @param sectionCode the sectionCode to set
+	 */
+	public void setSectionCode(String sectionCode) {
+		this.sectionCode = sectionCode;
+	}
+
+	/**
+	 * @return the sectionName
+	 */
+	public String getSectionName() {
+		return sectionName;
+	}
+
+	/**
+	 * @param sectionName the sectionName to set
+	 */
+	public void setSectionName(String sectionName) {
+		this.sectionName = sectionName;
+	}
+
+	/**
+	 * @return the noOfDataPoints
+	 */
+	public Integer getNoOfDataPoints() {
+		return noOfDataPoints;
+	}
+
+	/**
+	 * @param noOfDataPoints the noOfDataPoints to set
+	 */
+	public void setNoOfDataPoints(Integer noOfDataPoints) {
+		this.noOfDataPoints = noOfDataPoints;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the totalCells
+	 */
+	public Long getTotalCells() {
+		return totalCells;
+	}
+
+	/**
+	 * @param totalCells the totalCells to set
+	 */
+	public void setTotalCells(Long totalCells) {
+		this.totalCells = totalCells;
+	}
+
+	/**
+	 * @return the returnPreviewIdFk
+	 */
+	public Long getReturnPreviewIdFk() {
+		return returnPreviewIdFk;
+	}
+
+	/**
+	 * @param returnPreviewIdFk the returnPreviewIdFk to set
+	 */
+	public void setReturnPreviewIdFk(Long returnPreviewIdFk) {
+		this.returnPreviewIdFk = returnPreviewIdFk;
+	}
+
+}

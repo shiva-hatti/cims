@@ -1,0 +1,260 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.iris.util.Validations;
+
+/**
+ * @author Lakhan Kumar
+ * @date 02/04/2020
+ *
+ */
+@Entity
+@Table(name = "TBL_PAN_MASTER_TEMP")
+@JsonInclude(Include.NON_NULL)
+public class PanMasterTemp implements Serializable {
+
+	private static final long serialVersionUID = 1884924972907254165L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "PAN_ID")
+	private Long panId;
+
+	@Column(name = "PAN_NUM")
+	private String panNumber;
+
+	@Column(name = "BORROWER_NAME")
+	private String borrowerName;
+
+	@Column(name = "BORROWER_ALTERNATE_NAME")
+	private String borrowerAlternateName;
+
+	@Column(name = "BORROWER_TITLE")
+	private String borrowerTitle;
+
+	@Column(name = "BORROWER_MOBILE")
+	private Long borrowerMobile;
+
+	@Column(name = "NSDL_VERIFICATION_STATUS")
+	private Integer verificationStatus;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "CREATED_BY_FK")
+	private UserMaster createdBy;
+
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+
+	@Column(name = "ENTRY_TYPE")
+	private Integer entryType;
+
+	@Column(name = "IS_RBI_GENERATED_PAN")
+	private Boolean rbiGenerated;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "ENTITY_ID_FK")
+	private EntityBean entityBean;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "PAN_ID_FK")
+	private PanMasterTemp panIdFk;
+
+	@Column(name = "INSTITUTION_TYPE")
+	private Integer institutionType;
+
+	@Column(name = "STATUS")
+	private Integer status;
+
+	@Column(name = "COMMENT")
+	private String comment;
+
+	@Column(name = "IS_BULK_UPLOAD")
+	private Boolean isBulkUpload;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "APPROVED_BY_FK")
+	private UserMaster approvedByFk;
+
+	@Column(name = "APPROVED_ON")
+	private Date approvedOn;
+
+	/**
+	 * @return the isBulkUpload
+	 */
+	public Boolean getIsBulkUpload() {
+		return isBulkUpload;
+	}
+
+	/**
+	 * @param isBulkUpload the isBulkUpload to set
+	 */
+	public void setIsBulkUpload(Boolean isBulkUpload) {
+		this.isBulkUpload = isBulkUpload;
+	}
+
+	/**
+	 * @return the rbiGenerated
+	 */
+	public Boolean getRbiGenerated() {
+		return rbiGenerated;
+	}
+
+	public Integer getInstitutionType() {
+		return institutionType;
+	}
+
+	public void setInstitutionType(Integer institutionType) {
+		this.institutionType = institutionType;
+	}
+
+	public Integer getStatus() {
+		return status;
+	}
+
+	public void setStatus(Integer status) {
+		this.status = status;
+	}
+
+	public Long getPanId() {
+		return panId;
+	}
+
+	public void setPanId(Long panId) {
+		this.panId = panId;
+	}
+
+	public String getPanNumber() {
+		return panNumber;
+	}
+
+	public void setPanNumber(String panNumber) {
+		this.panNumber = Validations.trimInput(panNumber);
+	}
+
+	public String getBorrowerName() {
+		return borrowerName;
+	}
+
+	public void setBorrowerName(String borrowerName) {
+		this.borrowerName = Validations.trimInput(borrowerName);
+	}
+
+	public String getBorrowerAlternateName() {
+		return borrowerAlternateName;
+	}
+
+	public void setBorrowerAlternateName(String borrowerAlternateName) {
+		this.borrowerAlternateName = Validations.trimInput(borrowerAlternateName);
+	}
+
+	public String getBorrowerTitle() {
+		return borrowerTitle;
+	}
+
+	public void setBorrowerTitle(String borrowerTitle) {
+		this.borrowerTitle = Validations.trimInput(borrowerTitle);
+	}
+
+	public Long getBorrowerMobile() {
+		return borrowerMobile;
+	}
+
+	public void setBorrowerMobile(Long borrowerMobile) {
+		this.borrowerMobile = borrowerMobile;
+	}
+
+	public Integer getVerificationStatus() {
+		return verificationStatus;
+	}
+
+	public void setVerificationStatus(Integer verificationStatus) {
+		this.verificationStatus = verificationStatus;
+	}
+
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	public Integer getEntryType() {
+		return entryType;
+	}
+
+	public void setEntryType(Integer entryType) {
+		this.entryType = entryType;
+	}
+
+	public Boolean isRbiGenerated() {
+		return rbiGenerated;
+	}
+
+	public void setRbiGenerated(Boolean rbiGenerated) {
+		this.rbiGenerated = rbiGenerated;
+	}
+
+	public EntityBean getEntityBean() {
+		return entityBean;
+	}
+
+	public void setEntityBean(EntityBean entityBean) {
+		this.entityBean = entityBean;
+	}
+
+	public PanMasterTemp getPanIdFk() {
+		return panIdFk;
+	}
+
+	public void setPanIdFk(PanMasterTemp panIdFk) {
+		this.panIdFk = panIdFk;
+	}
+
+	public String getComment() {
+		return comment;
+	}
+
+	public void setComment(String comment) {
+		this.comment = comment;
+	}
+
+	public UserMaster getApprovedByFk() {
+		return approvedByFk;
+	}
+
+	public void setApprovedByFk(UserMaster approvedByFk) {
+		this.approvedByFk = approvedByFk;
+	}
+
+	public Date getApprovedOn() {
+		return approvedOn;
+	}
+
+	public void setApprovedOn(Date approvedOn) {
+		this.approvedOn = approvedOn;
+	}
+
+}

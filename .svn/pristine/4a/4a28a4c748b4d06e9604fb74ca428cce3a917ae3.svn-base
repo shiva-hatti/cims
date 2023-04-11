@@ -1,0 +1,752 @@
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import javax.persistence.Column;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.google.gson.Gson;
+import com.iris.dateutility.util.DateManip;
+import com.iris.dto.ActivityTracker;
+import com.iris.dto.ApprovalDetails;
+import com.iris.dto.EntityChannelRequestBean;
+import com.iris.dto.FileDetailRequestDto;
+import com.iris.dto.FileDetailsDto;
+import com.iris.dto.RetUploadDetBean;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.WorkflowJsonBean;
+import com.iris.exception.ServiceException;
+import com.iris.model.EntityBean;
+import com.iris.model.FileDetails;
+import com.iris.model.FileStatus;
+import com.iris.model.Return;
+import com.iris.model.ReturnApprovalDetail;
+import com.iris.model.ReturnsUploadDetails;
+import com.iris.model.UploadChannel;
+import com.iris.model.UserEntityRole;
+import com.iris.model.UserMaster;
+import com.iris.model.UserRoleLabel;
+import com.iris.model.WorkFlowActivity;
+import com.iris.model.WorkFlowMasterBean;
+import com.iris.repository.WorkFlowMasterRepo;
+import com.iris.repository.WorkflowRepo;
+import com.iris.service.GenericService;
+import com.iris.service.impl.ChannelService;
+import com.iris.util.JsonUtility;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.util.constant.MethodConstants;
+import com.iris.workflow.WorkflowUtility;
+
+/**
+ * @author pmohite
+ *
+ */
+@RestController
+@RequestMapping("/service/FileDetailsController")
+public class FileDetailsController {
+
+	static final Logger Logger = LogManager.getLogger(FileDetailsController.class);
+
+	@Autowired
+	private GenericService<FileDetails, Long> fileDetailsService;
+
+	@Autowired
+	private GenericService<ReturnsUploadDetails, Long> returnUploadDetailsService;
+
+	@Autowired
+	private GenericService<Return, Long> returnService;
+
+	@Autowired
+	private GenericService<EntityBean, Long> entityService;
+	
+	@Autowired
+	private GenericService<WorkFlowActivity, Long> workflowActivityService;
+	
+	@Autowired
+	private ChannelService channelService;
+	
+	@Autowired
+	private GenericService<FileStatus, Long> fileStatusService;
+	
+	@Autowired
+	private WorkflowRepo workflowRepo;
+	
+	@Autowired
+	private WorkFlowMasterRepo workFlowMasterRepo;
+	
+	@Autowired
+	private GenericService<UserEntityRole, Long> userEntityRoleService;
+	
+	/**
+	 * Gets the file details. This method is to get all details about the file
+	 * uploaded by Entity via any Channel. This method also returns uploaded file
+	 * details based on filters like return code,entity code,status, start date, end
+	 * date etc..
+	 *
+	 * @param userName       the user name
+	 * @param entityCodeList the entity code list
+	 * @param returnCodeList the return code list
+	 * @param startDate      the start date
+	 * @param endDate        the end date
+	 * @param fileStatusList the file status list
+	 * @param channelList    the channel list
+	 * @return the file details
+	 */
+	@PostMapping(value = "/getFileDetails")
+	public ServiceResponse getFileDetails(@RequestBody FileDetailRequestDto fileDetailRequestDto) {
+		List<FileDetails> fileDetailsList = null;
+		List<FileDetailsDto> fileDetailsDtoList = new ArrayList<>();
+		Map<String, String> returnLabelMap = new HashMap<>();
+		Map<String, String> entityLabelMap = new HashMap<>();
+
+		try {
+			Map<String, Object> columnValueMap = new HashMap<>();
+			columnValueMap.put(ColumnConstants.UPLOAD_CHANNEL.getConstantVal(),
+					fileDetailRequestDto.getUploadChannelList());
+			columnValueMap.put(ColumnConstants.IFSC_CODE.getConstantVal(), fileDetailRequestDto.getIfscCode());
+			if (fileDetailRequestDto.getReturnCode() != null) {
+				List<String> returnCodes = new ArrayList<>();
+				List<Return> returns = getReturnList(fileDetailRequestDto.getReturnCode(), fileDetailRequestDto.getLangCode());
+				if(!CollectionUtils.isEmpty(returns) && returns!= null) {
+					returns.forEach(f ->{
+						if(!StringUtils.isEmpty(f.getReturnCode())) {
+							returnCodes.add(f.getReturnCode());
+							returnLabelMap.put(f.getReturnCode(), f.getReturnName());
+						}	
+					});
+				}
+				columnValueMap.put(ColumnConstants.RETURN_CODE.getConstantVal(), returnCodes);
+			}else {
+				List<Return> returns = getReturnList(fileDetailRequestDto.getReturnCode(), fileDetailRequestDto.getLangCode());
+				if(!CollectionUtils.isEmpty(returns) && returns!= null) {
+				returns.forEach(f ->{
+					if(!StringUtils.isEmpty(f.getReturnCode())) {
+						returnLabelMap.put(f.getReturnCode(), f.getReturnName());
+					}
+				});
+				}
+			}
+			columnValueMap.put(ColumnConstants.UNMAPPED_RETURN.getConstantVal(),
+					fileDetailRequestDto.getUnMappedReturn());
+			columnValueMap.put(ColumnConstants.STATUS.getConstantVal(), fileDetailRequestDto.getStatus());
+			String startDate = DateManip.formatAppDateTime(new Date(fileDetailRequestDto.getStartDate()), "yyyy-MM-dd",
+					"en");
+			String endDate = DateManip.formatAppDateTime(new Date(fileDetailRequestDto.getEndDate()), "yyyy-MM-dd",
+					"en");
+			columnValueMap.put(ColumnConstants.STARTDATE.getConstantVal(), startDate);
+			columnValueMap.put(ColumnConstants.ENDDATE.getConstantVal(), endDate);
+			String methodName = null;
+			if (!CollectionUtils.isEmpty(fileDetailRequestDto.getIfscCode())
+					&& !CollectionUtils.isEmpty(fileDetailRequestDto.getReturnCode())) {
+				methodName = "getFileDetailsDataByEntityCodeAndReturnCode";
+			} else if (!CollectionUtils.isEmpty(fileDetailRequestDto.getIfscCode())) {
+				methodName = "getFileDetailsDataByEntityCode";
+			} else {
+				methodName = "getFileDetailsData";
+			}
+			fileDetailsList = fileDetailsService.getDataByObject(columnValueMap, methodName);
+
+			if(!CollectionUtils.isEmpty(fileDetailsList)) {
+				List<EntityBean> entityList= getEntityLabelAndIfscCodeMap(fileDetailsList.stream().filter(f -> f.getIfscCode()!= null).map(f -> f.getIfscCode()).collect(Collectors.toList()), fileDetailRequestDto.getLangCode());
+				if(!CollectionUtils.isEmpty(entityList) && entityList!= null) {
+					entityList.forEach(f ->{
+						if(!StringUtils.isEmpty(f.getIfscCode())) {
+							entityLabelMap.put(f.getIfscCode().toUpperCase(), f.getEntityName()+ "~" + f.getEntityCode());
+						}
+					});
+				}
+				
+				List<EntityBean> entityListWithEntityCode = getEntityLabelAndIfscCodeMapWithEntityCode(fileDetailsList.stream().filter(f -> f.getEntityCode()!= null).map(f -> f.getEntityCode()).collect(Collectors.toList()), fileDetailRequestDto.getLangCode());
+				if(!CollectionUtils.isEmpty(entityListWithEntityCode) && entityListWithEntityCode!= null) {
+					entityListWithEntityCode.forEach(f ->{
+						if(!StringUtils.isEmpty(f.getIfscCode())) {
+							entityLabelMap.put(f.getEntityCode(), f.getEntityName()+ "~" + f.getEntityCode()+ "~"+f.getIfscCode());
+						}
+					});
+				}
+			}
+
+			Map<Integer, String> activityMap = prepareActivityMap();
+			
+			fileDetailsList.forEach(f -> {
+				try {
+					FileDetailsDto fileDetailsDto = new FileDetailsDto();
+					List<ReturnsUploadDetails> returnUploadDetailsList = null;
+					if (GeneralConstants.META_DATA_VALIDATED_ID.getConstantLongVal()
+							.equals(f.getFileStatus().getFileStatusId())) {
+						Map<String, Object> columnMap = new HashMap<>();
+						columnMap.put(ColumnConstants.FILE_DETAILS.getConstantVal(), f.getId());
+						returnUploadDetailsList = f.getReturnUploadDetailsList();
+						if (!returnUploadDetailsList.isEmpty() && returnUploadDetailsList.get(0).getReturnObj().getIsActive().equals(Boolean.TRUE) && 
+								returnUploadDetailsList.get(0).getEntity().getIsActive().equals(Boolean.TRUE)) {
+							fileDetailsDto.setFilingStatus(returnUploadDetailsList.get(0).getFilingStatus().getStatus());
+							fileDetailsDto.setFilingStatusId(returnUploadDetailsList.get(0).getFilingStatus().getFilingStatusId());
+							fileDetailsDto.setUploadId(returnUploadDetailsList.get(0).getUploadId());
+							fileDetailsDto.setIfscCode(f.getIfscCode());
+							fileDetailsDto.setUploadInstanceFileName(returnUploadDetailsList.get(0).getInstanceFile());
+							fileDetailsDto.setFrequency(returnUploadDetailsList.get(0).getReturnObj().getFrequency().getFrequencyName());
+							
+							fileDetailsDto.setReportingPeriodEndDateInLong(returnUploadDetailsList.get(0).getEndDate().getTime());
+							fileDetailsDto.setReportingPeriodStartDateInLong(returnUploadDetailsList.get(0).getStartDate().getTime());
+							
+							if(f.getSupportiveDocName() != null) {
+								fileDetailsDto.setAttachedFileName(returnUploadDetailsList.get(0).getAttachedFile());
+							}
+							if(returnUploadDetailsList.get(0).getUnlockingReqId()!= null) {
+								fileDetailsDto.setUnlockRequestId(returnUploadDetailsList.get(0).getUnlockingReqId().getUnlockingReqId());
+							}
+							if(returnUploadDetailsList.get(0).getRevisionRequestId()!= null) {
+								fileDetailsDto.setRevisionRequestId(returnUploadDetailsList.get(0).getRevisionRequestId().getRevisionRequestId());
+							}
+							if(returnUploadDetailsList.get(0).getReturnPropertyValue()!= null) {
+								fileDetailsDto.setReturnPropertyVal(returnUploadDetailsList.get(0).getReturnPropertyValue().getReturnProValue());
+							}
+								
+							fileDetailsDto.setPrevUploadId(returnUploadDetailsList.get(0).getPrevUploadId());
+							
+							if(returnUploadDetailsList.get(0).getTaxonomyId()!= null) {
+								fileDetailsDto.setTemplateVersionNo(returnUploadDetailsList.get(0).getTaxonomyId().getVersionNumber());
+							}
+						}
+					} else {
+						fileDetailsDto.setFilingStatus(null);
+						
+						if(f.getReportingPeriodStartDate()!= null) {
+							fileDetailsDto.setReportingPeriodEndDateInLong(f.getReportingPeriodStartDate().getTime());
+						}
+						
+						if(f.getReportingPeriodEndDate()!= null) {
+							fileDetailsDto.setReportingPeriodStartDateInLong(f.getReportingPeriodEndDate().getTime());
+						}
+					}
+					
+					if(f.getUploadChannelIdFk().getUploadChannelId().equals(GeneralConstants.EMAIL_CHANNEL.getConstantLongVal())) {
+						UserMaster userMaster = getUserObj(f);
+						if(userMaster != null) {
+							fileDetailsDto.setUserName(userMaster.getUserName());
+						}
+						
+					} else if(!StringUtils.isEmpty(f.getUserMaster())) {
+						fileDetailsDto.setUserName(f.getUserMaster().getUserName());
+					}
+					fileDetailsDto.setFileName(f.getFileName());
+					if (!StringUtils.isEmpty(f.getSupportiveDocName())) {
+						fileDetailsDto.setSupportiveDocName(f.getSupportiveDocName());
+					}
+					if (!StringUtils.isEmpty(f.getSupportiveDocType())) {
+						fileDetailsDto.setSupportiveDocType(f.getSupportiveDocType());
+					}
+					fileDetailsDto.setFileType(f.getFileType());
+					fileDetailsDto.setFileStatus(f.getFileStatus());
+					fileDetailsDto.setUploadChannelIdFk(f.getUploadChannelIdFk());
+					fileDetailsDto.setReturnCode(f.getReturnCode());
+					
+					if(!StringUtils.isEmpty(f.getReturnCode())) {
+						fileDetailsDto.setReturnName(returnLabelMap.get(f.getReturnCode().toUpperCase()));
+					}
+					
+					if(!StringUtils.isEmpty(f.getIfscCode()) && entityLabelMap.get(f.getIfscCode().toUpperCase())!= null) {
+						fileDetailsDto.setEntityName(entityLabelMap.get(f.getIfscCode().toUpperCase()).split("~")[0]);
+						fileDetailsDto.setEntityCode(entityLabelMap.get(f.getIfscCode().toUpperCase()).split("~")[1]);
+						fileDetailsDto.setIfscCode(f.getIfscCode());
+					} else if(f.getUploadChannelIdFk() != null && f.getUploadChannelIdFk().getUploadChannelId().equals(GeneralConstants.EMAIL_CHANNEL.getConstantLongVal())) {
+						fileDetailsDto.setEntityName(entityLabelMap.get(f.getEntityCode()).split("~")[0]);
+						fileDetailsDto.setEntityCode(entityLabelMap.get(f.getEntityCode()).split("~")[1]);
+						fileDetailsDto.setIfscCode(entityLabelMap.get(f.getEntityCode()).split("~")[2]);
+					}
+
+					
+					fileDetailsDto.setUserEmailId(f.getEmailId());
+					fileDetailsDto.setId(f.getId());
+					fileDetailsDto.setCreationDateInLong(f.getCreationDate().getTime());
+					fileDetailsDto.setReasonOfNotProcessed(f.getReasonOfNotProcessed());
+					if (!StringUtils.isEmpty(f.getFrequencyIdFk())) {
+						fileDetailsDto.setFrequency(f.getFrequencyIdFk().getFrequencyName());
+					}
+
+					f.setLangCode(fileDetailRequestDto.getLangCode());
+					f.setDateFormat(fileDetailRequestDto.getDateFormat());
+					f.setCalendarFormat(fileDetailRequestDto.getLangCode());
+					
+					fileDetailsDto.setActivityTrackerJson(getActivityTrackerJson(f, activityMap));
+					fileDetailsDtoList.add(fileDetailsDto);	
+				}catch(Exception e) {
+					Logger.error("Exception : ", e);
+				}
+			});
+		} catch (Exception e) {
+			Logger.error("Exception while getting file details info: ", e);
+		}
+		ServiceResponse response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+		String fileDetailsListString = new Gson().toJson(fileDetailsDtoList);
+		response.setResponse(fileDetailsListString);
+		return response;
+	}
+
+	private UserMaster getUserObj(FileDetails fileDetailsBean) {
+		try {
+			List<UserMaster> userMasterList = null;
+			userMasterList = getUserMasterListForEMailChannel(fileDetailsBean);
+
+			if (CollectionUtils.isEmpty(userMasterList)) {
+				Logger.error("User not found in the system for user name or email Id: " + fileDetailsBean.getUserName()
+						+ ", Email Address is : " + fileDetailsBean.getEmailId());
+				return null;
+			} else {
+				UserMaster userMaster = null;
+				if (userMasterList.size() > 1) {
+					Logger.error("Multiple user found for user name or email ID, User name is : "
+							+ fileDetailsBean.getUserName() + ", Email Address is : " + fileDetailsBean.getEmailId());
+					userMaster = userMasterList.get(0);
+					Logger.error("Returning with user ID : " + userMaster.getUserId());
+				} else {
+					userMaster = userMasterList.get(0);
+				}
+				return userMaster;
+			}
+		} catch (Exception e) {
+			Logger.error(ErrorConstants.DEFAULT_ERROR.getConstantVal(), e);
+		}
+		return null;
+	}
+
+	private List<UserMaster> getUserMasterListForEMailChannel(FileDetails fileDetailsBean) {
+		List<UserMaster> userMasterList = new ArrayList<>();
+
+		Map<String, List<String>> valueMap = new HashMap<>();
+		List<String> emailList = new ArrayList<>();
+		List<String> entityCodeList = new ArrayList<>();
+		emailList.add(fileDetailsBean.getEmailId());
+		entityCodeList.add(fileDetailsBean.getEntityCode());
+		valueMap.put(ColumnConstants.EMAIL_ID.getConstantVal(), emailList);
+		valueMap.put(ColumnConstants.ENTITY_CODE.getConstantVal(), entityCodeList);
+		List<UserEntityRole> userEntityRoleList = userEntityRoleService.getDataByColumnValue(valueMap,
+				MethodConstants.GET_USER_DATA_BY_EMAIL_ID.getConstantVal());
+		
+		if(!CollectionUtils.isEmpty(userEntityRoleList)) {
+			for(UserEntityRole uer : userEntityRoleList) {
+			userMasterList.add(uer.getUserRoleMaster().getUserMaster());
+			}
+			return userMasterList;
+		}
+		
+		return null;
+	}
+
+	private List<EntityBean> getEntityLabelAndIfscCodeMapWithEntityCode(List<String> entityCodeList, String langCode) {
+		try {
+			if(!CollectionUtils.isEmpty(entityCodeList)) {
+				List<String> entityCodeUpperList = entityCodeList.stream().map(String::toUpperCase).collect(Collectors.toList());
+				Map<String, Object> dataMap = new HashMap<>();
+				dataMap.put(ColumnConstants.IS_ACTIVE.getConstantVal(), true);
+				dataMap.put(ColumnConstants.LANGUAGE_CODE.getConstantVal(), langCode);
+				dataMap.put(ColumnConstants.ENT_CODE_LIST.getConstantVal(), entityCodeUpperList);
+				return  entityService.getDataByObject(dataMap, MethodConstants.GET_IFSC_CODE_ENTITY_LIST_WITH_LABEL_BY_ENTITY_CODE.getConstantVal());
+			}
+		}catch(Exception e) {
+			Logger.error("Exception while fetching entityList : ", e);
+		}
+		return null;
+	}
+
+	private List<EntityBean> getEntityLabelAndIfscCodeMap(List<String> ifscCodeList, String langCode) {
+		try {
+			if(!CollectionUtils.isEmpty(ifscCodeList)) {
+				List<String> ifscCodeUpperList = ifscCodeList.stream().map(String::toUpperCase).collect(Collectors.toList());
+				Map<String, Object> dataMap = new HashMap<>();
+				dataMap.put(ColumnConstants.IS_ACTIVE.getConstantVal(), true);
+				dataMap.put(ColumnConstants.LANGUAGE_CODE.getConstantVal(), langCode);
+				dataMap.put(ColumnConstants.IFSC_CODE.getConstantVal(), ifscCodeUpperList);
+				return  entityService.getDataByObject(dataMap, MethodConstants.GET_IFSC_CODE_ENTITY_LIST_WITH_LABEL.getConstantVal());
+			}
+		}catch(Exception e) {
+			Logger.error("Exception while fetching entityList : ", e);
+		}
+		return null;
+	}
+
+	private List<Return> getReturnList(List<Long> returnIdList, String langCode) {
+		try {
+			if(CollectionUtils.isEmpty(returnIdList)) {
+				Map<String, Object> dataMap = new HashMap<>();
+				dataMap.put(ColumnConstants.IS_ACTIVE.getConstantVal(), true);
+				dataMap.put(ColumnConstants.LANG_CODE.getConstantVal(), langCode);
+				return  returnService.getDataByObject(dataMap, MethodConstants.GET_ALL_RETURN_LIST_WITH_LABEL.getConstantVal());
+			}else {
+				Map<String, Object> dataMap = new HashMap<>();
+				dataMap.put(ColumnConstants.IS_ACTIVE.getConstantVal(), true);
+				dataMap.put(ColumnConstants.LANG_CODE.getConstantVal(), langCode);
+				dataMap.put(ColumnConstants.RETURN_ID_ARRAY.getConstantVal(), returnIdList);
+				return  returnService.getDataByObject(dataMap, MethodConstants.GET_RETURN_LIST_WITH_LABEL.getConstantVal());
+			}
+		}catch(Exception e) {
+			Logger.error("Exception while fetching entity list", e);
+		}
+		return null;
+	}
+	
+	public String getActivityTrackerJson(FileDetails fileDetailsBean, Map<Integer, String> activityMap) {
+		List<ActivityTracker> activityTrackerList = new ArrayList<>();
+
+		try {
+			String userName = null;
+
+			String reUploadedString = "";
+			boolean isReSubmission = false;
+			if(fileDetailsBean.getReturnUploadDetailsList()!= null && !fileDetailsBean.getReturnUploadDetailsList().isEmpty()
+					&& fileDetailsBean.getReturnUploadDetailsList().get(0).getRevisionRequestId()!= null) {
+//					reUploadedString = ".reSubmission";
+					isReSubmission = true;
+			}
+			
+			if (fileDetailsBean.getUserMaster() != null) {
+				userName = fileDetailsBean.getUserMaster().getUserName();
+			}
+
+			String creationDate = null;
+
+			if (!StringUtils.isEmpty(fileDetailsBean.getCreationDate())) {
+				try {
+					creationDate = DateManip.formatAppDateTime(fileDetailsBean.getCreationDate(),
+							fileDetailsBean.getDateFormat(), fileDetailsBean.getCalendarFormat());
+				} catch (Exception e) {
+					Logger.error("Exception:", e);
+				}
+			}
+
+			ActivityTracker activityTracker = createActivity(1, GeneralConstants.VISITED_STAGE.getConstantVal(), GeneralConstants.UPLOADER_ACTIVITY.getConstantVal() + reUploadedString, userName, creationDate, GeneralConstants.NA_RESULT_OF_STAGE.getConstantVal(), null,
+					null, false);
+
+			if (fileDetailsBean.getFileStatus().getFileStatusId().equals(GeneralConstants.FILE_STATUS_INVALID_ID.getConstantLongVal())) {
+				activityTracker.setStepResult(GeneralConstants.FAILED_RESULT_OF_STAGE.getConstantVal());
+				activityTrackerList.add(activityTracker);
+			} else if (fileDetailsBean.getFileStatus().getFileStatusId().equals(GeneralConstants.FILE_STATUS_VALID_ID.getConstantLongVal())) {
+				activityTracker.setStepResult(GeneralConstants.SUCCESS_RESULT_OF_STAGE.getConstantVal());
+				activityTrackerList.add(activityTracker);
+
+				// Meta data stage activity
+				activityTrackerList.add(createActivity(2, GeneralConstants.CURRENT_STAGE.getConstantVal(), GeneralConstants.META_DATA_ACTIVITY.getConstantVal() + reUploadedString, null, null, GeneralConstants.NA_RESULT_OF_STAGE.getConstantVal(), null, null, false));
+			} else if (fileDetailsBean.getFileStatus().getFileStatusId()
+					.equals(GeneralConstants.FILE_STATUS_META_DATA_FAILED_ID.getConstantLongVal())) {
+				activityTracker.setStepResult(GeneralConstants.SUCCESS_RESULT_OF_STAGE.getConstantVal());
+				activityTrackerList.add(activityTracker);
+
+				// Meta data stage activity
+				activityTrackerList.add(createActivity(2, GeneralConstants.VISITED_STAGE.getConstantVal(), GeneralConstants.META_DATA_ACTIVITY.getConstantVal() + reUploadedString, null, null, GeneralConstants.FAILED_RESULT_OF_STAGE.getConstantVal(), null, null, false));
+			} else {
+				if(fileDetailsBean.getReturnUploadDetailsList()!= null && fileDetailsBean.getReturnUploadDetailsList().size() > 0) {
+					ReturnsUploadDetails returnsUploadDetails = fileDetailsBean.getReturnUploadDetailsList().get(0);
+					String roleName = "";
+					UserRoleLabel userRoleLabel = returnsUploadDetails.getUploadUsrRole().getUsrRoleLabelSet().stream()
+							.filter(f -> f.getLangIdFk().getLanguageCode().equalsIgnoreCase(fileDetailsBean.getLangCode()))
+							.findAny().orElse(null);
+					if (!Objects.isNull(userRoleLabel)) {
+						roleName = userRoleLabel.getUserRoleLabel();
+					} else {
+						roleName = returnsUploadDetails.getUploadUsrRole().getRoleName();
+					}
+
+					// Metda data validated stage
+					activityTracker.setStepResult(GeneralConstants.SUCCESS_RESULT_OF_STAGE.getConstantVal());
+					activityTracker.getApprovalDetails().setUserRoleName(roleName);
+					activityTrackerList.add(activityTracker);
+
+					// Meta data stage activity
+					activityTrackerList.add(createActivity(2, GeneralConstants.VISITED_STAGE.getConstantVal(),  GeneralConstants.META_DATA_ACTIVITY.getConstantVal() + reUploadedString, null, null, GeneralConstants.SUCCESS_RESULT_OF_STAGE.getConstantVal(), null, roleName, false));
+
+					if (returnsUploadDetails.getFilingStatus().getFilingStatusId() == GeneralConstants.BUSINESS_VALIDATION_FAIL
+							.getConstantIntVal() || returnsUploadDetails.getFilingStatus().getFilingStatusId() == GeneralConstants.TECHNICAL_ERROR_ID
+									.getConstantIntVal()) {
+						// Business validation stage activity
+						activityTrackerList.add(createActivity(3, GeneralConstants.VISITED_STAGE.getConstantVal(), GeneralConstants.BUSINESS_VALIDATION_ACTIVITY.getConstantVal() + reUploadedString, null, null, GeneralConstants.FAILED_RESULT_OF_STAGE.getConstantVal(), null, null, false));
+					} else {
+						prepareActivityTrackerList(returnsUploadDetails, activityTrackerList, fileDetailsBean.getDateFormat(), fileDetailsBean.getCalendarFormat(), fileDetailsBean.getLangCode(), activityMap, isReSubmission);
+					}
+				}else {
+					Logger.info("Return upload details not found against file details ID");
+				}
+			}
+		}catch(Exception e) {
+			Logger.error("Exception : ", e);
+		}
+		return JsonUtility.getGsonObject().toJson(activityTrackerList);
+	}
+
+	private ActivityTracker createActivity(int stepId, String stepStatus, String stepName, String userName, String date,
+			String stepResult, String comment, String userRoleName, boolean autoApproved) {
+		ActivityTracker activityTracker = new ActivityTracker();
+		activityTracker.setStepId(stepId);
+
+		if(!StringUtils.isEmpty(stepStatus)) {
+			activityTracker.setStepStatus(stepStatus);
+		}
+		if(!StringUtils.isEmpty(stepName)) {
+			activityTracker.setStepName(stepName);
+		}
+		if(!StringUtils.isEmpty(stepResult)) {
+			activityTracker.setStepResult(stepResult);
+		}
+		
+		activityTracker.setAutoApproved(autoApproved);
+		
+		if (!StringUtils.isEmpty(userName) || !StringUtils.isEmpty(date) || !StringUtils.isEmpty(comment)) {
+			ApprovalDetails approvalDetails = new ApprovalDetails();
+			approvalDetails.setUserName(userName);
+			if(!StringUtils.isEmpty(comment)){
+				approvalDetails.setComment(comment.replace("\"", ""));
+			}
+			approvalDetails.setUserRoleName(userRoleName);
+			approvalDetails.setActionTakenOn(date);
+			activityTracker.setApprovalDetails(approvalDetails);
+		}
+
+		return activityTracker;
+	}
+
+	private void prepareActivityTrackerList(ReturnsUploadDetails returnsUploadDetails,
+			List<ActivityTracker> activityTrackerList, String dateFormat, String timeFormat, String langCode, Map<Integer, String> activityMap, boolean isReSubmission) {
+
+		String reUploadedString = "";
+		if(isReSubmission) {
+//			reUploadedString = ".reSubmission";
+		}
+		
+		if (CollectionUtils.isEmpty(returnsUploadDetails.getReturnApprovalDetailsList())) {
+			// Business validation stage activity
+			activityTrackerList.add(createActivity(3, GeneralConstants.CURRENT_STAGE.getConstantVal(), GeneralConstants.BUSINESS_VALIDATION_ACTIVITY.getConstantVal() + reUploadedString, null, null, GeneralConstants.NA_RESULT_OF_STAGE.getConstantVal(), null, null, false));
+		} else {
+			// Business validation stage activity
+			activityTrackerList.add(createActivity(3, GeneralConstants.VISITED_STAGE.getConstantVal(), GeneralConstants.BUSINESS_VALIDATION_ACTIVITY.getConstantVal() + reUploadedString, null, null, GeneralConstants.SUCCESS_RESULT_OF_STAGE.getConstantVal(), null, null, false));
+		}
+		List<WorkflowJsonBean> workflowJsonBeans = WorkflowUtility
+				.getWorkflowJsoListFromJsonString(returnsUploadDetails.getWorkFlowMaster().getWorkFlowJson());
+
+		int stepId = 4;
+		boolean isComplete = false;
+		String stepName = null;
+		String stepStatus = null;
+		String stepResult = null;
+		String userName = null;
+		String roleName = null;
+		boolean recordRejected = false;
+		String approvalDate = "";
+		for (WorkflowJsonBean workflowJsonBean : workflowJsonBeans) {
+			if (workflowJsonBean.getStepNo() == 1) {
+				continue;
+			}
+
+			if (CollectionUtils.isEmpty(returnsUploadDetails.getReturnApprovalDetailsList())) {
+				// Business validation stage activity
+				activityTrackerList.add(createActivity(stepId, GeneralConstants.NEXT_STAGE.getConstantVal(),
+						activityMap.get(workflowJsonBean.getActivities().get(0).getActivityId()) + reUploadedString, "", "", GeneralConstants.NA_RESULT_OF_STAGE.getConstantVal(),
+						"", "", workflowJsonBean.isAutoApproved()));
+			} else {
+				ReturnApprovalDetail returnApprovalDetail = returnsUploadDetails.getReturnApprovalDetailsList().stream()
+						.filter(f -> f.getWorkflowStep() == workflowJsonBean.getStepNo()).findAny().orElse(null);
+
+				if (Objects.isNull(returnApprovalDetail)) {
+					activityTrackerList.add(createActivity(stepId, GeneralConstants.NEXT_STAGE.getConstantVal(),
+							activityMap.get(workflowJsonBean.getActivities().get(0).getActivityId()) + reUploadedString, "", "", GeneralConstants.NA_RESULT_OF_STAGE.getConstantVal(),
+							"", "", workflowJsonBean.isAutoApproved()));
+				} else {
+					isComplete = returnApprovalDetail.isComplete();
+
+					stepName = activityMap.get(workflowJsonBean.getActivities().get(0).getActivityId());
+					stepStatus = "";
+					stepResult = "";
+
+					if (StringUtils.isEmpty(returnApprovalDetail.getReviewStatus())) {
+						stepStatus = GeneralConstants.CURRENT_STAGE.getConstantVal();
+						stepResult = GeneralConstants.NA_RESULT_OF_STAGE.getConstantVal();
+					} else {
+						if (!StringUtils.isEmpty(returnApprovalDetail.getApprovedRejectedBy())) {
+							userName = returnApprovalDetail.getApprovedRejectedBy().getUserName();
+						}
+
+						if (!StringUtils.isEmpty(returnApprovalDetail.getUserRole())) {
+							UserRoleLabel userRoleLabel = returnApprovalDetail.getUserRole().getUsrRoleLabelSet()
+									.stream().filter(f -> f.getLangIdFk().getLanguageCode().equalsIgnoreCase(langCode))
+									.findAny().orElse(null);
+
+							if (!Objects.isNull(userRoleLabel)) {
+								roleName = userRoleLabel.getUserRoleLabel();
+							} else {
+								roleName = returnApprovalDetail.getUserRole().getRoleName();
+							}
+						}
+
+						stepStatus = GeneralConstants.VISITED_STAGE.getConstantVal();
+						if (returnApprovalDetail.getReviewStatus().equalsIgnoreCase(GeneralConstants.APPROVED.getConstantVal())) {
+							stepResult = GeneralConstants.SUCCESS_RESULT_OF_STAGE.getConstantVal();
+						} else if (returnApprovalDetail.getReviewStatus().equalsIgnoreCase(GeneralConstants.REJECTED.getConstantVal())) {
+							recordRejected = true;
+							stepResult = GeneralConstants.FAILED_RESULT_OF_STAGE.getConstantVal();
+						} else {
+							stepResult = GeneralConstants.NA_RESULT_OF_STAGE.getConstantVal();
+						}
+					}
+
+					if (!StringUtils.isEmpty(returnApprovalDetail.getApprovedRejectedOn())) {
+						try {
+							approvalDate = DateManip.formatAppDateTime(returnApprovalDetail.getApprovedRejectedOn(),
+									dateFormat, timeFormat);
+						} catch (Exception e) {
+							Logger.error("Exception:", e);
+						}
+					}
+					activityTrackerList.add(createActivity(stepId, stepStatus, stepName + reUploadedString, userName, approvalDate,stepResult, returnApprovalDetail.getComment(), roleName, workflowJsonBean.isAutoApproved()));
+					if (recordRejected) {
+						break;
+					}
+				}
+			}
+			stepName = null;
+			stepStatus = null;
+			stepResult = null;
+			userName = null;
+			roleName = null;
+			stepId++;
+		}
+
+		if (!recordRejected) {
+			// Activity for completed stage start
+			ActivityTracker activityTracker = new ActivityTracker();
+			activityTracker.setStepId(stepId);
+			activityTracker.setStepName(GeneralConstants.COMPLETED_ACTIVITY.getConstantVal());
+
+			if (isComplete) {
+				activityTracker.setStepStatus(GeneralConstants.VISITED_STAGE.getConstantVal());
+				activityTracker.setStepResult(GeneralConstants.SUCCESS_RESULT_OF_STAGE.getConstantVal());
+			} else {
+				activityTracker.setStepStatus(GeneralConstants.NEXT_STAGE.getConstantVal());
+				activityTracker.setStepResult(GeneralConstants.NA_RESULT_OF_STAGE.getConstantVal());
+			}
+			activityTrackerList.add(activityTracker);
+			// Activity for completed stage end
+		}
+
+	}
+
+	public Map<Integer, String> prepareActivityMap() {
+
+		List<WorkFlowActivity> workflowActivityList = workflowActivityService.getActiveDataFor(null, null);
+		Map<Integer, String> activitMap = new HashMap<>();
+
+		workflowActivityList.forEach(f -> {
+			if(f.getActivityId().intValue() == 1) {
+				activitMap.put(1, "field.regional.officer.review");
+			}else if(f.getActivityId().intValue() == 2) {
+				activitMap.put(2, "field.rbi.approvel.level1.review");				
+			}else if(f.getActivityId().intValue() == 3) {
+				activitMap.put(3, "field.rbi.final.aprover.review");				
+			}else if(f.getActivityId().intValue() == 4) {
+				activitMap.put(4, "field.uploader.review");				
+			}else if(f.getActivityId().intValue() == 5) {
+				activitMap.put(5, "field.entity.review");				
+			}else if(f.getActivityId().intValue() == 6) {
+				activitMap.put(6, "field.statutory.review");				
+			}else {
+				activitMap.put(f.getActivityId().intValue(), f.getActivityDesc());
+			}
+		});
+		return activitMap;
+	}
+
+	@PostMapping(value = "/getReturnUploadDetails/{fileDetailId}")
+	public ServiceResponse getReturnUploadDetails(@PathVariable Long fileDetailId) {
+		List<ReturnsUploadDetails> returnUploadDetailsList = null;
+		try {
+			Map<String, Object> columnValueMap = new HashMap<>();
+			columnValueMap.put(ColumnConstants.FILE_DETAILS.getConstantVal(), fileDetailId);
+			returnUploadDetailsList = returnUploadDetailsService.getDataByObject(columnValueMap,
+					MethodConstants.GET_RETURN_UPLOAD_DETAILS_BY_FILE_DETAILS_ID.getConstantVal());
+		} catch (Exception e) {
+			Logger.error("Exception while getting return upload details info: ", e);
+		}
+		ServiceResponse response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+		List<RetUploadDetBean> retUploadDetBeanList = new ArrayList<>();
+		for (ReturnsUploadDetails returnsUploadDetails : returnUploadDetailsList) {
+			RetUploadDetBean retUploadDetBean = new RetUploadDetBean();
+			retUploadDetBean.setEntityCode(returnsUploadDetails.getEntity().getEntityCode());
+			retUploadDetBean.setModifiedInstanceFileName(returnsUploadDetails.getInstanceFile());
+			retUploadDetBean.setEndDate(returnsUploadDetails.getEndDate().toString());
+			retUploadDetBean.setEndDate_DateFrmt(returnsUploadDetails.getEndDate());
+			retUploadDetBeanList.add(retUploadDetBean);
+		}
+		String retUploadDetBeanListString = new Gson().toJson(retUploadDetBeanList);
+		response.setResponse(retUploadDetBeanListString);
+		return response;
+	}
+	
+	@GetMapping(value = "/getChannelAndFileStatusList")
+	public ServiceResponse getChannelAndFileStatusList() {
+		List<UploadChannel> uploadChannelList = new ArrayList<>() ;
+		EntityChannelRequestBean reportPageData = new EntityChannelRequestBean();
+		try {
+			uploadChannelList = channelService.getActiveDataFor(UploadChannel.class,null);
+			List<FileStatus> fileStatusList = fileStatusService.getAllDataFor(FileStatus.class,null);
+			reportPageData.setFileStatusList(fileStatusList);
+			reportPageData.setUploadChannelList(uploadChannelList);
+		} catch (ServiceException e) {
+			Logger.error(ErrorConstants.DEFAULT_ERROR.getConstantVal(), e);
+		}
+		ServiceResponse response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+		String reportPageDataString = new Gson().toJson(reportPageData);
+		response.setResponse(reportPageDataString);
+		return response;
+	}
+
+	public String getActivityTrackerListExcludeFiling(Long workflowId) {
+		WorkFlowMasterBean workflowJson = workFlowMasterRepo.getWorkflowDataById(workflowId);
+		List<ActivityTracker> activityTrackerList = new ArrayList<>();
+		
+		Map<Integer, String> activityMap = prepareActivityMap();
+		activityTrackerList.add(createActivity(1, GeneralConstants.NEXT_STAGE.getConstantVal(), GeneralConstants.UPLOADER_ACTIVITY.getConstantVal(), "", "", GeneralConstants.NA_RESULT_OF_STAGE.getConstantVal(), "", "", false));
+		activityTrackerList.add(createActivity(2, GeneralConstants.NEXT_STAGE.getConstantVal(), GeneralConstants.META_DATA_ACTIVITY.getConstantVal(), "", "", GeneralConstants.NA_RESULT_OF_STAGE.getConstantVal(), "", "", false));
+		activityTrackerList.add(createActivity(3, GeneralConstants.NEXT_STAGE.getConstantVal(), GeneralConstants.BUSINESS_VALIDATION_ACTIVITY.getConstantVal(), "", "", GeneralConstants.NA_RESULT_OF_STAGE.getConstantVal(), "", "", false));
+
+		List<WorkflowJsonBean> workflowJsonBeans = WorkflowUtility.getWorkflowJsoListFromJsonString(workflowJson.getWorkFlowJson());
+
+		int stepId = 4;
+		for (WorkflowJsonBean workflowJsonBean : workflowJsonBeans) {
+			if (workflowJsonBean.getStepNo() == 1) {
+				continue;
+			}
+			// Business validation stage activity
+			activityTrackerList.add(createActivity(stepId, GeneralConstants.NEXT_STAGE.getConstantVal(),
+					activityMap.get(workflowJsonBean.getActivities().get(0).getActivityId()), "", "", GeneralConstants.NA_RESULT_OF_STAGE.getConstantVal(),
+					"", "", workflowJsonBean.isAutoApproved()));
+			stepId++;
+		}
+
+		// Activity for completed stage start
+		ActivityTracker activityTracker = new ActivityTracker();
+		activityTracker.setStepId(stepId);
+		activityTracker.setStepName(GeneralConstants.COMPLETED_ACTIVITY.getConstantVal());
+		activityTracker.setStepStatus(GeneralConstants.NEXT_STAGE.getConstantVal());
+		activityTracker.setStepResult(GeneralConstants.NA_RESULT_OF_STAGE.getConstantVal());
+		activityTrackerList.add(activityTracker);
+		
+		return JsonUtility.getGsonObject().toJson(activityTrackerList);
+	}
+	
+}

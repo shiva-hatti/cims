@@ -1,0 +1,25 @@
+package com.iris.sdmx.menu.repo;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.iris.sdmx.menu.entity.SdmxActionMenuMapping;
+
+/**
+ * @author vjadhav
+ *
+ */
+public interface SdmxActionMenuMappingRepo extends JpaRepository<SdmxActionMenuMapping, Long>  {
+
+	@Query("from SdmxActionMenuMapping where sdmxMenuIdFk.sdmxMenuId =:sdmxMenuId")
+	List<SdmxActionMenuMapping> findBySdmxMenuId(Long sdmxMenuId);
+	
+	@Query("from SdmxActionMenuMapping")
+	List<SdmxActionMenuMapping> getAllMapping();
+	
+	@Query("from SdmxActionMenuMapping where sdmxMenuIdFk.sdmxMenuId IN(:sdmxMenuIdList)")
+	List<SdmxActionMenuMapping> findBySdmxMenuIdList(List<Long> sdmxMenuIdList);
+	
+}

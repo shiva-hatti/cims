@@ -1,0 +1,196 @@
+package com.iris.model;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+import com.iris.util.Validations;
+
+/**
+ * This class act as bean for EmailFormatter with hibernate mapping.
+ * 
+ * @author psawant
+ * @version 1.0
+ * @date 10/03/2016
+ */
+@Entity
+@Table(name = "TBL_EMAIL_FORMATTER")
+public class EmailFormatter implements Serializable {
+
+	private static final long serialVersionUID = -4770852386728458572L;
+
+	@Id
+	@Column(name = "EMAIL_FORMATTER_ID")
+	private long emailFormatterId;
+
+	@Column(name = "TH_BACKGROUND_COLOR")
+	private String thBackgroundColor;
+
+	@Column(name = "TH_FONT_COLOR")
+	private String thFontColor;
+
+	@Column(name = "TD_BACKGROUND_COLOR")
+	private String tdBackgroundColor;
+
+	@Column(name = "TD_FONT_COLOR")
+	private String tdFontColor;
+
+	@Column(name = "TABLE_BORDER")
+	private Integer tableBorder;
+
+	@Column(name = "TH_FONT_SIZE")
+	private Integer thFontSize;
+
+	@Column(name = "TD_FONT_SIZE")
+	private Integer tdFontSize;
+
+	@Column(name = "FONT_FAMILY")
+	private String fontFamily;
+
+	@Column(name = "SIGNATURE")
+	private String signature;
+
+	/**
+	 * @return the emailFormatterId
+	 */
+	public long getEmailFormatterId() {
+		return emailFormatterId;
+	}
+
+	/**
+	 * @param emailFormatterId the emailFormatterId to set
+	 */
+	public void setEmailFormatterId(long emailFormatterId) {
+		this.emailFormatterId = emailFormatterId;
+	}
+
+	/**
+	 * @return the thBackgroundColor
+	 */
+	public String getThBackgroundColor() {
+		return thBackgroundColor;
+	}
+
+	/**
+	 * @param thBackgroundColor the thBackgroundColor to set
+	 */
+	public void setThBackgroundColor(String thBackgroundColor) {
+		this.thBackgroundColor = Validations.trimInput(thBackgroundColor);
+	}
+
+	/**
+	 * @return the thFontColor
+	 */
+	public String getThFontColor() {
+		return thFontColor;
+	}
+
+	/**
+	 * @param thFontColor the thFontColor to set
+	 */
+	public void setThFontColor(String thFontColor) {
+		this.thFontColor = Validations.trimInput(thFontColor);
+	}
+
+	/**
+	 * @return the tdBackgroundColor
+	 */
+	public String getTdBackgroundColor() {
+		return tdBackgroundColor;
+	}
+
+	/**
+	 * @param tdBackgroundColor the tdBackgroundColor to set
+	 */
+	public void setTdBackgroundColor(String tdBackgroundColor) {
+		this.tdBackgroundColor = Validations.trimInput(tdBackgroundColor);
+	}
+
+	/**
+	 * @return the tdFontColor
+	 */
+	public String getTdFontColor() {
+		return tdFontColor;
+	}
+
+	/**
+	 * @param tdFontColor the tdFontColor to set
+	 */
+	public void setTdFontColor(String tdFontColor) {
+		this.tdFontColor = Validations.trimInput(tdFontColor);
+	}
+
+	/**
+	 * @return the tableBorder
+	 */
+	public Integer getTableBorder() {
+		return tableBorder;
+	}
+
+	/**
+	 * @param tableBorder the tableBorder to set
+	 */
+	public void setTableBorder(Integer tableBorder) {
+		this.tableBorder = tableBorder;
+	}
+
+	/**
+	 * @return the thFontSize
+	 */
+	public Integer getThFontSize() {
+		return thFontSize;
+	}
+
+	/**
+	 * @param thFontSize the thFontSize to set
+	 */
+	public void setThFontSize(Integer thFontSize) {
+		this.thFontSize = thFontSize;
+	}
+
+	/**
+	 * @return the tdFontSize
+	 */
+	public Integer getTdFontSize() {
+		return tdFontSize;
+	}
+
+	/**
+	 * @param tdFontSize the tdFontSize to set
+	 */
+	public void setTdFontSize(Integer tdFontSize) {
+		this.tdFontSize = tdFontSize;
+	}
+
+	/**
+	 * @return the fontFamily
+	 */
+	public String getFontFamily() {
+		return fontFamily;
+	}
+
+	/**
+	 * @param fontFamily the fontFamily to set
+	 */
+	public void setFontFamily(String fontFamily) {
+		this.fontFamily = Validations.trimInput(fontFamily);
+	}
+
+	/**
+	 * @return the signature
+	 */
+	public String getSignature() {
+		return signature;
+	}
+
+	/**
+	 * @param signature the signature to set
+	 */
+	public void setSignature(String signature) {
+		this.signature = Validations.trimInput(signature);
+	}
+
+}

@@ -1,0 +1,357 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+import java.util.Date;
+
+
+/**
+ * @author sajadhav
+ *
+ */
+public class FileDetailsBeanLimitedField implements Serializable{
+
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8234286936384310373L;
+
+	private Long id;
+	
+	private String fileName;
+	
+	private Date fileCreationTime;
+	
+	private String fileType;
+	
+	private Long uploadChannelId;
+	
+	private String uploadChannelDesc;
+	
+	private String reasonOfNotProcessed;
+	
+	private Long size;
+	
+	private String fileCheckSum;
+	
+	private String fileMimeType;
+	
+	private Date creationDate;
+
+	private String entityCode;
+	
+	private Boolean isActive;
+	
+	private String userName;
+
+	private Boolean processingFlag;
+		
+	private String ifscCode;
+	
+	private Integer filingStatusId;
+
+	private String status;
+			
+	private Long userId;
+	
+	private String jsonFileName;
+	
+	private Long roleId;
+
+
+	/**
+	 * @return the id
+	 */
+	public Long getId() {
+		return id;
+	}
+
+	/**
+	 * @param id the id to set
+	 */
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	/**
+	 * @return the fileName
+	 */
+	public String getFileName() {
+		return fileName;
+	}
+
+	/**
+	 * @param fileName the fileName to set
+	 */
+	public void setFileName(String fileName) {
+		this.fileName = fileName;
+	}
+
+	/**
+	 * @return the fileCreationTime
+	 */
+	public Date getFileCreationTime() {
+		return fileCreationTime;
+	}
+
+	/**
+	 * @param fileCreationTime the fileCreationTime to set
+	 */
+	public void setFileCreationTime(Date fileCreationTime) {
+		this.fileCreationTime = fileCreationTime;
+	}
+
+	/**
+	 * @return the fileType
+	 */
+	public String getFileType() {
+		return fileType;
+	}
+
+	/**
+	 * @param fileType the fileType to set
+	 */
+	public void setFileType(String fileType) {
+		this.fileType = fileType;
+	}
+
+	/**
+	 * @return the uploadChannelId
+	 */
+	public Long getUploadChannelId() {
+		return uploadChannelId;
+	}
+
+	/**
+	 * @param uploadChannelId the uploadChannelId to set
+	 */
+	public void setUploadChannelId(Long uploadChannelId) {
+		this.uploadChannelId = uploadChannelId;
+	}
+
+	/**
+	 * @return the uploadChannelDesc
+	 */
+	public String getUploadChannelDesc() {
+		return uploadChannelDesc;
+	}
+
+	/**
+	 * @param uploadChannelDesc the uploadChannelDesc to set
+	 */
+	public void setUploadChannelDesc(String uploadChannelDesc) {
+		this.uploadChannelDesc = uploadChannelDesc;
+	}
+
+	/**
+	 * @return the reasonOfNotProcessed
+	 */
+	public String getReasonOfNotProcessed() {
+		return reasonOfNotProcessed;
+	}
+
+	/**
+	 * @param reasonOfNotProcessed the reasonOfNotProcessed to set
+	 */
+	public void setReasonOfNotProcessed(String reasonOfNotProcessed) {
+		this.reasonOfNotProcessed = reasonOfNotProcessed;
+	}
+
+	/**
+	 * @return the size
+	 */
+	public Long getSize() {
+		return size;
+	}
+
+	/**
+	 * @param size the size to set
+	 */
+	public void setSize(Long size) {
+		this.size = size;
+	}
+
+	/**
+	 * @return the fileCheckSum
+	 */
+	public String getFileCheckSum() {
+		return fileCheckSum;
+	}
+
+	/**
+	 * @param fileCheckSum the fileCheckSum to set
+	 */
+	public void setFileCheckSum(String fileCheckSum) {
+		this.fileCheckSum = fileCheckSum;
+	}
+
+	/**
+	 * @return the fileMimeType
+	 */
+	public String getFileMimeType() {
+		return fileMimeType;
+	}
+
+	/**
+	 * @param fileMimeType the fileMimeType to set
+	 */
+	public void setFileMimeType(String fileMimeType) {
+		this.fileMimeType = fileMimeType;
+	}
+
+	/**
+	 * @return the creationDate
+	 */
+	public Date getCreationDate() {
+		return creationDate;
+	}
+
+	/**
+	 * @param creationDate the creationDate to set
+	 */
+	public void setCreationDate(Date creationDate) {
+		this.creationDate = creationDate;
+	}
+
+	/**
+	 * @return the entityCode
+	 */
+	public String getEntityCode() {
+		return entityCode;
+	}
+
+	/**
+	 * @param entityCode the entityCode to set
+	 */
+	public void setEntityCode(String entityCode) {
+		this.entityCode = entityCode;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the userName
+	 */
+	public String getUserName() {
+		return userName;
+	}
+
+	/**
+	 * @param userName the userName to set
+	 */
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	/**
+	 * @return the processingFlag
+	 */
+	public Boolean getProcessingFlag() {
+		return processingFlag;
+	}
+
+	/**
+	 * @param processingFlag the processingFlag to set
+	 */
+	public void setProcessingFlag(Boolean processingFlag) {
+		this.processingFlag = processingFlag;
+	}
+
+	/**
+	 * @return the ifscCode
+	 */
+	public String getIfscCode() {
+		return ifscCode;
+	}
+
+	/**
+	 * @param ifscCode the ifscCode to set
+	 */
+	public void setIfscCode(String ifscCode) {
+		this.ifscCode = ifscCode;
+	}
+
+	/**
+	 * @return the filingStatusId
+	 */
+	public Integer getFilingStatusId() {
+		return filingStatusId;
+	}
+
+	/**
+	 * @param filingStatusId the filingStatusId to set
+	 */
+	public void setFilingStatusId(Integer filingStatusId) {
+		this.filingStatusId = filingStatusId;
+	}
+
+	/**
+	 * @return the status
+	 */
+	public String getStatus() {
+		return status;
+	}
+
+	/**
+	 * @param status the status to set
+	 */
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	/**
+	 * @return the userId
+	 */
+	public Long getUserId() {
+		return userId;
+	}
+
+	/**
+	 * @param userId the userId to set
+	 */
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	/**
+	 * @return the roleId
+	 */
+	public Long getRoleId() {
+		return roleId;
+	}
+
+	/**
+	 * @param roleId the roleId to set
+	 */
+	public void setRoleId(Long roleId) {
+		this.roleId = roleId;
+	}
+
+	/**
+	 * @return the jsonFileName
+	 */
+	public String getJsonFileName() {
+		return jsonFileName;
+	}
+
+	/**
+	 * @param jsonFileName the jsonFileName to set
+	 */
+	public void setJsonFileName(String jsonFileName) {
+		this.jsonFileName = jsonFileName;
+	}
+}
+
+	

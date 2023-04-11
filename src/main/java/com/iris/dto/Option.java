@@ -1,0 +1,60 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.iris.util.Validations;
+
+/**
+ * @author sikhan
+ */
+public class Option implements Serializable {
+
+	private static final long serialVersionUID = 1630672829221790823L;
+
+	private String key;
+	private String value;
+	//private String details;
+	private Map<String, String> detailsMap = new HashMap<>();
+	private List<OptionBean> detailsList;
+
+	/**
+	 * @return the key
+	 */
+	public String getKey() {
+		return key;
+	}
+
+	/**
+	 * @param key the key to set
+	 */
+	public void setKey(String key) {
+		this.key = Validations.trimInput(key);
+	}
+
+	public String getValue() {
+		return value;
+	}
+
+	public void setValue(String value) {
+		this.value = Validations.trimInput(value);
+	}
+
+	public Map<String, String> getDetailsMap() {
+		return detailsMap;
+	}
+
+	public void setDetailsMap(Map<String, String> detailsMap) {
+		this.detailsMap = detailsMap;
+	}
+
+	public List<OptionBean> getDetailsList() {
+		return detailsList;
+	}
+
+	public void setDetailsList(List<OptionBean> detailsList) {
+		this.detailsList = detailsList;
+	}
+}

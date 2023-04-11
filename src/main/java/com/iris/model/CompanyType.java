@@ -1,0 +1,301 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Set;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.iris.util.Validations;
+
+@Entity
+@Table(name = "TBL_COMP_TYPE")
+@JsonInclude(Include.NON_DEFAULT)
+public class CompanyType implements Serializable {
+
+	private static final long serialVersionUID = 7796105413445535673L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "COMP_TYPE_ID")
+	private Long compTypeId;
+
+	@Column(name = "COMP_TYPE_NAME")
+	private String compTypeName;
+
+	@Column(name = "COMP_TYPE_CODE")
+	private String compTypeCode;
+
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "CREATED_BY_FK")
+	private UserMaster user;
+
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "LAST_MODIFIED_BY_FK")
+	private UserMaster userModify;
+
+	@Column(name = "LAST_MODIFIED_ON")
+	private Date lastModifiedOn;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "LAST_APPROVED_BY_FK")
+	private UserMaster lastApprovedBy;
+
+	@Column(name = "LAST_APPROVED_ON")
+	private Date lastApprovedOn;
+
+	@Column(name = "LAST_UPDATE_ON")
+	private Date lastUpdatedOn;
+
+	@OneToMany(mappedBy = "compTypeIdFk")
+	private Set<CompanyTypeLabel> comTypeLblSet;
+
+	@Transient
+	private int singleLanguage;
+
+	@Transient
+	private Long roleIdKey;
+
+	@Transient
+	private String uniqueIdentifier;
+
+	@Transient
+	private String compTypeNameBil;
+
+	/**
+	 * @return the compTypeId
+	 */
+	public Long getCompTypeId() {
+		return compTypeId;
+	}
+
+	/**
+	 * @return the roleIdKey
+	 */
+	public Long getRoleIdKey() {
+		return roleIdKey;
+	}
+
+	/**
+	 * @param roleIdKey the roleIdKey to set
+	 */
+	public void setRoleIdKey(Long roleIdKey) {
+		this.roleIdKey = roleIdKey;
+	}
+
+	/**
+	 * @param compTypeId the compTypeId to set
+	 */
+	public void setCompTypeId(Long compTypeId) {
+		this.compTypeId = compTypeId;
+	}
+
+	/**
+	 * @return the compTypeName
+	 */
+	public String getCompTypeName() {
+		return compTypeName;
+	}
+
+	/**
+	 * @param compTypeName the compTypeName to set
+	 */
+	public void setCompTypeName(String compTypeName) {
+		this.compTypeName = Validations.trimInput(compTypeName);
+	}
+
+	/**
+	 * @return the compTypeCode
+	 */
+	public String getCompTypeCode() {
+		return compTypeCode;
+	}
+
+	/**
+	 * @param compTypeCode the compTypeCode to set
+	 */
+	public void setCompTypeCode(String compTypeCode) {
+		this.compTypeCode = Validations.trimInput(compTypeCode);
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the user
+	 */
+	public UserMaster getUser() {
+		return user;
+	}
+
+	/**
+	 * @param user the user to set
+	 */
+	public void setUser(UserMaster user) {
+		this.user = user;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the userModify
+	 */
+	public UserMaster getUserModify() {
+		return userModify;
+	}
+
+	/**
+	 * @param userModify the userModify to set
+	 */
+	public void setUserModify(UserMaster userModify) {
+		this.userModify = userModify;
+	}
+
+	/**
+	 * @return the lastModifiedOn
+	 */
+	public Date getLastModifiedOn() {
+		return lastModifiedOn;
+	}
+
+	/**
+	 * @param lastModifiedOn the lastModifiedOn to set
+	 */
+	public void setLastModifiedOn(Date lastModifiedOn) {
+		this.lastModifiedOn = lastModifiedOn;
+	}
+
+	/**
+	 * @return the lastApprovedBy
+	 */
+	public UserMaster getLastApprovedBy() {
+		return lastApprovedBy;
+	}
+
+	/**
+	 * @param lastApprovedBy the lastApprovedBy to set
+	 */
+	public void setLastApprovedBy(UserMaster lastApprovedBy) {
+		this.lastApprovedBy = lastApprovedBy;
+	}
+
+	/**
+	 * @return the lastApprovedOn
+	 */
+	public Date getLastApprovedOn() {
+		return lastApprovedOn;
+	}
+
+	/**
+	 * @param lastApprovedOn the lastApprovedOn to set
+	 */
+	public void setLastApprovedOn(Date lastApprovedOn) {
+		this.lastApprovedOn = lastApprovedOn;
+	}
+
+	public Date getLastUpdatedOn() {
+		return lastUpdatedOn;
+	}
+
+	public void setLastUpdatedOn(Date lastUpdatedOn) {
+		this.lastUpdatedOn = lastUpdatedOn;
+	}
+
+	/**
+	 * @return the comTypeLblSet
+	 */
+	public Set<CompanyTypeLabel> getComTypeLblSet() {
+		return comTypeLblSet;
+	}
+
+	/**
+	 * @param comTypeLblSet the comTypeLblSet to set
+	 */
+	public void setComTypeLblSet(Set<CompanyTypeLabel> comTypeLblSet) {
+		this.comTypeLblSet = comTypeLblSet;
+	}
+
+	/**
+	 * @return the singleLanguage
+	 */
+	public int getSingleLanguage() {
+		return singleLanguage;
+	}
+
+	/**
+	 * @param singleLanguage the singleLanguage to set
+	 */
+	public void setSingleLanguage(int singleLanguage) {
+		this.singleLanguage = singleLanguage;
+	}
+
+	/**
+	 * @return the uniqueIdentifier
+	 */
+	public String getUniqueIdentifier() {
+		return uniqueIdentifier;
+	}
+
+	/**
+	 * @param uniqueIdentifier the uniqueIdentifier to set
+	 */
+	public void setUniqueIdentifier(String uniqueIdentifier) {
+		this.uniqueIdentifier = Validations.trimInput(uniqueIdentifier);
+	}
+
+	/**
+	 * @return the compTypeNameBil
+	 */
+	public String getCompTypeNameBil() {
+		return compTypeNameBil;
+	}
+
+	/**
+	 * @param compTypeNameBil the compTypeNameBil to set
+	 */
+	public void setCompTypeNameBil(String compTypeNameBil) {
+		this.compTypeNameBil = Validations.trimInput(compTypeNameBil);
+	}
+
+}

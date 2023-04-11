@@ -1,0 +1,182 @@
+/**
+ * 
+ */
+package com.iris.service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import com.iris.controller.EntityMasterController;
+import com.iris.controller.ReturnGroupController;
+import com.iris.dto.EntityMasterDto;
+import com.iris.dto.ReturnDto;
+import com.iris.dto.ReturnGroupMappingDto;
+import com.iris.dto.ReturnGroupMappingRequest;
+import com.iris.dto.ServiceResponse;
+import com.iris.model.EntityBean;
+import com.iris.util.constant.GeneralConstants;
+
+/**
+ * @author sajadhav
+ *
+ */
+@Service
+public class MasterDataAuthenticationService {
+
+	@Autowired
+	private EntityMasterController entityMasterController;
+
+	@Autowired
+	private ReturnGroupController returnGroupController;
+	
+	
+	public boolean isAuthorisedRequestWithRespectToEntityIfscCode(Long userId, Long roleId, String langCode, List<String> ifscCodeList, String jobProcessId) {
+
+		if(!CollectionUtils.isEmpty(ifscCodeList)) {
+			EntityMasterDto entityMasterDto = new EntityMasterDto();
+			entityMasterDto.setUserId(userId);
+			entityMasterDto.setRoleId(roleId);
+			if (langCode == null) {
+				entityMasterDto.setLanguageCode(GeneralConstants.ENG_LANG.getConstantVal());
+			} else {
+				entityMasterDto.setLanguageCode(langCode);
+			}
+			entityMasterDto.setIsActive(true);
+
+			ServiceResponse serviceResponse = entityMasterController.getEntityMasterList(jobProcessId, entityMasterDto);
+
+			List<String> mappedIfscCode = new ArrayList<>();
+			if (serviceResponse.isStatus()) {
+				@SuppressWarnings("unchecked")
+				List<EntityBean> entityBeans = (List<EntityBean>) serviceResponse.getResponse();
+				entityBeans.forEach(f -> {
+					mappedIfscCode.add(f.getIfscCode());
+				});
+			}
+			
+			List<String> unauthorizedIfscCodeList = ifscCodeList.stream().filter(i -> !mappedIfscCode.contains(i)).collect (Collectors.toList());
+	        
+			if(!CollectionUtils.isEmpty(unauthorizedIfscCodeList)) {
+				return false;
+			}	
+		}
+		
+		return true;
+	}
+	
+	public boolean isAuthorisedRequestWithRespectToEntityCode(Long userId, Long roleId, String langCode,  List<String> entityCodeList, String jobProcessId) {
+
+		if(!CollectionUtils.isEmpty(entityCodeList)) {
+			EntityMasterDto entityMasterDto = new EntityMasterDto();
+			entityMasterDto.setUserId(userId);
+			entityMasterDto.setRoleId(roleId);
+			if (langCode == null) {
+				entityMasterDto.setLanguageCode(GeneralConstants.ENG_LANG.getConstantVal());
+			} else {
+				entityMasterDto.setLanguageCode(langCode);
+			}
+			entityMasterDto.setIsActive(true);
+
+			ServiceResponse serviceResponse = entityMasterController.getEntityMasterList(jobProcessId, entityMasterDto);
+
+			List<String> mappedEntityCodes = new ArrayList<>();
+			if (serviceResponse.isStatus()) {
+				@SuppressWarnings("unchecked")
+				List<EntityBean> entityBeans = (List<EntityBean>) serviceResponse.getResponse();
+				entityBeans.forEach(f -> {
+					mappedEntityCodes.add(f.getEntityCode());
+				});
+			}
+			
+			
+			List<String> unauthorizedEntityCodeList = entityCodeList.stream().filter(i -> !mappedEntityCodes.contains(i)).collect (Collectors.toList());
+	        
+			if(!CollectionUtils.isEmpty(unauthorizedEntityCodeList)) {
+				return false;
+			}	
+		}
+		
+		return true;
+	}
+
+	public boolean isAuthorisedRequestWithRespectToEntityEntityIds(Long userId, Long roleId, String langCode,  List<Long> entityids, String jobProcessId) {
+
+		if(!CollectionUtils.isEmpty(entityids)) {
+			EntityMasterDto entityMasterDto = new EntityMasterDto();
+			entityMasterDto.setUserId(userId);
+			entityMasterDto.setRoleId(roleId);
+			if (langCode == null) {
+				entityMasterDto.setLanguageCode(GeneralConstants.ENG_LANG.getConstantVal());
+			} else {
+				entityMasterDto.setLanguageCode(langCode);
+			}
+			entityMasterDto.setIsActive(true);
+
+			ServiceResponse serviceResponse = entityMasterController.getEntityMasterList(jobProcessId, entityMasterDto);
+
+			List<Long> mappedEntityIds = new ArrayList<>();
+			if (serviceResponse.isStatus()) {
+				@SuppressWarnings("unchecked")
+				List<EntityBean> entityBeans = (List<EntityBean>) serviceResponse.getResponse();
+				entityBeans.forEach(f -> {
+					mappedEntityIds.add(f.getEntityId());
+				});
+			}
+			
+			
+			List<Long> unauthorizedEntityCodeList = entityids.stream().filter(i -> !mappedEntityIds.contains(i)).collect (Collectors.toList());
+	        
+			if(!CollectionUtils.isEmpty(unauthorizedEntityCodeList)) {
+				return false;
+			}	
+		}
+		
+		return true;
+	}
+
+	public boolean isAuthorisedRequestWithRespectToReturnId(Long userId, Long roleId, Long langId, List<Long> returnIds, String jobProcessId) {
+
+		//To Do :  code optimization
+
+		if (!CollectionUtils.isEmpty(returnIds)) {
+			ReturnGroupMappingRequest returnGroupMappingReq = new ReturnGroupMappingRequest();
+			returnGroupMappingReq.setRoleId(roleId);
+			returnGroupMappingReq.setUserId(userId);
+			returnGroupMappingReq.setIsActive(true);
+			if (langId == null) {
+				returnGroupMappingReq.setLangId(GeneralConstants.ENG_LANG_ID.getConstantLongVal());
+			} else {
+				returnGroupMappingReq.setLangId(langId);
+			}
+
+			ServiceResponse returnGroupServiceResponse = returnGroupController.getReturnGroups(jobProcessId,
+					returnGroupMappingReq);
+			List<Long> dbReturnIds = new ArrayList<>();
+
+			if (returnGroupServiceResponse.isStatus()) {
+				@SuppressWarnings("unchecked")
+				List<ReturnGroupMappingDto> returnGroupMappingRtos = (List<ReturnGroupMappingDto>) returnGroupServiceResponse
+						.getResponse();
+				returnGroupMappingRtos.forEach(f -> {
+					List<ReturnDto> returnList = f.getReturnList();
+					returnList.forEach(r -> {
+						dbReturnIds.add(r.getReturnId());
+					});
+				});
+			}
+
+			List<Long> unauthorizedReturnIdList = returnIds.stream().filter(i -> !dbReturnIds.contains(i))
+					.collect(Collectors.toList());
+
+			if (!CollectionUtils.isEmpty(unauthorizedReturnIdList)) {
+				return false;
+			}
+		}
+		return true;
+	}
+}

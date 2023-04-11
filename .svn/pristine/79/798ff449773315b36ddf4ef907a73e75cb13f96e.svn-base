@@ -1,0 +1,112 @@
+package com.iris.model;
+
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+
+/**
+ * @author psheke
+ * @date 16/10/2020
+ */
+@Entity
+@Table(name = "TBL_AUDIT_FIRM_MODIFICATION_HISTORY")
+public class AuditFirmMod {
+
+	@Id
+	@Column(name = "AUDIT_FIRM_MODIFICATION_HISTORY_ID")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long auditFirmModHistId;
+
+	@ManyToOne
+	@JoinColumn(name = "AUDIT_FIRM_ID_FK")
+	private AuditFirmInfo auditFirmModId;
+
+	@ManyToOne
+	@JoinColumn(name = "LAST_MODIFIED_BY_FK")
+	private UserMaster lastModifiedBy;
+
+	@Column(name = "LAST_MODIFIED_ON")
+	private Date lastModifiedOn;
+
+	/**
+	 * @return the auditFirmModId
+	 */
+	public AuditFirmInfo getAuditFirmModId() {
+		return auditFirmModId;
+	}
+
+	/**
+	 * @param auditFirmModId the auditFirmModId to set
+	 */
+	public void setAuditFirmModId(AuditFirmInfo auditFirmModId) {
+		this.auditFirmModId = auditFirmModId;
+	}
+
+	@Column(name = "MODIFICATION_JSON")
+	private String auditFirmModJson;
+
+	/**
+	 * @return the auditFirmModHistId
+	 */
+	public Long getAuditFirmModHistId() {
+		return auditFirmModHistId;
+	}
+
+	/**
+	 * @param auditFirmModHistId the auditFirmModHistId to set
+	 */
+	public void setAuditFirmModHistId(Long auditFirmModHistId) {
+		this.auditFirmModHistId = auditFirmModHistId;
+	}
+
+	/**
+	 * @return the auditFirmModJson
+	 */
+	public String getAuditFirmModJson() {
+		return auditFirmModJson;
+	}
+
+	/**
+	 * @param auditFirmModJson the auditFirmModJson to set
+	 */
+	public void setAuditFirmModJson(String auditFirmModJson) {
+		this.auditFirmModJson = auditFirmModJson;
+	}
+
+	/**
+	 * @return the lastModifiedBy
+	 */
+	public UserMaster getLastModifiedBy() {
+		return lastModifiedBy;
+	}
+
+	/**
+	 * @param lastModifiedBy the lastModifiedBy to set
+	 */
+	public void setLastModifiedBy(UserMaster lastModifiedBy) {
+		this.lastModifiedBy = lastModifiedBy;
+	}
+
+	/**
+	 * @return the lastModifiedOn
+	 */
+	public Date getLastModifiedOn() {
+		return lastModifiedOn;
+	}
+
+	/**
+	 * @param lastModifiedOn the lastModifiedOn to set
+	 */
+	public void setLastModifiedOn(Date lastModifiedOn) {
+		this.lastModifiedOn = lastModifiedOn;
+	}
+
+}

@@ -1,0 +1,376 @@
+package com.iris.model;
+
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Set;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.util.CollectionUtils;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.iris.util.Validations;
+
+/**
+ * This is the Category bean class with Hibernate mapping.
+ * 
+ * @author pbanu
+ * @date 02/06/2015
+ * 
+ */
+@Entity
+@Table(name = "TBL_CATEGORY")
+@JsonInclude(Include.NON_NULL)
+public class Category implements Serializable {
+
+	private static final long serialVersionUID = -590148225478538000L;
+
+    private static final Logger LOGGER = LogManager.getLogger(Category.class);
+
+    
+	@Id
+	@Column(name = "CATEGORY_ID")
+	private Long categoryId;
+
+	@Column(name = "CATEGORY_NAME")
+	private String categoryName;
+
+	@Column(name = "CATEGORY_CODE")
+	private String categoryCode;
+
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	@ManyToOne
+	@JoinColumn(name = "CREATED_BY_FK")
+	private UserMaster createdBy;
+
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+
+	@ManyToOne
+	@JoinColumn(name = "LAST_MODIFIED_BY_FK")
+	private UserMaster userModify;
+
+	@Column(name = "LAST_MODIFIED_ON")
+	private Date lastModifiedOn;
+
+	@ManyToOne
+	@JoinColumn(name = "LAST_APPROVED_BY_FK")
+	private UserMaster lastApprovedBy;
+
+	@Column(name = "LAST_APPROVED_ON")
+	private Date lastApprovedOn;
+
+	@Column(name = "LAST_UPDATE_ON")
+	private Date lastUpdateOn;
+
+	@Transient
+	private Long roleIdKey;
+
+	@OneToMany(mappedBy = "category")
+	@OrderBy("subCategoryName")
+	private Set<SubCategory> subCategory;
+
+	@OneToMany(mappedBy = "categoryIdFk")
+	private Set<CategoryLabel> catLblSet;
+
+	@Transient
+	private int singleLanguage;
+
+	@Column(name = "IS_BULK_UPLOAD")
+	private Boolean isBulkUpload;
+	
+	@Transient
+	private String uniqueIdentifier;
+	
+	@Transient
+	private String categoryNameBil;
+	
+	public Category() {
+		// TODO Auto-generated constructor stub
+	}
+	
+	public Category(Long categoryId, String categoryName, String categoryCode) {
+		this.categoryId = categoryId;
+		this.categoryName = categoryName;
+		this.categoryCode = categoryCode;
+	}
+
+	/**
+	 * @return the categoryId
+	 */
+	public Long getCategoryId() {
+		return categoryId;
+	}
+
+	/**
+	 * @param categoryId the categoryId to set
+	 */
+	public void setCategoryId(Long categoryId) {
+		this.categoryId = categoryId;
+	}
+
+	/**
+	 * @return the categoryName
+	 */
+	public String getCategoryName() {
+		return categoryName;
+	}
+
+	/**
+	 * @param categoryName the categoryName to set
+	 */
+	public void setCategoryName(String categoryName) {
+		this.categoryName = Validations.trimInput(categoryName);
+	}
+
+	/**
+	 * @return the categoryCode
+	 */
+	public String getCategoryCode() {
+		return categoryCode;
+	}
+
+	/**
+	 * @param categoryCode the categoryCode to set
+	 */
+	public void setCategoryCode(String categoryCode) {
+		this.categoryCode = Validations.trimInput(categoryCode);
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the lastModifiedOn
+	 */
+	public Date getLastModifiedOn() {
+		return lastModifiedOn;
+	}
+
+	/**
+	 * @param lastModifiedOn the lastModifiedOn to set
+	 */
+	public void setLastModifiedOn(Date lastModifiedOn) {
+		this.lastModifiedOn = lastModifiedOn;
+	}
+
+	/**
+	 * @return the lastApprovedBy
+	 */
+	public UserMaster getLastApprovedBy() {
+		return lastApprovedBy;
+	}
+
+	/**
+	 * @param lastApprovedBy the lastApprovedBy to set
+	 */
+	public void setLastApprovedBy(UserMaster lastApprovedBy) {
+		this.lastApprovedBy = lastApprovedBy;
+	}
+
+	/**
+	 * @return the lastApprovedOn
+	 */
+	public Date getLastApprovedOn() {
+		return lastApprovedOn;
+	}
+
+	/**
+	 * @param lastApprovedOn the lastApprovedOn to set
+	 */
+	public void setLastApprovedOn(Date lastApprovedOn) {
+		this.lastApprovedOn = lastApprovedOn;
+	}
+
+	/**
+	 * @return the subCategory
+	 */
+	public Set<SubCategory> getSubCategory() {
+		return subCategory;
+	}
+
+	/**
+	 * @param subCategory the subCategory to set
+	 */
+	public void setSubCategory(Set<SubCategory> subCategory) {
+		this.subCategory = subCategory;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+	
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+	
+	/**
+	 * @return the userModify
+	 */
+	public UserMaster getUserModify() {
+		return userModify;
+	}
+
+	/**
+	 * @param userModify the userModify to set
+	 */
+	public void setUserModify(UserMaster userModify) {
+		this.userModify = userModify;
+	}
+	
+	/**
+	 * @return the roleIdKey
+	 */
+	public Long getRoleIdKey() {
+		return roleIdKey;
+	}
+
+	/**
+	 * @param roleIdKey the roleIdKey to set
+	 */
+	public void setRoleIdKey(Long roleIdKey) {
+		this.roleIdKey = roleIdKey;
+	}
+	
+	/**
+	 * @return the lastUpdateOn
+	 */
+	public Date getLastUpdateOn() {
+		return lastUpdateOn;
+	}
+
+	/**
+	 * @param lastUpdateOn the lastUpdateOn to set
+	 */
+	public void setLastUpdateOn(Date lastUpdateOn) {
+		this.lastUpdateOn = lastUpdateOn;
+	}
+
+	/**
+	 * @return the catLblSet
+	 */
+	public Set<CategoryLabel> getCatLblSet() {
+		return catLblSet;
+	}
+
+	/**
+	 * @param catLblSet the catLblSet to set
+	 */
+	public void setCatLblSet(Set<CategoryLabel> catLblSet) {
+		this.catLblSet = catLblSet;
+	}
+
+	/**
+	 * @return the isBulkUpload
+	 */
+	public Boolean getIsBulkUpload() {
+		return isBulkUpload;
+	}
+
+	/**
+	 * @param isBulkUpload the isBulkUpload to set
+	 */
+	public void setIsBulkUpload(Boolean isBulkUpload) {
+		this.isBulkUpload = isBulkUpload;
+	}
+
+	public int getSingleLanguage() {
+		return singleLanguage;
+	}
+
+	public void setSingleLanguage(int singleLanguage) {
+		this.singleLanguage = singleLanguage;
+	}
+
+	/**
+	 * @return the uniqueIdentifier
+	 */
+	public String getUniqueIdentifier() {
+		return uniqueIdentifier;
+	}
+
+	/**
+	 * @param uniqueIdentifier the uniqueIdentifier to set
+	 */
+	public void setUniqueIdentifier(String uniqueIdentifier) {
+		this.uniqueIdentifier = Validations.trimInput(uniqueIdentifier);
+	}
+
+	/**
+	 * @return the categoryNameBil
+	 */
+	public String getCategoryNameBil() {
+		return categoryNameBil;
+	}
+
+	/**
+	 * @param categoryNameBil the categoryNameBil to set
+	 */
+	public void setCategoryNameBil(String categoryNameBil) {
+		this.categoryNameBil = Validations.trimInput(categoryNameBil);
+	}
+
+	public String getLangCatLabel(Long languageId) {
+		if (CollectionUtils.isEmpty(this.catLblSet)) {
+			return null;
+		}
+		if (languageId == null) {
+			return null;
+		}
+		try {
+			for (CategoryLabel catLabel : this.catLblSet) {
+				if (catLabel.getLangIdFk().getLanguageId().equals(languageId)) {
+	        		return catLabel.getCategoryLabel();
+	        	}
+			}
+		} catch (Exception e) {
+			LOGGER.error("Exception : ", e);
+        }
+		return null;
+	}
+}

@@ -1,0 +1,40 @@
+package com.iris.repository;
+
+import java.math.BigInteger;
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.FraudMaster;
+
+public interface FraudMasterRepo extends JpaRepository<FraudMaster, Long> {
+
+	@Query(value = "FROM FraudMaster where fraudCode=:fraudCode and entityIdFk.entityId=:entityId and dataPopulatedHive=2")
+	FraudMaster getInfoOnFraudCode(@Param("fraudCode") String fraudCode, @Param("entityId") Long entityId);
+
+	@Query(value = "FROM FraudMaster where fraudCode=:fraudCode and entityIdFk.entityId IN (:entityIds) and dataPopulatedHive=2")
+	FraudMaster getInfoOnFraudCodeDept(@Param("fraudCode") String fraudCode, @Param("entityIds") List<Long> entityIds);
+
+	FraudMaster findByFraudMasterId(@Param("fraudMasterId") BigInteger fraudMasterId);
+
+	@Query(value = "select max(fraudCode) from FraudMaster where fraudCode like %:fraudCodeLike%")
+	String getMaxFraudCodeByLikeString(@Param("fraudCodeLike") String fraudCodeLike);
+
+	@Query(value = "FROM FraudMaster where jsonEncode IN (:jsonEncodeList) and entityIdFk.entityId = :entityId")
+	List<FraudMaster> findByJsonEncode(@Param("jsonEncodeList") List<String> jsonEncodeList, @Param("entityId") Long entityId);
+
+	@Query("FROM FraudMaster where entityIdFk.entityId IN (:entityIds) and adminStatusIdFk.adminStatusId=1 and activityType IN (:entActivities) and modifiedByFk.userId!=:userId")
+	List<FraudMaster> getFraudApprovalList(@Param("userId") Long userId, @Param("entityIds") List<Long> entityIds, @Param("entActivities") List<String> entActivities);
+
+	@Query("FROM FraudMaster where entityIdFk.entityId IN (:entityIds) and adminStatusIdFk.adminStatusId=1 and activityType IN (:entActivities) and modifiedByFk.departmentIdFk.regulatorId=:regulatorId and modifiedByFk.userId!=:userId")
+	List<FraudMaster> getFraudApprovalListHoldResume(@Param("userId") Long userId, @Param("entityIds") List<Long> entityIds, @Param("regulatorId") Long regulatorId, @Param("entActivities") List<String> entActivities);
+
+	@Query("FROM FraudMaster where entityIdFk.entityId IN (:entityIds) and adminStatusIdFk.adminStatusId=:adminStatus")
+	List<FraudMaster> getViewFraudList(@Param("entityIds") List<Long> entityIds, @Param("adminStatus") Long adminStatus);
+
+	@Query("FROM FraudMaster where entityIdFk.entityId IN (:entityIds) and activityType IS NULL and sourceFlag=:sourceFlag")
+	List<FraudMaster> getViewFraudAllList(@Param("entityIds") List<Long> entityIds, @Param("sourceFlag") String sourceFlag);
+
+}

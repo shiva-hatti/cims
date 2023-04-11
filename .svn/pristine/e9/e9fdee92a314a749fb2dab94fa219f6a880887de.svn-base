@@ -1,0 +1,305 @@
+package com.iris.service.impl;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import com.iris.exception.ServiceException;
+import com.iris.model.EntityBean;
+import com.iris.repository.EntityRepo;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.MethodConstants;
+
+@Service
+public class EntityService implements GenericService<EntityBean, Long> {
+
+	@Autowired
+	private EntityRepo entityRepo;
+
+	@Override
+	public EntityBean add(EntityBean entity) throws ServiceException {
+		try {
+			return entityRepo.save(entity);
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public boolean update(EntityBean entity) throws ServiceException {
+		return false;
+	}
+
+	@Override
+	public List<EntityBean> getDataByIds(Long[] ids) throws ServiceException {
+		try {
+			return entityRepo.fetchDataByEntityIds(ids);
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<EntityBean> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+		try {
+			List<String> entCodeList = null;
+			List<String> ifscCodeList = null;
+			for (String columnName : columnValueMap.keySet()) {
+				if (columnValueMap.get(columnName) != null && columnValueMap.get(columnName).size() > 0) {
+					if (columnName.equalsIgnoreCase(ColumnConstants.ENTITY_CODE.getConstantVal())) {
+						entCodeList = columnValueMap.get(columnName);
+					} else if (columnName.equalsIgnoreCase(ColumnConstants.IFSC_CODE.getConstantVal())) {
+						ifscCodeList = columnValueMap.get(columnName);
+					}
+				}
+			}
+			if (methodName.equalsIgnoreCase(MethodConstants.GET_ENTITY_DATA_BY_CODE.getConstantVal())) {
+				return entityRepo.getDataByEntityCodeInIgnoreCaseAndIsActiveTrue(entCodeList);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_ENTITY_DATA_BY_IFSC_CODE.getConstantVal())) {
+				return entityRepo.getDataByIfscCodeInIgnoreCaseAndIsActiveTrue(ifscCodeList);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_ENTITY_DATA_BY_ENTITY_CODE_CONTAINING.getConstantVal())) {
+				if(entCodeList!= null) {
+					return entityRepo.getDataByEntityCodeStartingWithAndIsActiveTrue(entCodeList.get(0));
+				}
+			}
+		} catch (Exception e) {
+			throw new ServiceException("Exception : ", e);
+		}
+		return null;
+	}
+
+	@Override
+	public List<EntityBean> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<EntityBean> getAllDataFor(Class bean, Long id) throws ServiceException {
+		if (bean == EntityBean.class && id == null) {
+			return entityRepo.fetchAllActiveEntityData();
+		}
+		return null;
+	}
+
+	@Override
+	public void deleteData(EntityBean bean) throws ServiceException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public List<EntityBean> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName)
+			throws ServiceException {
+		try {
+			List<Long> categoryIds = null;
+			List<Long> subCategoryIds = null;
+			for (String columnName : columnValueMap.keySet()) {
+				if (columnValueMap.get(columnName) != null && columnValueMap.get(columnName).size() > 0) {
+					if (columnName.equalsIgnoreCase("categoryId")) {
+						categoryIds = columnValueMap.get(columnName);
+					} else if (columnName.equalsIgnoreCase("subCategoryId")) {
+						subCategoryIds = columnValueMap.get(columnName);
+					}
+				}
+			}
+			if (methodName.equalsIgnoreCase("getDataByCategoryIdAndSubCategoryId")) {
+				return entityRepo.fetchAllActiveEntityDataByCategoryAndSubCategoryId(categoryIds, subCategoryIds);
+			}
+			return null;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public EntityBean getDataById(Long id) throws ServiceException {
+		try {
+			return entityRepo.findByEntityId(id);
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	/**
+	 * Fetch data with pagination
+	 * @param columnValueMap
+	 * @param methodName
+	 * @return
+	 * @throws ServiceException
+	 */
+	public Page<EntityBean> getPagedDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		try {
+			Long roleId = null;
+			Boolean isActive = false;
+			String langCode = null;
+			String likeString = null;
+			Boolean pageAble = columnValueMap.get(ColumnConstants.PAGEABLE.getConstantVal())!=null?true:false;
+
+			if (columnValueMap.containsKey(ColumnConstants.ROLEID.getConstantVal())) {
+				roleId = (Long) columnValueMap.get(ColumnConstants.ROLEID.getConstantVal());
+			} 
+			if (columnValueMap.containsKey(ColumnConstants.IS_ACTIVE.getConstantVal())) {
+				isActive = (Boolean) columnValueMap.get(ColumnConstants.IS_ACTIVE.getConstantVal());
+			}
+			if (columnValueMap.containsKey(ColumnConstants.LANGUAGE_CODE.getConstantVal())) {
+				langCode = (String) columnValueMap.get(ColumnConstants.LANGUAGE_CODE.getConstantVal());
+			} 
+			if (columnValueMap.containsKey(ColumnConstants.LIKE_STRING.getConstantVal())) {
+				likeString = (String) columnValueMap.get(ColumnConstants.LIKE_STRING.getConstantVal());
+			}
+			Pageable pageable;
+			if(pageAble) {
+				pageable = PageRequest.of(((Long)columnValueMap.get(ColumnConstants.PAGEABLE.getConstantVal())).intValue(),((Long)columnValueMap.get(ColumnConstants.FETCHSIZE.getConstantVal())).intValue());
+			}else {
+				pageable = Pageable.unpaged();
+			}
+			if (methodName.equalsIgnoreCase(MethodConstants.GET_RET_ENT_MAP_BY_ROLE_ID.getConstantVal())) {
+
+				return entityRepo.getDataByRoleIdAndLangCodeAndIsActive(roleId, isActive, langCode, likeString,pageable);
+
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_ROL_ENT_MAP_BY_ROLE_ID.getConstantVal())) {
+				return entityRepo.getDataByRoleIdAndLangCode(roleId, isActive, langCode, likeString,pageable);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_ENTITY_FOR_SUPER_USER.getConstantVal())) {
+
+				return entityRepo.getDataByLangCodeAndIsActive(langCode, isActive, likeString,pageable);
+			} 
+
+			return null;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<EntityBean> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		try {
+			Long roleId = null;
+			Boolean isActive = false;
+			String langCode = null;
+			String categoryCode = null;
+			String subCategoryCode = null;
+			Long userId = null;
+			String likeString = null;
+			String username = null;
+			List<String> subCateCodeList = null;
+			List<String> ifscCodeList = null;
+			Set<String> entityNameSet = null;
+			Boolean pageAble = columnValueMap.get(ColumnConstants.PAGEABLE.getConstantVal())!=null?true:false;
+
+			for (String columnName : columnValueMap.keySet()) {
+				if (columnName.equalsIgnoreCase(ColumnConstants.ROLEID.getConstantVal())) {
+					roleId = (Long) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.IS_ACTIVE.getConstantVal())) {
+					isActive = (Boolean) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.LANGUAGE_CODE.getConstantVal())) {
+					langCode = (String) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.CAT_CODE.getConstantVal())) {
+					categoryCode = (String) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.SUB_CAT_CODE.getConstantVal())) {
+					subCategoryCode = (String) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.USER_ID.getConstantVal())) {
+					userId = (Long) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.LIKE_STRING.getConstantVal())) {
+					likeString = (String) columnValueMap.get(columnName);
+				} else if(columnName.equalsIgnoreCase(ColumnConstants.USER_NAME.getConstantVal())) {
+					username = (String) columnValueMap.get(columnName);
+				} else if(columnName.equalsIgnoreCase(ColumnConstants.SUB_CAT_CODE_LIST.getConstantVal())) {
+					subCateCodeList = (List<String>) columnValueMap.get(columnName);
+				} else if(columnName.equalsIgnoreCase(ColumnConstants.IFSC_CODE.getConstantVal())) {
+					ifscCodeList = (List<String>) columnValueMap.get(columnName);
+				}  else if(columnName.equalsIgnoreCase(ColumnConstants.ENTITY_NAME.getConstantVal())) {
+					entityNameSet = (Set<String>) columnValueMap.get(columnName);
+				}
+			}
+			if (methodName.equalsIgnoreCase(MethodConstants.GET_RET_ENT_MAP_BY_ROLE_ID.getConstantVal())) {
+
+				if (StringUtils.isBlank(categoryCode) && CollectionUtils.isEmpty(subCateCodeList)) {
+					return entityRepo.getDataByRoleIdAndLangCodeAndIsActive(roleId, isActive, langCode, likeString);
+				} else if (CollectionUtils.isEmpty(subCateCodeList) && !StringUtils.isBlank(categoryCode)) {
+					return entityRepo.getDataByRoleIdAndCatCodes(roleId, isActive, langCode, categoryCode, likeString);
+
+				} else if (!CollectionUtils.isEmpty(subCateCodeList) && StringUtils.isBlank(categoryCode)) {
+					return entityRepo.getDataByRoleIdAndLangCodesAndSubCateCodes(roleId, isActive, langCode,
+							subCateCodeList, likeString);
+				} else if (!CollectionUtils.isEmpty(subCateCodeList) && !StringUtils.isBlank(categoryCode)) {
+					return entityRepo.getDataByRoleIdAndSubCateCodeAndCatCode(roleId, isActive, langCode, categoryCode,
+							subCateCodeList, likeString);
+				}
+
+
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_ROL_ENT_MAP_BY_ROLE_ID.getConstantVal())) {
+				if (StringUtils.isBlank(categoryCode) && CollectionUtils.isEmpty(subCateCodeList)) {
+					return entityRepo.getDataByRoleIdAndLangCode(roleId, isActive, langCode, likeString);
+				} else if (CollectionUtils.isEmpty(subCateCodeList) && !StringUtils.isBlank(categoryCode)) {
+					return entityRepo.getDataByRoleIdAndLangCodeAndCategoryCode(roleId, isActive, langCode,
+							categoryCode, likeString);
+				} else if (!CollectionUtils.isEmpty(subCateCodeList) && StringUtils.isBlank(categoryCode)) {
+					return entityRepo.getDataByRoleIdAndLangCodeAndSubCateCode(roleId, isActive, langCode,
+							subCateCodeList, likeString);
+				} else if (!CollectionUtils.isEmpty(subCateCodeList) && !StringUtils.isBlank(categoryCode)) {
+					return entityRepo.getDataByRoleIdAndLangCodeAndCatCodeAndSubCateCode(roleId, isActive, langCode, categoryCode,
+							subCateCodeList, likeString);
+				}
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_ENTITY_FOR_SUPER_USER.getConstantVal())) {
+
+				if (StringUtils.isBlank(categoryCode) && CollectionUtils.isEmpty(subCateCodeList)) {
+					return entityRepo.getDataByLangCodeAndIsActive(langCode, isActive, likeString);
+				}
+
+				else if (CollectionUtils.isEmpty(subCateCodeList) && !StringUtils.isBlank(categoryCode)) {
+					return entityRepo.getDataByLangCodeAndIsActiveAndCategoryCode(langCode, isActive, categoryCode, likeString);
+				} else if (!CollectionUtils.isEmpty(subCateCodeList) && StringUtils.isBlank(categoryCode)) {
+
+					return entityRepo.getDataByLangCodeAndIsActiveAndSubCateCode(langCode, isActive, subCateCodeList, likeString);
+				} else if (!CollectionUtils.isEmpty(subCateCodeList) && !StringUtils.isBlank(categoryCode)) {
+					return entityRepo.getDataByLangCodeAndIsActiveAndSubCateCodeAndCateCode(langCode, isActive,
+							categoryCode, subCateCodeList, likeString);
+				}
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_ENTITY_FOR_ENTITY_USER.getConstantVal())) {
+				if (subCategoryCode != null) {
+					return entityRepo.getEntityDataWithSubCategory(userId, categoryCode, langCode, subCategoryCode,
+							isActive);
+				} else {
+					return entityRepo.getEntityData(userId, categoryCode, langCode, isActive);
+				}
+			}
+
+			else if (methodName.equalsIgnoreCase(MethodConstants.GET_DATA_BY_USERNAME.getConstantVal())) {
+				return entityRepo.getEntityDataByUserName(username);
+			}
+			else if (methodName.equalsIgnoreCase(MethodConstants.GET_IFSC_CODE_ENTITY_LIST_WITH_LABEL.getConstantVal())) {
+				return entityRepo.getDataByLangCodeAndIsActiveAndIfscCode(langCode, isActive, ifscCodeList);
+			}
+			else if (methodName.equalsIgnoreCase(MethodConstants.GET_DATA_BY_ENTITY_NAME.getConstantVal())) {
+				return entityRepo.getDataByEntityName(entityNameSet);
+			}
+
+
+			return null;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	public List<EntityBean> getActiveEntityList(List<Long> entityBeanList) throws ServiceException {
+		try {
+			return entityRepo.getActiveEntityList(entityBeanList,true,true,true);
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+}

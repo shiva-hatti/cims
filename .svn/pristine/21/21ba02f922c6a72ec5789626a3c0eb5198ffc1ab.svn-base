@@ -1,0 +1,90 @@
+/**
+ * 
+ */
+package com.iris.sdmx.util;
+
+/**
+ * @author apagaria
+ *
+ */
+public class SDMXConstants {
+
+	private SDMXConstants() {
+	}
+
+	public static final String SUCCESS_CODE = "00";
+
+	public static final String SUCCESS_MESSAGE = "SUCCESS";
+
+	public static final String FAILURE_CODE = "01";
+
+	public static final String FAILURE_MESSAGE = "FAILED";
+
+	public static final String MAIN_REGULATOR_CODE = "Main";
+
+	public static final String ITEM_FREE_TEXT = "ITEM_FREE_TEXT";
+	public static final String FILER_TO_SELECT = "FilerToSelect";
+	public static final String INDEPENDENT = "Independent";
+	public static final String DEPENDENT = "Dependent";
+
+	public enum ModuleActiveStatus {
+		ACTIVE("ACTIVE"), DEACTIVE("DEACTIVE");
+		String moduleStatusCode;
+
+		ModuleActiveStatus(String moduleStatusCode) {
+			this.moduleStatusCode = moduleStatusCode;
+		}
+
+		/**
+		 * @return the moduleStatusCode
+		 */
+		public String getModuleStatusCode() {
+			return moduleStatusCode;
+		}
+
+	}
+
+	public enum StatusTechCode {
+		PENDING_FOR_APPROVAL("PEFOAP"), APPROVED("APPROVED"), REJECTED("REJECTED");
+		String code;
+
+		StatusTechCode(String code) {
+			this.code = code;
+		}
+
+		/**
+		 * @return the code
+		 */
+		public String getCode() {
+			return code;
+		}
+	}
+
+	public enum ActionStatus {
+		ADDITION(1L, "ADDITION"), EDITION(2L, "EDITION"), DEACTIVATION(3L, "DEACTIVATION"), DELETION(4L, "DELETION");
+
+		Long id;
+		String name;
+
+		private ActionStatus(Long id, String name) {
+			this.id = id;
+			this.name = name;
+		}
+
+		/**
+		 * @return the id
+		 */
+		public Long getId() {
+			return id;
+		}
+
+		/**
+		 * @return the name
+		 */
+		public String getName() {
+			return name;
+		}
+
+	}
+
+}

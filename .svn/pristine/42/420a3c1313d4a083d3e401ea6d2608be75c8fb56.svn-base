@@ -1,0 +1,537 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import com.iris.util.Validations;
+
+@Entity
+@Table(name = "TBL_REVISION_REQUEST")
+public class RevisionRequest implements Serializable {
+
+	private static final long serialVersionUID = -6210102305769044239L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "REVISION_REQUEST_ID")
+	private Long revisionRequestId;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "RETURN_ID_FK")
+	private Return returns;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "ENTITY_ID_FK")
+	private EntityBean entity;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "FIN_YR_FREQUENCY_DESC_ID_FK")
+	private FrequencyDescription frequencyDesc;
+
+	@Column(name = "YEAR")
+	private Long year;
+
+	@Column(name = "MONTH")
+	private Integer month;
+
+	@Column(name = "REPORTING_DATE")
+	private Date reportingDate;
+
+	@Column(name = "REPORTING_START_DATE")
+	private Date startDate;
+
+	@Column(name = "REPORTING_END_DATE")
+	private Date endDate;
+
+	@Column(name = "ADMIN_STATUS_ID_FK")
+	private Integer adminStatusIdFk;
+
+	@Column(name = "ACTION_ID_FK")
+	private Integer actionIdFk;
+
+	@Column(name = "REASON_FOR_REQUEST")
+	private String reasonForRequest;
+
+	@Column(name = "REASON_FOR_REJECTION")
+	private String reasonForRejection;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "CREATED_BY_FK")
+	private UserMaster createdBy;
+
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "APPROVED_BY_FK")
+	private UserMaster approvedByFk;
+
+	@Column(name = "APPROVED_ON")
+	private Date approvedOn;
+
+	@Column(name = "IS_CLOSED")
+	private String isClose;
+
+	@Column(name = "REVISION_STATUS")
+	private String revisionStatus;
+
+	@Column(name = "MAX_REVISION_REQ_DATE")
+	private Date maxRevisionReqDate;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "RETURN_PROP_VAL_ID_FK")
+	private ReturnPropertyValue returnPropertyVal;
+
+	@OneToMany(mappedBy = "revisionRequestId")
+	private List<ReturnsUploadDetails> returnsUploadDetailsList;
+
+	@Transient
+	private String entCode;
+
+	@Transient
+	private String retCode;
+
+	@Transient
+	private String retName;
+
+	@Transient
+	private String finYrFreqDesc;
+
+	@Transient
+	private String maxRevisionReqDateString;
+
+	@Transient
+	private String reportingDateString;
+
+	@Transient
+	private String startDateString;
+
+	@Transient
+	private String endDateString;
+
+	@Transient
+	private String createdOnString;
+
+	@Transient
+	private String approvedOnString;
+	
+	@Transient
+	private String sessionDateFormat; 
+	
+	@Transient
+	private String sessionTimeFormat;
+	
+	
+
+	public String getSessionTimeFormat() {
+		return sessionTimeFormat;
+	}
+
+	public void setSessionTimeFormat(String sessionTimeFormat) {
+		this.sessionTimeFormat = sessionTimeFormat;
+	}
+
+	public String getSessionDateFormat() {
+		return sessionDateFormat;
+	}
+
+	public void setSessionDateFormat(String sessionDateFormat) {
+		this.sessionDateFormat = sessionDateFormat;
+	}
+
+	public String getMaxRevisionReqDateString() {
+		return maxRevisionReqDateString;
+	}
+
+	public void setMaxRevisionReqDateString(String maxRevisionReqDateString) {
+		this.maxRevisionReqDateString = maxRevisionReqDateString;
+	}
+
+	public String getReportingDateString() {
+		return reportingDateString;
+	}
+
+	public void setReportingDateString(String reportingDateString) {
+		this.reportingDateString = reportingDateString;
+	}
+
+	public String getStartDateString() {
+		return startDateString;
+	}
+
+	public void setStartDateString(String startDateString) {
+		this.startDateString = startDateString;
+	}
+
+	public String getEndDateString() {
+		return endDateString;
+	}
+
+	public void setEndDateString(String endDateString) {
+		this.endDateString = endDateString;
+	}
+
+	public String getCreatedOnString() {
+		return createdOnString;
+	}
+
+	public void setCreatedOnString(String createdOnString) {
+		this.createdOnString = createdOnString;
+	}
+
+	public String getApprovedOnString() {
+		return approvedOnString;
+	}
+
+	public void setApprovedOnString(String approvedOnString) {
+		this.approvedOnString = approvedOnString;
+	}
+
+	public String getReasonForRequest() {
+		return reasonForRequest;
+	}
+
+	public void setReasonForRequest(String reasonForRequest) {
+		this.reasonForRequest = reasonForRequest;
+	}
+
+	public String getReasonForRejection() {
+		return reasonForRejection;
+	}
+
+	public void setReasonForRejection(String reasonForRejection) {
+		this.reasonForRejection = reasonForRejection;
+	}
+
+	public Date getMaxRevisionReqDate() {
+		return maxRevisionReqDate;
+	}
+
+	public void setMaxRevisionReqDate(Date maxRevisionReqDate) {
+		this.maxRevisionReqDate = maxRevisionReqDate;
+	}
+
+	/**
+	 * @return the revisionRequestId
+	 */
+	public Long getRevisionRequestId() {
+		return revisionRequestId;
+	}
+
+	/**
+	 * @param revisionRequestId the revisionRequestId to set
+	 */
+	public void setRevisionRequestId(Long revisionRequestId) {
+		this.revisionRequestId = revisionRequestId;
+	}
+
+	/**
+	 * @return the returns
+	 */
+	public Return getReturns() {
+		return returns;
+	}
+
+	/**
+	 * @param returns the returns to set
+	 */
+	public void setReturns(Return returns) {
+		this.returns = returns;
+	}
+
+	/**
+	 * @return the entity
+	 */
+	public EntityBean getEntity() {
+		return entity;
+	}
+
+	/**
+	 * @param entity the entity to set
+	 */
+	public void setEntity(EntityBean entity) {
+		this.entity = entity;
+	}
+
+	/**
+	 * @return the frequencyDesc
+	 */
+	public FrequencyDescription getFrequencyDesc() {
+		return frequencyDesc;
+	}
+
+	/**
+	 * @param frequencyDesc the frequencyDesc to set
+	 */
+	public void setFrequencyDesc(FrequencyDescription frequencyDesc) {
+		this.frequencyDesc = frequencyDesc;
+	}
+
+	/**
+	 * @return the year
+	 */
+	public Long getYear() {
+		return year;
+	}
+
+	/**
+	 * @param year the year to set
+	 */
+	public void setYear(Long year) {
+		this.year = year;
+	}
+
+	/**
+	 * @return the month
+	 */
+	public Integer getMonth() {
+		return month;
+	}
+
+	/**
+	 * @param month the month to set
+	 */
+	public void setMonth(Integer month) {
+		this.month = month;
+	}
+
+	public Date getReportingDate() {
+		return reportingDate;
+	}
+
+	public void setReportingDate(Date reportingDate) {
+		this.reportingDate = reportingDate;
+	}
+
+	/**
+	 * @return the startDate
+	 */
+	public Date getStartDate() {
+		return startDate;
+	}
+
+	/**
+	 * @param startDate the startDate to set
+	 */
+	public void setStartDate(Date startDate) {
+		this.startDate = startDate;
+	}
+
+	/**
+	 * @return the endDate
+	 */
+	public Date getEndDate() {
+		return endDate;
+	}
+
+	/**
+	 * @param endDate the endDate to set
+	 */
+	public void setEndDate(Date endDate) {
+		this.endDate = endDate;
+	}
+
+	/**
+	 * @return the approvedOn
+	 */
+	public Date getApprovedOn() {
+		return approvedOn;
+	}
+
+	/**
+	 * @param approvedOn the approvedOn to set
+	 */
+	public void setApprovedOn(Date approvedOn) {
+		this.approvedOn = approvedOn;
+	}
+
+	/**
+	 * @return the isClose
+	 */
+	public String getIsClose() {
+		return isClose;
+	}
+
+	/**
+	 * @param isClose the isClose to set
+	 */
+	public void setIsClose(String isClose) {
+		this.isClose = Validations.trimInput(isClose);
+	}
+
+	/**
+	 * @return the approvedByFk
+	 */
+	public UserMaster getApprovedByFk() {
+		return approvedByFk;
+	}
+
+	/**
+	 * @param approvedByFk the approvedByFk to set
+	 */
+	public void setApprovedByFk(UserMaster approvedByFk) {
+		this.approvedByFk = approvedByFk;
+	}
+
+	/**
+	 * @return the adminStatusIdFk
+	 */
+	public Integer getAdminStatusIdFk() {
+		return adminStatusIdFk;
+	}
+
+	/**
+	 * @param adminStatusIdFk the adminStatusIdFk to set
+	 */
+	public void setAdminStatusIdFk(Integer adminStatusIdFk) {
+		this.adminStatusIdFk = adminStatusIdFk;
+	}
+
+	/**
+	 * @return the actionIdFk
+	 */
+	public Integer getActionIdFk() {
+		return actionIdFk;
+	}
+
+	/**
+	 * @param actionIdFk the actionIdFk to set
+	 */
+	public void setActionIdFk(Integer actionIdFk) {
+		this.actionIdFk = actionIdFk;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the entCode
+	 */
+	public String getEntCode() {
+		return entCode;
+	}
+
+	/**
+	 * @param entCode the entCode to set
+	 */
+	public void setEntCode(String entCode) {
+		this.entCode = Validations.trimInput(entCode);
+	}
+
+	/**
+	 * @return the retCode
+	 */
+	public String getRetCode() {
+		return retCode;
+	}
+
+	/**
+	 * @param retCode the retCode to set
+	 */
+	public void setRetCode(String retCode) {
+		this.retCode = Validations.trimInput(retCode);
+	}
+
+	/**
+	 * @return the retName
+	 */
+	public String getRetName() {
+		return retName;
+	}
+
+	/**
+	 * @param retName the retName to set
+	 */
+	public void setRetName(String retName) {
+		this.retName = Validations.trimInput(retName);
+	}
+
+	/**
+	 * @return the finYrFreqDesc
+	 */
+	public String getFinYrFreqDesc() {
+		return finYrFreqDesc;
+	}
+
+	/**
+	 * @param finYrFreqDesc the finYrFreqDesc to set
+	 */
+	public void setFinYrFreqDesc(String finYrFreqDesc) {
+		this.finYrFreqDesc = Validations.trimInput(finYrFreqDesc);
+	}
+
+	public String getRevisionStatus() {
+		return revisionStatus;
+	}
+
+	public void setRevisionStatus(String revisionStatus) {
+		this.revisionStatus = revisionStatus;
+	}
+
+	/**
+	 * @return the returnPropertyVal
+	 */
+	public ReturnPropertyValue getReturnPropertyVal() {
+		return returnPropertyVal;
+	}
+
+	/**
+	 * @param returnPropertyVal the returnPropertyVal to set
+	 */
+	public void setReturnPropertyVal(ReturnPropertyValue returnPropertyVal) {
+		this.returnPropertyVal = returnPropertyVal;
+	}
+
+	/**
+	 * @return the returnsUploadDetailsList
+	 */
+	public List<ReturnsUploadDetails> getReturnsUploadDetailsList() {
+		return returnsUploadDetailsList;
+	}
+
+	/**
+	 * @param returnsUploadDetailsList the returnsUploadDetailsList to set
+	 */
+	public void setReturnsUploadDetailsList(List<ReturnsUploadDetails> returnsUploadDetailsList) {
+		this.returnsUploadDetailsList = returnsUploadDetailsList;
+	}
+
+}

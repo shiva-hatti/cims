@@ -1,0 +1,174 @@
+/**
+ * 
+ */
+package com.iris.controller;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.CategoryDto;
+import com.iris.dto.EntityDto;
+import com.iris.dto.EntityMasterDto;
+import com.iris.dto.ReturnEntityMapDto;
+import com.iris.dto.ReturnEntityOutputDto;
+import com.iris.dto.ReturnEntityQueryOutputDto;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.exception.ApplicationException;
+import com.iris.service.EntityMasterControllerServiceV2;
+import com.iris.service.impl.EntityServiceV2;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.validator.EntityMasterValidatorV2;
+
+/**
+ * @author sajadhav
+ *
+ */
+
+@RestController
+@RequestMapping("/service/entityMasterService/V2")
+public class EntityMasterControllerV2 {
+	private static final Logger LOGGER = LogManager.getLogger(EntityMasterControllerV2.class);
+
+	@Autowired
+	private EntityServiceV2 entityServiceV2;
+
+	@Autowired
+	private EntityMasterValidatorV2 entityMasterValidatorV2;
+
+	@Autowired
+	private EntityMasterControllerServiceV2 entityMasterControllerServiceV2;
+
+	@PostMapping(value = "/getFlatEntityList")
+	public ServiceResponse getEntityMasterList(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody EntityMasterDto entityMasterDto) {
+
+		LOGGER.info(jobProcessId + " Request Received to fetch getFlatEntityList V2 ");
+		try {
+			entityMasterValidatorV2.validateRequestObjectToFetchEntityList(entityMasterDto);
+			return new ServiceResponseBuilder().setStatus(true).setResponse(entityServiceV2.getFlatEntityList(entityMasterDto)).build();
+		} catch (ApplicationException ae) {
+			LOGGER.error(jobProcessId + " Exception occured to fetch getFlatEntityList V2 ", ae);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ae.getErrorCode()).setStatusMessage(ae.getErrorMsg()).build();
+		} catch (Exception e) {
+			LOGGER.error(jobProcessId + " Exception occured to fetch getFlatEntityList V2 ", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+
+	@PostMapping(value = "/getPagableEntityList")
+	public ServiceResponse getPagableEntityList(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody EntityMasterDto entityMasterDto) {
+		LOGGER.info(jobProcessId + " Request Received to getPagableEntityList V2 ");
+		try {
+			entityMasterValidatorV2.validateRequestObjectToFetchPagableEntityList(entityMasterDto);
+			return new ServiceResponseBuilder().setStatus(true).setResponse(entityServiceV2.getPagableEntityList(entityMasterDto)).build();
+		} catch (ApplicationException ae) {
+			LOGGER.error(jobProcessId + " Exception occured to fetch getFlatEntityList V2 ", ae);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ae.getErrorCode()).setStatusMessage(ae.getErrorMsg()).build();
+		} catch (Exception e) {
+			LOGGER.error(jobProcessId + " Exception occured to fetch getFlatEntityList V2 ", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+
+	@PostMapping(value = "/getCategoryWiseEntityList")
+	public ServiceResponse getCategoryWiseEntityList(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody EntityMasterDto entityMasterDto) {
+
+		LOGGER.info(jobProcessId + " Request Received to fetch getCategoryWiseEntityList V2 ");
+		try {
+			entityMasterValidatorV2.validateRequestObjectToFetchEntityListCategoryWise(entityMasterDto);
+			List<CategoryDto> categoryDtos = entityServiceV2.getCategoryWiseEntityList(entityMasterDto, jobProcessId);
+			LOGGER.info(jobProcessId + " Request completed to fetch getCategoryWiseEntityList V2 ");
+			return new ServiceResponseBuilder().setStatus(true).setResponse(categoryDtos).build();
+		} catch (ApplicationException ae) {
+			LOGGER.error(jobProcessId + " Exception occured to fetch getCategoryWiseEntityList V2 ", ae);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ae.getErrorCode()).setStatusMessage(ae.getErrorMsg()).build();
+		} catch (Exception e) {
+			LOGGER.error(jobProcessId + " Exception occured to fetch getCategoryWiseEntityList V2 ", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+
+	@PostMapping(value = "/getReturnMappingListByRole")
+	public ServiceResponse getEntityReturnChannelMapp(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody ReturnEntityMapDto returnChannelMapReqDto) {
+		LOGGER.info("request received to get entity return channel map list for job processigid : " + jobProcessId + " returnChannelMapReqDto - " + returnChannelMapReqDto);
+		Instant start = Instant.now();
+		try {
+			// validator
+			Instant validationTimeStart = Instant.now();
+			entityMasterValidatorV2.validateReturnChannelMapReqDto(returnChannelMapReqDto);
+			Instant validationTimeEnd = Instant.now();
+			LOGGER.info(jobProcessId + " Time taken in seconds for validation - " + Duration.between(validationTimeStart, validationTimeEnd).getSeconds());
+			// Fetch the result
+			Instant queryTimeStart = Instant.now();
+			List<ReturnEntityQueryOutputDto> returnEntityQueryOutputDtoList = entityMasterControllerServiceV2.fetchReturnListByRoleNEntity(returnChannelMapReqDto, jobProcessId);
+			Instant queryTimeEnd = Instant.now();
+			LOGGER.info(jobProcessId + " Time taken in seconds for query - " + Duration.between(queryTimeStart, queryTimeEnd).getSeconds());
+
+			// convert result
+			Instant conversionTimeStart = Instant.now();
+			List<ReturnEntityOutputDto> returnEntityOutputDtoList = entityMasterControllerServiceV2.convertResultToOutputBean(returnEntityQueryOutputDtoList);
+			Instant conversionTimeEnd = Instant.now();
+			LOGGER.info(jobProcessId + " Time taken in seconds for conversion - " + Duration.between(conversionTimeStart, conversionTimeEnd).getSeconds());
+			Instant end = Instant.now();
+			LOGGER.info("request received to get entity return channel map list for job processigid : " + jobProcessId + ", time taken in second - " + Duration.between(start, end).getSeconds());
+			return new ServiceResponseBuilder().setStatus(true).setStatusCode(GeneralConstants.SUCCESS_CODE.getConstantVal()).setStatusMessage(GeneralConstants.SUCCESS.getConstantVal()).setResponse(returnEntityOutputDtoList).build();
+		} catch (ApplicationException ae) {
+			Instant end = Instant.now();
+			LOGGER.info(jobProcessId + " Total response time taken in seconds - " + Duration.between(start, end).getSeconds());
+			LOGGER.error(jobProcessId + " Exception occured to fetch getCategoryWiseEntityList V2 ", ae);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ae.getErrorCode()).setStatusMessage(ae.getErrorMsg()).build();
+		} catch (Exception e) {
+			Instant end = Instant.now();
+			LOGGER.info(jobProcessId + " Total response time taken in seconds - " + Duration.between(start, end).getSeconds());
+			LOGGER.error(jobProcessId + " Exception occured to fetch getCategoryWiseEntityList V2 ", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+
+	@PostMapping(value = "/getEntityListNBFCAndOtherCategoryWise")
+	public ServiceResponse getEntityListNBFCAndOtherCategoryWise(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody EntityMasterDto entityMasterDto) {
+		LOGGER.info(jobProcessId + " Request Received to fetch getEntityListNBFCAndOtherCategoryWise V2 ");
+		try {
+			entityMasterValidatorV2.validateRequestToFetchEntListNBFCAndOthCatWise(entityMasterDto);
+			List<CategoryDto> categoryDtos = entityServiceV2.getCategoryWiseEntityListForMultipleUsers(entityMasterDto, jobProcessId);
+			LOGGER.info(jobProcessId + " Request completed to fetch getEntityListNBFCAndOtherCategoryWise V2 ");
+			return new ServiceResponseBuilder().setStatus(true).setResponse(entityServiceV2.arrangeEntityDataNbfcAndOtherCategoryWise(categoryDtos)).build();
+		} catch (ApplicationException ae) {
+			LOGGER.error(jobProcessId + " Exception occured to fetch getEntityListNBFCAndOtherCategoryWise V2 ", ae);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ae.getErrorCode()).setStatusMessage(ae.getErrorMsg()).build();
+		} catch (Exception e) {
+			LOGGER.error(jobProcessId + " Exception occured to fetch getEntityListNBFCAndOtherCategoryWise V2 ", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+
+	@PostMapping(value = "/getEntityListNBFCAndOtherCategoryWiseV2")
+	public ServiceResponse getEntityListNBFCAndOtherCategoryWiseV2(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody EntityMasterDto entityMasterDto) {
+		LOGGER.info(jobProcessId + " Request Received to fetch getEntityListNBFCAndOtherCategoryWiseV2 V2 ");
+		try {
+			entityMasterValidatorV2.validateRequestToFetchEntListNBFCAndOthCatWise(entityMasterDto);
+			List<CategoryDto> categoryDtos = entityServiceV2.getCategoryWiseEntityListForMultipleUsersV2(entityMasterDto, jobProcessId);
+			LOGGER.info(jobProcessId + " Request completed to fetch getEntityListNBFCAndOtherCategoryWiseV2 V2 ");
+			return new ServiceResponseBuilder().setStatus(true).setResponse(entityServiceV2.arrangeEntityDataNbfcAndOtherCategoryWise(categoryDtos)).build();
+		} catch (ApplicationException ae) {
+			LOGGER.error(jobProcessId + " Exception occured to fetch getEntityListNBFCAndOtherCategoryWiseV2 V2 ", ae);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ae.getErrorCode()).setStatusMessage(ae.getErrorMsg()).build();
+		} catch (Exception e) {
+			LOGGER.error(jobProcessId + " Exception occured to fetch getEntityListNBFCAndOtherCategoryWiseV2 V2 ", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+
+}

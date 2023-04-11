@@ -1,0 +1,132 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+/**
+ * @author :Pradnya Mhatre
+ *
+ */
+
+public class PincodeMasterDto implements Serializable {
+
+	private static final long serialVersionUID = 4560824444349163622L;
+	private Long id;
+	private Integer pincode;
+	private String isActive;
+	private String cityId;
+	private String cityName;
+	private String cityNameBil;
+	private String cityCode;
+	private String stdCode;
+	private String stateId;
+	private String stateCode;
+	private String stateName;
+	private String stateNameBil;
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public Integer getPincode() {
+		return pincode;
+	}
+
+	public void setPincode(Integer pincode) {
+		this.pincode = pincode;
+	}
+
+	public String getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(String isActive) {
+		this.isActive = isActive;
+	}
+
+	public String getCityId() {
+		return cityId;
+	}
+
+	public void setCityId(String cityId) {
+		this.cityId = cityId;
+	}
+
+	public String getCityName() {
+		return cityName;
+	}
+
+	public void setCityName(String cityName) {
+		this.cityName = cityName;
+	}
+
+	public String getCityNameBil() {
+		return cityNameBil;
+	}
+
+	public void setCityNameBil(String cityNameBil) {
+		this.cityNameBil = cityNameBil;
+	}
+
+	public String getCityCode() {
+		return cityCode;
+	}
+
+	public void setCityCode(String cityCode) {
+		this.cityCode = cityCode;
+	}
+
+	public String getStdCode() {
+		return stdCode;
+	}
+
+	public void setStdCode(String stdCode) {
+		this.stdCode = stdCode;
+	}
+
+	public String getStateId() {
+		return stateId;
+	}
+
+	public void setStateId(String stateId) {
+		this.stateId = stateId;
+	}
+
+	public String getStateCode() {
+		return stateCode;
+	}
+
+	public void setStateCode(String stateCode) {
+		this.stateCode = stateCode;
+	}
+
+	public String getStateName() {
+		return stateName;
+	}
+
+	public void setStateName(String stateName) {
+		this.stateName = stateName;
+	}
+
+	public String getStateNameBil() {
+		return stateNameBil;
+	}
+
+	public void setStateNameBil(String stateNameBil) {
+		this.stateNameBil = stateNameBil;
+	}
+
+}

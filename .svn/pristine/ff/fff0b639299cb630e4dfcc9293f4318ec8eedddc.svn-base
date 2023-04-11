@@ -1,0 +1,55 @@
+/**
+ * 
+ */
+package com.iris.sdmx.fusion.util;
+
+/**
+ * @author sajadhav
+ *
+ */
+public enum FusionPropertiesConstant {
+
+	AGENCY_ID("AGENCY_ID"),
+	VERSION("VERSION"),
+	IS_FINAL("IS_FINAL"),
+	IS_PARTIAL("IS_PARTIAL"),
+	VALIDITY_TYPE("VALIDITY_TYPE"),
+	CODE_LIST_URN("CODE_LIST_URN"),
+	LOCALE("LOCALE"),
+	CODE_LIST_VALUE_URN("CODE_LIST_VALUE_URN"),
+	SCM_ID("SCM_ID"),
+	SCM_URN("SCM_URN"),
+	SCM_VALUE("SCM_VALUE"),
+	SCM_DESC("SCM_DESC"),
+	DIMENSION_URN("DIMENSION_URN"),
+	DIMENSION_REPRESENTATION("DIMENSION_REPRESENTATION"),
+	ELEMENT_URN("ELEMENT_URN"),
+	OBS_ID("OBS_ID"),
+	OBS_URN("OBS_URN"),
+	OBS_CONCEPT("OBS_CONCEPT"),
+	ATTRIBUTE_URN("ATTRIBUTE_URN"),
+	ATTRIBUTE_MANDATORY("ATTRIBUTE_MANDATORY"),
+	ATTRIBUTE_CONCEPT("ATTRIBUTE_CONCEPT"),
+	ATTACH_REPRES("ATTACH_REPRES"),
+	DATASTRUCT_DIM_URN("DATASTRUCT_DIM_URN"),
+	TIME_PERIOD_TEXT_TYPE("TIME_PERIOD_TEXT_TYPE"),
+	SCM_VERSION("SCM_VERSION"),
+	IS_FINAL_IS_FINAL("IS_FINAL_IS_FINAL"),
+	DIM_CONCEPT("DIM_CONCEPT");
+	
+	
+	private String fusionAPIConstant;
+	
+	private FusionPropertiesConstant(String fusionAPIConstant) {
+		this.fusionAPIConstant = fusionAPIConstant;
+	}
+
+	/**
+	 * @return the fusionAPIConstant
+	 */
+	public String getConstant() {
+		return fusionAPIConstant;
+	}
+
+	
+}

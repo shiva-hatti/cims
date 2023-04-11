@@ -1,0 +1,17 @@
+
+package com.iris.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.iris.model.ReturnGroupMod;
+
+/**
+ * @author bthakare
+ *
+ */
+public interface ReturnGroupModRepo extends JpaRepository<ReturnGroupMod, Long> {
+	
+	// ReturnGroupMod getDataById(Long id);
+	
+	
+}

@@ -1,0 +1,396 @@
+/**
+ * 
+ */
+package com.iris.sdmx.util;
+
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.namespace.QName;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Attribute;
+import javax.xml.stream.events.EndElement;
+import javax.xml.stream.events.StartElement;
+import javax.xml.stream.events.XMLEvent;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.util.CollectionUtils;
+
+import com.google.gson.Gson;
+import com.iris.sdmx.upload.bean.DataSet;
+import com.iris.sdmx.upload.bean.SDMXDocument;
+import com.iris.sdmx.upload.bean.StructureRef;
+
+/**
+ * @author sajadhav
+ *
+ */
+public class SDMXMLDocumentReaderUtility {
+	
+	private static final Logger LOGGER = LogManager.getLogger(SDMXMLDocumentReaderUtility.class);
+	
+	
+	
+
+	public SDMXDocument readSDMXDocument(String filePath){
+		SDMXDocument sdmxDocument = null;
+	      try {
+	         XMLInputFactory factory = XMLInputFactory.newInstance();
+	         XMLEventReader eventReader = factory.createXMLEventReader(new FileReader(filePath));
+
+	         String elementCode = null;
+	         while(eventReader.hasNext()) {
+	            XMLEvent nextEvent = eventReader.nextEvent();
+
+	            if (nextEvent.isStartElement()) {
+	            	
+	                StartElement startElement = nextEvent.asStartElement();
+	                Attribute attr = null;
+	                SDMXDocumentEnum sdmxDocumentEnum = SDMXDocumentEnum.getEnumByValue(startElement.getName().getLocalPart());
+	                
+	                if(sdmxDocumentEnum == null) {
+	                	continue;
+	                }
+	                
+	                switch (sdmxDocumentEnum) {
+		                case HEADER:
+		                	sdmxDocument = new SDMXDocument();
+		                    break;
+		                case REF:
+		                	DataSet dataSet = new DataSet();
+		                	
+		                	StructureRef structureRef = new StructureRef();
+		                	
+		                	attr = startElement.getAttributeByName(new QName(SDMXDocumentEnum.ID.getConstant()));
+		                    if(attr!= null) {
+		                    	structureRef.setCode(attr.getValue());
+		                    }
+		                    
+		                    attr = startElement.getAttributeByName(new QName(SDMXDocumentEnum.VERSION.getConstant()));
+		                    if(attr!= null) {
+		                    	structureRef.setVersion(attr.getValue());
+		                    }
+		                  
+		                    attr = startElement.getAttributeByName(new QName(SDMXDocumentEnum.AGENCY_ID.getConstant()));
+		                    if(attr!= null) {
+		                    	structureRef.setAgencyID(attr.getValue());
+		                    }
+		                    dataSet.setStructureRef(structureRef);
+		                    
+		                    if(sdmxDocument!= null) {
+		                    	if(CollectionUtils.isEmpty(sdmxDocument.getDataSets())) {
+		                    		List<DataSet> dataSetList = new ArrayList<>();
+		                    		dataSetList.add(dataSet);
+		                    		sdmxDocument.setDataSets(dataSetList);
+		                    	}else {
+		                    		sdmxDocument.getDataSets().add(dataSet);
+		                    	}
+		                    }
+		                    break;
+		                case DATA_SET:
+		                	Iterator<Attribute> attrs = startElement.getAttributes();
+		                	Map<String, String> attributesMap = new HashMap<>();
+		                	while(attrs.hasNext()) {
+		                		Attribute attribute =  attrs.next();
+		                		
+		                		if(!(attribute.getName().getLocalPart().equalsIgnoreCase(SDMXDocumentEnum.STRUCTURE_REF.getConstant()) || attribute.getName().getLocalPart().equalsIgnoreCase(SDMXDocumentEnum.TYPE.getConstant())
+		                				|| attribute.getName().getLocalPart().equalsIgnoreCase(SDMXDocumentEnum.DATA_SCOPE.getConstant()) || attribute.getName().getLocalPart().equalsIgnoreCase(SDMXDocumentEnum.ACTION.getConstant()))) {
+			                		attributesMap.put(attribute.getName().getLocalPart(), attribute.getValue());
+		                		}else {
+		                			if(attribute.getName().getLocalPart().equalsIgnoreCase(SDMXDocumentEnum.STRUCTURE_REF.getConstant())) {
+		                				elementCode = attribute.getValue();
+		                			}
+		                		}
+		                	}
+		                	
+		                	StructureRef structure = new StructureRef();
+		                	structure.setCode(elementCode);
+
+		                	DataSet ds = new DataSet();
+		                	ds.setStructureRef(structure);
+
+		                	if(sdmxDocument!= null) {
+		                		ds = sdmxDocument.getDataSets().get(sdmxDocument.getDataSets().indexOf(ds));
+		                		ds.setAttached_attributes(attributesMap);
+		                	}
+		                	
+		                	break;
+		                case OBS:
+		                	Iterator<Attribute> obsAttributes = startElement.getAttributes();
+		                	Map<String, String> dimensionMap = new HashMap<String, String>();
+
+		                	while(obsAttributes.hasNext()) {
+		                		Attribute attribute = obsAttributes.next();
+		                		dimensionMap.put(attribute.getName().getLocalPart(), attribute.getValue());
+		                	}
+
+		                	if(elementCode!= null && dimensionMap.size()> 0) {
+		                		structure = new StructureRef();
+			                	structure.setCode(elementCode);
+
+			                	ds = new DataSet();
+			                	ds.setStructureRef(structure);
+			                
+			                	if(sdmxDocument!= null) {
+			                		ds = sdmxDocument.getDataSets().get(sdmxDocument.getDataSets().indexOf(ds));
+			                		
+			                		if(CollectionUtils.isEmpty(ds.getObs())) {
+			                			List<Map<String, String>> newObsList = new ArrayList<>();
+			                			newObsList.add(dimensionMap);
+			                			ds.setObs(newObsList);
+			                		}else {
+			                			List<Map<String, String>> obs = ds.getObs();
+			                			obs.add(dimensionMap);
+			                			ds.setObs(obs);
+			                		}
+			                	}
+		                	}
+		                	break;
+		                default:
+		                    break;
+
+		            }
+	            }
+	            
+	            if (nextEvent.isEndElement()) {
+	                EndElement endElement = nextEvent.asEndElement();
+	                if (endElement.getName().getLocalPart().equals(SDMXDocumentEnum.DATA_SET.getConstant())) {
+	                	elementCode = null;
+	                }
+	            }
+	         }
+	      } catch (FileNotFoundException | XMLStreamException e) {
+	         LOGGER.error("Exception : ", e);
+	      } 
+		
+		return sdmxDocument;
+	}
+	
+
+	public static void main(String[] args) {
+		 String filePath = "D:\\CIMS-Document\\EBR\\SDMX-ML-DOCUMENT\\";
+		 SDMXMLDocumentReaderUtility sdmxmlDocumentReader = new SDMXMLDocumentReaderUtility();
+		 SDMXDocument sdmxDocument = sdmxmlDocumentReader.readSDMXDocument(filePath + "ALE_MODIFIED.xml");
+	     LOGGER.info(sdmxDocument);
+         LOGGER.info(new Gson().toJson(sdmxDocument)); 
+	}
+	
+//	 public static void main(String[] args) throws ParseException {
+//	      
+//		 String filePath = "D:\\CIMS-Document\\EBR\\SDMX-ML-DOCUMENT\\";
+//		 
+////		 DateFormat df1 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+////		 String string1 = "2020-09-30T00:00:00";
+////		 Date result1 = df1.parse(string1);
+//		 
+//	      try {
+//	         XMLInputFactory factory = XMLInputFactory.newInstance();
+////	         XMLEventReader eventReader = factory.createXMLEventReader(new FileReader("D:\\CIMS-Document\\EBR\\SDMX-ML-DOCUMENT\\ALE.xml"));
+////	         XMLEventReader eventReader = factory.createXMLEventReader(new FileReader("D:\\CIMS-Document\\EBR\\SDMX-ML-DOCUMENT\\ALE_CSV_11012021.csv_xs.xml"));
+//	         XMLEventReader eventReader = factory.createXMLEventReader(new FileReader(filePath + "ALE_MODIFIED.xml"));
+//	         
+//
+//	         SDMXDocument sdmxDocument = null;
+////	         SDMXElementStructure sdmxElementStructure = null;
+//	         String elementCode = null;
+//	         while(eventReader.hasNext()) {
+//	            XMLEvent nextEvent = eventReader.nextEvent();
+//
+//	            if (nextEvent.isStartElement()) {
+//	            	
+//	                StartElement startElement = nextEvent.asStartElement();
+//	                
+//	                switch (startElement.getName().getLocalPart()) {
+//		                case "Header":
+//		                	sdmxDocument = new SDMXDocument();
+//		                    break;
+//		                case "ID":
+//		                    nextEvent = eventReader.nextEvent();
+//		                    break;
+//		                case "Test":
+//		                    nextEvent = eventReader.nextEvent();
+//		                    break;
+//		                case "Prepared":
+//		                    nextEvent = eventReader.nextEvent();
+//		                    break;
+//		                case "Sender":
+//		                	Attribute attr = startElement.getAttributeByName(new QName("id"));
+//		                    break;
+//		                case "Receiver":
+//		                    nextEvent = eventReader.nextEvent();
+//		                	attr = startElement.getAttributeByName(new QName("id"));
+//		                    break;
+//		                case "Structure":
+////		                    nextEvent = eventReader.nextEvent();
+////		                    if(startElement.getName().getPrefix().equalsIgnoreCase("message")) {
+////		                    	 sdmxElementStructure = new SDMXElementStructure();
+////		                    	 attr = startElement.getAttributeByName(new QName("structureID"));
+////			                     if(attr!= null) {
+////			                    	 sdmxElementStructure.setStructureid(attr.getValue());
+////			                     }
+////			                     
+////			                     attr = startElement.getAttributeByName(new QName("namespace"));
+////			                     if(attr!= null) {
+////			                    	 sdmxElementStructure.setNameSpace(attr.getValue());
+////			                     }
+////			                     
+////			                     attr = startElement.getAttributeByName(new QName("dimensionAtObservation"));
+////			                     if(attr!= null) {
+////			                    	 sdmxElementStructure.setDimensionAtObservation(attr.getValue());
+////			                     }
+////			                     
+////			                     if(sdmxDocument.getSdmxElementsStructure() == null) {
+////	                				List<SDMXElementStructure> sdmxElementStructures = new ArrayList<>();
+////	                				sdmxElementStructures.add(sdmxElementStructure);
+////	                				sdmxDocument.setSdmxElementsStructure(sdmxElementStructures);
+////	                			 }else {
+////	                				sdmxDocument.getSdmxElementsStructure().add(sdmxElementStructure);
+////	                			 }
+////	                			 sdmxElementStructure = null;
+////		                    }
+//		                    break;
+//		                case "Ref":
+//		                	DataSet dataSet = new DataSet();
+//		                	
+//		                	StructureRef structureRef = new StructureRef();
+//		                	
+//		                	attr = startElement.getAttributeByName(new QName("id"));
+//		                    if(attr!= null) {
+//		                    	structureRef.setCode(attr.getValue());
+//		                    }
+//		                    
+//		                    attr = startElement.getAttributeByName(new QName("version"));
+//		                    if(attr!= null) {
+//		                    	structureRef.setVersion(attr.getValue());
+//		                    }
+//		                  
+//		                    attr = startElement.getAttributeByName(new QName("agencyID"));
+//		                    if(attr!= null) {
+//		                    	structureRef.setAgencyID(attr.getValue());
+//		                    }
+//		                    dataSet.setStructureRef(structureRef);
+//		                    
+//	                    	if(CollectionUtils.isEmpty(sdmxDocument.getDataSets())) {
+//	                    		List<DataSet> dataSetList = new ArrayList<>();
+//	                    		dataSetList.add(dataSet);
+//	                    		sdmxDocument.setDataSets(dataSetList);
+//	                    	}else {
+//	                    		sdmxDocument.getDataSets().add(dataSet);
+//	                    	}
+//	                    	
+//		                    break;
+//		                case "DataSet":
+//		                	Iterator<Attribute> attrs = startElement.getAttributes();
+//		                	Map<String, String> attributesMap = new HashMap<>();
+//		                	while(attrs.hasNext()) {
+//		                		Attribute attribute =  attrs.next();
+//		                		
+//		                		if(!(attribute.getName().getLocalPart().equalsIgnoreCase("structureRef") || attribute.getName().getLocalPart().equalsIgnoreCase("type")
+//		                				|| attribute.getName().getLocalPart().equalsIgnoreCase("dataScope") || attribute.getName().getLocalPart().equalsIgnoreCase("action"))) {
+//			                		attributesMap.put(attribute.getName().getLocalPart(), attribute.getValue());
+//		                		}else {
+//		                			if(attribute.getName().getLocalPart().equalsIgnoreCase("structureRef")) {
+//		                				elementCode = attribute.getValue();
+//		                			}
+//		                		}
+//		                	}
+//		                	
+//		                	StructureRef structure = new StructureRef();
+//		                	structure.setCode(elementCode);
+//
+//		                	DataSet ds = new DataSet();
+//		                	ds.setStructureRef(structure);
+//		                	
+//		                	
+//		                	ds = sdmxDocument.getDataSets().get(sdmxDocument.getDataSets().indexOf(ds));
+//		                	
+//		                	ds.setAttached_attributes(attributesMap);
+//		                	break;
+//		                case "Obs":
+//		                	Iterator<Attribute> obsAttributes = startElement.getAttributes();
+//		                	Map<String, String> dimensionMap = new HashMap<String, String>();
+//                    		SDMXDataPoint sdmxDataPoint = new SDMXDataPoint();
+//
+//		                	while(obsAttributes.hasNext()) {
+//		                		Attribute attribute = obsAttributes.next();
+//		                		dimensionMap.put(attribute.getName().getLocalPart(), attribute.getValue());
+//		                	}
+//
+//		                	if(elementCode!= null && dimensionMap.size()> 0) {
+//		                		structure = new StructureRef();
+//			                	structure.setCode(elementCode);
+//
+//			                	ds = new DataSet();
+//			                	ds.setStructureRef(structure);
+//			                	
+//			                	ds = sdmxDocument.getDataSets().get(sdmxDocument.getDataSets().indexOf(ds));
+//		                    	
+//		                    	if(CollectionUtils.isEmpty(ds.getObs())) {
+//	                    			sdmxDataPoint.setDimensionMap(dimensionMap);
+//	                    			List<Map<String, String>> newObsList = new ArrayList<>();
+//	                    			newObsList.add(dimensionMap);
+//	                    			ds.setObs(newObsList);
+//		                    	}else {
+//		                    		List<Map<String, String>> obs = ds.getObs();
+//		                    		obs.add(dimensionMap);
+//	                    			ds.setObs(obs);
+//		                    	}
+//		                	}
+//		                	break;
+//		                default:
+//		                	System.out.println("Default received");
+//		                    break;
+//
+//		            }
+//	            }
+//	            
+//	            if (nextEvent.isEndElement()) {
+//	                EndElement endElement = nextEvent.asEndElement();
+//	                if (endElement.getName().getLocalPart().equals("Structure")) {
+////	                	if (endElement.getName().getPrefix().equals("message")) {
+////	                		if(sdmxElementStructure!= null) {
+////	                			if(sdmxDocument.getSdmxElementsStructure() == null) {
+////	                				List<SDMXElementStructure> sdmxElementStructures = new ArrayList<SDMXElementStructure>();
+////	                				sdmxElementStructures.add(sdmxElementStructure);
+////	                				sdmxDocument.setSdmxElementsStructure(sdmxElementStructures);
+////	                			}else {
+////	                				sdmxDocument.getSdmxElementsStructure().add(sdmxElementStructure);
+////	                			}
+////	                			
+////	                			sdmxElementStructure = null;
+////	                		}
+////	                	}
+//	                }else if (endElement.getName().getLocalPart().equals("DataSet")) {
+//	                	elementCode = null;
+//	                }
+//	            }
+//	         }
+//	         
+//	         
+////	         try {
+////	             FileOutputStream fileOut = new FileOutputStream(filePath + "ALE_MODIFIED.ser");
+////	             ObjectOutputStream out = new ObjectOutputStream(fileOut);
+////	             out.writeObject(sdmxDocument);
+////	             out.close();
+////	             fileOut.close();
+////	             System.out.printf("Serialized data is saved in /tmp/employee.ser");
+////	          } catch (IOException i) {
+////	             i.printStackTrace();
+////	          }
+////	         
+//	         
+//	         System.out.println(sdmxDocument);
+//	         System.out.println(new Gson().toJson(sdmxDocument));
+//	      } catch (FileNotFoundException | XMLStreamException e) {
+//	         e.printStackTrace();
+//	      } 
+//	   }
+}

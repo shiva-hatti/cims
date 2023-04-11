@@ -1,0 +1,73 @@
+
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.ReturnEntityMappingNew;
+
+/**
+ * @author sagar jadhav
+ *
+ */
+public interface ReturnEntityMapRepoNew extends JpaRepository<ReturnEntityMappingNew, Long> {
+
+	@Query(value = "select new com.iris.model.ReturnEntityMappingNew(ent.entityId, ent.entityCode, ent.ifscCode, entLabel.entityNameLabel, subCat.subCategoryId, subCatLable.subCategoryLabel, ret.returnId, " + " ret.returnCode, retLable.returnLabel, retEntMappNew.uploadChannel, retEntMappNew.webChannel, retEntMappNew.stsChannel, retEntMappNew.apiChannel, " + " retEntMappNew.emailChannel) from UserRoleReturnMapping userRoleRet, ReturnEntityMappingNew retEntMappNew, " + " EntityBean ent, EntityLabelBean entLabel, SubCategory subCat," + " SubCategoryLabel subCatLable, Return ret, ReturnLabel retLable, LanguageMaster langMas, ReturnRegulatorMapping retRegMapp  " + " where userRoleRet.roleIdFk.userRoleId =:roleId and userRoleRet.isActive =:isActive and ent.isActive =:isActive and ret.isActive =:isActive " + " and retEntMappNew.isActive =:isActive and ent.category.isActive =:isActive and subCat.isActive =:isActive  and langMas.languageCode =:langCode" + " and ent.category.categoryId IN (:categoryIdList) " + " and ent.subCategory.subCategoryId IN (:subCategoryIdList)  " + " and langMas.languageId = entLabel.languageMaster.languageId and langMas.languageId = subCatLable.langIdFk.languageId " + " and langMas.languageId = retLable.langIdFk.languageId and userRoleRet.returnIdFk.returnId = retEntMappNew.returnObj.returnId  " + " and retEntMappNew.entity.entityId = ent.entityId and ent.subCategory.subCategoryId = subCat.subCategoryId " + " and retEntMappNew.returnObj.returnId = ret.returnId and ent.entityId = entLabel.entityBean.entityId " + " and subCat.subCategoryId = subCatLable.subCatIdFk.subCategoryId and ret.returnId = retLable.returnIdFk.returnId " + " and ret.returnGroupMapIdFk.returnGroupMapId is not null and ret.returnGroupMapIdFk.isActive =:isActive" + " and ret.returnId = retRegMapp.returnIdFk.returnId and retRegMapp.isActive =:isActive " + " order by retLable.returnLabel, entLabel.entityNameLabel asc")
+	List<ReturnEntityMappingNew> getDataByRoleIdCategoryIdSubCategoryId(@Param("roleId") Long roleId, @Param("categoryIdList") List<Long> categoryIdList, @Param("subCategoryIdList") List<Long> subCategoryIdList, @Param("isActive") boolean isActive, @Param("langCode") String langCode);
+
+	@Query(value = "select new com.iris.model.ReturnEntityMappingNew(ent.entityId, ent.entityCode, ent.ifscCode, entLabel.entityNameLabel, subCat.subCategoryId, subCatLable.subCategoryLabel, ret.returnId, " + " ret.returnCode, retLable.returnLabel, retEntMappNew.uploadChannel, retEntMappNew.webChannel, retEntMappNew.stsChannel, retEntMappNew.apiChannel, " + " retEntMappNew.emailChannel) from UserRoleReturnMapping userRoleRet, ReturnEntityMappingNew retEntMappNew, " + " EntityBean ent, EntityLabelBean entLabel, SubCategory subCat," + " SubCategoryLabel subCatLable, Return ret, ReturnLabel retLable, LanguageMaster langMas, ReturnRegulatorMapping retRegMapp " + " where userRoleRet.roleIdFk.userRoleId =:roleId and userRoleRet.isActive =:isActive and ent.isActive =:isActive and ret.isActive =:isActive " + " and retEntMappNew.isActive =:isActive and ent.category.isActive =:isActive and subCat.isActive =:isActive  and langMas.languageCode =:langCode" + " and ent.entityCode IN :entCodeList " + " and langMas.languageId = entLabel.languageMaster.languageId and langMas.languageId = subCatLable.langIdFk.languageId " + " and langMas.languageId = retLable.langIdFk.languageId and userRoleRet.returnIdFk.returnId = retEntMappNew.returnObj.returnId  " + " and retEntMappNew.entity.entityId = ent.entityId and ent.subCategory.subCategoryId = subCat.subCategoryId " + " and retEntMappNew.returnObj.returnId = ret.returnId and ent.entityId = entLabel.entityBean.entityId " + " and subCat.subCategoryId = subCatLable.subCatIdFk.subCategoryId and ret.returnId = retLable.returnIdFk.returnId " + " and ret.returnGroupMapIdFk.returnGroupMapId is not null and ret.returnGroupMapIdFk.isActive =:isActive" + " and ret.returnId = retRegMapp.returnIdFk.returnId and retRegMapp.isActive =:isActive " + "order by retLable.returnLabel, entLabel.entityNameLabel asc")
+	List<ReturnEntityMappingNew> getDataByRoleIdEntCode(@Param("roleId") Long roleId, @Param("entCodeList") List<String> entCodeList, @Param("isActive") boolean isActive, @Param("langCode") String langCode);
+
+	@Query(value = " From ReturnEntityMappingNew remn where remn.entity.entityId =:entityId and remn.returnObj.returnId =:returnId")
+	List<ReturnEntityMappingNew> getDataByEntityIdAndReturnId(@Param("entityId") Long entityId, @Param("returnId") Long returnId);
+
+	@Query(value = " From ReturnEntityMappingNew remn where remn.entity.entityId =:entityId")
+	List<ReturnEntityMappingNew> getDataByEntityIdAndIsActiveTrue(Long entityId);
+
+	//	@Query(value = "select a from ReturnEntityMappingNew a, UserRoleReturnMapping b where a.returnObj.returnId = b.returnIdFk.returnId and a.isActive = 1 and b.isActive = 1 and a.entity.isActive = 1 and b.roleIdFk.userRoleId =:roleId")
+	//	List<ReturnEntityMappingNew> getDataByRoleId(@Param("roleId") Long roleId);
+
+	@Query(value = "select new com.iris.model.ReturnEntityMappingNew(ent.entityId, ent.entityCode, ent.ifscCode, entLabel.entityNameLabel, subCat.subCategoryId, subCatLable.subCategoryLabel, ret.returnId, " + " ret.returnCode, retLable.returnLabel, retEntMappNew.uploadChannel, retEntMappNew.webChannel, retEntMappNew.stsChannel, retEntMappNew.apiChannel, " + " retEntMappNew.emailChannel) from UserRoleReturnMapping userRoleRet, ReturnEntityMappingNew retEntMappNew, " + " EntityBean ent, EntityLabelBean entLabel, SubCategory subCat," + " SubCategoryLabel subCatLable, Return ret, ReturnLabel retLable, LanguageMaster langMas, ReturnRegulatorMapping retRegMapp " + " where userRoleRet.roleIdFk.userRoleId =:roleId and userRoleRet.isActive =:isActive and ent.isActive =:isActive and ret.isActive =:isActive " + " and retEntMappNew.isActive =:isActive and ent.category.isActive =:isActive and subCat.isActive =:isActive  and langMas.languageCode =:langCode" + " and ent.entityCode IN :entCodeList  " + " and langMas.languageId = entLabel.languageMaster.languageId and langMas.languageId = subCatLable.langIdFk.languageId " + " and langMas.languageId = retLable.langIdFk.languageId and userRoleRet.returnIdFk.returnId = retEntMappNew.returnObj.returnId  " + " and retEntMappNew.entity.entityId = ent.entityId and ent.subCategory.subCategoryId = subCat.subCategoryId " + " and retEntMappNew.returnObj.returnId = ret.returnId and ent.entityId = entLabel.entityBean.entityId " + " and retEntMappNew.uploadChannel =:uploadChannel and retEntMappNew.webChannel =:webChannel " + " and retEntMappNew.emailChannel =:emailChannel and retEntMappNew.apiChannel =:apiChannel  and retEntMappNew.stsChannel =:stsChannel " + " and subCat.subCategoryId = subCatLable.subCatIdFk.subCategoryId and ret.returnId = retLable.returnIdFk.returnId " + " and ret.returnGroupMapIdFk.returnGroupMapId is not null and ret.returnGroupMapIdFk.isActive =:isActive" + " and ret.returnId = retRegMapp.returnIdFk.returnId and retRegMapp.isActive =:isActive " + " order by retLable.returnLabel, entLabel.entityNameLabel asc")
+	List<ReturnEntityMappingNew> getDataByRoleIdEntCodeAndChannel(@Param("roleId") Long roleId, @Param("entCodeList") List<String> entCodeList, @Param("isActive") boolean isActive, @Param("langCode") String langCode, @Param("uploadChannel") boolean uploadChannel, @Param("webChannel") boolean webChannel, @Param("emailChannel") boolean emailChannel, @Param("apiChannel") boolean apiChannel, @Param("stsChannel") boolean stsChannel);
+
+	List<ReturnEntityMappingNew> findByIsActiveAndReturnObjReturnIdAndEntityEntityIdNotIn(boolean isActive, Long returnId, List<Long> entityBeanList);
+
+	List<ReturnEntityMappingNew> findByIsActiveAndReturnObjReturnId(boolean isActive, Long returnId);
+
+	@Query(value = "FROM ReturnEntityMappingNew returnEntityMappingNew where returnEntityMappingNew.returnObj.returnCode =:returnCode and returnEntityMappingNew.entity.entityCode =:entityCode and isActive = 1 ")
+	List<ReturnEntityMappingNew> getDataByEntityCodeAndReturnCode(@Param("entityCode") String entityCode, @Param("returnCode") String returnCode);
+
+	@Query(value = "select new com.iris.model.ReturnEntityMappingNew(returnEntityMappingNew.entity.entityId, returnEntityMappingNew.entity.entityCode, " + " returnEntityMappingNew.entity.ifscCode, returnEntityMappingNew.entity.entityName,returnEntityMappingNew.returnObj.returnId, returnEntityMappingNew.returnObj.returnCode, returnEntityMappingNew.returnObj.returnName) " + " FROM ReturnEntityMappingNew returnEntityMappingNew where returnEntityMappingNew.returnObj.returnId IN :retIdList " + " and isActive = 1 and returnEntityMappingNew.entity.isActive = 1")
+	List<ReturnEntityMappingNew> getDataByReturnId(@Param("retIdList") List<Long> retIdList);
+
+	@Query(value = "select new com.iris.model.ReturnEntityMappingNew(returnEntityMappingNew.entity.entityId, returnEntityMappingNew.entity.entityCode," + " returnEntityMappingNew.entity.ifscCode, returnEntityMappingNew.entity.entityName,returnEntityMappingNew.returnObj.returnId, returnEntityMappingNew.returnObj.returnCode, returnEntityMappingNew.returnObj.returnName) " + " FROM ReturnEntityMappingNew returnEntityMappingNew where returnEntityMappingNew.entity.entityId IN :entIdList " + " and isActive = 1 and returnEntityMappingNew.returnObj.isActive = 1")
+	List<ReturnEntityMappingNew> getDataByEntityId(@Param("entIdList") List<Long> entIdList);
+
+	@Query(value = "From ReturnEntityMappingNew remn where remn.entity.entityId In(:entityIdList) and remn.returnObj.returnId IN(:retIdList) " + "and remn.returnObj.frequency.isActive = 1 and remn.returnObj.frequency.frequencyId =:frequencyId " + "and remn.isActive = 1 and remn.entity.isActive = 1 and remn.returnObj.isActive = 1 and remn.returnObj.returnId Not IN(:subRetIdList)")
+	List<ReturnEntityMappingNew> getDataByMapEntRetFreqWithSubRet(@Param("entityIdList") List<Long> entityIdList, @Param("retIdList") List<Long> retIdList, @Param("frequencyId") Long frequencyId, @Param("subRetIdList") List<Long> subRetIdList);
+
+	@Query(value = "From ReturnEntityMappingNew remn where remn.entity.entityId In(:entityIdList) and remn.returnObj.returnId IN(:retIdList) " + "and remn.returnObj.frequency.isActive = 1 and remn.returnObj.frequency.frequencyId =:frequencyId " + "and remn.isActive = 1 and remn.entity.isActive = 1 and remn.returnObj.isActive = 1 ")
+	List<ReturnEntityMappingNew> getDataByMapEntRetFreqWithSubRetAll(@Param("entityIdList") List<Long> entityIdList, @Param("retIdList") List<Long> retIdList, @Param("frequencyId") Long frequencyId);
+
+	@Query(value = "From ReturnEntityMappingNew remn where remn.entity.entityId In(:entityIdList) and remn.returnObj.returnId IN(:retIdList) " + "and remn.isActive = 1 and remn.entity.isActive = 1 and remn.returnObj.isActive = 1 and remn.returnObj.returnId Not IN(:subRetIdList)")
+	List<ReturnEntityMappingNew> getDataByMapEntRetWithSubRet(@Param("entityIdList") List<Long> entityIdList, @Param("retIdList") List<Long> retIdList, @Param("subRetIdList") List<Long> subRetIdList);
+
+	@Query(value = "From ReturnEntityMappingNew remn where remn.entity.entityId In(:entityIdList) and remn.returnObj.returnId IN(:retIdList) " + "and remn.isActive = 1 and remn.entity.isActive = 1 and remn.returnObj.isActive = 1 and remn.entity.subCategory.subCategoryId in(:subCategoryIdList) and remn.entity.subCategory.isActive = 1")
+	List<ReturnEntityMappingNew> getDataByMapEntRetCat(@Param("entityIdList") List<Long> entityIdList, @Param("retIdList") List<Long> retIdList, @Param("subCategoryIdList") List<Long> subCategoryIdList);
+
+	@Query(value = "From ReturnEntityMappingNew remn where remn.entity.entityId In(:entityIdList) and remn.returnObj.returnId IN(:retIdList) " + "and remn.isActive = 1 and remn.entity.isActive = 1 and remn.returnObj.isActive = 1 ")
+	List<ReturnEntityMappingNew> getDataByMapEntRet(@Param("entityIdList") List<Long> entityIdList, @Param("retIdList") List<Long> retIdList);
+
+	@Query(value = "CALL SP_INSERT_RETURN_ENTITY_MAPPING(:userId, :returnArrayString, :entityArrayString, :moduleName);", nativeQuery = true)
+	void insertReturnEntityMapping(@Param("userId") Long userId, @Param("returnArrayString") String returnArrayString, @Param("entityArrayString") String entityArrayString, @Param("moduleName") String moduleName);
+
+	@Query(value = " select new com.iris.model.ReturnEntityMappingNew(ret.returnId, ret.returnName, ret.returnCode, freq.frequencyId, " + " ret.returnPropertyIdFk.returnProprtyId, ent.entityId, ent.entityName) " + " from Return ret, ReturnEntityMappingNew map, EntityBean ent, Frequency freq where map.isActive = 1 " + " and ent.isActive = 1 and ret.isActive = 1 " + " and ret.returnGroupMapIdFk.returnGroupMapId is not null and freq.isActive = 1 " + " and ret.returnId =  map.returnObj.returnId and map.entity.entityId = ent.entityId and freq.frequencyId = ret.frequency.frequencyId")
+	List<ReturnEntityMappingNew> getReturnEntityMappingData();
+
+	@Query(value = " select new com.iris.model.ReturnEntityMappingNew(ret.returnId, ret.returnName, ret.returnCode, freq.frequencyId, " + " ret.returnPropertyIdFk.returnProprtyId, ent.entityId, ent.entityName) " + " from Return ret, ReturnEntityMappingNew map, EntityBean ent, Frequency freq where map.isActive = 1 " + " and ent.isActive = 1 and ret.isActive = 1 " + " and ret.returnGroupMapIdFk.returnGroupMapId is not null and freq.isActive = 1 " + " and ret.returnId =  map.returnObj.returnId and map.entity.entityId = ent.entityId and freq.frequencyId = ret.frequency.frequencyId and ret.returnId in (:returnIds)")
+	List<ReturnEntityMappingNew> getReturnEntityMappingData(List<Long> returnIds);
+
+}

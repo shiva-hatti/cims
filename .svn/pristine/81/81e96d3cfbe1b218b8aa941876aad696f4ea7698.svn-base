@@ -1,0 +1,175 @@
+package com.iris.controller;
+
+import java.io.Serializable;
+import java.util.List;
+
+import com.iris.util.Validations;
+
+public class RfaBorrowerInfo implements Serializable {
+
+	private static final long serialVersionUID = 1580590059140814988L;
+
+	private String entcode;
+	private Long borrowerId;
+	private String borrowerName;
+	private String statusOfRfa;
+	private String dateOfFraudClassification;
+	private String dateOfRfaClassification;
+	private Long impairedCreditFraudBorrowerSk;
+	private String impairedCreditFraudBorrowerName;
+	private String impairedCreditFraudBorrowerPan;
+	private String staffInvolvementFlag;
+	private String whetherComplaintFiledFlag;
+	private String whetherFirFiledFlag;
+	private String remarks;
+	private Double totalAmtOutstanding;
+	private Double totalExposure;
+	private Long createdBy;
+	private String jsonEncode;
+	private List<Long> borrowerIdList;
+
+	public String getEntcode() {
+		return entcode;
+	}
+
+	public void setEntcode(String entcode) {
+		this.entcode = Validations.trimInput(entcode);
+	}
+
+	public Long getBorrowerId() {
+		return borrowerId;
+	}
+
+	public void setBorrowerId(Long borrowerId) {
+		this.borrowerId = borrowerId;
+	}
+
+	public Long getImpairedCreditFraudBorrowerSk() {
+		return impairedCreditFraudBorrowerSk;
+	}
+
+	public void setImpairedCreditFraudBorrowerSk(Long impairedCreditFraudBorrowerSk) {
+		this.impairedCreditFraudBorrowerSk = impairedCreditFraudBorrowerSk;
+	}
+
+	public String getImpairedCreditFraudBorrowerName() {
+		return impairedCreditFraudBorrowerName;
+	}
+
+	public void setImpairedCreditFraudBorrowerName(String impairedCreditFraudBorrowerName) {
+		this.impairedCreditFraudBorrowerName = Validations.trimInput(impairedCreditFraudBorrowerName);
+	}
+
+	public String getImpairedCreditFraudBorrowerPan() {
+		return impairedCreditFraudBorrowerPan;
+	}
+
+	public void setImpairedCreditFraudBorrowerPan(String impairedCreditFraudBorrowerPan) {
+		this.impairedCreditFraudBorrowerPan = Validations.trimInput(impairedCreditFraudBorrowerPan);
+	}
+
+	public String getStaffInvolvementFlag() {
+		return staffInvolvementFlag;
+	}
+
+	public void setStaffInvolvementFlag(String staffInvolvementFlag) {
+		this.staffInvolvementFlag = Validations.trimInput(staffInvolvementFlag);
+	}
+
+	public String getWhetherComplaintFiledFlag() {
+		return whetherComplaintFiledFlag;
+	}
+
+	public void setWhetherComplaintFiledFlag(String whetherComplaintFiledFlag) {
+		this.whetherComplaintFiledFlag = Validations.trimInput(whetherComplaintFiledFlag);
+	}
+
+	public String getWhetherFirFiledFlag() {
+		return whetherFirFiledFlag;
+	}
+
+	public void setWhetherFirFiledFlag(String whetherFirFiledFlag) {
+		this.whetherFirFiledFlag = Validations.trimInput(whetherFirFiledFlag);
+	}
+
+	public String getRemarks() {
+		return remarks;
+	}
+
+	public void setRemarks(String remarks) {
+		this.remarks = Validations.trimInput(remarks);
+	}
+
+	public Double getTotalAmtOutstanding() {
+		return totalAmtOutstanding;
+	}
+
+	public void setTotalAmtOutstanding(Double totalAmtOutstanding) {
+		this.totalAmtOutstanding = totalAmtOutstanding;
+	}
+
+	public Double getTotalExposure() {
+		return totalExposure;
+	}
+
+	public void setTotalExposure(Double totalExposure) {
+		this.totalExposure = totalExposure;
+	}
+
+	public String getBorrowerName() {
+		return borrowerName;
+	}
+
+	public void setBorrowerName(String borrowerName) {
+		this.borrowerName = Validations.trimInput(borrowerName);
+	}
+
+	public String getStatusOfRfa() {
+		return statusOfRfa;
+	}
+
+	public void setStatusOfRfa(String statusOfRfa) {
+		this.statusOfRfa = Validations.trimInput(statusOfRfa);
+	}
+
+	public String getDateOfFraudClassification() {
+		return dateOfFraudClassification;
+	}
+
+	public void setDateOfFraudClassification(String dateOfFraudClassification) {
+		this.dateOfFraudClassification = Validations.trimInput(dateOfFraudClassification);
+	}
+
+	public Long getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(Long createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	public String getDateOfRfaClassification() {
+		return dateOfRfaClassification;
+	}
+
+	public void setDateOfRfaClassification(String dateOfRfaClassification) {
+		this.dateOfRfaClassification = Validations.trimInput(dateOfRfaClassification);
+	}
+
+	public String getJsonEncode() {
+		return jsonEncode;
+	}
+
+	public void setJsonEncode(String jsonEncode) {
+		this.jsonEncode = Validations.trimInput(jsonEncode);
+	}
+
+	public List<Long> getBorrowerIdList() {
+		return borrowerIdList;
+	}
+
+	public void setBorrowerIdList(List<Long> borrowerIdList) {
+		this.borrowerIdList = borrowerIdList;
+	}
+
+}

@@ -1,0 +1,91 @@
+package com.iris.util;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.xml.XMLConstants;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.StartElement;
+import javax.xml.stream.events.XMLEvent;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.xml.sax.InputSource;
+import org.xml.sax.XMLReader;
+
+import com.iris.exception.SimpleErrorHandler;
+import com.iris.sdmx.util.SDMXDocumentEnum;
+import com.iris.util.constant.GeneralConstants;
+
+public class XmlValidate {
+	static final Logger logger = LogManager.getLogger(XmlValidate.class);
+
+	//	public static void main(String[] args) throws ParserConfigurationException, IOException { 
+	//		XmlValidate xmlValidate = new XmlValidate();
+	//		String filePath = "C:\\Users\\sajadhav\\Downloads\\HDFC191025R08601M.xml";
+	//		System.out.println(xmlValidate.isValidXmlDocument(filePath));
+	//	}
+
+	public boolean isValidXmlDocument(String filePath) {
+		try (InputStream inputStream = new FileInputStream(new File(filePath))) {
+			SAXParserFactory factory = SAXParserFactory.newInstance();
+			factory.setValidating(false);
+			factory.setNamespaceAware(true);
+			factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+			SAXParser parser = null;
+			InputSource inputSource = null;
+			XMLReader reader = null;
+			parser = factory.newSAXParser();
+			reader = parser.getXMLReader();
+			reader.setErrorHandler(new SimpleErrorHandler());
+
+			inputSource = new InputSource(inputStream);
+			reader.parse(inputSource);
+			return true;
+		} catch (Exception e) {
+			logger.error("Exception :", e);
+			return false;
+		}
+	}
+
+	public String checkXMLDocumentType(String filePath) {
+		try (FileReader fileReader = new FileReader(filePath)) {
+			XMLInputFactory factory = XMLInputFactory.newInstance();
+			XMLEventReader eventReader = factory.createXMLEventReader(fileReader);
+			while (eventReader.hasNext()) {
+				XMLEvent nextEvent = eventReader.nextEvent();
+				if (nextEvent.isStartElement()) {
+					StartElement startElement = nextEvent.asStartElement();
+					SDMXDocumentEnum sdmxDocumentEnum = SDMXDocumentEnum.getEnumByValue(startElement.getName().getLocalPart());
+					if (sdmxDocumentEnum == null) {
+						continue;
+					}
+					switch (sdmxDocumentEnum) {
+					case STRUCTURE_SPECIFICATION_DATA:
+						return GeneralConstants.SDMX.getConstantVal();
+					case XBRL:
+						return GeneralConstants.XBRL.getConstantVal();
+					default:
+						break;
+					}
+				}
+			}
+			eventReader.close();
+		} catch (FileNotFoundException | XMLStreamException e) {
+			logger.error("Exception : ", e);
+		} catch (IOException e) {
+			logger.error("Exception : ", e);
+		}
+		return "";
+	}
+
+}

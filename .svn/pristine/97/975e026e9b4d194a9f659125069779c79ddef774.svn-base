@@ -1,0 +1,66 @@
+package com.iris.model;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+/**
+ * @author bthakare
+ * @date 10/01/2020
+ * @version 1.0
+ */
+@Entity
+@Table(name="TBL_PURPOSE_MASTER")
+public class PurposeMasterBean implements Serializable {
+	private static final long serialVersionUID = 8319141689428967467L;
+	@Id
+	@Column(name="PURPOSE_ID")
+	private Long purposeId;
+	
+	@Column(name="PURPOSE_CODE")
+	private String purposeCode;
+	
+	@Column(name="DESCRIPTION")
+	private String description;
+	
+	@Column(name="ISACTIVE")
+	private Boolean isActive;
+
+	public Long getPurposeId() {
+		return purposeId;
+	}
+
+	public void setPurposeId(Long purposeId) {
+		this.purposeId = purposeId;
+	}
+
+	public String getPurposeCode() {
+		return purposeCode;
+	}
+
+	public void setPurposeCode(String purposeCode) {
+		this.purposeCode = purposeCode;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+	
+}
+
+

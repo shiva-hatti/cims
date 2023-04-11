@@ -1,0 +1,64 @@
+package com.iris.nbfc.model;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+/**
+ * @author pmohite
+ */
+@Entity
+@Table(name = "TBL_NBFC_ROC_MASTER")
+public class NbfcRocMaster {
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "NBFC_ROC_ID")
+	private int rocId;
+
+	@Column(name = "NBFC_ROC_NAME")
+	private String rocName;
+
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the rocId
+	 */
+	public int getRocId() {
+		return rocId;
+	}
+
+	/**
+	 * @param rocId the rocId to set
+	 */
+	public void setRocId(int rocId) {
+		this.rocId = rocId;
+	}
+
+	/**
+	 * @return the rocName
+	 */
+	public String getRocName() {
+		return rocName;
+	}
+
+	/**
+	 * @param rocName the rocName to set
+	 */
+	public void setRocName(String rocName) {
+		this.rocName = rocName;
+	}
+
+
+}

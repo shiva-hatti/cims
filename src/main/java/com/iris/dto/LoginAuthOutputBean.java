@@ -1,0 +1,83 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+/**
+ * @author bthakare
+ */
+public class LoginAuthOutputBean implements Serializable {
+
+	private static final long serialVersionUID = 3420241604887055549L;
+
+	@JsonInclude(Include.NON_NULL)
+	private Boolean otpEnabled;
+
+	@JsonInclude(Include.NON_NULL)
+	private Boolean pkiEnabled;
+
+	@JsonInclude(Include.NON_NULL)
+	private Boolean isUserAuthenticate;
+
+	private String jwtToken;
+
+	//	private List<PlatformMasterDTO> platformMasterList;
+	/**
+	 * @return the otpEnabled
+	 */
+	public Boolean getOtpEnabled() {
+		return otpEnabled;
+	}
+
+	/**
+	 * @param otpEnabled the otpEnabled to set
+	 */
+	public void setOtpEnabled(Boolean otpEnabled) {
+		this.otpEnabled = otpEnabled;
+	}
+
+	/**
+	 * @return the pkiEnabled
+	 */
+	public Boolean getPkiEnabled() {
+		return pkiEnabled;
+	}
+
+	/**
+	 * @param pkiEnabled the pkiEnabled to set
+	 */
+	public void setPkiEnabled(Boolean pkiEnabled) {
+		this.pkiEnabled = pkiEnabled;
+	}
+
+	/**
+	 * @return the isUserAuthenticate
+	 */
+	public Boolean getIsUserAuthenticate() {
+		return isUserAuthenticate;
+	}
+
+	/**
+	 * @param isUserAuthenticate the isUserAuthenticate to set
+	 */
+	public void setIsUserAuthenticate(Boolean isUserAuthenticate) {
+		this.isUserAuthenticate = isUserAuthenticate;
+	}
+
+	/**
+	 * @return the jwtToken
+	 */
+	public String getJwtToken() {
+		return jwtToken;
+	}
+
+	/**
+	 * @param jwtToken the jwtToken to set
+	 */
+	public void setJwtToken(String jwtToken) {
+		this.jwtToken = jwtToken;
+	}
+
+}

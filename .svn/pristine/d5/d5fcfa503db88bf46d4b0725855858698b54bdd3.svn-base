@@ -1,0 +1,77 @@
+package com.iris.service.impl;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import com.iris.dateutility.enums.DateConstants;
+import com.iris.dateutility.util.DateManip;
+import com.iris.exception.ServiceException;
+import com.iris.model.EntityAuditorMapInfo;
+import com.iris.model.UserRegulator;
+import com.iris.repository.EntityAuditorMappingRepo;
+import com.iris.repository.UserRegulatorRepo;
+import com.iris.util.constant.ErrorConstants;
+
+/**
+ * @author psheke
+ * @date 05/01/2020
+ */
+@Service
+public class EntityAuditorMappingService {
+	@Autowired
+	private EntityAuditorMappingRepo entityAuditorMapRepo;
+	@Autowired
+	private UserRegulatorRepo userRegulatorRepo;
+	private static final Logger LOGGER = LogManager.getLogger(EntityAuditorMappingService.class);
+
+	public List<EntityAuditorMapInfo> fetchEntityAuditorMapData()  {
+		List<EntityAuditorMapInfo> entityAuditorMapList = null;
+	
+		try {
+		
+			 entityAuditorMapList = entityAuditorMapRepo.getEntityAuditorMapData(true);
+			
+
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.DEFAULT_ERROR.getConstantVal(), e);
+		}
+		return entityAuditorMapList;
+
+	}
+
+	
+	public boolean updateActiveStatusForPassedEndDate(List<EntityAuditorMapInfo> entityAuditorMapList) {
+		boolean flag = false;
+		try {
+			flag = !CollectionUtils.isEmpty(entityAuditorMapRepo.saveAll(entityAuditorMapList));
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.DEFAULT_ERROR.getConstantVal(), e);
+
+		}
+		return flag;
+	}
+	
+	  public Integer getUserRegulator() { 
+		  List<UserRegulator> userRegulator=null;
+	  Integer audEntMapExpDays = null;
+	  try {
+	  userRegulator=userRegulatorRepo.getUserRegulator();
+		if(userRegulator!=null) {
+			audEntMapExpDays=userRegulator.get(0).getAudEntMapExpDays();
+			}
+	  } catch (Exception e) {
+			LOGGER.error(ErrorConstants.DEFAULT_ERROR.getConstantVal(), e);
+		}
+		return audEntMapExpDays;
+		}
+	 
+
+}

@@ -1,0 +1,180 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import com.iris.util.Validations;
+
+/**
+ * @author psawant
+ * @version 1.0
+ * @date 10/09/2020
+ */
+public class SapBoDeatilsBean implements Serializable {
+
+	private static final long serialVersionUID = -3469009396348973310L;
+
+	private String username;
+	private String password;
+	private String authenticateUrl;
+	private String reportUrl;
+	private String iDocIdKey;
+	private String periodEndedKey;
+	private String periodStartKey;
+	private String bankNameKey;
+	private String serSessionKey;
+	private String identifier;
+	private String returnDocId;
+	private String returnCode;
+	private String entityName;
+	private String entityCode;
+	private Long uploadId;
+	private Date uploadedDate;
+	private String uploadedBy;
+	private Integer pkId;
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = Validations.trimInput(username);
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = Validations.trimInput(password);
+	}
+
+	public String getAuthenticateUrl() {
+		return authenticateUrl;
+	}
+
+	public void setAuthenticateUrl(String authenticateUrl) {
+		this.authenticateUrl = Validations.trimInput(authenticateUrl);
+	}
+
+	public String getReportUrl() {
+		return reportUrl;
+	}
+
+	public void setReportUrl(String reportUrl) {
+		this.reportUrl = Validations.trimInput(reportUrl);
+	}
+
+	public String getiDocIdKey() {
+		return iDocIdKey;
+	}
+
+	public void setiDocIdKey(String iDocIdKey) {
+		this.iDocIdKey = Validations.trimInput(iDocIdKey);
+	}
+
+	public String getPeriodEndedKey() {
+		return periodEndedKey;
+	}
+
+	public void setPeriodEndedKey(String periodEndedKey) {
+		this.periodEndedKey = Validations.trimInput(periodEndedKey);
+	}
+
+	public String getBankNameKey() {
+		return bankNameKey;
+	}
+
+	public void setBankNameKey(String bankNameKey) {
+		this.bankNameKey = Validations.trimInput(bankNameKey);
+	}
+
+	public String getSerSessionKey() {
+		return serSessionKey;
+	}
+
+	public void setSerSessionKey(String serSessionKey) {
+		this.serSessionKey = Validations.trimInput(serSessionKey);
+	}
+
+	public String getReturnDocId() {
+		return returnDocId;
+	}
+
+	public void setReturnDocId(String returnDocId) {
+		this.returnDocId = Validations.trimInput(returnDocId);
+	}
+
+	public String getReturnCode() {
+		return returnCode;
+	}
+
+	public void setReturnCode(String returnCode) {
+		this.returnCode = Validations.trimInput(returnCode);
+	}
+
+	public String getEntityName() {
+		return entityName;
+	}
+
+	public void setEntityName(String entityName) {
+		this.entityName = Validations.trimInput(entityName);
+	}
+
+	public String getEntityCode() {
+		return entityCode;
+	}
+
+	public void setEntityCode(String entityCode) {
+		this.entityCode = Validations.trimInput(entityCode);
+	}
+
+	public Long getUploadId() {
+		return uploadId;
+	}
+
+	public void setUploadId(Long uploadId) {
+		this.uploadId = uploadId;
+	}
+
+	public Date getUploadedDate() {
+		return uploadedDate;
+	}
+
+	public void setUploadedDate(Date uploadedDate) {
+		this.uploadedDate = uploadedDate;
+	}
+
+	public Integer getPkId() {
+		return pkId;
+	}
+
+	public void setPkId(Integer pkId) {
+		this.pkId = pkId;
+	}
+
+	public String getPeriodStartKey() {
+		return periodStartKey;
+	}
+
+	public void setPeriodStartKey(String periodStartKey) {
+		this.periodStartKey = Validations.trimInput(periodStartKey);
+	}
+
+	public String getIdentifier() {
+		return identifier;
+	}
+
+	public void setIdentifier(String identifier) {
+		this.identifier = Validations.trimInput(identifier);
+	}
+
+	public String getUploadedBy() {
+		return uploadedBy;
+	}
+
+	public void setUploadedBy(String uploadedBy) {
+		this.uploadedBy = Validations.trimInput(uploadedBy);
+	}
+
+}

@@ -1,0 +1,63 @@
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.google.gson.Gson;
+import com.iris.dto.Option;
+import com.iris.dto.Options;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.model.Currency;
+import com.iris.service.impl.CurrencyMasterService;
+
+/**
+ * @author psawant
+ * @date 08/01/2020
+ * @version 1.0
+ */
+@RestController
+@RequestMapping("/service/currencyData")
+public class CurrencyMasterController {
+
+	static final Logger logger = LogManager.getLogger(CurrencyMasterController.class);
+
+	@Autowired
+	CurrencyMasterService currencyMasterService;
+
+	@RequestMapping(value = "/fetchActiveCurrencyData", method = RequestMethod.GET)
+	public ServiceResponse fetchActiveCurrencyData() {
+		logger.info("fetch currency data controller started");
+		ServiceResponse serviceResponse = null;
+		Option option = null;
+		Options options = null;
+		List<Option> optionList = null;
+		List<Currency> listOfActiveCurrencyData = null;
+
+		listOfActiveCurrencyData = new ArrayList<Currency>();
+		optionList = new ArrayList<>();
+		options = new Options();
+		listOfActiveCurrencyData = currencyMasterService.getActiveDataFor(Currency.class, null);
+
+		if (listOfActiveCurrencyData != null) {
+			for (Currency currencyMaster : listOfActiveCurrencyData) {
+				option = new Option();
+				option.setKey(currencyMaster.getCurrencyISOCode());
+				option.setValue(currencyMaster.getCurrencyShortName().toUpperCase());
+				optionList.add(option);
+			}
+
+			options.setOptionList(optionList);
+			return new ServiceResponseBuilder().setStatus(true).setResponse(new Gson().toJson(options)).build();
+		}
+		return serviceResponse;
+	}
+
+}

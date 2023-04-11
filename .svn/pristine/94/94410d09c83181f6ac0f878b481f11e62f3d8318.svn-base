@@ -1,0 +1,34 @@
+package com.iris.sdmx.exceltohtml.repo;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.iris.model.ReturnTemplate;
+import com.iris.sdmx.exceltohtml.entity.SdmxModelCodesEntity;
+import com.iris.sdmx.exceltohtml.entity.SdmxReturnModelInfoEntity;
+import com.iris.sdmx.exceltohtml.entity.SdmxReturnSheetInfoEntity;
+
+/**
+ * @author apagaria
+ *
+ */
+public interface SdmxReturnModelInfoRepo extends JpaRepository<SdmxReturnModelInfoEntity, Long> {
+
+	@Query("from SdmxReturnModelInfoEntity where modelCodesIdFk=:modelCodesIdFk")
+	SdmxReturnModelInfoEntity findByModelCodesFk(SdmxModelCodesEntity modelCodesIdFk);
+
+	@Query("from SdmxReturnModelInfoEntity where returnSheetInfoIdFk=:returnSheetInfoIdFk")
+	List<SdmxReturnModelInfoEntity> findByReturnSheetInfoId(SdmxReturnSheetInfoEntity returnSheetInfoIdFk);
+
+	@Query("from SdmxReturnModelInfoEntity where returnSheetInfoIdFk=:returnSheetInfoIdFk and returnCellRef=:returnCellRef")
+	SdmxReturnModelInfoEntity findByReturnSheetTemplateIdNCellRef(SdmxReturnSheetInfoEntity returnSheetInfoIdFk,
+			Integer returnCellRef);
+
+	@Query("from SdmxReturnModelInfoEntity where returnSheetInfoId=:returnSheetInfoId")
+	SdmxReturnModelInfoEntity findByReturnModelInfoId(Long returnSheetInfoId);
+
+	@Query("FROM SdmxReturnModelInfoEntity srmi where srmi.returnSheetInfoIdFk IN(SELECT rsi.returnSheetInfoId FROM SdmxReturnSheetInfoEntity rsi where rsi.returnTemplateIdFk =:returnTemplateId) and srmi.isActive=true")
+	List<SdmxReturnModelInfoEntity> findListByReturnTemplate(ReturnTemplate returnTemplateId);
+}

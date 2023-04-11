@@ -1,0 +1,118 @@
+/**
+ * 
+ */
+package com.iris.sdmx.upload.helper;
+
+import java.util.Date;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.iris.model.FileDetails;
+import com.iris.model.UserMaster;
+import com.iris.sdmx.status.bean.SdmxActivityDetailLogRequest;
+import com.iris.sdmx.status.bean.SdmxFileActivityLogBean;
+import com.iris.sdmx.status.entity.SdmxFileActivityLog;
+import com.iris.sdmx.status.entity.SdmxProcessDetailEntity;
+import com.iris.sdmx.status.repo.SdmxProcessDetailRepo;
+
+/**
+ * @author apagaria
+ *
+ */
+@Component
+public class SdmxFileActivityLogHelper {
+
+	private static final Logger LOGGER = LogManager.getLogger(SdmxFileActivityLogHelper.class);
+
+	@Autowired
+	private SdmxProcessDetailRepo sdmxProcessDetailRepo;
+
+	public void convertRequestToEntity(SdmxActivityDetailLogRequest sdmxActivityDetailLogRequest,
+			SdmxFileActivityLog sdmxActivityDetailLog, Long userId, String jobProcessingId) {
+		LOGGER.debug(
+				"START - Convert request to entity for add Sdmx Activity Detail Log record request received with Job Processing ID : "
+						+ jobProcessingId);
+		BeanUtils.copyProperties(sdmxActivityDetailLogRequest, sdmxActivityDetailLog);
+
+		// Module Id
+		if (!StringUtils.isBlank(sdmxActivityDetailLogRequest.getProcessCode())) {
+			SdmxProcessDetailEntity sdmxProcessDetailEntity = sdmxProcessDetailRepo
+					.findProcessByProcessCode(sdmxActivityDetailLogRequest.getProcessCode());
+			sdmxActivityDetailLog.setSdmxProcessDetailIdFk(sdmxProcessDetailEntity);
+		}
+
+		// File Details
+		if (sdmxActivityDetailLogRequest.getFileDetailId() != null) {
+			FileDetails fileDetails = new FileDetails();
+			fileDetails.setId(sdmxActivityDetailLogRequest.getFileDetailId());
+			sdmxActivityDetailLog.setFileDetailsIdFk(fileDetails);
+		}
+
+		// User
+		if (userId != null) {
+			UserMaster userMaster = new UserMaster();
+			userMaster.setUserId(userId);
+			sdmxActivityDetailLog.setCreatedBy(userMaster);
+			// Created On
+			sdmxActivityDetailLog.setCreatedOn(new Date());
+		}
+		if (sdmxActivityDetailLogRequest.getProcessStartTimeLong() != null) {
+			sdmxActivityDetailLog.setProcessStartTime(new Date(sdmxActivityDetailLogRequest.getProcessStartTimeLong()));
+		}
+		if (sdmxActivityDetailLogRequest.getProcessEndTimeLong() != null) {
+			sdmxActivityDetailLog.setProcessEndTime(new Date(sdmxActivityDetailLogRequest.getProcessEndTimeLong()));
+		}
+		LOGGER.debug(
+				"END - Convert request to entity for add Sdmx Activity Detail Log record request received with Job Processing ID : "
+						+ jobProcessingId);
+	}
+
+	/**
+	 * @param sdmxActivityDetailLog
+	 * @param userId
+	 * @param jobProcessingId
+	 * @param sdmxActivityDetailLogBean
+	 */
+	public void convetEntityToBean(SdmxFileActivityLog sdmxActivityDetailLog, Long userId, String jobProcessingId,
+			SdmxFileActivityLogBean sdmxActivityDetailLogBean) {
+		LOGGER.debug(
+				"START - Convert entity to bean for add Sdmx Activity Detail Log record request received with Job Processing ID : "
+						+ jobProcessingId);
+		BeanUtils.copyProperties(sdmxActivityDetailLog, sdmxActivityDetailLogBean);
+
+		// Module
+		if (sdmxActivityDetailLog.getSdmxProcessDetailIdFk() != null) {
+			SdmxProcessDetailEntity sdmxProcessDetailEntity = sdmxActivityDetailLog.getSdmxProcessDetailIdFk();
+			sdmxActivityDetailLogBean.setSdmxProcessId(sdmxProcessDetailEntity.getProcessId());
+			sdmxActivityDetailLogBean.setProcessCode(sdmxProcessDetailEntity.getProcessCode());
+			sdmxActivityDetailLogBean.setProcessName(sdmxProcessDetailEntity.getProcessName());
+		}
+
+		// User
+		if (sdmxActivityDetailLog.getCreatedBy() != null) {
+			UserMaster userMaster = sdmxActivityDetailLog.getCreatedBy();
+			sdmxActivityDetailLogBean.setCreatedById(userMaster.getUserId());
+			sdmxActivityDetailLogBean.setCreatedByUserName(userMaster.getUserName());
+		}
+
+		// Start Time
+		if (sdmxActivityDetailLog.getProcessStartTime() != null) {
+			sdmxActivityDetailLogBean.setProcessStartDate(sdmxActivityDetailLog.getProcessStartTime().getTime());
+		}
+
+		// End Time
+		if (sdmxActivityDetailLog.getProcessEndTime() != null) {
+			sdmxActivityDetailLogBean.setProcessEndDate(sdmxActivityDetailLog.getProcessEndTime().getTime());
+		}
+
+		LOGGER.debug(
+				"END - Convert entity to bean for add Sdmx Activity Detail Log record request received with Job Processing ID : "
+						+ jobProcessingId);
+	}
+
+}

@@ -1,0 +1,304 @@
+package com.iris.sdmx.elementdimensionmapping.bean;
+
+import java.io.Serializable;
+import java.util.Date;
+
+/**
+ * @author vjadhav
+ *
+ */
+public class ElementDimensionModBean implements Serializable{
+
+	private static final long serialVersionUID = -1982016733637679051L;
+
+	private Long elementDimensionModId;
+	
+	private String elementDimensionJson;
+	
+	private Long elementDimensionIdFk;
+	
+	private Long elementIdFk;
+	
+	private Boolean isActive;
+
+	private int adminStatusId;
+
+	private int actionId;
+
+	private String comments;
+	
+	private Long createdBy;
+	
+	private Date createdOn;
+	
+	private Long lastModifiedBy;
+
+	private Date lastModifiedOn;
+	
+	private Date lastUpdatedOn;
+	
+	private Long lastApprovedBy;
+	
+	private Date lastApprovedOn;
+	
+	private String adminStatusLabel;
+	
+	private String actionStatusLabel;
+	
+	private String createdByName;
+
+	/**
+	 * @return the elementDimensionModId
+	 */
+	public Long getElementDimensionModId() {
+		return elementDimensionModId;
+	}
+
+	/**
+	 * @param elementDimensionModId the elementDimensionModId to set
+	 */
+	public void setElementDimensionModId(Long elementDimensionModId) {
+		this.elementDimensionModId = elementDimensionModId;
+	}
+
+	/**
+	 * @return the elementDimensionJson
+	 */
+	public String getElementDimensionJson() {
+		return elementDimensionJson;
+	}
+
+	/**
+	 * @param elementDimensionJson the elementDimensionJson to set
+	 */
+	public void setElementDimensionJson(String elementDimensionJson) {
+		this.elementDimensionJson = elementDimensionJson;
+	}
+
+	/**
+	 * @return the elementDimensionIdFk
+	 */
+	public Long getElementDimensionIdFk() {
+		return elementDimensionIdFk;
+	}
+
+	/**
+	 * @param elementDimensionIdFk the elementDimensionIdFk to set
+	 */
+	public void setElementDimensionIdFk(Long elementDimensionIdFk) {
+		this.elementDimensionIdFk = elementDimensionIdFk;
+	}
+
+	/**
+	 * @return the elementIdFk
+	 */
+	public Long getElementIdFk() {
+		return elementIdFk;
+	}
+
+	/**
+	 * @param elementIdFk the elementIdFk to set
+	 */
+	public void setElementIdFk(Long elementIdFk) {
+		this.elementIdFk = elementIdFk;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the adminStatusId
+	 */
+	public int getAdminStatusId() {
+		return adminStatusId;
+	}
+
+	/**
+	 * @param adminStatusId the adminStatusId to set
+	 */
+	public void setAdminStatusId(int adminStatusId) {
+		this.adminStatusId = adminStatusId;
+	}
+
+	/**
+	 * @return the actionId
+	 */
+	public int getActionId() {
+		return actionId;
+	}
+
+	/**
+	 * @param actionId the actionId to set
+	 */
+	public void setActionId(int actionId) {
+		this.actionId = actionId;
+	}
+
+	/**
+	 * @return the comments
+	 */
+	public String getComments() {
+		return comments;
+	}
+
+	/**
+	 * @param comments the comments to set
+	 */
+	public void setComments(String comments) {
+		this.comments = comments;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public Long getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(Long createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the lastModifiedBy
+	 */
+	public Long getLastModifiedBy() {
+		return lastModifiedBy;
+	}
+
+	/**
+	 * @param lastModifiedBy the lastModifiedBy to set
+	 */
+	public void setLastModifiedBy(Long lastModifiedBy) {
+		this.lastModifiedBy = lastModifiedBy;
+	}
+
+	/**
+	 * @return the lastModifiedOn
+	 */
+	public Date getLastModifiedOn() {
+		return lastModifiedOn;
+	}
+
+	/**
+	 * @param lastModifiedOn the lastModifiedOn to set
+	 */
+	public void setLastModifiedOn(Date lastModifiedOn) {
+		this.lastModifiedOn = lastModifiedOn;
+	}
+
+	/**
+	 * @return the lastUpdatedOn
+	 */
+	public Date getLastUpdatedOn() {
+		return lastUpdatedOn;
+	}
+
+	/**
+	 * @param lastUpdatedOn the lastUpdatedOn to set
+	 */
+	public void setLastUpdatedOn(Date lastUpdatedOn) {
+		this.lastUpdatedOn = lastUpdatedOn;
+	}
+
+	/**
+	 * @return the lastApprovedBy
+	 */
+	public Long getLastApprovedBy() {
+		return lastApprovedBy;
+	}
+
+	/**
+	 * @param lastApprovedBy the lastApprovedBy to set
+	 */
+	public void setLastApprovedBy(Long lastApprovedBy) {
+		this.lastApprovedBy = lastApprovedBy;
+	}
+
+	/**
+	 * @return the lastApprovedOn
+	 */
+	public Date getLastApprovedOn() {
+		return lastApprovedOn;
+	}
+
+	/**
+	 * @param lastApprovedOn the lastApprovedOn to set
+	 */
+	public void setLastApprovedOn(Date lastApprovedOn) {
+		this.lastApprovedOn = lastApprovedOn;
+	}
+
+	/**
+	 * @return the adminStatusLabel
+	 */
+	public String getAdminStatusLabel() {
+		return adminStatusLabel;
+	}
+
+	/**
+	 * @param adminStatusLabel the adminStatusLabel to set
+	 */
+	public void setAdminStatusLabel(String adminStatusLabel) {
+		this.adminStatusLabel = adminStatusLabel;
+	}
+
+	/**
+	 * @return the actionStatusLabel
+	 */
+	public String getActionStatusLabel() {
+		return actionStatusLabel;
+	}
+
+	/**
+	 * @param actionStatusLabel the actionStatusLabel to set
+	 */
+	public void setActionStatusLabel(String actionStatusLabel) {
+		this.actionStatusLabel = actionStatusLabel;
+	}
+
+	/**
+	 * @return the createdByName
+	 */
+	public String getCreatedByName() {
+		return createdByName;
+	}
+
+	/**
+	 * @param createdByName the createdByName to set
+	 */
+	public void setCreatedByName(String createdByName) {
+		this.createdByName = createdByName;
+	}
+	
+	
+	
+}

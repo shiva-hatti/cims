@@ -1,0 +1,21 @@
+package com.iris.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.iris.exception.ServiceException;
+
+public interface GenericService<T, K> {
+
+	public T add(T entity) throws ServiceException;
+	public boolean update(T entity) throws ServiceException;
+	public List<T> getDataByIds(K[] ids) throws ServiceException;
+	public T getDataById(K id) throws ServiceException;
+	public List<T> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName) throws ServiceException;
+	public List<T> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName) throws ServiceException;
+	public List<T> getDataByObject(Map<String, Object> columnValueMap, String methodName) throws ServiceException;
+	public List<T> getActiveDataFor(Class bean, K id) throws ServiceException;
+	public List<T> getAllDataFor(Class bean, K id) throws ServiceException;
+	public void deleteData(T bean) throws ServiceException;
+
+}

@@ -1,0 +1,171 @@
+package com.iris.controller;
+
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import com.google.gson.Gson;
+import com.iris.caching.ObjectCache;
+import com.iris.dto.ServiceResponse;
+import com.iris.model.AuditFirm;
+import com.iris.model.AuditFirmInfo;
+import com.iris.util.UtilMaster;
+import com.iris.util.constant.ErrorCode;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+
+/**
+ * @author psheke
+ * @date 16/10/2020
+ */
+@RestController
+@RequestMapping("/service/auditFirmController")
+public class AuditFirmController {
+
+	static final Logger LOGGER = LogManager.getLogger(AuditFirmController.class);
+
+	@Autowired
+	private AuditFirmProcessor auditFirmProcessor;
+
+	/**
+	 * This method is used to add or edit Audit Firm.
+	 */
+	@PostMapping(value = "/addAuditFirm")
+	public ServiceResponse addAuditFirm(@RequestHeader(name = "AppId") String jobProcessId, @RequestHeader(name = "UUID") String uuid, 
+			@RequestBody AuditFirm auditFirm) {
+		LOGGER.info("Add/Edit Audit Firm: addAuditFirm");
+		ServiceResponse serviceResponse = null;
+		try {
+			if (UtilMaster.isEmpty(auditFirm.getAuditFirmDefaultName())) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0182.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0182.toString())).build();
+			}
+			if (UtilMaster.isEmpty(auditFirm.getAuditFirmRegNo())) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0183.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0183.toString())).build();
+			}
+			if (UtilMaster.isEmpty(auditFirm.getBusinessAddress())) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0184.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0184.toString())).build();
+			}
+			serviceResponse = auditFirmProcessor.addAuditFirm(auditFirm);
+		} catch (Exception e) {
+			LOGGER.error(ErrorCode.EC0033.toString());
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+		return serviceResponse;
+	}
+
+	/**
+	 * This method is used to check whether the Firm Registration Number entered by user exists in the system.
+	 */
+	@PostMapping(value = "/checkAuditFirmExists/{firmRegNo}")
+	public ServiceResponse checkAuditFirmExists(@RequestHeader(name = "AppId") String jobProcessId, @RequestHeader(name = "UUID") String uuid, @PathVariable("firmRegNo") String firmRegNo) {
+		LOGGER.info("Checking whether the Firm Registeration Number exists in the system: checkAuditFirmExists");
+		try {
+			if (UtilMaster.isEmpty(firmRegNo)) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0183.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0183.toString())).build();
+			}
+
+			AuditFirmInfo auditFirmInfo = auditFirmProcessor.checkAuditFirmExists(firmRegNo);
+			if (auditFirmInfo != null) {
+				return new ServiceResponseBuilder().setStatus(true).setStatusCode(ErrorCode.E0191.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0191.toString())).build();
+			}
+		} catch (Exception e) {
+			LOGGER.error(ErrorCode.EC0033.toString());
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+		return new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+	}
+
+	/**
+	 * This method is used to fetch the audit firm list.
+	 */
+	@GetMapping(value = "/getAuditorFirmList/{langCode}")
+	public ServiceResponse getAuditorFirmList(@RequestHeader(name = "AppId") String jobProcessId, @RequestHeader(name = "UUID") String uuid ,@PathVariable String langCode) {
+		try {
+			LOGGER.info("Fetching the Audit Firm List: getAuditorFirmList");
+			List<AuditFirm> auditFirmList = auditFirmProcessor.getAuditorFirmList(langCode);
+			if (CollectionUtils.isEmpty(auditFirmList)) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+			}
+
+			String jsonResult = new Gson().toJson(auditFirmList);
+			if (!UtilMaster.isEmpty(jsonResult)) {
+				return new ServiceResponseBuilder().setStatus(true).setResponse(jsonResult).build();
+			} else {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+			}
+		} catch (Exception e) {
+			LOGGER.error(ErrorCode.EC0033.toString());
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+	/**
+	 * This method is used to fetch the audit firm label list.
+	 */
+	@GetMapping(value = "/getAuditorFirmLabelList/{langCode}")
+	public ServiceResponse getAuditorFirmLabelList(@RequestHeader(name = "AppId") String jobProcessId, @RequestHeader(name = "UUID") String uuid ,@PathVariable String langCode) {
+		try {
+			LOGGER.info("Fetching the Audit Firm Label List: getAuditorFirmLabelList");
+			List<AuditFirm> auditFirmList = auditFirmProcessor.getAuditorFirmLabelList(langCode);
+			if (CollectionUtils.isEmpty(auditFirmList)) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+			}
+
+			String jsonResult = new Gson().toJson(auditFirmList);
+			if (!UtilMaster.isEmpty(jsonResult)) {
+				return new ServiceResponseBuilder().setStatus(true).setResponse(jsonResult).build();
+			} else {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+			}
+		} catch (Exception e) {
+			LOGGER.error(ErrorCode.EC0033.toString());
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+	/**
+	 * This method is used to update the audit firm label details.
+	 */
+	@PostMapping(value = "/updateAuditFirmLabel")
+	public ServiceResponse updateAuditFirmLabel(@RequestHeader(name = "AppId") String jobProcessId, @RequestHeader(name = "UUID") String uuid, 
+			@RequestBody AuditFirm auditFirm) {
+		LOGGER.info("Update Audit Firm Label: updateAuditFirmLabel");
+		ServiceResponse serviceResponse = null;
+		try {
+			if (UtilMaster.isEmpty(auditFirm.getAuditFirmName())) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0182.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0182.toString())).build();
+			}
+			
+			serviceResponse = auditFirmProcessor.updateAuditFirmLabel(auditFirm);
+			
+			
+			} catch (Exception e) {
+				LOGGER.error(ErrorCode.EC0033.toString());
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+			}
+		return serviceResponse;
+	}
+	
+
+}

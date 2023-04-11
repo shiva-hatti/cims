@@ -1,0 +1,945 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+import javax.validation.constraints.NotNull;
+
+
+@Entity
+@Table(name = "TBL_FILE_DETAILS")
+public class FileDetails implements Serializable{
+
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8234286936384310373L;
+
+	@Id
+	@Column(name = "ID")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+	
+	@Column(name = "FILE_NAME")
+	@NotNull(message = "File name cannot be empty")
+	private String fileName;
+	
+	@Column(name = "FILE_COPYING_START_TIME")
+	private Date fileCopyingStartTime;
+	
+	@Column(name = "FILE_COPYING_END_TIME")
+	private Date fileCopyingEndTime;
+	
+	@Column(name = "FILE_CREATION_TIME")
+	private Date fileCreationTime;
+	
+	@Column(name = "FILE_TYPE")
+	private String fileType;
+	
+	@ManyToOne
+	@JoinColumn(name = "UPLOAD_CHANNEL_ID_FK")
+	private UploadChannel uploadChannelIdFk;
+	
+	@Column(name = "REASON_OF_NOT_PROCESSED")
+	private String reasonOfNotProcessed;
+	
+	@Column(name = "SIZE")
+	private Long size;
+	
+	@Column(name = "FILE_CHECKSUM")
+	private String fileCheckSum;
+	
+	@Column(name = "FILE_MIMETYPE")
+	private String fileMimeType;
+	
+	@Column(name = "RETURN_CODE")
+	private String returnCode;
+	
+	@Column(name = "CREATION_DATE")
+	private Date creationDate;
+
+	@Column(name = "ENTITY_CODE")
+	private String entityCode;
+	
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+	
+	@Column(name = "REPORTING_START_DATE")
+	private Date reportingPeriodStartDate;
+	
+	@Column(name = "REPORTING_END_DATE")
+	private Date reportingPeriodEndDate;
+	
+	@Column(name = "USER_NAME")
+	private String userName;
+
+	@Column(name = "PROCESSING_FLAG")
+	private Boolean processingFlag;
+	
+	@Column(name = "IS_NILLABLE")
+	private boolean isNillable;
+	
+	@Column(name = "NILLABLE_COMMENTS")
+	private String nillabelComments;
+	
+	@Column(name = "USER_EMAIL_ID")
+	private String emailId;
+	
+	@Column(name = "IFSC_CODE")
+	private String ifscCode;
+	
+	@Column(name = "SUPPORTIVE_DOC_NAME")
+	private String supportiveDocName;
+	
+	@Column(name = "SUPPORTIVE_DOC_TYPE")
+	private String supportiveDocType;
+
+	@ManyToOne
+	@JoinColumn(name = "FILE_STATUS_ID_FK")
+	private FileStatus fileStatus;
+	
+	@Column(name = "APP_PROCESS_ID")
+	private String applicationProcessId;
+	
+	@OneToMany(mappedBy = "fileDetailsBean", cascade = CascadeType.ALL)
+	private List<ReturnsUploadDetails> returnUploadDetailsList;
+	
+	@ManyToOne
+	@JoinColumn(name = "USER_ID_FK")
+	private UserMaster userMaster;
+	
+	@ManyToOne
+	@JoinColumn(name = "FREQUENCY_ID_FK")
+	private Frequency frequencyIdFk;
+	
+	@Column(name = "BSR7_FILE_TYPE")
+	private String bsr7FileType;
+	
+	@Transient
+	private Long returnId;
+	
+	@Transient
+	private String returnName;
+	
+	@Transient
+	private String entityName;
+	
+	@Transient
+	private Long entityId;
+	
+	@Transient
+	private Long finYearFormatId;
+	
+	@Transient
+	private Long channelId;
+	
+	@Transient
+	private Long userId;
+	
+	@Transient
+	private Long roleId;
+	
+	@Transient
+	private Long fileCopyingStartTimeInLong;
+	
+	@Transient
+	private Long fileCopyingEndTimeInLong;
+	
+	@Transient
+	private Long fileCreationTimeInNumber;
+	
+	@Transient
+	private Long reportingPeriodStartDateInLong;
+	
+	@Transient
+	private Long reportingPeriodEndDateInLong;
+	
+	@Transient
+	private Long workflowId;
+	
+	@Transient
+	private Integer workflowStepNo;
+	
+	@Transient
+	private String filingStatus;
+	
+	@Transient
+	private int filingStatusId;
+	
+	@Transient
+	private String frequency;
+	
+	@Transient
+	private String oldReturnCode;
+	
+	@Transient
+	private String filePath;
+	
+	@Transient
+	private String reportingPeriodStartDateInString;
+	
+	@Transient
+	private String reportingPeriodEndDateInString;
+	
+	@Transient
+	private String reportStatus;
+	
+	@Transient
+	private String supportiveDocFilePath;
+	
+	@Transient
+	private Integer returnPropertyValId;
+	
+	@Transient
+	private String langCode;
+	
+	@Transient
+	private String dateFormat;
+	
+	@Transient
+	private String calendarFormat;
+
+	@Transient
+	private boolean isBusinessValidationPass;
+	
+	
+	/**
+	 * @return the isBusinessValidationPass
+	 */
+	public boolean isBusinessValidationPass() {
+		return isBusinessValidationPass;
+	}
+
+	/**
+	 * @param isBusinessValidationPass the isBusinessValidationPass to set
+	 */
+	public void setBusinessValidationPass(boolean isBusinessValidationPass) {
+		this.isBusinessValidationPass = isBusinessValidationPass;
+	}
+
+	/**
+	 * @return the langCode
+	 */
+	public String getLangCode() {
+		return langCode;
+	}
+
+	/**
+	 * @param langCode the langCode to set
+	 */
+	public void setLangCode(String langCode) {
+		this.langCode = langCode;
+	}
+
+	/**
+	 * @return the dateFormat
+	 */
+	public String getDateFormat() {
+		return dateFormat;
+	}
+
+	/**
+	 * @param dateFormat the dateFormat to set
+	 */
+	public void setDateFormat(String dateFormat) {
+		this.dateFormat = dateFormat;
+	}
+
+	/**
+	 * @return the calendarFormat
+	 */
+	public String getCalendarFormat() {
+		return calendarFormat;
+	}
+
+	/**
+	 * @param calendarFormat the calendarFormat to set
+	 */
+	public void setCalendarFormat(String calendarFormat) {
+		this.calendarFormat = calendarFormat;
+	}
+
+	/**
+	 * @return the frequencyIdFk
+	 */
+	public Frequency getFrequencyIdFk() {
+		return frequencyIdFk;
+	}
+
+	/**
+	 * @param frequencyIdFk the frequencyIdFk to set
+	 */
+	public void setFrequencyIdFk(Frequency frequencyIdFk) {
+		this.frequencyIdFk = frequencyIdFk;
+	}
+
+	/**
+	 * @return the frequency
+	 */
+	public String getFrequency() {
+		return frequency;
+	}
+
+	/**
+	 * @param frequency the frequency to set
+	 */
+	public void setFrequency(String frequency) {
+		this.frequency = frequency;
+	}
+
+	/**
+	 * @return the returnPropertyValId
+	 */
+	public Integer getReturnPropertyValId() {
+		return returnPropertyValId;
+	}
+
+	/**
+	 * @param returnPropertyValId the returnPropertyValId to set
+	 */
+	public void setReturnPropertyValId(Integer returnPropertyValId) {
+		this.returnPropertyValId = returnPropertyValId;
+	}
+	
+
+	/**
+	 * @return the supportiveDocFilePath
+	 */
+	public String getSupportiveDocFilePath() {
+		return supportiveDocFilePath;
+	}
+
+	/**
+	 * @param supportiveDocFilePath the supportiveDocFilePath to set
+	 */
+	public void setSupportiveDocFilePath(String supportiveDocFilePath) {
+		this.supportiveDocFilePath = supportiveDocFilePath;
+	}
+
+	/**
+	 * @return the reportStatus
+	 */
+	public String getReportStatus() {
+		return reportStatus;
+	}
+
+	/**
+	 * @param reportStatus the reportStatus to set
+	 */
+	public void setReportStatus(String reportStatus) {
+		this.reportStatus = reportStatus;
+	}
+
+	/**
+	 * @return the reportingPeriodEndDateInString
+	 */
+	public String getReportingPeriodEndDateInString() {
+		return reportingPeriodEndDateInString;
+	}
+
+	/**
+	 * @param reportingPeriodEndDateInString the reportingPeriodEndDateInString to set
+	 */
+	public void setReportingPeriodEndDateInString(String reportingPeriodEndDateInString) {
+		this.reportingPeriodEndDateInString = reportingPeriodEndDateInString;
+	}
+
+	/**
+	 * @return the reportingPeriodStartDateInString
+	 */
+	public String getReportingPeriodStartDateInString() {
+		return reportingPeriodStartDateInString;
+	}
+
+	/**
+	 * @param reportingPeriodStartDateInString the reportingPeriodStartDateInString to set
+	 */
+	public void setReportingPeriodStartDateInString(String reportingPeriodStartDateInString) {
+		this.reportingPeriodStartDateInString = reportingPeriodStartDateInString;
+	}
+
+	/**
+	 * @return the filePath
+	 */
+	public String getFilePath() {
+		return filePath;
+	}
+
+	/**
+	 * @param filePath the filePath to set
+	 */
+	public void setFilePath(String filePath) {
+		this.filePath = filePath;
+	}
+
+	public String getApplicationProcessId() {
+		return applicationProcessId;
+	}
+
+	public void setApplicationProcessId(String applicationProcessId) {
+		this.applicationProcessId = applicationProcessId;
+	}
+
+	public FileStatus getFileStatus() {
+		return fileStatus;
+	}
+
+	public void setFileStatus(FileStatus fileStatus) {
+		this.fileStatus = fileStatus;
+	}
+
+	public Long getWorkflowId() {
+		return workflowId;
+	}
+
+	public void setWorkflowId(Long workflowId) {
+		this.workflowId = workflowId;
+	}
+
+	public Integer getWorkflowStepNo() {
+		return workflowStepNo;
+	}
+
+	public void setWorkflowStepNo(Integer workflowStepNo) {
+		this.workflowStepNo = workflowStepNo;
+	}
+
+	/**
+	 * @return the reportingPeriodStartDateInLong
+	 */
+	public Long getReportingPeriodStartDateInLong() {
+		return reportingPeriodStartDateInLong;
+	}
+
+	/**
+	 * @param reportingPeriodStartDateInLong the reportingPeriodStartDateInLong to set
+	 */
+	public void setReportingPeriodStartDateInLong(Long reportingPeriodStartDateInLong) {
+		this.reportingPeriodStartDateInLong = reportingPeriodStartDateInLong;
+	}
+
+	/**
+	 * @return the reportingPeriodEndDateInLong
+	 */
+	public Long getReportingPeriodEndDateInLong() {
+		return reportingPeriodEndDateInLong;
+	}
+
+	/**
+	 * @param reportingPeriodEndDateInLong the reportingPeriodEndDateInLong to set
+	 */
+	public void setReportingPeriodEndDateInLong(Long reportingPeriodEndDateInLong) {
+		this.reportingPeriodEndDateInLong = reportingPeriodEndDateInLong;
+	}
+
+	/**
+	 * @return the fileCreationTimeInNumber
+	 */
+	public Long getFileCreationTimeInNumber() {
+		return fileCreationTimeInNumber;
+	}
+
+	/**
+	 * @param fileCreationTimeInNumber the fileCreationTimeInNumber to set
+	 */
+	public void setFileCreationTimeInNumber(Long fileCreationTimeInNumber) {
+		this.fileCreationTimeInNumber = fileCreationTimeInNumber;
+	}
+
+	public String getSupportiveDocName() {
+		return supportiveDocName;
+	}
+
+	public void setSupportiveDocName(String supportiveDocName) {
+		this.supportiveDocName = supportiveDocName;
+	}
+
+	public String getSupportiveDocType() {
+		return supportiveDocType;
+	}
+
+	public void setSupportiveDocType(String supportiveDocType) {
+		this.supportiveDocType = supportiveDocType;
+	}
+
+
+	public void setNillable(boolean isNillable) {
+		this.isNillable = isNillable;
+	}
+
+	public String getEntityName() {
+		return entityName;
+	}
+
+	public void setEntityName(String entityName) {
+		this.entityName = entityName;
+	}
+
+	public Long getFinYearFormatId() {
+		return finYearFormatId;
+	}
+
+	public void setFinYearFormatId(Long finYearFormatId) {
+		this.finYearFormatId = finYearFormatId;
+	}
+
+	public String getReturnName() {
+		return returnName;
+	}
+
+	public void setReturnName(String returnName) {
+		this.returnName = returnName;
+	}
+	
+	/**
+	 * @return the ifscCode
+	 */
+	public String getIfscCode() {
+		return ifscCode;
+	}
+
+	/**
+	 * @param ifscCode the ifscCode to set
+	 */
+	public void setIfscCode(String ifscCode) {
+		this.ifscCode = ifscCode;
+	}
+
+	public String getEmailId() {
+		return emailId;
+	}
+
+	public void setEmailId(String emailId) {
+		this.emailId = emailId;
+	}
+
+	public Long getRoleId() {
+		return roleId;
+	}
+
+	public void setRoleId(Long roleId) {
+		this.roleId = roleId;
+	}
+
+	public boolean isNillable() {
+		return isNillable;
+	}
+
+	public Long getFileCopyingStartTimeInLong() {
+		return fileCopyingStartTimeInLong;
+	}
+
+	public void setFileCopyingStartTimeInLong(Long fileCopyingStartTimeInLong) {
+		this.fileCopyingStartTimeInLong = fileCopyingStartTimeInLong;
+	}
+
+	public Long getFileCopyingEndTimeInLong() {
+		return fileCopyingEndTimeInLong;
+	}
+
+	public void setFileCopyingEndTimeInLong(Long fileCopyingEndTimeInLong) {
+		this.fileCopyingEndTimeInLong = fileCopyingEndTimeInLong;
+	}
+
+	public Boolean getProcessingFlag() {
+		return processingFlag;
+	}
+
+	public void setProcessingFlag(Boolean processingFlag) {
+		this.processingFlag = processingFlag;
+	}
+
+	public Long getReturnId() {
+		return returnId;
+	}
+
+	public void setReturnId(Long returnId) {
+		this.returnId = returnId;
+	}
+
+	public Long getEntityId() {
+		return entityId;
+	}
+
+	public void setEntityId(Long entityId) {
+		this.entityId = entityId;
+	}
+
+	public Long getChannelId() {
+		return channelId;
+	}
+
+	public void setChannelId(Long channelId) {
+		this.channelId = channelId;
+	}
+
+	public Long getUserId() {
+		return userId;
+	}
+
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	/**
+	 * @return the id
+	 */
+	public Long getId() {
+		return id;
+	}
+
+	/**
+	 * @param id the id to set
+	 */
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	/**
+	 * @return the fileName
+	 */
+	public String getFileName() {
+		return fileName;
+	}
+
+	/**
+	 * @param fileName the fileName to set
+	 */
+	public void setFileName(String fileName) {
+		this.fileName = fileName;
+	}
+
+	/**
+	 * @return the fileCopyingStartTime
+	 */
+	public Date getFileCopyingStartTime() {
+		return fileCopyingStartTime;
+	}
+
+	/**
+	 * @param fileCopyingStartTime the fileCopyingStartTime to set
+	 */
+	public void setFileCopyingStartTime(Date fileCopyingStartTime) {
+		this.fileCopyingStartTime = fileCopyingStartTime;
+	}
+
+	/**
+	 * @return the fileCopyingEndTime
+	 */
+	public Date getFileCopyingEndTime() {
+		return fileCopyingEndTime;
+	}
+
+	/**
+	 * @param fileCopyingEndTime the fileCopyingEndTime to set
+	 */
+	public void setFileCopyingEndTime(Date fileCopyingEndTime) {
+		this.fileCopyingEndTime = fileCopyingEndTime;
+	}
+
+	/**
+	 * @return the fileCreationTime
+	 */
+	public Date getFileCreationTime() {
+		return fileCreationTime;
+	}
+
+	/**
+	 * @param fileCreationTime the fileCreationTime to set
+	 */
+	public void setFileCreationTime(Date fileCreationTime) {
+		this.fileCreationTime = fileCreationTime;
+	}
+
+
+	/**
+	 * @return the fileType
+	 */
+	public String getFileType() {
+		return fileType;
+	}
+
+	/**
+	 * @param fileType the fileType to set
+	 */
+	public void setFileType(String fileType) {
+		this.fileType = fileType;
+	}
+
+	/**
+	 * @return the reasonOfNotProcessed
+	 */
+	public String getReasonOfNotProcessed() {
+		return reasonOfNotProcessed;
+	}
+
+	/**
+	 * @param reasonOfNotProcessed the reasonOfNotProcessed to set
+	 */
+	public void setReasonOfNotProcessed(String reasonOfNotProcessed) {
+		this.reasonOfNotProcessed = reasonOfNotProcessed;
+	}
+
+	/**
+	 * @return the size
+	 */
+	public Long getSize() {
+		return size;
+	}
+
+	/**
+	 * @param size the size to set
+	 */
+	public void setSize(Long size) {
+		this.size = size;
+	}
+
+	/**
+	 * @return the fileCheckSum
+	 */
+	public String getFileCheckSum() {
+		return fileCheckSum;
+	}
+
+	/**
+	 * @param fileCheckSum the fileCheckSum to set
+	 */
+	public void setFileCheckSum(String fileCheckSum) {
+		this.fileCheckSum = fileCheckSum;
+	}
+
+	/**
+	 * @return the fileMimeType
+	 */
+	public String getFileMimeType() {
+		return fileMimeType;
+	}
+
+	/**
+	 * @param fileMimeType the fileMimeType to set
+	 */
+	public void setFileMimeType(String fileMimeType) {
+		this.fileMimeType = fileMimeType;
+	}
+
+	/**
+	 * @return the creationDate
+	 */
+	public Date getCreationDate() {
+		return creationDate;
+	}
+
+	/**
+	 * @param creationDate the creationDate to set
+	 */
+	public void setCreationDate(Date creationDate) {
+		this.creationDate = creationDate;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the reportingPeriodStartDate
+	 */
+	public Date getReportingPeriodStartDate() {
+		return reportingPeriodStartDate;
+	}
+
+	/**
+	 * @param reportingPeriodStartDate the reportingPeriodStartDate to set
+	 */
+	public void setReportingPeriodStartDate(Date reportingPeriodStartDate) {
+		this.reportingPeriodStartDate = reportingPeriodStartDate;
+	}
+
+	/**
+	 * @return the reportingPeriodEndDate
+	 */
+	public Date getReportingPeriodEndDate() {
+		return reportingPeriodEndDate;
+	}
+
+	/**
+	 * @param reportingPeriodEndDate the reportingPeriodEndDate to set
+	 */
+	public void setReportingPeriodEndDate(Date reportingPeriodEndDate) {
+		this.reportingPeriodEndDate = reportingPeriodEndDate;
+	}
+
+	/**
+	 * @return the userName
+	 */
+	public String getUserName() {
+		return userName;
+	}
+
+	/**
+	 * @param userName the userName to set
+	 */
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	/**
+	 * @return the returnCode
+	 */
+	public String getReturnCode() {
+		return returnCode;
+	}
+
+	/**
+	 * @param returnCode the returnCode to set
+	 */
+	public void setReturnCode(String returnCode) {
+		this.returnCode = returnCode;
+	}
+
+	/**
+	 * @return the entityCode
+	 */
+	public String getEntityCode() {
+		return entityCode;
+	}
+
+	/**
+	 * @param entityCode the entityCode to set
+	 */
+	public void setEntityCode(String entityCode) {
+		this.entityCode = entityCode;
+	}
+
+	/**
+	 * @return the uploadChannelIdFk
+	 */
+	public UploadChannel getUploadChannelIdFk() {
+		return uploadChannelIdFk;
+	}
+
+	/**
+	 * @param uploadChannelIdFk the uploadChannelIdFk to set
+	 */
+	public void setUploadChannelIdFk(UploadChannel uploadChannelIdFk) {
+		this.uploadChannelIdFk = uploadChannelIdFk;
+	}
+
+	public String getNillabelComments() {
+		return nillabelComments;
+	}
+
+	public void setNillabelComments(String nillabelComments) {
+		this.nillabelComments = nillabelComments;
+	}
+
+	/**
+	 * @return the filingStatus
+	 */
+	public String getFilingStatus() {
+		return filingStatus;
+	}
+
+	/**
+	 * @param filingStatus the filingStatus to set
+	 */
+	public void setFilingStatus(String filingStatus) {
+		this.filingStatus = filingStatus;
+	}
+
+	/**
+	 * @return the filingStatusId
+	 */
+	public int getFilingStatusId() {
+		return filingStatusId;
+	}
+
+	/**
+	 * @param filingStatusId the filingStatusId to set
+	 */
+	public void setFilingStatusId(int filingStatusId) {
+		this.filingStatusId = filingStatusId;
+	}
+
+	/**
+	 * @return the oldReturnCode
+	 */
+	public String getOldReturnCode() {
+		return oldReturnCode;
+	}
+
+	/**
+	 * @param oldReturnCode the oldReturnCode to set
+	 */
+	public void setOldReturnCode(String oldReturnCode) {
+		this.oldReturnCode = oldReturnCode;
+	}
+
+	/**
+	 * @return the returnUploadDetailsList
+	 */
+	public List<ReturnsUploadDetails> getReturnUploadDetailsList() {
+		return returnUploadDetailsList;
+	}
+
+	/**
+	 * @param returnUploadDetailsList the returnUploadDetailsList to set
+	 */
+	public void setReturnUploadDetailsList(List<ReturnsUploadDetails> returnUploadDetailsList) {
+		this.returnUploadDetailsList = returnUploadDetailsList;
+	}
+
+	/**
+	 * @return the userMaster
+	 */
+	public UserMaster getUserMaster() {
+		return userMaster;
+	}
+
+	/**
+	 * @param userMaster the userMaster to set
+	 */
+	public void setUserMaster(UserMaster userMaster) {
+		this.userMaster = userMaster;
+	}
+
+	/**
+	 * @return the bsr7FileType
+	 */
+	public String getBsr7FileType() {
+		return bsr7FileType;
+	}
+
+	/**
+	 * @param bsr7FileType the bsr7FileType to set
+	 */
+	public void setBsr7FileType(String bsr7FileType) {
+		this.bsr7FileType = bsr7FileType;
+	}
+
+}
+
+	

@@ -1,0 +1,23 @@
+package com.iris.sdmx.element.repo;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.iris.sdmx.element.entity.SdmxElementTempEntity;
+
+/**
+ * @author apagaria
+ *
+ */
+public interface SdmxElementTempRepo extends JpaRepository<SdmxElementTempEntity, Long> {
+
+	/**
+	 * @param isActive
+	 * @return
+	 */
+	@Query("from SdmxElementTempEntity where isActive =:isActive")
+	List<SdmxElementTempEntity> findByActiveStatus(Boolean isActive);
+
+}

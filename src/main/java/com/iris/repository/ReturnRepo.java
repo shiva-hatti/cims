@@ -1,0 +1,84 @@
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.dto.ReturnDto;
+import com.iris.model.Return;
+
+public interface ReturnRepo extends JpaRepository<Return, Long> {
+
+	List<Return> getDataByReturnIdInAndIsActiveTrue(Long[] returnIds);
+
+	Return getDataByReturnIdAndIsActiveTrue(Long returnId);
+
+	List<Return> getDataByReturnCodeInIgnoreCaseAndIsActiveTrue(List<String> returnCodeList);
+
+	List<Return> getDataByReturnCodeIn(List<String> returnCodeList);
+
+	List<Return> getDataByOldReturnCodeInIgnoreCaseAndIsActiveTrue(List<String> returnCodeList);
+
+	@Query(value = "select new com.iris.model.Return(ret.returnId, ret.returnCode, retLable.returnLabel, userRoleRet.isActive) from UserRoleReturnMapping userRoleRet," + " Return ret, ReturnLabel retLable, LanguageMaster langMas, ReturnRegulatorMapping retRegMapp" + " where userRoleRet.roleIdFk.userRoleId =:roleId and userRoleRet.isActive =:isActive " + " and langMas.languageCode =:langCode" + " and ret.isActive =:isActive" + " and langMas.languageId = retLable.langIdFk.languageId " + " and ret.returnGroupMapIdFk.returnGroupMapId is not null and ret.returnGroupMapIdFk.isActive =:isActive" + " and ret.returnId = retRegMapp.returnIdFk.returnId and retRegMapp.isActive =:isActive " + " and ret.returnId = retLable.returnIdFk.returnId and ret.returnId = userRoleRet.returnIdFk.returnId")
+	List<Return> getListOfReturnMappeToRoleId(@Param("roleId") Long roleId, @Param("isActive") boolean isActive, @Param("langCode") String langCode);
+
+	@Query(value = "SELECT new com.iris.model.Return(ret.returnId, ret.returnCode, retLable.returnLabel, grp.returnGroupMapId, retgrplable.groupLabel) FROM Return ret, UserRoleReturnMapping map, ReturnGroupMapping grp," + " ReturnEntityMappingNew entmap, ReturnLabel retLable, ReturnGroupLabelMapping retgrplable," + " LanguageMaster lang, EntityBean ent" + " where ret.isActive =:isActive and map.isActive =:isActive and grp.isActive =:isActive and entmap.isActive =:isActive" + " and lang.isActive =:isActive " + " and map.roleIdFk.userRoleId =:roleId and ent.entityCode =:entCode" + " and lang.languageCode =:langCode" + " and entmap.entity.entityId = ent.entityId" + " and entmap.returnObj.returnId = ret.returnId" + " and map.returnIdFk.returnId = ret.returnId" + " and ret.returnGroupMapIdFk.returnGroupMapId = grp.returnGroupMapId" + " and ret.returnId = retLable.returnIdFk.returnId" + " and grp.returnGroupMapId = retgrplable.returnGroupMapIdFk.returnGroupMapId" + " and retgrplable.langIdFk.languageId= lang.languageId" + " and retLable.langIdFk.languageId= lang.languageId")
+	List<Return> getRegulatorUserReturnListBasedUponEntity(@Param("roleId") Long roleId, @Param("isActive") boolean isActive, @Param("langCode") String langCode, @Param("entCode") String entCode);
+
+	@Query("SELECT new com.iris.model.Return(ret.returnId, ret.returnCode, retLbl.returnLabel, grp.returnGroupMapId, grplbl.groupLabel) FROM " + " ReturnEntityMappingNew entMap, EntityBean en,  Return ret, ReturnLabel retLbl, " + " ReturnGroupMapping grp, ReturnGroupLabelMapping grplbl, LanguageMaster lang" + " where en.entityCode =:entityCode and lang.languageCode =:langCode " + " and ret.isActive =:isActive and en.isActive =:isActive and entMap.isActive =:isActive and grp.isActive =:isActive and en.entityId = entMap.entity.entityId " + " and entMap.returnObj.returnId = ret.returnId and ret.returnId = retLbl.returnIdFk.returnId " + " and retLbl.langIdFk.languageId = lang.languageId and ret.returnGroupMapIdFk.returnGroupMapId = grp.returnGroupMapId " + " and grp.returnGroupMapId = grplbl.returnGroupMapIdFk.returnGroupMapId and grplbl.langIdFk.languageId = lang.languageId")
+	List<Return> getReturnListBasedUponEntityId(@Param("entityCode") String entityCode, @Param("isActive") boolean isActive, @Param("langCode") String langCode);
+
+	@Query("SELECT new com.iris.model.Return(ret.returnId, ret.returnCode, retLbl.returnLabel) FROM " + "  Return ret, ReturnLabel retLbl, " + "  LanguageMaster lang" + " where lang.languageCode =:langCode and ret.returnId IN (:retIds)" + " and ret.isActive =:isActive " + " and ret.returnId = retLbl.returnIdFk.returnId " + " and retLbl.langIdFk.languageId = lang.languageId ")
+	List<Return> getReturnListWithLabelBasedUponReturnIds(@Param("isActive") boolean isActive, @Param("langCode") String langCode, @Param("retIds") List<Long> retIds);
+
+	@Query("SELECT new com.iris.model.Return(ret.returnId, ret.returnCode, retLbl.returnLabel,ret.frequency) FROM " + "  Return ret, ReturnLabel retLbl, " + "  LanguageMaster lang" + " where lang.languageCode =:langCode and ret.returnId IN (:retIds)" + " and ret.isActive =:isActive " + " and ret.returnId = retLbl.returnIdFk.returnId " + " and retLbl.langIdFk.languageId = lang.languageId ")
+	List<Return> getReturnListWithFrequencyBasedUponReturnIds(@Param("isActive") boolean isActive, @Param("langCode") String langCode, @Param("retIds") List<Long> retIds);
+
+	@Query("SELECT new com.iris.model.Return(ret.returnId, ret.returnCode, retLbl.returnLabel,ret.frequency) FROM " + "  Return ret, ReturnLabel retLbl, " + "  LanguageMaster lang" + " where lang.languageCode =:langCode and ret.returnCode IN (:retCodes)" + " and ret.isActive =:isActive " + " and ret.returnId = retLbl.returnIdFk.returnId " + " and retLbl.langIdFk.languageId = lang.languageId ")
+	List<Return> getReturnListWithFrequencyBasedUponReturnCodes(@Param("isActive") boolean isActive, @Param("langCode") String langCode, @Param("retCodes") List<String> retCodes);
+
+	@Query("SELECT new com.iris.model.Return(ret.returnId, ret.returnCode, retLbl.returnLabel) FROM Return ret, ReturnLabel retLbl where ret.isActive =:isActive and ret.returnGroupMapIdFk is null and ret.returnId = retLbl.returnIdFk.returnId and retLbl.langIdFk.languageCode = :languageCode order by UPPER(retLbl.returnLabel)")
+	List<Return> getReturnListWithoutReturnGroup(@Param("isActive") boolean isActive, @Param("languageCode") String languageCode);
+
+	@Query("SELECT new com.iris.model.Return(ret.returnId, ret.returnCode, retLbl.returnLabel) FROM " + "  Return ret, ReturnLabel retLbl, " + "  LanguageMaster lang" + " where lang.languageCode =:langCode" + " and ret.isActive =:isActive " + " and ret.returnId = retLbl.returnIdFk.returnId " + " and retLbl.langIdFk.languageId = lang.languageId order by retLbl.returnLabel")
+	List<Return> getAllReturnListWithLabelBasedUponReturnIds(@Param("isActive") boolean isActive, @Param("langCode") String langCode);
+
+	@Query("FROM Return ret where ret.isActive = 1 and ret.frequency.frequencyId =:frequencyId")
+	List<Return> getDataByFrequencyId(@Param("frequencyId") Long frequencyId);
+
+	@Query("FROM Return ret where ret.isActive = 1 and ret.returnCode =:returnCode")
+	Return findByReturnCode(@Param("returnCode") String returnCode);
+
+	@Query("select ret.returnId FROM Return ret where ret.isActive = 1 and ret.returnCode IN(:returnCode)")
+	List<Long> findByReturnCodeIn(@Param("returnCode") List<String> returnCode);
+
+	@Query("FROM Return ret where ret.returnGroupMapIdFk.returnGroupMapId =:returnGroupMapId")
+	List<Return> fetchReturnNameListbyGroupMapId(@Param("returnGroupMapId") Long returnGroupMapId);
+
+	@Query(value = "FROM Return ret where ret.returnId in (:returnIds)")
+	List<Return> getReturnFromJsonIds(@Param("returnIds") List<Long> returnIds);
+
+	@Query(value = "FROM Return ret where ret.returnId IN (:returnIds)")
+	List<Return> getReturnById(@Param("returnIds") List<Long> returnIds);
+
+	@Query(value = "select new com.iris.model.Return(ret.returnId, ret.returnCode, ret.returnName, ret.frequency) from Return ret where ret.isActive = 1 and ret.returnGroupMapIdFk.returnGroupMapId is not null" + "  and ret.returnGroupMapIdFk.isActive = 1 and ret.frequency.isActive = 1")
+	List<Return> getActiveReturns();
+
+	@Query("SELECT new com.iris.model.Return(ret.returnId, ret.returnCode, retLbl.returnLabel) FROM Return ret, ReturnLabel retLbl where ret.returnGroupMapIdFk.returnGroupMapId =:returnGroupMapId and ret.isActive =:isActive and ret.returnId = retLbl.returnIdFk.returnId and retLbl.langIdFk.languageCode = :languageCode order by UPPER(retLbl.returnLabel)")
+	List<Return> getReturnListForReturnGroup(@Param("isActive") boolean isActive, @Param("languageCode") String languageCode, @Param("returnGroupMapId") Long returnGroupMapId);
+
+	@Query(value = "select new com.iris.dto.ReturnDto(ret.returnId, ret.returnCode, retLabel.returnLabel, regMap.regulatorIdFk.regulatorId, " + " regMap.regulatorIdFk.regulatorCode, " + " regLable.regulatorLabel) from Return ret, ReturnLabel retLabel" + ",  ReturnRegulatorMapping regMap, RegulatorLabel regLable" + "  where ret.returnId = regMap.returnIdFk.returnId " + "  and retLabel.langIdFk.languageCode =:langCode" + " and regLable.langIdFk.languageCode =:langCode and ret.returnId = retLabel.returnIdFk.returnId " + " and regLable.regulatorIdFk.regulatorId = regMap.regulatorIdFk.regulatorId and ret.isActive = 1 and regMap.isActive = 1 and ret.returnId in (:returnIds) ")
+	List<ReturnDto> getReturnRegulatorMapping(@Param("returnIds") List<Long> returnIds, @Param("langCode") String langCode);
+
+	@Query(value = "select new com.iris.dto.ReturnDto(ret.returnId, ret.returnCode) from Return ret where ret.returnId in (:returnIds) ")
+	List<ReturnDto> getReturnCodeByReturnIds(List<Long> returnIds);
+
+	@Query(value = "select new com.iris.model.Return(ret.returnId, ret.returnCode, retLabel.returnLabel, rgMap.returnGroupMapId, regMap.emailIds, rglm.groupLabel) from Return ret left join ReturnLabel retLabel on retLabel.returnIdFk.returnId = ret.returnId and retLabel.langIdFk.languageId = :languageId left join ReturnRegulatorMapping regMap on regMap.returnIdFk.returnId = ret.returnId left join UserRoleReturnMapping usrRegMap on usrRegMap.returnIdFk.returnId = ret.returnId left join ReturnGroupMapping rgMap on rgMap.returnGroupMapId = ret.returnGroupMapIdFk.returnGroupMapId left join ReturnGroupLabelMapping rglm on rglm.returnGroupMapIdFk.returnGroupMapId = ret.returnGroupMapIdFk.returnGroupMapId and rglm.langIdFk.languageId = :languageId where ret.isActive = :isActive and regMap.isActive = :isActive and regMap.regulatorIdFk.regulatorId = :regulatorId and usrRegMap.isActive = :isActive and usrRegMap.roleIdFk.userRoleId =:roleId group by ret.returnCode, retLabel.returnLabel, regMap.emailIds, rglm.groupLabel")
+	List<Return> getReturnListMappedRegulator(@Param("isActive") boolean isActive, @Param("languageId") Long languageId, @Param("regulatorId") Long regulatorId, @Param("roleId") Long roleId);
+
+	@Query(value = "select new com.iris.model.Return(ret.returnId, ret.returnCode, retLabel.returnLabel,  rglm.groupLabel, rgMap.returnGroupMapId) from Return ret left join ReturnLabel retLabel on retLabel.returnIdFk.returnId = ret.returnId left join UserRoleReturnMapping usrRegMap on usrRegMap.returnIdFk.returnId = ret.returnId left join ReturnGroupMapping rgMap on rgMap.returnGroupMapId = ret.returnGroupMapIdFk.returnGroupMapId left join ReturnGroupLabelMapping rglm on rglm.returnGroupMapIdFk.returnGroupMapId = ret.returnGroupMapIdFk.returnGroupMapId  left join LanguageMaster lang on lang.languageCode = rglm.langIdFk.languageCode and lang.languageCode =:langCode and lang.languageCode = retLabel.langIdFk.languageCode where ret.isActive = :isActive and rgMap.isActive = :isActive and usrRegMap.isActive = :isActive and usrRegMap.roleIdFk.userRoleId =:roleId and usrRegMap.returnIdFk.returnId not in ( select reg.returnIdFk.returnId from ReturnRegulatorMapping reg where reg.isActive =:isActive) group by ret.returnCode, retLabel.returnLabel,  rglm.groupLabel")
+	List<Return> getReturnListUnMappedRegulator(@Param("isActive") boolean isActive, @Param("langCode") String langCode, @Param("roleId") Long roleId);
+
+}

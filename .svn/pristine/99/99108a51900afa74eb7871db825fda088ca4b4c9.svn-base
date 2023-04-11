@@ -1,0 +1,241 @@
+package com.iris.dto;
+
+
+import java.io.Serializable;
+import java.util.Date;
+
+import com.iris.model.Platform;
+import com.iris.model.RoleType;
+import com.iris.util.Validations;
+
+
+/**
+ * 
+ * @author sanjayv
+ */
+public class UserRoleDto implements Serializable {
+
+	private static final long serialVersionUID = 8813042586892944078L;
+
+	private Long userRoleId;
+
+	private String roleDesc;
+
+	private RoleType roleType;
+	
+	private Boolean isActive;
+
+	private Boolean linkToEntity;
+
+	private Boolean linkToAuditor;
+
+	private Long user;
+
+	private Date createdOn;
+
+	private Long userModify;
+
+	private Date lastModifiedOn;
+
+	private Date lastApprovedOn;
+
+	private Long rolePriority;
+
+	private Date lastUpdateOn;
+	
+	private Long createdByRole;
+
+	private String roleName;
+
+	private int singleLanguage;
+	
+	private String platformCode;
+
+	private Platform platformMasterDTO;
+	
+	public Platform getPlatformMasterDTO() {
+		return platformMasterDTO;
+	}
+
+	public void setPlatformMasterDTO(Platform platformMasterDTO) {
+		this.platformMasterDTO = platformMasterDTO;
+	}
+
+	public String getPlatformCode() {
+		return platformCode;
+	}
+
+	public void setPlatformCode(String platformCode) {
+		this.platformCode = platformCode;
+	}
+
+	public String getRoleName() {
+		return roleName;
+	}
+
+	public void setRoleName(String roleName) {
+		this.roleName = roleName;
+	}
+
+	public RoleType getRoleType() {
+		return roleType;
+	}
+
+	public void setRoleType(RoleType roleType) {
+		this.roleType = roleType;
+	}
+
+	/**
+	 * @return the lastUpdateOn
+	 */
+	public Date getLastUpdateOn() {
+		return lastUpdateOn;
+	}
+
+	/**
+	 * @param lastUpdateOn the lastUpdateOn to set
+	 */
+	public void setLastUpdateOn(Date lastUpdateOn) {
+		this.lastUpdateOn = lastUpdateOn;
+	}
+
+	/**
+	 * @return the userRoleId
+	 */
+	public Long getUserRoleId() {
+		return userRoleId;
+	}
+
+	/**
+	 * @param userRoleId the userRoleId to set
+	 */
+	public void setUserRoleId(Long userRoleId) {
+		this.userRoleId = userRoleId;
+	}
+
+	/**
+	 * @return the roleDesc
+	 */
+	public String getRoleDesc() {
+		return roleDesc;
+	}
+
+	/**
+	 * @param roleDesc the roleDesc to set
+	 */
+	public void setRoleDesc(String roleDesc) {
+		this.roleDesc = Validations.trimInput(roleDesc);
+	}
+
+
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the linkToEntity
+	 */
+	public Boolean getLinkToEntity() {
+		return linkToEntity;
+	}
+
+	/**
+	 * @param linkToEntity the linkToEntity to set
+	 */
+	public void setLinkToEntity(Boolean linkToEntity) {
+		this.linkToEntity = linkToEntity;
+	}
+
+	/**
+	 * @return the linkToAuditor
+	 */
+	public Boolean getLinkToAuditor() {
+		return linkToAuditor;
+	}
+
+	/**
+	 * @param linkToAuditor the linkToAuditor to set
+	 */
+	public void setLinkToAuditor(Boolean linkToAuditor) {
+		this.linkToAuditor = linkToAuditor;
+	}
+
+	public Long getUser() {
+		return user;
+	}
+
+	public void setUser(Long user) {
+		this.user = user;
+	}
+
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	public Long getUserModify() {
+		return userModify;
+	}
+
+	public void setUserModify(Long userModify) {
+		this.userModify = userModify;
+	}
+
+	public Date getLastModifiedOn() {
+		return lastModifiedOn;
+	}
+
+	public void setLastModifiedOn(Date lastModifiedOn) {
+		this.lastModifiedOn = lastModifiedOn;
+	}
+
+	public Date getLastApprovedOn() {
+		return lastApprovedOn;
+	}
+
+	public void setLastApprovedOn(Date lastApprovedOn) {
+		this.lastApprovedOn = lastApprovedOn;
+	}
+
+	public Long getRolePriority() {
+		return rolePriority;
+	}
+
+	public void setRolePriority(Long rolePriority) {
+		this.rolePriority = rolePriority;
+	}
+
+	public Long getCreatedByRole() {
+		return createdByRole;
+	}
+
+	public void setCreatedByRole(Long createdByRole) {
+		this.createdByRole = createdByRole;
+	}
+
+	public int getSingleLanguage() {
+		return singleLanguage;
+	}
+
+	public void setSingleLanguage(int singleLanguage) {
+		this.singleLanguage = singleLanguage;
+	}
+
+	
+	
+	
+}

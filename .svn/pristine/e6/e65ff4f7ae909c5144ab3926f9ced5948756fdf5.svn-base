@@ -1,0 +1,169 @@
+/**
+ * 
+ */
+package com.iris.sdmx.fusion.bean.validation;
+
+import java.io.Serializable;
+import java.util.List;
+
+import com.google.gson.annotations.SerializedName;
+
+/**
+ * @author sajadhav
+ *
+ */
+public class FusionValidationResponse implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -7241775704371751437L;
+
+	@SerializedName(value = "FileFormat")
+	private String fileFormat;
+
+	@SerializedName(value = "MimeType")
+	private String mimeType;
+
+	@SerializedName(value = "Prepared")
+	private String prepared;
+
+	@SerializedName(value = "SenderId")
+	private String senderId;
+
+	@SerializedName(value = "Status")
+	private String status;
+
+	@SerializedName(value = "Errors")
+	private boolean errors;
+
+	@SerializedName(value = "PreventsConversion")
+	private boolean preventsConversion;
+
+	@SerializedName(value = "PreventsPublication")
+	private boolean preventsPublication;
+
+	@SerializedName(value = "Datasets")
+	private List<FusionValDataSet> fusionValDataSets;
+
+	/**
+	 * @return the fileFormat
+	 */
+	public String getFileFormat() {
+		return fileFormat;
+	}
+
+	/**
+	 * @param fileFormat the fileFormat to set
+	 */
+	public void setFileFormat(String fileFormat) {
+		this.fileFormat = fileFormat;
+	}
+
+	/**
+	 * @return the mimeType
+	 */
+	public String getMimeType() {
+		return mimeType;
+	}
+
+	/**
+	 * @param mimeType the mimeType to set
+	 */
+	public void setMimeType(String mimeType) {
+		this.mimeType = mimeType;
+	}
+
+	/**
+	 * @return the prepared
+	 */
+	public String getPrepared() {
+		return prepared;
+	}
+
+	/**
+	 * @param prepared the prepared to set
+	 */
+	public void setPrepared(String prepared) {
+		this.prepared = prepared;
+	}
+
+	/**
+	 * @return the senderId
+	 */
+	public String getSenderId() {
+		return senderId;
+	}
+
+	/**
+	 * @param senderId the senderId to set
+	 */
+	public void setSenderId(String senderId) {
+		this.senderId = senderId;
+	}
+
+	/**
+	 * @return the status
+	 */
+	public String getStatus() {
+		return status;
+	}
+
+	/**
+	 * @param status the status to set
+	 */
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	/**
+	 * @return the errors
+	 */
+	public boolean isErrors() {
+		return errors;
+	}
+
+	/**
+	 * @param errors the errors to set
+	 */
+	public void setErrors(boolean errors) {
+		this.errors = errors;
+	}
+
+	/**
+	 * @return the preventsConversion
+	 */
+	public boolean isPreventsConversion() {
+		return preventsConversion;
+	}
+
+	/**
+	 * @param preventsConversion the preventsConversion to set
+	 */
+	public void setPreventsConversion(boolean preventsConversion) {
+		this.preventsConversion = preventsConversion;
+	}
+
+	/**
+	 * @return the preventsPublication
+	 */
+	public boolean isPreventsPublication() {
+		return preventsPublication;
+	}
+
+	/**
+	 * @param preventsPublication the preventsPublication to set
+	 */
+	public void setPreventsPublication(boolean preventsPublication) {
+		this.preventsPublication = preventsPublication;
+	}
+
+	public List<FusionValDataSet> getFusionValDataSets() {
+		return fusionValDataSets;
+	}
+
+	public void setFusionValDataSets(List<FusionValDataSet> fusionValDataSets) {
+		this.fusionValDataSets = fusionValDataSets;
+	}
+
+}

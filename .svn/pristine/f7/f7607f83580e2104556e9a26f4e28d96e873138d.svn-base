@@ -1,0 +1,413 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+import com.iris.util.Validations;
+
+
+/**
+ * @author psheke
+ * @date 03/12/2020
+ */
+@Entity
+@Table(name = "TBL_USER_REGULATOR")
+public class UserRegulator implements Serializable {
+
+	private static final long serialVersionUID = 3375068431886146173L;
+
+	@Id
+	@Column(name = "URID")
+	private Integer urId;
+
+	@Column(name = "MIN_PSWD_LENGTH")
+	private Integer minPswdLength;
+
+	@Column(name = "PSWD_ATTEMPTS")
+	private Integer pswdAttempts;
+
+	@Column(name = "PSWD_EXPIRY_DAYS")
+	private Integer pswdExpiryDays;
+
+	@Column(name = "INACT_USR_EXPR_DAYS")
+	private Integer inActUsrExprDays;
+
+	@ManyToOne
+	@JoinColumn(name = "MODIFIED_BY_FK")
+	private UserMaster modifiedBy;
+
+	@Column(name = "MODIFIED_DATE")
+	private Date modifiedDate;
+
+	@Column(name = "MAX_PSWD_LENGTH")
+	private Integer maxPswdLength;
+
+	@Column(name = "MIN_SMALL_CHAR")
+	private Integer minSmallChar;
+
+	@Column(name = "MIN_NUM")
+	private Integer minNum;
+
+	@Column(name = "MIN_SPECIAL_CHAR")
+	private Integer minSplChar;
+
+	@Column(name = "MIN_CAPS_CHAR")
+	private Integer minCapsChar;
+
+	@Column(name = "NUM_OF_PREV_PASSWORD")
+	private Integer numOfPrevPasswd;
+
+	@Column(name = "CALENDAR_FORMAT")
+	private String calendarFormat;
+
+	@Column(name = "MAX_LOGIN_ALLOWED")
+	private Integer maxLoginAllowed;
+
+	@Column(name = "HOUR_FORMAT")
+	private Integer hourFormat;
+
+	@Column(name = "IS_USERS_BLOCKED")
+	private Boolean isUsersBlocked;
+
+	@Column(name = "PSWD_EXPIRY_NOTIFI_DAYS")
+	private Integer pswdExpiryNotifiDays;
+
+	@Column(name = "SESSION_TIMEOUT")
+	private Integer sessionTimeout;
+
+	@Column(name = "REGULATOR_LOGIN_INTERNET")
+	private Boolean regulatorLoginInternet;
+
+	@Column(name = "NOAH_URL")
+	private String noahUrl;
+
+	@Column(name = "SDMX_URL")
+	private String sdmxUrl;
+
+	@Column(name = "IS_ITEMS_CAN_DRAG_ON_DASHBOARD")
+	private Boolean isItemsCanDragOnDashboard;
+	
+	@Column(name = "AUD_ENT_MAP_EXP_DAYS")
+	private Integer audEntMapExpDays;
+	
+	
+	public Integer getAudEntMapExpDays() {
+		return audEntMapExpDays;
+	}
+
+	public void setAudEntMapExpDays(Integer audEntMapExpDays) {
+		this.audEntMapExpDays = audEntMapExpDays;
+	}
+
+	/**
+	 * @return the urId
+	 */
+	public Integer getUrId() {
+		return urId;
+	}
+
+	/**
+	 * @param urId the urId to set
+	 */
+	public void setUrId(Integer urId) {
+		this.urId = urId;
+	}
+
+	/**
+	 * @return the minPswdLength
+	 */
+	public Integer getMinPswdLength() {
+		return minPswdLength;
+	}
+
+	/**
+	 * @param minPswdLength the minPswdLength to set
+	 */
+	public void setMinPswdLength(Integer minPswdLength) {
+		this.minPswdLength = minPswdLength;
+	}
+
+	/**
+	 * @return the pswdAttempts
+	 */
+	public Integer getPswdAttempts() {
+		return pswdAttempts;
+	}
+
+	/**
+	 * @param pswdAttempts the pswdAttempts to set
+	 */
+	public void setPswdAttempts(Integer pswdAttempts) {
+		this.pswdAttempts = pswdAttempts;
+	}
+
+	/**
+	 * @return the pswdExpiryDays
+	 */
+	public Integer getPswdExpiryDays() {
+		return pswdExpiryDays;
+	}
+
+	/**
+	 * @param pswdExpiryDays the pswdExpiryDays to set
+	 */
+	public void setPswdExpiryDays(Integer pswdExpiryDays) {
+		this.pswdExpiryDays = pswdExpiryDays;
+	}
+
+	/**
+	 * @return the inActUsrExprDays
+	 */
+	public Integer getInActUsrExprDays() {
+		return inActUsrExprDays;
+	}
+
+	/**
+	 * @param inActUsrExprDays the inActUsrExprDays to set
+	 */
+	public void setInActUsrExprDays(Integer inActUsrExprDays) {
+		this.inActUsrExprDays = inActUsrExprDays;
+	}
+
+	/**
+	 * @return the modifiedBy
+	 */
+	public UserMaster getModifiedBy() {
+		return modifiedBy;
+	}
+
+	/**
+	 * @param modifiedBy the modifiedBy to set
+	 */
+	public void setModifiedBy(UserMaster modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+
+	/**
+	 * @return the modifiedDate
+	 */
+	public Date getModifiedDate() {
+		return modifiedDate;
+	}
+
+	/**
+	 * @param modifiedDate the modifiedDate to set
+	 */
+	public void setModifiedDate(Date modifiedDate) {
+		this.modifiedDate = modifiedDate;
+	}
+
+	/**
+	 * @return the maxPswdLength
+	 */
+	public Integer getMaxPswdLength() {
+		return maxPswdLength;
+	}
+
+	/**
+	 * @param maxPswdLength the maxPswdLength to set
+	 */
+	public void setMaxPswdLength(Integer maxPswdLength) {
+		this.maxPswdLength = maxPswdLength;
+	}
+
+	/**
+	 * @return the minSmallChar
+	 */
+	public Integer getMinSmallChar() {
+		return minSmallChar;
+	}
+
+	/**
+	 * @param minSmallChar the minSmallChar to set
+	 */
+	public void setMinSmallChar(Integer minSmallChar) {
+		this.minSmallChar = minSmallChar;
+	}
+
+	/**
+	 * @return the minNum
+	 */
+	public Integer getMinNum() {
+		return minNum;
+	}
+
+	/**
+	 * @param minNum the minNum to set
+	 */
+	public void setMinNum(Integer minNum) {
+		this.minNum = minNum;
+	}
+
+	/**
+	 * @return the minSplChar
+	 */
+	public Integer getMinSplChar() {
+		return minSplChar;
+	}
+
+	/**
+	 * @param minSplChar the minSplChar to set
+	 */
+	public void setMinSplChar(Integer minSplChar) {
+		this.minSplChar = minSplChar;
+	}
+
+	/**
+	 * @return the minCapsChar
+	 */
+	public Integer getMinCapsChar() {
+		return minCapsChar;
+	}
+
+	/**
+	 * @param minCapsChar the minCapsChar to set
+	 */
+	public void setMinCapsChar(Integer minCapsChar) {
+		this.minCapsChar = minCapsChar;
+	}
+
+	/**
+	 * @return the numOfPrevPasswd
+	 */
+	public Integer getNumOfPrevPasswd() {
+		return numOfPrevPasswd;
+	}
+
+	/**
+	 * @param numOfPrevPasswd the numOfPrevPasswd to set
+	 */
+	public void setNumOfPrevPasswd(Integer numOfPrevPasswd) {
+		this.numOfPrevPasswd = numOfPrevPasswd;
+	}
+
+	/**
+	 * @return the calendarFormat
+	 */
+	public String getCalendarFormat() {
+		return calendarFormat;
+	}
+
+	/**
+	 * @param calendarFormat the calendarFormat to set
+	 */
+	public void setCalendarFormat(String calendarFormat) {
+		this.calendarFormat = Validations.trimInput(calendarFormat);
+	}
+
+	/**
+	 * @return the maxLoginAllowed
+	 */
+	public Integer getMaxLoginAllowed() {
+		return maxLoginAllowed;
+	}
+
+	/**
+	 * @param maxLoginAllowed the maxLoginAllowed to set
+	 */
+	public void setMaxLoginAllowed(Integer maxLoginAllowed) {
+		this.maxLoginAllowed = maxLoginAllowed;
+	}
+
+	/**
+	 * @return the hourFormat
+	 */
+	public Integer getHourFormat() {
+		return hourFormat;
+	}
+
+	/**
+	 * @param hourFormat the hourFormat to set
+	 */
+	public void setHourFormat(Integer hourFormat) {
+		this.hourFormat = hourFormat;
+	}
+
+	/**
+	 * @return the isUSersBlocked
+	 */
+	public Boolean getIsUsersBlocked() {
+		return isUsersBlocked;
+	}
+
+	/**
+	 * @param isUSersBlocked the isUSersBlocked to set
+	 */
+	public void setIsUsersBlocked(Boolean isUsersBlocked) {
+		this.isUsersBlocked = isUsersBlocked;
+	}
+
+	/**
+	 * @return the pswdExpiryNotifiDays
+	 */
+	public Integer getPswdExpiryNotifiDays() {
+		return pswdExpiryNotifiDays;
+	}
+
+	/**
+	 * @param pswdExpiryNotifiDays the pswdExpiryNotifiDays to set
+	 */
+	public void setPswdExpiryNotifiDays(Integer pswdExpiryNotifiDays) {
+		this.pswdExpiryNotifiDays = pswdExpiryNotifiDays;
+	}
+
+	/**
+	 * @return the sessionTimeout
+	 */
+	public Integer getSessionTimeout() {
+		return sessionTimeout;
+	}
+
+	/**
+	 * @param sessionTimeout the sessionTimeout to set
+	 */
+	public void setSessionTimeout(Integer sessionTimeout) {
+		this.sessionTimeout = sessionTimeout;
+	}
+
+	/**
+	 * @return the regulatorLoginInternet
+	 */
+	public Boolean getRegulatorLoginInternet() {
+		return regulatorLoginInternet;
+	}
+
+	/**
+	 * @param regulatorLoginInternet the regulatorLoginInternet to set
+	 */
+	public void setRegulatorLoginInternet(Boolean regulatorLoginInternet) {
+		this.regulatorLoginInternet = regulatorLoginInternet;
+	}
+
+	public String getNoahUrl() {
+		return noahUrl;
+	}
+
+	public void setNoahUrl(String noahUrl) {
+		this.noahUrl = Validations.trimInput(noahUrl);
+	}
+
+	public String getSdmxUrl() {
+		return sdmxUrl;
+	}
+
+	public void setSdmxUrl(String sdmxUrl) {
+		this.sdmxUrl = Validations.trimInput(sdmxUrl);
+	}
+
+	public Boolean getIsItemsCanDragOnDashboard() {
+		return isItemsCanDragOnDashboard;
+	}
+
+	public void setIsItemsCanDragOnDashboard(Boolean isItemsCanDragOnDashboard) {
+		this.isItemsCanDragOnDashboard = isItemsCanDragOnDashboard;
+	}
+
+}

@@ -1,0 +1,389 @@
+/**
+ * 
+ */
+package com.iris.sdmx.element.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.controller.ErrorCodeLabelMappingController;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.exception.ApplicationException;
+import com.iris.sdmx.element.bean.SdmxAddElementInputBean;
+import com.iris.sdmx.element.bean.SdmxEditElementInputBean;
+import com.iris.sdmx.element.bean.SdmxElementBean;
+import com.iris.sdmx.element.bean.SdmxElementBeanForTemp;
+import com.iris.sdmx.element.bean.SdmxElementMappingDetailBean;
+import com.iris.sdmx.element.bean.SdmxElementRequestMappingBean;
+import com.iris.sdmx.element.service.SdmxElementControllerService;
+import com.iris.sdmx.element.service.SdmxElementService;
+import com.iris.sdmx.element.validator.SdmxElementValidator;
+import com.iris.sdmx.util.SDMXConstants;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.ErrorConstants;
+
+/**
+ * @author apagaria
+ *
+ */
+@RestController
+@RequestMapping("/service/sdmx")
+public class SdmxElementController {
+
+	/**
+	 * 
+	 */
+	private static final Logger LOGGER = LogManager.getLogger(ErrorCodeLabelMappingController.class);
+
+	@Autowired
+	private SdmxElementValidator sdmxElementValidator;
+
+	@Autowired
+	private SdmxElementControllerService sdmxElementControllerService;
+
+	@Autowired
+	private SdmxElementService sdmxElementService;
+	
+	
+
+	/**
+	 * @param jobProcessId
+	 * @param isActive
+	 * @return
+	 */
+	@PostMapping("/user/{userId}/element")
+	public ServiceResponse addElement(@RequestHeader("JobProcessingId") String jobProcessId,
+			@PathVariable("userId") Long userId, @RequestBody SdmxAddElementInputBean sdmxAddElementInputBean) {
+		LOGGER.info("START - Add Element request received with Job Processing ID : " + jobProcessId);
+		ServiceResponse serviceResponse = null;
+		ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+		serviceResponseBuilder.setStatus(true);
+		SdmxElementBeanForTemp sdmxElementBeanForTemp = new SdmxElementBeanForTemp();
+		try {
+
+			// Validate Input Request
+			sdmxElementValidator.validateAddElementRequest(sdmxAddElementInputBean, jobProcessId,
+					sdmxElementBeanForTemp, userId);
+
+			sdmxElementControllerService.addElement(sdmxAddElementInputBean, jobProcessId, sdmxElementBeanForTemp,
+					userId);
+			serviceResponseBuilder.setStatusCode(SDMXConstants.SUCCESS_CODE);
+			serviceResponseBuilder.setStatusMessage(SDMXConstants.SUCCESS_MESSAGE);
+		} catch (ApplicationException applicationException) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + " Transaction ID : " + jobProcessId
+					+ ", Error Code - " + applicationException.getErrorCode() + ", Error Msg - " + applicationException.getErrorMsg(), applicationException);
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + " Transaction ID : " + jobProcessId, applicationException);
+			serviceResponseBuilder.setStatus(false);
+			serviceResponseBuilder.setStatusCode(applicationException.getErrorCode());
+			serviceResponseBuilder.setStatusMessage(applicationException.getErrorMsg());
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId, e);
+			serviceResponseBuilder = new ServiceResponseBuilder().setStatus(false)
+					.setStatusCode(ErrorCode.EC0013.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString()));
+		}
+		serviceResponse = serviceResponseBuilder.build();
+		LOGGER.info("End - Add Element request completed with Job Processing ID : " + jobProcessId);
+		return serviceResponse;
+	}
+
+	/**
+	 * @param jobProcessId
+	 * @param sdmxAddElementInputBean
+	 * @return
+	 */
+	@PutMapping(value = "/user/{userId}/element/{elementId}")
+	public ServiceResponse editElement(@RequestHeader("JobProcessingId") String jobProcessId,
+			@PathVariable("userId") Long userId, @RequestBody SdmxEditElementInputBean sdmxEditElementInputBean,
+			@PathVariable("elementId") Long elementId) {
+		LOGGER.info("START - Edit Element request received with Job Processing ID : " + jobProcessId);
+		ServiceResponse serviceResponse = null;
+		ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+		serviceResponseBuilder.setStatus(true);
+		SdmxElementBeanForTemp sdmxElementBeanForTemp = new SdmxElementBeanForTemp();
+		try {
+			sdmxElementValidator.validateEditElementRequest(sdmxEditElementInputBean, jobProcessId, userId,
+					sdmxElementBeanForTemp, elementId);
+			sdmxElementControllerService.editElement(sdmxEditElementInputBean, jobProcessId, sdmxElementBeanForTemp,
+					userId);
+			serviceResponseBuilder.setStatusCode(SDMXConstants.SUCCESS_CODE);
+			serviceResponseBuilder.setStatusMessage(SDMXConstants.SUCCESS_MESSAGE);
+		} catch (ApplicationException applicationException) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + " Transaction ID : " + jobProcessId
+					+ ", Error Code - " + applicationException.getErrorCode() + ", Error Msg - " + applicationException.getErrorMsg(), applicationException);
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + " Transaction ID : " + jobProcessId, applicationException);
+			serviceResponseBuilder.setStatus(false);
+			serviceResponseBuilder.setStatusCode(applicationException.getErrorCode());
+			serviceResponseBuilder.setStatusMessage(applicationException.getErrorMsg());
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId, e);
+			serviceResponseBuilder = new ServiceResponseBuilder().setStatus(false)
+					.setStatusCode(ErrorCode.EC0013.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString()));
+		}
+		serviceResponse = serviceResponseBuilder.build();
+		LOGGER.info("End - Edit Element request completed with Job Processing ID : " + jobProcessId);
+		return serviceResponse;
+	}
+
+	/**
+	 * @param jobProcessId
+	 * @param userId
+	 * @param elementId
+	 * @return
+	 */
+	@DeleteMapping("/user/{userId}/element/{elementId}")
+	public ServiceResponse deleteElement(@RequestHeader("JobProcessingId") String jobProcessId,
+			@PathVariable("userId") Long userId, @PathVariable("elementId") Long elementId) {
+		LOGGER.info("START - Delete Element request received with Job Processing ID : " + jobProcessId);
+		ServiceResponse serviceResponse = null;
+		ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+		serviceResponseBuilder.setStatus(true);
+		SdmxElementBeanForTemp sdmxElementBeanForTemp = new SdmxElementBeanForTemp();
+		try {
+			sdmxElementValidator.validateDeleteElementRequest(elementId, userId, jobProcessId, sdmxElementBeanForTemp);
+			sdmxElementControllerService.deleteElement(jobProcessId, userId, elementId);
+			serviceResponseBuilder.setStatusCode(SDMXConstants.SUCCESS_CODE);
+			serviceResponseBuilder.setStatusMessage(SDMXConstants.SUCCESS_MESSAGE);
+		} catch (ApplicationException applicationException) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + " Transaction ID : " + jobProcessId
+					+ ", Error Code - " + applicationException.getErrorCode() + ", Error Msg - " + applicationException.getErrorMsg(), applicationException);
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + " Transaction ID : " + jobProcessId, applicationException);
+			serviceResponseBuilder.setStatus(false);
+			serviceResponseBuilder.setStatusCode(applicationException.getErrorCode());
+			serviceResponseBuilder.setStatusMessage(applicationException.getErrorMsg());
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId, e);
+			serviceResponseBuilder = new ServiceResponseBuilder().setStatus(false)
+					.setStatusCode(ErrorCode.EC0013.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString()));
+		}
+		serviceResponse = serviceResponseBuilder.build();
+		LOGGER.info("END - Delete Element request received with Job Processing ID : " + jobProcessId);
+		return serviceResponse;
+	}
+
+	/**
+	 * @param jobProcessId
+	 * @param userId
+	 * @param elementId
+	 * @return
+	 */
+	@DeleteMapping("/user/{userId}/elements")
+	public ServiceResponse deleteElement(@RequestHeader("JobProcessingId") String jobProcessId,
+			@PathVariable("userId") Long userId, @RequestHeader("ElementIds") String elementIds) {
+		LOGGER.info("START - delete Element List request received with Job Processing ID : " + jobProcessId);
+		ServiceResponse serviceResponseParent = null;
+		ServiceResponseBuilder serviceResponseBuilderParent = new ServiceResponseBuilder();
+		serviceResponseBuilderParent.setStatus(true);
+		SdmxElementBeanForTemp sdmxElementBeanForTemp = new SdmxElementBeanForTemp();
+		if (!StringUtils.isBlank(elementIds)) {
+			String[] elementIdArray = elementIds.split(",");
+			Boolean isRecordFail = Boolean.FALSE;
+			List<ServiceResponse> serviceResponseList = new ArrayList<>();
+			
+			for (String elementIdStr : elementIdArray) {
+				ServiceResponseBuilder serviceResponseBuilderChild = new ServiceResponseBuilder();
+				try {
+					Long elementId = Long.parseLong(elementIdStr);
+					sdmxElementValidator.validateDeleteElementRequest(elementId, userId, jobProcessId,
+							sdmxElementBeanForTemp);
+					sdmxElementControllerService.deleteElement(jobProcessId, userId, elementId);
+					serviceResponseBuilderChild.setStatusCode(SDMXConstants.SUCCESS_CODE);
+					serviceResponseBuilderChild.setStatusMessage(SDMXConstants.SUCCESS_MESSAGE);
+					serviceResponseBuilderChild.setResponse(elementId);
+				} catch (ApplicationException applicationException) {
+					LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + " Transaction ID : " + jobProcessId
+							+ ", Error Code - " + applicationException.getErrorCode() + ", Error Msg - " + applicationException.getErrorMsg(), applicationException);
+					LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + " Transaction ID : " + jobProcessId, applicationException);
+					isRecordFail = true;
+					serviceResponseBuilderChild.setStatus(false);
+					serviceResponseBuilderChild.setStatusCode(applicationException.getErrorCode());
+					serviceResponseBuilderChild.setStatusMessage(applicationException.getErrorMsg());
+					serviceResponseBuilderChild.setResponse(elementIdStr);
+				} catch (Exception e) {
+					LOGGER.error(
+							ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId,
+							e);
+					isRecordFail = true;
+					serviceResponseBuilderChild = new ServiceResponseBuilder().setStatus(false)
+							.setStatusCode(ErrorCode.EC0013.toString())
+							.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString()))
+							.setResponse(elementIdStr);
+				}
+				serviceResponseList.add(serviceResponseBuilderChild.build());
+			}
+			if (isRecordFail) {
+				serviceResponseBuilderParent.setStatus(false);
+				serviceResponseBuilderParent.setResponse(serviceResponseList);
+
+			} else {
+				serviceResponseBuilderParent.setStatusCode(SDMXConstants.SUCCESS_CODE);
+				serviceResponseBuilderParent.setStatusMessage(SDMXConstants.SUCCESS_MESSAGE);
+			}
+		}
+		serviceResponseParent = serviceResponseBuilderParent.build();
+		LOGGER.info("End - Delete Element List request received with Job Processing ID : " + jobProcessId);
+		return serviceResponseParent;
+	}
+
+	/**
+	 * @param jobProcessId
+	 * @param userId
+	 * @param elementId
+	 * @return
+	 */
+	@GetMapping("/user/{userId}/element/{elementId}")
+	public ServiceResponse fetchElementById(@RequestHeader("JobProcessingId") String jobProcessId,
+			@PathVariable("userId") String userId, @PathVariable("elementId") String elementId) {
+		LOGGER.info("START - Fetch Element By Id request received with Job Processing ID : " + jobProcessId);
+		ServiceResponse serviceResponse = null;
+		ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+		serviceResponseBuilder.setStatus(true);
+		SdmxElementBeanForTemp sdmxElementBeanForTemp = new SdmxElementBeanForTemp();
+		try {
+			sdmxElementValidator.validateFetchElementByIdRequest(elementId, userId, jobProcessId,
+					sdmxElementBeanForTemp);
+			SdmxElementBean sdmxElementBean = sdmxElementService.findEntityByActiveStatus(Long.parseLong(elementId),
+					true);
+			serviceResponseBuilder.setResponse(sdmxElementBean);
+			serviceResponseBuilder.setStatusCode(SDMXConstants.SUCCESS_CODE);
+			serviceResponseBuilder.setStatusMessage(SDMXConstants.SUCCESS_MESSAGE);
+		} catch (ApplicationException applicationException) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + " Transaction ID : " + jobProcessId
+					+ ", Error Code - " + applicationException.getErrorCode() + ", Error Msg - " + applicationException.getErrorMsg(), applicationException);
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + " Transaction ID : " + jobProcessId, applicationException);
+			serviceResponseBuilder.setStatus(false);
+			serviceResponseBuilder.setStatusCode(applicationException.getErrorCode());
+			serviceResponseBuilder.setStatusMessage(applicationException.getErrorMsg());
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId, e);
+			serviceResponseBuilder = new ServiceResponseBuilder().setStatus(false)
+					.setStatusCode(ErrorCode.EC0013.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString()));
+		}
+		serviceResponse = serviceResponseBuilder.build();
+		LOGGER.info("End - Fetch Element By Id request received with Job Processing ID : " + jobProcessId);
+		return serviceResponse;
+	}
+
+	/**
+	 * @param jobProcessId
+	 * @param userId
+	 * @return
+	 */
+	@GetMapping("/user/{userId}/elements")
+	public ServiceResponse fetchElementList(@RequestHeader("JobProcessingId") String jobProcessId,
+			@PathVariable("userId") Long userId) {
+		LOGGER.info("START - Fetch Element List request received with Job Processing ID : " + jobProcessId);
+		ServiceResponse serviceResponse = null;
+		ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+		serviceResponseBuilder.setStatus(true);
+		SdmxElementBeanForTemp sdmxElementBeanForTemp = new SdmxElementBeanForTemp();
+		try {
+			sdmxElementValidator.validateFetchElementsRequest(userId, jobProcessId, sdmxElementBeanForTemp);
+			List<SdmxElementBean> sdmxElementBeans = sdmxElementService.findEntitiesByActiveStatus(true);
+			serviceResponseBuilder.setResponse(sdmxElementBeans);
+			serviceResponseBuilder.setStatusCode(SDMXConstants.SUCCESS_CODE);
+			serviceResponseBuilder.setStatusMessage(SDMXConstants.SUCCESS_MESSAGE);
+		} catch (ApplicationException applicationException) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + " Transaction ID : " + jobProcessId
+					+ ", Error Code - " + applicationException.getErrorCode() + ", Error Msg - " + applicationException.getErrorMsg(), applicationException);
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + " Transaction ID : " + jobProcessId, applicationException);
+			serviceResponseBuilder.setStatus(false);
+			serviceResponseBuilder.setStatusCode(applicationException.getErrorCode());
+			serviceResponseBuilder.setStatusMessage(applicationException.getErrorMsg());
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId, e);
+			serviceResponseBuilder = new ServiceResponseBuilder().setStatus(false)
+					.setStatusCode(ErrorCode.EC0013.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString()));
+		}
+		serviceResponse = serviceResponseBuilder.build();
+		LOGGER.info("End - Fetch Element List request received with Job Processing ID : " + jobProcessId);
+		return serviceResponse;
+	}
+	
+
+	/**
+	 * @param jobProcessId
+	 * @param userId
+	 * @return
+	 */
+	@PostMapping("/user/{userId}/mappingDetails")
+	public ServiceResponse getElementDimensionReturnDetail(@RequestHeader("JobProcessingId") String jobProcessId,
+			@PathVariable("userId") Long userId, @RequestBody List<SdmxElementRequestMappingBean> requestBeanList) {
+		ServiceResponse serviceResponse = null;
+		ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+		serviceResponseBuilder.setStatus(true);
+		try {
+		sdmxElementValidator.validateViewMappingDetailRequest(userId, jobProcessId);
+		List<SdmxElementMappingDetailBean> sdmxElementMappingDetailBeanList= new ArrayList<>();
+		sdmxElementMappingDetailBeanList=sdmxElementService.getMappingDetail(requestBeanList);
+		serviceResponseBuilder.setStatus(true);
+		serviceResponseBuilder.setResponse(sdmxElementMappingDetailBeanList);
+		} catch (ApplicationException applicationException) {
+			serviceResponseBuilder.setStatus(false);
+			serviceResponseBuilder.setStatusCode(applicationException.getErrorCode());
+			serviceResponseBuilder.setStatusMessage(applicationException.getErrorMsg());
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId, e);
+			serviceResponseBuilder = new ServiceResponseBuilder().setStatus(false)
+					.setStatusCode(ErrorCode.EC0013.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString()));
+		}
+		serviceResponse = serviceResponseBuilder.build();
+		return serviceResponse;
+	}
+	
+	/**
+	 * @param jobProcessId
+	 * @param userId
+	 * @param elementCode
+	 * @param elementVersion
+	 * @return
+	 */
+	@PostMapping("/user/{userId}/{elementCode}/{elementVersion}")
+	public ServiceResponse isElementExist(@RequestHeader("JobProcessingId") String jobProcessId,
+			@PathVariable("userId") Long userId, @PathVariable("elementCode") String elementCode, @PathVariable("elementVersion") String elementVersion) {
+		ServiceResponse serviceResponse = null;
+		ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+		serviceResponseBuilder.setStatus(true);
+		try {
+			sdmxElementValidator.validateViewMappingDetailRequest(userId, jobProcessId);
+			Long elementId = sdmxElementService.findByDsdCodeAndVerAndIsActive(elementCode, elementVersion, true);
+			serviceResponseBuilder.setStatus(true);
+			serviceResponseBuilder.setResponse(elementId);
+			
+		} catch (ApplicationException applicationException) {
+			serviceResponseBuilder.setStatus(false);
+			serviceResponseBuilder.setStatusCode(applicationException.getErrorCode());
+			serviceResponseBuilder.setStatusMessage(applicationException.getErrorMsg());
+		} catch (Exception e){
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId, e);
+			serviceResponseBuilder = new ServiceResponseBuilder().setStatus(false)
+					.setStatusCode(ErrorCode.EC0013.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString()));
+		}
+		serviceResponse = serviceResponseBuilder.build();
+		return serviceResponse;
+	}
+	
+}

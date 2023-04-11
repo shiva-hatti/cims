@@ -1,0 +1,1173 @@
+package com.iris.model;
+
+import java.io.File;
+import java.io.Serializable;
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.OrderBy;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.iris.dto.LogedInUser;
+import com.iris.sdmx.ebrtorbr.entity.SdmxEbrToRbrPreparation;
+import com.iris.util.Validations;
+
+/**
+ * @author sajadhav
+ */
+@Entity
+@Table(name = "TBL_RETURNS_UPLOAD_DETAILS")
+@JsonInclude(Include.NON_NULL)
+public class ReturnsUploadDetails implements Serializable {
+
+	private static final long serialVersionUID = -1393484329450176251L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "UPLOAD_ID")
+	private Long uploadId;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "RETURN_ID_FK")
+	private Return returnObj;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "ENTITY_ID_FK")
+	private EntityBean entity;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "FILING_STATUS_ID_FK")
+	private FilingStatus filingStatus;
+
+	@Column(name = "PREVIOUS_UPLOAD_ID")
+	private Long prevUploadId;
+
+	@ManyToOne(fetch = FetchType.EAGER, cascade = { CascadeType.MERGE, CascadeType.REFRESH })
+	@JoinColumn(name = "REVISION_REQUEST_ID_FK")
+	private RevisionRequest revisionRequestId;
+
+	@ManyToOne(fetch = FetchType.EAGER, cascade = { CascadeType.MERGE, CascadeType.REFRESH })
+	@JoinColumn(name = "UNLOCK_REQUEST_ID_FK")
+	private UnlockingRequest unlockingReqId;
+
+	@Column(name = "INSTANCE_FILE")
+	private String instanceFile;
+
+	@Column(name = "VALIDATION_FAIL_REPORT_FILE")
+	private String validtaionFailReportFile;
+
+	@Column(name = "START_DATE")
+	private Date startDate;
+
+	@Column(name = "END_DATE")
+	private Date endDate;
+
+	@Column(name = "UPLOADED_DATE")
+	private Timestamp uploadedDate;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "UPLOADED_BY")
+	private UserMaster uploadedBy;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "FIN_YR_FREQUENCY_DESC_ID_FK")
+	private FinYearFreqDesc finYrFreqDesc;
+
+	@Column(name = "ISACTIVE")
+	private String active;
+
+	@Column(name = "IS_NILLABLE")
+	private boolean nillable;
+
+	@Column(name = "NILLABLE_COMMENTS")
+	private String nillableComments;
+
+	@Column(name = "APPROVAL_ROLE_ID_FK")
+	private String approvalRoleFk;
+
+	@Column(name = "CURRENT_WF_STEP")
+	private Integer currentWFStep;
+
+	@Column(name = "APPROVAL_RESULT")
+	private String approvalResult;
+
+	@Column(name = "ASSIGNED_TO")
+	private Long assignedTo;
+
+	@Column(name = "ASSIGNED_ON")
+	private Date assignedOn;
+
+	@Column(name = "ASSIGNED_TO_ROLE")
+	private Long assignToUsrRole;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "UPLOAD_USER_ROLE")
+	@JsonProperty(value = "uploadedUserRole")
+	private UserRole uploadUsrRole;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "FORM_VERSION_ID")
+	private ReturnTemplate taxonomyId;
+
+	@Column(name = "ATTACHED_FILE_NAME")
+	private String attachedFile;
+
+	@Column(name = "CONVERSION_RATE")
+	private float conversionRate;
+
+	@Column(name = "REPORTING_CURRENCY")
+	private String reportingCurrency;
+
+	@Column(name = "FILE_TYPE")
+	private String fileType;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "FILE_DETAILS_ID_FK")
+	private FileDetails fileDetailsBean;
+
+	@Column(name = "LAST_UPDATE_DATE")
+	private Date lastUpdatedOn;
+
+	@Transient
+	private File instanceFileForUpload;
+
+	@Transient
+	private String financialYear;
+
+	@Transient
+	private String financialMonth;
+
+	@Transient
+	private Long frequencyId;
+
+	@Transient
+	private String fileNameType;
+
+	@Transient
+	private Long finYearFormatId;
+
+	@Transient
+	private String uploadInstanceFilePath;
+
+	@Transient
+	private String entCode;
+
+	@Transient
+	private String retCode;
+
+	@Transient
+	private String formFreqName;
+
+	@Transient
+	private String retName;
+
+	@Transient
+	private String finYrFreqDescName;
+
+	@Transient
+	private String fileName;
+
+	@Transient
+	private String supportiveDocName;
+
+	@Transient
+	private String extensionAttached;
+
+	@Transient
+	private LogedInUser logedInUser;
+
+	@Column(name = "COMPARISON_JSON_DATA")
+	private String compareJsonData;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "FIN_YR_FREQUENCY_ID_FK")
+	private Frequency frequency;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "WORKFLOW_ID_FK")
+	private WorkFlowMasterBean workFlowMaster;
+
+	@Transient
+	private Long startDateInLong;
+
+	@Transient
+	private Long endDateInLong;
+
+	@Transient
+	private Long uploadedOnInLong;
+
+	@Transient
+	private String applicationProcessId;
+
+	@Transient
+	private String originalSupportiveDocName;
+
+	@OneToMany(mappedBy = "returnsUploadDetails", cascade = CascadeType.ALL)
+	private List<BusinessValidationFailed> businessValidationFailedList;
+
+	@OneToMany(mappedBy = "returnUploadDetails", cascade = CascadeType.ALL)
+	@OrderBy("returnApprovalDetailId DESC")
+	private List<ReturnApprovalDetail> returnApprovalDetailsList;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "RETURN_PROP_VAL_ID_FK")
+	private ReturnPropertyValue returnPropertyValue;
+
+	@Transient
+	private Long alertTypeId;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "UPLOAD_CHANNEL_ID_FK")
+	private UploadChannel uploadChannel;
+
+	@Column(name = "CONSISTANCY_CHECK_JSON")
+	private String consistancyCheckJson;
+
+	@Transient
+	private Long fileStatusId;
+
+	@Column(name = "IS_CONSISTANCY_CHECK_FAILURE")
+	private Boolean isConsistancyCheckFailure;
+
+	@Transient
+	private Map<String, String> filingDetailObj;
+
+	@Column(name = "NO_OF_ERRORS")
+	private Integer noOfErrors;
+
+	@Column(name = "NO_OF_WARNINGS")
+	private Integer noOfWarnings;
+
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "SDMX_EBR_RBR_PREP_ID_FK")
+	private SdmxEbrToRbrPreparation sdmxEbrToRbrPreparation;
+
+	
+	public SdmxEbrToRbrPreparation getSdmxEbrToRbrPreparation() {
+		return sdmxEbrToRbrPreparation;
+	}
+
+	public void setSdmxEbrToRbrPreparation(SdmxEbrToRbrPreparation sdmxEbrToRbrPreparation) {
+		this.sdmxEbrToRbrPreparation = sdmxEbrToRbrPreparation;
+	}
+
+	/**
+	 * @return the isConsistancyCheckFailure
+	 */
+	public Boolean getIsConsistancyCheckFailure() {
+		return isConsistancyCheckFailure;
+	}
+
+	/**
+	 * @param isConsistancyCheckFailure the isConsistancyCheckFailure to set
+	 */
+	public void setIsConsistancyCheckFailure(Boolean isConsistancyCheckFailure) {
+		this.isConsistancyCheckFailure = isConsistancyCheckFailure;
+	}
+
+	/**
+	 * @return the alertTypeId
+	 */
+	public Long getAlertTypeId() {
+		return alertTypeId;
+	}
+
+	/**
+	 * @param alertTypeId the alertTypeId to set
+	 */
+	public void setAlertTypeId(Long alertTypeId) {
+		this.alertTypeId = alertTypeId;
+	}
+
+	/**
+	 * @return the returnPropertyValue
+	 */
+	public ReturnPropertyValue getReturnPropertyValue() {
+		return returnPropertyValue;
+	}
+
+	/**
+	 * @param returnPropertyValue the returnPropertyValue to set
+	 */
+	public void setReturnPropertyValue(ReturnPropertyValue returnPropertyValue) {
+		this.returnPropertyValue = returnPropertyValue;
+	}
+
+	public String getApplicationProcessId() {
+		return applicationProcessId;
+	}
+
+	public void setApplicationProcessId(String applicationProcessId) {
+		this.applicationProcessId = applicationProcessId;
+	}
+
+	public List<BusinessValidationFailed> getBusinessValidationFailedList() {
+		return businessValidationFailedList;
+	}
+
+	public void setBusinessValidationFailedList(List<BusinessValidationFailed> businessValidationFailedList) {
+		this.businessValidationFailedList = businessValidationFailedList;
+	}
+
+	public Long getStartDateInLong() {
+		return startDateInLong;
+	}
+
+	public void setStartDateInLong(Long startdateInLong) {
+		this.startDateInLong = startdateInLong;
+	}
+
+	public Long getEndDateInLong() {
+		return endDateInLong;
+	}
+
+	public void setEndDateInLong(Long endDateInLong) {
+		this.endDateInLong = endDateInLong;
+	}
+
+	public Long getUploadedOnInLong() {
+		return uploadedOnInLong;
+	}
+
+	public void setUploadedOnInLong(Long uploadedOnInLong) {
+		this.uploadedOnInLong = uploadedOnInLong;
+	}
+
+	public Date getLastUpdatedOn() {
+		return lastUpdatedOn;
+	}
+
+	public void setLastUpdatedOn(Date lastUpdatedOn) {
+		this.lastUpdatedOn = lastUpdatedOn;
+	}
+
+	public FileDetails getFileDetailsBean() {
+		return fileDetailsBean;
+	}
+
+	public void setFileDetailsBean(FileDetails fileDetailsBean) {
+		this.fileDetailsBean = fileDetailsBean;
+	}
+
+	/**
+	 * @return the attachedFileFileName
+	 */
+//	public String getAttachedFileFileName() {
+//		return attachedFileFileName;
+//	}
+//
+//	/**
+//	 * @param attachedFileFileName the attachedFileFileName to set
+//	 */
+//	public void setAttachedFileFileName(String attachedFileFileName) {
+//		this.attachedFileFileName = Validations.trimInput(attachedFileFileName);
+//	}
+
+	/**
+	 * @return the workFlowMaster
+	 */
+	public WorkFlowMasterBean getWorkFlowMaster() {
+		return workFlowMaster;
+	}
+
+	/**
+	 * @param workFlowMaster the workFlowMaster to set
+	 */
+	public void setWorkFlowMaster(WorkFlowMasterBean workFlowMaster) {
+		this.workFlowMaster = workFlowMaster;
+	}
+
+	/**
+	 * @return the uploadId
+	 */
+	public Long getUploadId() {
+		return uploadId;
+	}
+
+	/**
+	 * @param uploadId the uploadId to set
+	 */
+	public void setUploadId(Long uploadId) {
+		this.uploadId = uploadId;
+	}
+
+	/**
+	 * @return the returnObj
+	 */
+	public Return getReturnObj() {
+		return returnObj;
+	}
+
+	/**
+	 * @param returnObj the returnObj to set
+	 */
+	public void setReturnObj(Return returnObj) {
+		this.returnObj = returnObj;
+	}
+
+	/**
+	 * @return the entity
+	 */
+	public EntityBean getEntity() {
+		return entity;
+	}
+
+	/**
+	 * @param entity the entity to set
+	 */
+	public void setEntity(EntityBean entity) {
+		this.entity = entity;
+	}
+
+	/**
+	 * @return the prevUploadId
+	 */
+	public Long getPrevUploadId() {
+		return prevUploadId;
+	}
+
+	/**
+	 * @param prevUploadId the prevUploadId to set
+	 */
+	public void setPrevUploadId(Long prevUploadId) {
+		this.prevUploadId = prevUploadId;
+	}
+
+	/**
+	 * @return the revisionRequestId
+	 */
+	public RevisionRequest getRevisionRequestId() {
+		return revisionRequestId;
+	}
+
+	/**
+	 * @param revisionRequestId the revisionRequestId to set
+	 */
+	public void setRevisionRequestId(RevisionRequest revisionRequestId) {
+		this.revisionRequestId = revisionRequestId;
+	}
+
+	/**
+	 * @return the unlockingReqId
+	 */
+	public UnlockingRequest getUnlockingReqId() {
+		return unlockingReqId;
+	}
+
+	/**
+	 * @param unlockingReqId the unlockingReqId to set
+	 */
+	public void setUnlockingReqId(UnlockingRequest unlockingReqId) {
+		this.unlockingReqId = unlockingReqId;
+	}
+
+	/**
+	 * @return the validtaionFailReportFile
+	 */
+	public String getValidtaionFailReportFile() {
+		return validtaionFailReportFile;
+	}
+
+	/**
+	 * @param validtaionFailReportFile the validtaionFailReportFile to set
+	 */
+	public void setValidtaionFailReportFile(String validtaionFailReportFile) {
+		this.validtaionFailReportFile = Validations.trimInput(validtaionFailReportFile);
+	}
+
+	/**
+	 * @return the startDate
+	 */
+	public Date getStartDate() {
+		return startDate;
+	}
+
+	/**
+	 * @param startDate the startDate to set
+	 */
+	public void setStartDate(Date startDate) {
+		this.startDate = startDate;
+	}
+
+	/**
+	 * @return the endDate
+	 */
+	public Date getEndDate() {
+		return endDate;
+	}
+
+	/**
+	 * @param endDate the endDate to set
+	 */
+	public void setEndDate(Date endDate) {
+		this.endDate = endDate;
+	}
+
+	/**
+	 * @return the uploadedDate
+	 */
+	public Timestamp getUploadedDate() {
+		return uploadedDate;
+	}
+
+	/**
+	 * @param uploadedDate the uploadedDate to set
+	 */
+	public void setUploadedDate(Timestamp uploadedDate) {
+		this.uploadedDate = uploadedDate;
+	}
+
+	/**
+	 * @return the uploadedBy
+	 */
+	public UserMaster getUploadedBy() {
+		return uploadedBy;
+	}
+
+	/**
+	 * @param uploadedBy the uploadedBy to set
+	 */
+	public void setUploadedBy(UserMaster uploadedBy) {
+		this.uploadedBy = uploadedBy;
+	}
+
+	/**
+	 * @return the finYrFreqDescId
+	 */
+	public FinYearFreqDesc getFinYrFreqDescId() {
+		return finYrFreqDesc;
+	}
+
+	/**
+	 * @param finYrFreqDescId the finYrFreqDescId to set
+	 */
+	public void setFinYrFreqDescId(FinYearFreqDesc finYrFreqDescId) {
+		this.finYrFreqDesc = finYrFreqDescId;
+	}
+
+	/**
+	 * @return the active
+	 */
+	public String getActive() {
+		return active;
+	}
+
+	/**
+	 * @param active the active to set
+	 */
+	public void setActive(String active) {
+		this.active = Validations.trimInput(active);
+	}
+
+	/**
+	 * @return the nillableComments
+	 */
+	public String getNillableComments() {
+		return nillableComments;
+	}
+
+	/**
+	 * @param nillableComments the nillableComments to set
+	 */
+	public void setNillableComments(String nillableComments) {
+		this.nillableComments = Validations.trimInput(nillableComments);
+	}
+
+	/**
+	 * @return the filingStatus
+	 */
+	public FilingStatus getFilingStatus() {
+		return filingStatus;
+	}
+
+	/**
+	 * @param filingStatus the filingStatus to set
+	 */
+	public void setFilingStatus(FilingStatus filingStatus) {
+		this.filingStatus = filingStatus;
+	}
+
+	/**
+	 * @return the instanceFileForUpload
+	 */
+	public File getInstanceFileForUpload() {
+		return instanceFileForUpload;
+	}
+
+	/**
+	 * @param instanceFileForUpload the instanceFileForUpload to set
+	 */
+	public void setInstanceFileForUpload(File instanceFileForUpload) {
+		this.instanceFileForUpload = instanceFileForUpload;
+	}
+
+	/**
+	 * @return the instanceFile
+	 */
+	public String getInstanceFile() {
+		return instanceFile;
+	}
+
+	/**
+	 * @param instanceFile the instanceFile to set
+	 */
+	public void setInstanceFile(String instanceFile) {
+		this.instanceFile = Validations.trimInput(instanceFile);
+	}
+
+	/**
+	 * @return the financialYear
+	 */
+	public String getFinancialYear() {
+		return financialYear;
+	}
+
+	/**
+	 * @param financialYear the financialYear to set
+	 */
+	public void setFinancialYear(String financialYear) {
+		this.financialYear = Validations.trimInput(financialYear);
+	}
+
+	/**
+	 * @return the financialMonth
+	 */
+	public String getFinancialMonth() {
+		return financialMonth;
+	}
+
+	/**
+	 * @param financialMonth the financialMonth to set
+	 */
+	public void setFinancialMonth(String financialMonth) {
+		this.financialMonth = Validations.trimInput(financialMonth);
+	}
+
+	/**
+	 * @return the frequencyId
+	 */
+	public Long getFrequencyId() {
+		return frequencyId;
+	}
+
+	/**
+	 * @param frequencyId the frequencyId to set
+	 */
+	public void setFrequencyId(Long frequencyId) {
+		this.frequencyId = frequencyId;
+	}
+
+	/**
+	 * @return the finYearFormatId
+	 */
+	public Long getFinYearFormatId() {
+		return finYearFormatId;
+	}
+
+	/**
+	 * @param finYearFormatId the finYearFormatId to set
+	 */
+	public void setFinYearFormatId(Long finYearFormatId) {
+		this.finYearFormatId = finYearFormatId;
+	}
+
+	/**
+	 * @return the uploadInstanceFilePath
+	 */
+	public String getUploadInstanceFilePath() {
+		return uploadInstanceFilePath;
+	}
+
+	/**
+	 * @param uploadInstanceFilePath the uploadInstanceFilePath to set
+	 */
+	public void setUploadInstanceFilePath(String uploadInstanceFilePath) {
+		this.uploadInstanceFilePath = Validations.trimInput(uploadInstanceFilePath);
+	}
+
+//	/**
+//	 * @return the taxonomyId
+//	 */
+//	public Taxonomy getTaxonomyId() {
+//		return taxonomyId;
+//	}
+//
+//	/**
+//	 * @param taxonomyId the taxonomyId to set
+//	 */
+//	public void setTaxonomyId(Taxonomy taxonomyId) {
+//		this.taxonomyId = taxonomyId;
+//	}
+
+	/**
+	 * @return the approvalRoleFk
+	 */
+	public String getApprovalRoleFk() {
+		return approvalRoleFk;
+	}
+
+	/**
+	 * @param approvalRoleFk the approvalRoleFk to set
+	 */
+	public void setApprovalRoleFk(String approvalRoleFk) {
+		this.approvalRoleFk = Validations.trimInput(approvalRoleFk);
+	}
+
+	/**
+	 * @return the currentWFStep
+	 */
+	public Integer getCurrentWFStep() {
+		return currentWFStep;
+	}
+
+	/**
+	 * @param currentWFStep the currentWFStep to set
+	 */
+	public void setCurrentWFStep(Integer currentWFStep) {
+		this.currentWFStep = currentWFStep;
+	}
+
+//	/**
+//	 * @return the workFlowId
+//	 */
+//	public Workflow getWorkFlowId() {
+//		return workFlowId;
+//	}
+//
+//	/**
+//	 * @param workFlowId the workFlowId to set
+//	 */
+//	public void setWorkFlowId(Workflow workFlowId) {
+//		this.workFlowId = workFlowId;
+//	}
+
+	/**
+	 * @return the approvalResult
+	 */
+	public String getApprovalResult() {
+		return approvalResult;
+	}
+
+	/**
+	 * @param approvalResult the approvalResult to set
+	 */
+	public void setApprovalResult(String approvalResult) {
+		this.approvalResult = Validations.trimInput(approvalResult);
+	}
+
+	/**
+	 * @return the assignedTo
+	 */
+	public Long getAssignedTo() {
+		return assignedTo;
+	}
+
+	/**
+	 * @param assignedTo the assignedTo to set
+	 */
+	public void setAssignedTo(Long assignedTo) {
+		this.assignedTo = assignedTo;
+	}
+
+	/**
+	 * @return the assignedOn
+	 */
+	public Date getAssignedOn() {
+		return assignedOn;
+	}
+
+	/**
+	 * @param assignedOn the assignedOn to set
+	 */
+	public void setAssignedOn(Date assignedOn) {
+		this.assignedOn = assignedOn;
+	}
+
+//	/**
+//	 * @return the approvRejectSet
+//	 */
+//	public Set<XbrlDocApproval> getApprovRejectSet() {
+//		return approvRejectSet;
+//	}
+//
+//	/**
+//	 * @param approvRejectSet the approvRejectSet to set
+//	 */
+//	public void setApprovRejectSet(Set<XbrlDocApproval> approvRejectSet) {
+//		this.approvRejectSet = approvRejectSet;
+//	}
+
+	/**
+	 * @return the assignToUsrRole
+	 */
+	public Long getAssignToUsrRole() {
+		return assignToUsrRole;
+	}
+
+	/**
+	 * @param assignToUsrRole the assignToUsrRole to set
+	 */
+	public void setAssignToUsrRole(Long assignToUsrRole) {
+		this.assignToUsrRole = assignToUsrRole;
+	}
+
+	/**
+	 * @return the entCode
+	 */
+	public String getEntCode() {
+		return entCode;
+	}
+
+	/**
+	 * @param entCode the entCode to set
+	 */
+	public void setEntCode(String entCode) {
+		this.entCode = Validations.trimInput(entCode);
+	}
+
+	/**
+	 * @return the retCode
+	 */
+	public String getRetCode() {
+		return retCode;
+	}
+
+	/**
+	 * @param retCode the retCode to set
+	 */
+	public void setRetCode(String retCode) {
+		this.retCode = Validations.trimInput(retCode);
+	}
+
+	/**
+	 * @return the formFreqName
+	 */
+	public String getFormFreqName() {
+		return formFreqName;
+	}
+
+	/**
+	 * @param formFreqName the formFreqName to set
+	 */
+	public void setFormFreqName(String formFreqName) {
+		this.formFreqName = Validations.trimInput(formFreqName);
+	}
+
+	/**
+	 * @return the finYrFreqDesc
+	 */
+	public FinYearFreqDesc getFinYrFreqDesc() {
+		return finYrFreqDesc;
+	}
+
+	/**
+	 * @param finYrFreqDesc the finYrFreqDesc to set
+	 */
+	public void setFinYrFreqDesc(FinYearFreqDesc finYrFreqDesc) {
+		this.finYrFreqDesc = finYrFreqDesc;
+	}
+
+	/**
+	 * @return the retName
+	 */
+	public String getRetName() {
+		return retName;
+	}
+
+	/**
+	 * @param retName the retName to set
+	 */
+	public void setRetName(String retName) {
+		this.retName = Validations.trimInput(retName);
+	}
+
+	/**
+	 * @return the finYrFreqDescName
+	 */
+	public String getFinYrFreqDescName() {
+		return finYrFreqDescName;
+	}
+
+	/**
+	 * @param finYrFreqDescName the finYrFreqDescName to set
+	 */
+	public void setFinYrFreqDescName(String finYrFreqDescName) {
+		this.finYrFreqDescName = Validations.trimInput(finYrFreqDescName);
+	}
+
+	/**
+	 * @return the attachedFile
+	 */
+	public String getAttachedFile() {
+		return attachedFile;
+	}
+
+	/**
+	 * @param attachedFile the attachedFile to set
+	 */
+	public void setAttachedFile(String attachedFile) {
+		this.attachedFile = attachedFile;
+	}
+
+	/**
+	 * @return the extensionAttached
+	 */
+	public String getExtensionAttached() {
+		return extensionAttached;
+	}
+
+	/**
+	 * @param extensionAttached the extensionAttached to set
+	 */
+	public void setExtensionAttached(String extensionAttached) {
+		this.extensionAttached = Validations.trimInput(extensionAttached);
+	}
+
+	/**
+	 * @return the compareJsonData
+	 */
+	public String getCompareJsonData() {
+		return compareJsonData;
+	}
+
+	/**
+	 * @param compareJsonData the compareJsonData to set
+	 */
+	public void setCompareJsonData(String compareJsonData) {
+		this.compareJsonData = Validations.trimInput(compareJsonData);
+	}
+
+	/**
+	 * @return the frequency
+	 */
+	public Frequency getFrequency() {
+		return frequency;
+	}
+
+	/**
+	 * @param frequency the frequency to set
+	 */
+	public void setFrequency(Frequency frequency) {
+		this.frequency = frequency;
+	}
+
+	public boolean isNillable() {
+		return nillable;
+	}
+
+	public void setNillable(boolean nillable) {
+		this.nillable = nillable;
+	}
+
+	/**
+	 * @return the uploadUsrRole
+	 */
+	public UserRole getUploadUsrRole() {
+		return uploadUsrRole;
+	}
+
+	/**
+	 * @param uploadUsrRole the uploadUsrRole to set
+	 */
+	public void setUploadUsrRole(UserRole uploadUsrRole) {
+		this.uploadUsrRole = uploadUsrRole;
+	}
+
+	/**
+	 * @return the logedInUser
+	 */
+	public LogedInUser getLogedInUser() {
+		return logedInUser;
+	}
+
+	/**
+	 * @param logedInUser the logedInUser to set
+	 */
+	public void setLogedInUser(LogedInUser logedInUser) {
+		this.logedInUser = logedInUser;
+	}
+
+	/**
+	 * @return the conversionRate
+	 */
+	public float getConversionRate() {
+		return conversionRate;
+	}
+
+	/**
+	 * @param conversionRate the conversionRate to set
+	 */
+	public void setConversionRate(float conversionRate) {
+		this.conversionRate = conversionRate;
+	}
+
+	/**
+	 * @return the reportingCurrency
+	 */
+	public String getReportingCurrency() {
+		return reportingCurrency;
+	}
+
+	/**
+	 * @param reportingCurrency the reportingCurrency to set
+	 */
+	public void setReportingCurrency(String reportingCurrency) {
+		this.reportingCurrency = reportingCurrency;
+	}
+
+	public ReturnTemplate getTaxonomyId() {
+		return taxonomyId;
+	}
+
+	public void setTaxonomyId(ReturnTemplate taxonomyId) {
+		this.taxonomyId = taxonomyId;
+	}
+
+	public String getFileType() {
+		return fileType;
+	}
+
+	public void setFileType(String fileType) {
+		this.fileType = fileType;
+	}
+
+	/**
+	 * @return the returnApprovalDetailsList
+	 */
+	public List<ReturnApprovalDetail> getReturnApprovalDetailsList() {
+		return returnApprovalDetailsList;
+	}
+
+	/**
+	 * @param returnApprovalDetailsList the returnApprovalDetailsList to set
+	 */
+	public void setReturnApprovalDetailsList(List<ReturnApprovalDetail> returnApprovalDetailsList) {
+		this.returnApprovalDetailsList = returnApprovalDetailsList;
+	}
+
+	public UploadChannel getUploadChannel() {
+		return uploadChannel;
+	}
+
+	public void setUploadChannel(UploadChannel uploadChannel) {
+		this.uploadChannel = uploadChannel;
+	}
+
+	/**
+	 * @return the consistancyCheckJson
+	 */
+	public String getConsistancyCheckJson() {
+		return consistancyCheckJson;
+	}
+
+	/**
+	 * @param consistancyCheckJson the consistancyCheckJson to set
+	 */
+	public void setConsistancyCheckJson(String consistancyCheckJson) {
+		this.consistancyCheckJson = Validations.trimInput(consistancyCheckJson);
+	}
+
+	public String getFileNameType() {
+		return fileNameType;
+	}
+
+	public void setFileNameType(String fileNameType) {
+		this.fileNameType = Validations.trimInput(fileNameType);
+	}
+
+	public String getFileName() {
+		return fileName;
+	}
+
+	public void setFileName(String fileName) {
+		this.fileName = Validations.trimInput(fileName);
+	}
+
+	public Long getFileStatusId() {
+		return fileStatusId;
+	}
+
+	public void setFileStatusId(Long fileStatusId) {
+		this.fileStatusId = fileStatusId;
+	}
+
+	public String getOriginalSupportiveDocName() {
+		return originalSupportiveDocName;
+	}
+
+	public void setOriginalSupportiveDocName(String originalSupportiveDocName) {
+		this.originalSupportiveDocName = Validations.trimInput(originalSupportiveDocName);
+	}
+
+	public String getSupportiveDocName() {
+		return supportiveDocName;
+	}
+
+	public void setSupportiveDocName(String supportiveDocName) {
+		this.supportiveDocName = Validations.trimInput(supportiveDocName);
+	}
+
+	/**
+	 * @return the filingDetailObj
+	 */
+	public Map<String, String> getFilingDetailObj() {
+		return filingDetailObj;
+	}
+
+	/**
+	 * @param filingDetailObj the filingDetailObj to set
+	 */
+	public void setFilingDetailObj(Map<String, String> filingDetailObj) {
+		this.filingDetailObj = filingDetailObj;
+	}
+
+	public Integer getNoOfErrors() {
+		return noOfErrors;
+	}
+
+	public void setNoOfErrors(Integer noOfErrors) {
+		this.noOfErrors = noOfErrors;
+	}
+
+	public Integer getNoOfWarnings() {
+		return noOfWarnings;
+	}
+
+	public void setNoOfWarnings(Integer noOfWarnings) {
+		this.noOfWarnings = noOfWarnings;
+	}
+
+	/*
+	 * public List<EbrRbrFlow> getEbrRbrFlows() { return ebrRbrFlows; }
+	 * 
+	 * public void setEbrRbrFlows(List<EbrRbrFlow> ebrRbrFlows) { this.ebrRbrFlows =
+	 * ebrRbrFlows; }
+	 */
+	
+
+//	public UploadChannel getUploadChannel() {
+//		return uploadChannel;
+//	}
+//
+//	public void setUploadChannel(UploadChannel uploadChannel) {
+//		this.uploadChannel = uploadChannel;
+//	}
+
+}

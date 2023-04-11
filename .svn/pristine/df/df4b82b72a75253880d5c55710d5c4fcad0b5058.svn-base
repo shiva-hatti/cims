@@ -1,0 +1,54 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+
+public class UserRoleEmailInputDto implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 9025693431490868195L;
+	
+	private Long emailAlertId;
+	private Long entityId;
+	private Long auditorId;
+	/**
+	 * @return the emailAlertId
+	 */
+	public Long getEmailAlertId() {
+		return emailAlertId;
+	}
+	/**
+	 * @param emailAlertId the emailAlertId to set
+	 */
+	public void setEmailAlertId(Long emailAlertId) {
+		this.emailAlertId = emailAlertId;
+	}
+	/**
+	 * @return the entityId
+	 */
+	public Long getEntityId() {
+		return entityId;
+	}
+	/**
+	 * @param entityId the entityId to set
+	 */
+	public void setEntityId(Long entityId) {
+		this.entityId = entityId;
+	}
+	/**
+	 * @return the auditorId
+	 */
+	public Long getAuditorId() {
+		return auditorId;
+	}
+	/**
+	 * @param auditorId the auditorId to set
+	 */
+	public void setAuditorId(Long auditorId) {
+		this.auditorId = auditorId;
+	}
+	
+	
+
+}

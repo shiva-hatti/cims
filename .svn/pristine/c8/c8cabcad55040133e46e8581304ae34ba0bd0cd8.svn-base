@@ -1,0 +1,66 @@
+package com.iris.util;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+
+public class LabelPropertyUtil {
+	final static Logger logger = LogManager.getLogger(LabelPropertyUtil.class);
+	private static Properties prop = null;
+	
+	private LabelPropertyUtil() {
+		// TODO Auto-generated constructor stub
+	}
+	
+	public static Properties getLabelPropertyFile() {
+		if(prop!= null) {
+			return prop;
+		}else {
+			prop = new Properties();
+			InputStream  inputStream = LabelPropertyUtil.class.getClassLoader().getResourceAsStream("label.properties");
+				// load a properties file
+			try {
+				prop.load(inputStream);
+			} catch (IOException e) {
+//				e.printStackTrace();
+				logger.error("Exception : ",e);
+			}finally {
+				try {
+					inputStream.close();
+				} catch (IOException e) {
+//					e.printStackTrace();
+					logger.error("Exception : ",e);
+				}
+			}
+			return prop;
+		}
+	}
+	
+	
+	public static String  getKeyValue(String key) {
+		if(prop!= null) {
+			return prop.getProperty(key);
+		}else {
+			prop = new Properties();
+			InputStream  inputStream = LabelPropertyUtil.class.getClassLoader().getResourceAsStream("label.properties");
+			try {
+				prop.load(inputStream);
+				return prop.getProperty(key);
+			} catch (IOException e) {
+				logger.error("Exception : ",e);
+			}finally {
+				try {
+					inputStream.close();
+				} catch (IOException e) {
+					logger.error("Exception : ",e);
+				}
+			}
+			return prop.getProperty(key);
+		}
+	}
+}

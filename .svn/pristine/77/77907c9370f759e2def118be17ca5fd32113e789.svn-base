@@ -1,0 +1,171 @@
+/**
+ * 
+ */
+package com.iris.sdmx.codelist.controller;
+
+import java.io.Serializable;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.iris.dto.UserDto;
+
+/**
+ * @author sajadhav
+ *
+ */
+@JsonInclude(Include.NON_NULL)
+public class CodeListMasterBean implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -881827443261884221L;
+
+	private Long clId;
+
+	private String clCode;
+	
+	private String clLable;
+	
+	private String clVersion;
+	
+	private String clDesc;
+	
+	private Boolean isActive;
+	
+	private UserDto createdBy;
+
+	private List<CodeListValuesBean> codeListValues;
+	
+	private String action;
+	
+
+	/**
+	 * @return the action
+	 */
+	public String getAction() {
+		return action;
+	}
+
+	/**
+	 * @param action the action to set
+	 */
+	public void setAction(String action) {
+		this.action = action;
+	}
+
+	/**
+	 * @return the clId
+	 */
+	public Long getClId() {
+		return clId;
+	}
+
+	/**
+	 * @param clId the clId to set
+	 */
+	public void setClId(Long clId) {
+		this.clId = clId;
+	}
+
+	/**
+	 * @return the clCode
+	 */
+	public String getClCode() {
+		return clCode;
+	}
+
+	/**
+	 * @param clCode the clCode to set
+	 */
+	public void setClCode(String clCode) {
+		this.clCode = clCode;
+	}
+
+	/**
+	 * @return the clLable
+	 */
+	public String getClLable() {
+		return clLable;
+	}
+
+	/**
+	 * @param clLable the clLable to set
+	 */
+	public void setClLable(String clLable) {
+		this.clLable = clLable;
+	}
+
+	/**
+	 * @return the clVersion
+	 */
+	public String getClVersion() {
+		return clVersion;
+	}
+
+	/**
+	 * @param clVersion the clVersion to set
+	 */
+	public void setClVersion(String clVersion) {
+		this.clVersion = clVersion;
+	}
+
+	/**
+	 * @return the clDesc
+	 */
+	public String getClDesc() {
+		return clDesc;
+	}
+
+	/**
+	 * @param clDesc the clDesc to set
+	 */
+	public void setClDesc(String clDesc) {
+		this.clDesc = clDesc;
+	}
+
+	
+	/**
+	 * @return the createdBy
+	 */
+	public UserDto getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(UserDto createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the codeListValues
+	 */
+	public List<CodeListValuesBean> getCodeListValues() {
+		return codeListValues;
+	}
+
+	/**
+	 * @param codeListValues the codeListValues to set
+	 */
+	public void setCodeListValues(List<CodeListValuesBean> codeListValues) {
+		this.codeListValues = codeListValues;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+	
+}

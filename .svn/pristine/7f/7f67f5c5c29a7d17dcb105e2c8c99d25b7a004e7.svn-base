@@ -1,0 +1,67 @@
+/**
+ * 
+ */
+package com.iris.nbfc.repository;
+
+import java.util.Date;
+import java.util.List;
+
+import javax.persistence.LockModeType;
+import javax.transaction.Transactional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.NSDLPanVerif;
+import com.iris.sdmx.ebrvalidation.bean.EbrFileDetails;
+
+/**
+ * @author Siddique
+ *
+ */
+public interface NsdlPanVerificationRepo extends JpaRepository<NSDLPanVerif, Long> {
+
+	@Query(value = " FROM NSDLPanVerif where moduleName =:moduleName and subTaskStatus =:subTaskStatus and status IN :statusList and isActive =1 and nsdlVerifiedOn >= :schedulerLastRunTime")
+	List<NSDLPanVerif> getDataBySchedulerLastRunTime(@Param("moduleName") String moduleName, @Param("subTaskStatus") Boolean subTaskStatus, @Param("schedulerLastRunTime") Date schedulerLastRunTime, @Param("statusList") List<String> statusList);
+
+	@Query(value = " FROM NSDLPanVerif where moduleName =:moduleName and subTaskStatus =:subTaskStatus and status IN :statusList and isActive =1")
+	List<NSDLPanVerif> getDataByWithoutSchedulerLastRunTime(@Param("moduleName") String moduleName, @Param("subTaskStatus") Boolean subTaskStatus, @Param("statusList") List<String> statusList);
+
+	@Query(value = " FROM NSDLPanVerif where status = :status and isActive = '1'")
+	List<NSDLPanVerif> fetchPanVeriData(@Param("status") String status);
+
+	@Query(value = " FROM NSDLPanVerif where status = :status and isActive = '1'")
+	List<NSDLPanVerif> updateRecordsByIds(@Param("status") String status);
+
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
+	@Query(value = " FROM NSDLPanVerif where status = :status and isActive = '1' and subTaskStatus = '0'")
+	List<NSDLPanVerif> fetchPanVeriData(@Param("status") String status, org.springframework.data.domain.Pageable pagebPageable);
+
+	@Transactional
+	@Modifying
+	@Query("update NSDLPanVerif set status = :status where actualPanNumber IN (:actualPanList) ")
+	int updatePanVeriRecordStatus(@Param("actualPanList") List<String> actualPanList, @Param("status") String status);
+
+	@Transactional
+	@Modifying
+	@Query("update NSDLPanVerif set status = :status,nsdlVerifiedOn = :nsdlVeriDate ,nsdlResponse = :nsdlResponse  where actualPanNumber = :actualPan  and status" + " in ('PEND_NSDL_VERIFY','NSDL_VERIF_IN_PROCESS')")
+	int updatePanVeriRecord(@Param("actualPan") String actualPan, @Param("status") String status, @Param("nsdlVeriDate") Date nsdlVeriDate, @Param("nsdlResponse") String nsdlResponse);
+
+	@Transactional
+	@Modifying
+	@Query("update NSDLPanVerif set subTaskStatus = :subTaskStatus where actualPanNumber IN (:actualPanList) ")
+	int updateSubTaskStatus(@Param("actualPanList") List<String> actualPanList, @Param("subTaskStatus") Boolean subTaskStatus);
+
+	@Transactional
+	@Modifying
+	@Query("update NSDLPanVerif set subTaskStatus = 1,nsdlVerifiedOn = :nsdlVeriDate where nsdlPanVerifId IN (:nsdlPanVarifyIdList) ")
+	void updateSubTaskStatus(@Param("nsdlPanVarifyIdList") List<Long> nsdlPanVarifyIdList, @Param("nsdlVeriDate") Date nsdlVeriDate);
+
+	@Transactional
+	@Modifying
+	@Query("update NSDLPanVerif set subTaskStatus = 1 where nsdlPanVerifId = :nsdlPanVerifId ")
+	void updateNSDLSubTask(@Param("nsdlPanVerifId") Long nsdlPanVerifId);
+}

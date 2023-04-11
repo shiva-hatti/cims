@@ -1,0 +1,204 @@
+/**
+ * 
+ */
+package com.iris.controller;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.tomcat.util.http.fileupload.FileUtils;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.iris.caching.ObjectCache;
+import com.iris.dto.DynamicFormBean;
+import com.iris.dto.ReturnCsvInfo;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.WebFormToCsvConversionDto;
+import com.iris.exception.ServiceException;
+import com.iris.model.ReturnTemplate;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.service.impl.ReturnTemplateService;
+import com.iris.util.ResourceUtil;
+import com.iris.util.constant.ErrorCode;
+import com.jsoniter.JsonIterator;
+import com.jsoniter.output.EncodingMode;
+import com.jsoniter.output.JsonStream;
+import com.jsoniter.spi.DecodingMode;
+
+/**
+ * @author Siddique
+ *
+ */
+
+@RestController
+@RequestMapping("/service/webFormToCsvConversionService")
+public class WebformToCsvConversionController {
+	
+	static final Logger logger = LogManager.getLogger(WebformToCsvConversionController.class);
+	
+	@Autowired
+	private ReturnTemplateService returnTemplateService;
+	
+	public static final String SLASH = "/";
+	public static final String CSV_FILE_TEXT = "CSV_FILE";
+	public static final String TXT_EXT = ".txt";
+	public static final String META_INFO_FILE_TEXT = "META_INFO_FILE";
+
+	@PostMapping(value = "/webFormToCsvConversion")
+	public ServiceResponse webFormToCsvConversion(@RequestHeader(name = "JobProcessingId") String jobProcessId,
+			@RequestBody WebFormToCsvConversionDto webFormToCsvConversionDto) throws IOException {
+		
+		logger.info("Request received to conversion web form json to csv layout, job processing id : " + jobProcessId);
+		
+		//Step 1: check if request is valid i.e all the parameters are present
+		
+		Properties prop = ResourceUtil.getResourcePropertyFile();
+		
+		if(ValidRequest(webFormToCsvConversionDto)) {
+			// EC0391 not present in db
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0391.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0391.toString())).build();
+		}
+		
+		ReturnTemplate returnTemplate = returnTemplateService.fetchEntityByReturnTemplateId(webFormToCsvConversionDto.getReturnTemplateId());
+		logger.info("Request received to conversion web form json to csv layout, job processing id : " + jobProcessId +" for return "+webFormToCsvConversionDto.getReturnTemplateId());
+		
+		if(returnTemplate == null) {
+			// set new error codes for return template not present
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0391.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0391.toString())).build();	
+		}
+		
+		String returnCode = returnTemplate.getReturnObj().getReturnCode();
+		
+		// read supporting doc file
+		
+		 InputStream  inputStream = ResourceUtil.class.getClassLoader().getResourceAsStream("csvLayoutSupportingJson.json");
+		 
+		String supportingFileJsonString = getReturnSupportingDoc(inputStream);
+		logger.info("Request received to conversion web form json to csv layout, job processing id : " + jobProcessId +" json String "+supportingFileJsonString);
+		Map<String, Map<String, ReturnCsvInfo>> supportingMap = new HashMap<>();
+		Map<String, ReturnCsvInfo> returnCsvInfo = null;
+		if(StringUtils.isNotBlank(supportingFileJsonString)) {
+			@SuppressWarnings("serial")
+			Type listToken = new TypeToken<Map<String, Map<String, ReturnCsvInfo>>>() {
+				}.getType();
+				supportingMap = new Gson().fromJson(supportingFileJsonString, listToken);
+				if(supportingMap != null) {
+					returnCsvInfo = supportingMap.get(returnCode);
+				}
+		}
+		
+		//QA server
+		String pathToSaveFile = prop.getProperty("filepath.root") + SLASH + prop.getProperty("returnTemplate.upload.path") +SLASH + returnCode + SLASH + CSV_FILE_TEXT + SLASH + returnTemplate.getVersionNumber() + SLASH;
+		
+		File directory = new File(pathToSaveFile);
+		
+		if(!directory.exists()) {
+			FileUtils.forceMkdir(new File(pathToSaveFile));
+		}
+		
+		String absolutePathToSaveFile =  pathToSaveFile + returnCode+"_" + CSV_FILE_TEXT + "_" + returnTemplate.getVersionNumber()+TXT_EXT;
+
+		String pathToSaveMetaInfoFile = pathToSaveFile +  returnCode+"_" + META_INFO_FILE_TEXT + "_" + returnTemplate.getVersionNumber()+TXT_EXT;
+		
+		
+		
+		//local
+//		String absolutePathToSaveFile = "E:/Sidd/Projects/Docs/RBI/business_Validation_Local/"+"/"+returnCode +"/"+ "CSV_FILE" +"/"+returnTemplate.getVersionNumber()+"/csvFile.txt";
+//		
+//		String pathToSaveMetaInfoFile = "E:/Sid/Projects/Docs/RBI/business_Validation_Local/"+"/"+returnCode +"/"+ "CSV_FILE" +"/"+returnTemplate.getVersionNumber()+"/Meta_Info.txt";
+//		
+		
+		
+		
+		 logger.info("Request received to conversion web form json to csv layout, job processing id : " + jobProcessId +" csv file path " +absolutePathToSaveFile);
+		 
+		logger.info("Request received to conversion web form json to csv layout, job processing id : " + jobProcessId +" meta json file path " +pathToSaveMetaInfoFile);
+
+		
+		String webFormJsonString = webFormToCsvConversionDto.getWebFormjson();
+		DynamicFormBean dynamicFormBean;
+		try {
+			dynamicFormBean = new Gson().fromJson(webFormJsonString, DynamicFormBean.class);
+			
+			if(dynamicFormBean == null) {
+				// set new error codes for json object not proper
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+			}
+			
+			try {
+				logger.info("Request received to conversion web form json to csv layout, job processing id : " + jobProcessId +" createNonXbrlCsvFile method calling ");
+
+			DynamicFormToCsvConversion.createNonXbrlCsvFile(dynamicFormBean, returnCode, absolutePathToSaveFile, pathToSaveMetaInfoFile, returnCsvInfo);
+			}catch(ServiceException se) {
+				logger.error("Exception occoured while conversion of web form json to csv layout: ", se);
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+						.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+			}
+			
+			Map<String, String> filePathToSendInResponseMap = new HashMap<>();
+			filePathToSendInResponseMap.put("csvLayOutFilePath", absolutePathToSaveFile);
+			filePathToSendInResponseMap.put("metaInfoFilePath", pathToSaveMetaInfoFile);
+			
+			return new ServiceResponseBuilder().setStatus(true).setResponse(filePathToSendInResponseMap).build();
+		}catch(Exception e) {
+			logger.error("Exception occoured while conversion of web form json to csv layout: ", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+				
+		
+		
+	}
+
+	public static String getReturnSupportingDoc(InputStream inputStream) {
+	
+		JSONParser jsonParser = new JSONParser(); 
+		  String result = StringUtils.EMPTY;
+		  
+		  try (InputStreamReader streamReader =
+                  new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+           BufferedReader reader = new BufferedReader(streamReader))
+		  {
+		  JsonIterator.setMode(DecodingMode.DYNAMIC_MODE_AND_MATCH_FIELD_WITH_HASH);
+		  JsonStream.setMode(EncodingMode.DYNAMIC_MODE); //Read JSON file JSONObject
+		  JSONObject  obj = (JSONObject) jsonParser.parse(reader); 
+		  result   = obj.toString();
+		 System.out.println(result);
+		  return result;
+
+		  }	 catch (Exception e) {
+			  logger.error("Exception occoured in getReturnSupportingDoc(): ", e);
+		  
+		  } 
+		  return null;
+		
+	}
+
+	private boolean ValidRequest(WebFormToCsvConversionDto webFormToCsvConversionDto) {
+		if(StringUtils.isBlank(webFormToCsvConversionDto.getWebFormjson()) || webFormToCsvConversionDto.getReturnTemplateId() == null) {
+			return true;
+		}
+		return false;
+	}
+}

@@ -1,0 +1,108 @@
+package com.iris.model;
+
+import java.io.Serializable;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+/**
+ * @author psheke
+ * @date 03/12/2020
+ */
+public class Auditor implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -4898564648811312329L;
+
+	private static Logger LOGGER = LogManager.getLogger(Auditor.class);
+
+	private String auditorName;
+	private String auditorUserName;
+	private Long auditorUserId;
+	private String auditorICAIMemNumber;
+	private String auditFirmName;
+	private String auditorIciaMap;
+
+	/**
+	 * @return the auditorName
+	 */
+	public String getAuditorName() {
+		return auditorName;
+	}
+
+	/**
+	 * @param auditorName the auditorName to set
+	 */
+	public void setAuditorName(String auditorName) {
+		this.auditorName = auditorName;
+	}
+
+	/**
+	 * @return the auditorUserId
+	 */
+	public Long getAuditorUserId() {
+		return auditorUserId;
+	}
+
+	/**
+	 * @param auditorUserId the auditorUserId to set
+	 */
+	public void setAuditorUserId(Long auditorUserId) {
+		this.auditorUserId = auditorUserId;
+	}
+
+	/**
+	 * @return the auditFirmName
+	 */
+	public String getAuditFirmName() {
+		return auditFirmName;
+	}
+
+	/**
+	 * @param auditFirmName the auditFirmName to set
+	 */
+	public void setAuditFirmName(String auditFirmName) {
+		this.auditFirmName = auditFirmName;
+	}
+
+	/**
+	 * @return the auditorICAIMemNumber
+	 */
+	public String getAuditorICAIMemNumber() {
+
+		return auditorICAIMemNumber;
+
+	}
+
+	/**
+	 * @param auditorICAIMemNumber the auditorICAIMemNumber to set
+	 */
+	public void setAuditorICAIMemNumber(String auditorICAIMemNumber) {
+
+		this.auditorICAIMemNumber = auditorICAIMemNumber;
+
+	}
+
+	/**
+	 * @return the auditorIciaMap
+	 */
+	public String getAuditorIciaMap() {
+		return auditorIciaMap;
+	}
+
+	/**
+	 * @param auditorIciaMap the auditorIciaMap to set
+	 */
+	public void setAuditorIciaMap(String auditorIciaMap) {
+		this.auditorIciaMap = auditorIciaMap;
+	}
+
+	public String getAuditorUserName() {
+		return auditorUserName;
+	}
+
+	public void setAuditorUserName(String auditorUserName) {
+		this.auditorUserName = auditorUserName;
+	}
+}

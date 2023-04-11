@@ -1,0 +1,111 @@
+/**
+ * 
+ */
+package com.iris.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.exception.ServiceException;
+import com.iris.model.GridFormKeyLabel;
+import com.iris.repository.GridFormKeyLabelRepo;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.MethodConstants;
+
+/**
+ * @author sajadhav
+ *
+ */
+@Service
+public class GridFormKeyLabelService implements GenericService<GridFormKeyLabel, Long>{
+
+	@Autowired
+	private GridFormKeyLabelRepo gridFormKeyLabelRepo;
+	
+	@Override
+	public GridFormKeyLabel add(GridFormKeyLabel entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean update(GridFormKeyLabel entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public List<GridFormKeyLabel> getDataByIds(Long[] ids) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public GridFormKeyLabel getDataById(Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<GridFormKeyLabel> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+		try {
+			List<String> labelKeys  = null;
+			List<String> languageCode  = null;
+			
+			for (String columnName : columnValueMap.keySet()) {
+				if(columnValueMap.get(columnName)!= null && columnValueMap.get(columnName).size() > 0) {
+					if(columnName.equalsIgnoreCase(ColumnConstants.LABEL_KEY.getConstantVal())) {
+						labelKeys = columnValueMap.get(columnName);
+					}else if(columnName.equalsIgnoreCase(ColumnConstants.LANGUAGE_CODE.getConstantVal())) {
+						languageCode = columnValueMap.get(columnName);
+					}
+				}
+			}
+			if(methodName.equalsIgnoreCase(MethodConstants.GET_LABEL_DATA_BY_KEY_AND_LANG.getConstantVal())) {
+				return gridFormKeyLabelRepo.getDataByLabelKeyAndLangCode(labelKeys, languageCode);
+			}
+			return null;
+		}catch(Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<GridFormKeyLabel> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName)
+			throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<GridFormKeyLabel> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<GridFormKeyLabel> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<GridFormKeyLabel> getAllDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void deleteData(GridFormKeyLabel bean) throws ServiceException {
+		// TODO Auto-generated method stub
+		
+	}
+
+}

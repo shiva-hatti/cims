@@ -1,0 +1,136 @@
+package com.iris.service.impl;
+
+import java.util.Collections;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.exception.ServiceException;
+import com.iris.model.FilingCalendar;
+import com.iris.model.Frequency;
+import com.iris.model.ReturnPropertyValue;
+import com.iris.repository.FilingCalendarRepository;
+import com.iris.repository.FrequencyRepository;
+import com.iris.repository.ReturnPropertyValueRepository;
+import com.iris.util.constant.ErrorConstants;
+
+@Service
+public class FilingCalendarService {
+	
+	@Autowired
+	private FrequencyRepository frequencyRepo;
+	
+	@Autowired
+	private FilingCalendarRepository filingCalendarRepo;
+	
+	@Autowired
+	private ReturnPropertyValueRepository returnPropertyValueRepo;
+	
+	public List<Frequency> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		try {
+			if(bean.equals(Frequency.class) && id == null) {
+				return frequencyRepo.fetchAllActiveFrequency();
+			}
+		}catch(Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+		return Collections.emptyList();
+	}
+
+	public boolean saveFilingCal(FilingCalendar filingCalendar) {
+		try {
+			filingCalendarRepo.save(filingCalendar);
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+		return true;
+	}
+
+	public List<FilingCalendar> getFilingCalendarData(FilingCalendar filingCalendar) {
+		try {
+			if(filingCalendar.getReturnPropertyVal().getReturnProprtyValId() == null) 
+				return filingCalendarRepo.getFillingCalendarInfoWithOutPropVal(filingCalendar.getReturnFrequencyId(),filingCalendar.getReturnId());
+			else 
+				return filingCalendarRepo.getFillingCalendarInfo(filingCalendar.getReturnFrequencyId(),filingCalendar.getReturnId(),filingCalendar.getReturnPropertyVal().getReturnProprtyValId());
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	public FilingCalendar getViewCalInfo(Long formFreqId, Long returnIdAjax, Integer propertyId) {
+		try {
+			if(propertyId == null) {
+				return filingCalendarRepo.viewFilingDataWithoutRetPropVal(formFreqId,returnIdAjax);	
+			}else {
+				return filingCalendarRepo.viewFilingData(formFreqId,returnIdAjax,propertyId);
+			}
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	public Frequency getFrequency(Long returnFrequencyId) {
+		try {
+			return frequencyRepo.fetchName(returnFrequencyId);
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+		
+	}
+
+	public Frequency getFrequencyName(Long formFreqId) {
+		try {
+			return frequencyRepo.getFreqName(formFreqId);
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	public FilingCalendar checkFilingInfo(Long returnId, Integer returnProperty) {
+		try {
+			return filingCalendarRepo.checkFilingInfo(returnId,returnProperty);
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	public boolean updateFilingCal(FilingCalendar filingCalendar) {
+		try {
+			if(filingCalendar.getUpdateFromReturn() != null && filingCalendar.getUpdateFromReturn()) {
+				filingCalendarRepo.updateFilingCalenderFromReturn(filingCalendar.getReturnId());
+			} else if(filingCalendar.getReturnPropertyVal() == null) {
+				filingCalendarRepo.updateFilingInfoWithoutPropVal(filingCalendar.getReturnFrequencyId(),filingCalendar.getReturnId(),filingCalendar.getEmailNotificationDays(),filingCalendar.getFilingWindowExtensionStart(),filingCalendar.getIncludeHoliday(),filingCalendar.getIncludeWeekend(),filingCalendar.getSendMail(),filingCalendar.getLastModifiedOn(),filingCalendar.getUserModify().getUserId(),true,filingCalendar.getGraceDays(),filingCalendar.getIsApplicable());
+			} else {
+				filingCalendarRepo.updateFilingInfo(filingCalendar.getReturnFrequencyId(),filingCalendar.getReturnId(),filingCalendar.getReturnPropertyVal().getReturnProprtyValId(),filingCalendar.getEmailNotificationDays(),filingCalendar.getFilingWindowExtensionStart(),filingCalendar.getIncludeHoliday(),filingCalendar.getIncludeWeekend(),filingCalendar.getSendMail(),filingCalendar.getLastModifiedOn(),filingCalendar.getUserModify().getUserId(),true,filingCalendar.getGraceDays(),filingCalendar.getIsApplicable());
+			}
+			return true;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	public ReturnPropertyValue getReturnPropVal(Integer propertyId) {
+		try {
+			return returnPropertyValueRepo.getPropValInfo(propertyId);
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	public FilingCalendar checkFilingInfoWithoutPropVal(Long returnId) {
+		try {
+			return filingCalendarRepo.checkFilingInfoWithoutRetPropVal(returnId);
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	public List<FilingCalendar> getFilingCalDataByReturnId(Long returnId) {
+		try {
+			return filingCalendarRepo.getFilingCalDataByReturnId(returnId);
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+}

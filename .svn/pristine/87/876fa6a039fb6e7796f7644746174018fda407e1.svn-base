@@ -1,0 +1,44 @@
+package com.iris.model;
+
+import java.io.Serializable;
+
+public class SubsidiaryAssociateGroupDto implements Serializable {
+
+	private static final long serialVersionUID = 9133294039969956125L;
+	private String rowNo;
+	private String srNo;
+	private String compName;
+	private String compPan;
+	private String reltionWithNbfc;
+	
+	private String getRowNo() {
+		return rowNo;
+	}
+	public void setRowNo(String rowNo) {
+		this.rowNo = rowNo;
+	}
+	public String getSrNo() {
+		return srNo;
+	}
+	public void setSrNo(String srNo) {
+		this.srNo = srNo;
+	}
+	public String getCompName() {
+		return compName;
+	}
+	public void setCompName(String compName) {
+		this.compName = compName;
+	}
+	public String getCompPan() {
+		return compPan;
+	}
+	public void setCompPan(String compPan) {
+		this.compPan = compPan;
+	}
+	public String getReltionWithNbfc() {
+		return reltionWithNbfc;
+	}
+	public void setReltionWithNbfc(String reltionWithNbfc) {
+		this.reltionWithNbfc = reltionWithNbfc;
+	}
+}

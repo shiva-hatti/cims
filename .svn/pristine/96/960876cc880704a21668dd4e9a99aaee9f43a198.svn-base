@@ -1,0 +1,179 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "TBL_USER_ROLE_RETURN_MAPPING")
+public class UserRoleReturnMapping implements Serializable {
+
+	private static final long serialVersionUID = -7056562698740303796L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "ROLE_RETURN_ID")
+	private Long roleReturnId;
+
+	@ManyToOne
+	@JoinColumn(name = "RETURN_ID_FK")
+	private Return returnIdFk;
+
+	@ManyToOne
+	@JoinColumn(name = "ROLE_ID_FK")
+	private UserRole roleIdFk;
+
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "LAST_MODIFIED_BY")
+	private UserMaster userModify;
+
+	@Column(name = "LAST_MODIFIED_ON")
+	private Date lastModifiedOn;
+
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "CREATED_BY")
+	private UserMaster createdBy;
+
+	public UserRoleReturnMapping() {
+
+	}
+
+	public UserRoleReturnMapping(Long userRoleId, Long returnIdFk, String returnCode, boolean isActive) {
+		this.roleIdFk = new UserRole();
+		this.roleIdFk.setUserRoleId(userRoleId);
+
+		this.returnIdFk = new Return();
+		this.returnIdFk.setReturnId(returnIdFk);
+		this.returnIdFk.setReturnCode(returnCode);
+
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the roleReturnId
+	 */
+	public Long getRoleReturnId() {
+		return roleReturnId;
+	}
+
+	/**
+	 * @param roleReturnId the roleReturnId to set
+	 */
+	public void setRoleReturnId(Long roleReturnId) {
+		this.roleReturnId = roleReturnId;
+	}
+
+	/**
+	 * @return the returnIdFk
+	 */
+	public Return getReturnIdFk() {
+		return returnIdFk;
+	}
+
+	/**
+	 * @param returnIdFk the returnIdFk to set
+	 */
+	public void setReturnIdFk(Return returnIdFk) {
+		this.returnIdFk = returnIdFk;
+	}
+
+	/**
+	 * @return the roleIdFk
+	 */
+	public UserRole getRoleIdFk() {
+		return roleIdFk;
+	}
+
+	/**
+	 * @param roleIdFk the roleIdFk to set
+	 */
+	public void setRoleIdFk(UserRole roleIdFk) {
+		this.roleIdFk = roleIdFk;
+	}
+
+	/**
+	 * @return the userModify
+	 */
+	public UserMaster getUserModify() {
+		return userModify;
+	}
+
+	/**
+	 * @param userModify the userModify to set
+	 */
+	public void setUserModify(UserMaster userModify) {
+		this.userModify = userModify;
+	}
+
+	/**
+	 * @return the lastModifiedOn
+	 */
+	public Date getLastModifiedOn() {
+		return lastModifiedOn;
+	}
+
+	/**
+	 * @param lastModifiedOn the lastModifiedOn to set
+	 */
+	public void setLastModifiedOn(Date lastModifiedOn) {
+		this.lastModifiedOn = lastModifiedOn;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+}

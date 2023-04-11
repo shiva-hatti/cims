@@ -1,0 +1,71 @@
+/**
+ * 
+ */
+package com.iris.sdmx.upload.bean;
+
+import java.io.Serializable;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+/**
+ * @author sajadhav
+ *
+ */
+@JsonInclude(Include.NON_DEFAULT)
+public class SDMXDocument implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3607535786351233300L;
+
+	private String reportingPeriodEndDate;
+	
+	private String frequency;
+	
+	private String reportType;
+
+	private List<DataSet> dataSets;
+	
+	public List<DataSet> getDataSets() {
+		return dataSets;
+	}
+
+	public void setDataSets(List<DataSet> dataSets) {
+		this.dataSets = dataSets;
+	}
+
+	public String getReportingPeriodEndDate() {
+		return reportingPeriodEndDate;
+	}
+
+	public void setReportingPeriodEndDate(String reportingPeriodEndDate) {
+		this.reportingPeriodEndDate = reportingPeriodEndDate;
+	}
+
+	public String getFrequency() {
+		return frequency;
+	}
+
+	public void setFrequency(String frequency) {
+		this.frequency = frequency;
+	}
+
+	public String getReportType() {
+		return reportType;
+	}
+
+	public void setReportType(String reportType) {
+		this.reportType = reportType;
+	}
+
+	@Override
+	public String toString() {
+		return "SDMXDocument [reportingPeriodEndDate=" + reportingPeriodEndDate + ", frequency=" + frequency
+				+ ", reportType=" + reportType + ", dataSets=" + dataSets + "]";
+	}
+
+	
+}

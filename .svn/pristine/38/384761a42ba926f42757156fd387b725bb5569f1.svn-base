@@ -1,0 +1,65 @@
+/**
+ * 
+ */
+package com.iris.sdmx.upload.helper;
+
+import java.io.Serializable;
+
+import org.springframework.beans.BeanUtils;
+
+import com.iris.dto.FileDetailsBeanLimitedField;
+import com.iris.model.FileDetails;
+import com.iris.model.FilingStatus;
+import com.iris.model.UploadChannel;
+import com.iris.model.UserMaster;
+
+/**
+ * @author apagaria
+ *
+ */
+public class EbrFileAuditHelper implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5404975705721983289L;
+
+	/**
+	 * @param fileDetails
+	 * @param ebrFileAuditBean
+	 */
+	public static void convertEbrFileAuditEntityToBean(FileDetails fileDetails,
+			FileDetailsBeanLimitedField fileDetailsBeanLimitedField) {
+		// Copy same properties
+		BeanUtils.copyProperties(fileDetails, fileDetailsBeanLimitedField);
+
+		// UploadChannel
+		if (fileDetails.getUploadChannelIdFk() != null) {
+			UploadChannel uploadChannel = fileDetails.getUploadChannelIdFk();
+			fileDetailsBeanLimitedField.setUploadChannelId(uploadChannel.getUploadChannelId());
+			fileDetailsBeanLimitedField.setUploadChannelDesc(uploadChannel.getUploadChannelDesc());
+		}
+		
+		
+
+		// Frequency
+		if (fileDetails.getFilingStatus() != null) {
+			FilingStatus filingStatus  = fileDetails.getFilingStatus();
+			fileDetailsBeanLimitedField.setFilingStatusId(filingStatus.getFilingStatusId());
+			fileDetailsBeanLimitedField.setStatus(filingStatus.getStatus());
+		}
+
+		// Entity Name
+		if (fileDetails.getEntityCode() != null) {
+			fileDetailsBeanLimitedField.setEntityCode(fileDetails.getEntityCode());
+		}
+
+		// User
+		if (fileDetails.getUserMaster() != null) {
+			UserMaster userMaster = fileDetails.getUserMaster();
+			fileDetailsBeanLimitedField.setUserId(userMaster.getUserId());
+			fileDetailsBeanLimitedField.setUserName(userMaster.getUserName());
+			fileDetailsBeanLimitedField.setRoleId(userMaster.getRoleType().getRoleTypeId());
+		}
+	}
+}

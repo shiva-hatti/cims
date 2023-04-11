@@ -1,0 +1,82 @@
+/**
+ * 
+ */
+package com.iris.sdmx.exceltohtml.bean;
+
+import java.io.Serializable;
+
+/**
+ * @author apagaria
+ *
+ */
+public class ProcessUploadInputBean implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -1264243757740796633L;
+
+	private String excelFilePath;
+
+	private String htmlFilePath;
+
+	private String fileName;
+	
+	private String returnCode;
+
+	/**
+	 * @return the excelFilePath
+	 */
+	public String getExcelFilePath() {
+		return excelFilePath;
+	}
+
+	/**
+	 * @param excelFilePath the excelFilePath to set
+	 */
+	public void setExcelFilePath(String excelFilePath) {
+		this.excelFilePath = excelFilePath;
+	}
+
+	/**
+	 * @return the htmlFilePath
+	 */
+	public String getHtmlFilePath() {
+		return htmlFilePath;
+	}
+
+	/**
+	 * @param htmlFilePath the htmlFilePath to set
+	 */
+	public void setHtmlFilePath(String htmlFilePath) {
+		this.htmlFilePath = htmlFilePath;
+	}
+
+	/**
+	 * @return the fileName
+	 */
+	public String getFileName() {
+		return fileName;
+	}
+
+	/**
+	 * @param fileName the fileName to set
+	 */
+	public void setFileName(String fileName) {
+		this.fileName = fileName;
+	}
+
+	/**
+	 * @return the returnCode
+	 */
+	public String getReturnCode() {
+		return returnCode;
+	}
+
+	/**
+	 * @param returnCode the returnCode to set
+	 */
+	public void setReturnCode(String returnCode) {
+		this.returnCode = returnCode;
+	}
+}

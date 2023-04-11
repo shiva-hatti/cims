@@ -1,0 +1,126 @@
+/**
+ * 
+ */
+package com.iris.sdmx.status.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.sdmx.status.bean.SdmxActivityDetailLogRequest;
+import com.iris.sdmx.status.bean.SdmxFileActivityLogBean;
+import com.iris.sdmx.status.service.SdmxFileActivityLogService;
+import com.iris.sdmx.status.validator.SdmxActivityDetailLogValidator;
+import com.iris.sdmx.util.SDMXConstants;
+import com.iris.util.constant.ErrorCode;
+
+/**
+ * @author apagaria
+ *
+ */
+@Controller
+@RestController
+@RequestMapping(value = "/service/sdmx/fileActivityDetailLog")
+public class SdmxFileActivityDetailLogController {
+
+	private static final Logger LOGGER = LogManager.getLogger(SdmxFileActivityDetailLogController.class);
+
+	@Autowired
+	private SdmxFileActivityLogService activityDetailLogService;
+
+	@Autowired
+	private SdmxActivityDetailLogValidator sdmxActivityDetailLogValidator;
+
+	//	@PostMapping(value = "/user/{userId}/role/{roleId}/lang/{langCode}/add")
+	//	public ServiceResponse addSDMXActivityLogInfoList(@RequestHeader(name = "JobProcessingId") String jobProcessId,
+	//			@PathVariable("userId") Long userId, @PathVariable(name = "roleId") Long roleId,
+	//			@PathVariable("langCode") String langCode,
+	//			@RequestBody List<SdmxActivityDetailLogRequest> sdmxActivityDetailLogRequestList) {
+	//		LOGGER.info("START - add Sdmx Activity Detail Log record request received with Job Processing ID : "
+	//				+ jobProcessId);
+	//		ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+	//		serviceResponseBuilder.setStatus(false);
+	//		try {
+	//			// Validation START
+	//			LOGGER.info("Validation start for updating status of sdmx element audit records with job processing id "
+	//					+ jobProcessId);
+	//			//sdmxActivityDetailLogValidator.validateSaveSdmxActivityDetailLogRequest(jobProcessId, userId);
+	//			LOGGER.info("Validation end for updating status of sdmx element audit records with job processing id "
+	//					+ jobProcessId);
+	//
+	//			LOGGER.info(" Start saving Sdmx activity log record  with job processing id " + jobProcessId);
+	//			List<SdmxFileActivityLogBean> sdmxActivityDetailLogRes = new ArrayList<>();
+	//			for(SdmxActivityDetailLogRequest sdmxActivityDetailLogRequest:sdmxActivityDetailLogRequestList) {
+	//			 try {
+	//				SdmxFileActivityLogBean sdmxActivityDetailLogBean = activityDetailLogService
+	//						.saveActivityDetailLog(sdmxActivityDetailLogRequest, jobProcessId, userId);
+	//				sdmxActivityDetailLogRes.add(sdmxActivityDetailLogBean);
+	//			 } catch(Exception e) {
+	//				 LOGGER.info("Error Occur while saving  Sdmx activity log record " + jobProcessId+" , FileDetails Id : "+sdmxActivityDetailLogRequest.getFileDetailId());
+	//			 }
+	//			 LOGGER.info("Sdmx activity log record save success full  with job processing id " + jobProcessId+" , FileDetails Id : "+sdmxActivityDetailLogRequest.getFileDetailId());
+	//			}
+	//			//LOGGER.info("Sdmx activity log record save success full  with job processing id " + jobProcessId);
+	//			serviceResponseBuilder.setStatus(true);
+	//			serviceResponseBuilder.setStatusCode(SDMXConstants.SUCCESS_CODE);
+	//			serviceResponseBuilder.setStatusMessage(SDMXConstants.SUCCESS_MESSAGE);
+	//			serviceResponseBuilder.setResponse(sdmxActivityDetailLogRes);
+	//		}catch (Exception e) {
+	//			LOGGER.error("Exception occured while add Sdmx Activity Detail Log record for job processing Id : "
+	//					+ jobProcessId + "", e);
+	//			serviceResponseBuilder.setStatusCode(ErrorCode.EC0033.toString());
+	//			serviceResponseBuilder.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString()));
+	//		}
+	//		LOGGER.info(
+	//				"END - add Sdmx Activity Detail Log record request received with Job Processing ID : " + jobProcessId);
+	//		return serviceResponseBuilder.build();
+	//	}
+
+	@PostMapping(value = "/addList")
+	public ServiceResponse addSDMXActivityLogInfo(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody List<SdmxActivityDetailLogRequest> sdmxActivityDetailLogRequestList) {
+		LOGGER.info("START - add Sdmx Activity Detail Log record request received with Job Processing ID : " + jobProcessId);
+		ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+		serviceResponseBuilder.setStatus(false);
+		try {
+			// Validation START
+			LOGGER.info("Validation start for updating status of sdmx element audit records with job processing id " + jobProcessId);
+			//			sdmxActivityDetailLogValidator.validateSaveSdmxActivityDetailLogRequest(jobProcessId, userId);
+			LOGGER.info("Validation end for updating status of sdmx element audit records with job processing id " + jobProcessId);
+
+			LOGGER.info(" Start saving Sdmx activity log record  with job processing id " + jobProcessId);
+			List<SdmxFileActivityLogBean> sdmxActivityDetailLogRes = new ArrayList<>();
+			try {
+				List<SdmxFileActivityLogBean> sdmxActivityDetailLogBeanList = activityDetailLogService.saveActivityDetailLogList(sdmxActivityDetailLogRequestList, jobProcessId);
+				sdmxActivityDetailLogRes.addAll(sdmxActivityDetailLogBeanList);
+			} catch (Exception e) {
+				LOGGER.info("Error Occur while saving  Sdmx activity log record " + jobProcessId);
+			}
+			LOGGER.info("Sdmx activity log record save success full  with job processing id " + jobProcessId);
+
+			//LOGGER.info("Sdmx activity log record save success full  with job processing id " + jobProcessId);
+			serviceResponseBuilder.setStatus(true);
+			serviceResponseBuilder.setStatusCode(SDMXConstants.SUCCESS_CODE);
+			serviceResponseBuilder.setStatusMessage(SDMXConstants.SUCCESS_MESSAGE);
+			serviceResponseBuilder.setResponse(sdmxActivityDetailLogRes);
+		} catch (Exception e) {
+			LOGGER.error("Exception occured while add Sdmx Activity Detail Log record for job processing Id : " + jobProcessId + "", e);
+			serviceResponseBuilder.setStatusCode(ErrorCode.EC0033.toString());
+			serviceResponseBuilder.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString()));
+		}
+		LOGGER.info("END - add Sdmx Activity Detail Log record request received with Job Processing ID : " + jobProcessId);
+		return serviceResponseBuilder.build();
+	}
+}

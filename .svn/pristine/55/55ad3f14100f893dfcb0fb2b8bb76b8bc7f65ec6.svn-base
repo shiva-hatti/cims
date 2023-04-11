@@ -1,0 +1,361 @@
+/**
+ * 
+ */
+package com.iris.sdmx.elementdimensionmapping.controller;
+
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.exception.ApplicationException;
+import com.iris.model.RoleType;
+import com.iris.model.UserMaster;
+import com.iris.repository.UserRoleRepo;
+import com.iris.sdmx.element.bean.SdmxElementExistBean;
+import com.iris.sdmx.element.validator.SdmxElementValidator;
+import com.iris.sdmx.elementdimensionmapping.bean.ElementDimensionBean;
+import com.iris.sdmx.elementdimensionmapping.bean.ElementDimensionCodeListBean;
+import com.iris.sdmx.elementdimensionmapping.bean.ElementDimensionCodeListValueBean;
+import com.iris.sdmx.elementdimensionmapping.entity.ElementDimension;
+import com.iris.sdmx.elementdimensionmapping.service.ElementDimensionService;
+import com.iris.service.GenericService;
+import com.iris.util.UtilMaster;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.GeneralConstants;
+
+/**
+ * @author sajadhav
+ *
+ */
+@RestController
+@RequestMapping(value = "/service/elementDimensionMapp")
+public class ElementDimensionMappController {
+
+	private static final Logger LOGGER = LogManager.getLogger(ElementDimensionMappController.class);
+
+	@Autowired
+	private ElementDimensionService elementDimensionService;
+
+	@Autowired
+	private GenericService<UserMaster, Long> userMasterService;
+
+	@Autowired
+	private GenericService<Attachment, Long> attachmentService;
+	
+	@Autowired
+	private SdmxElementValidator sdmxElementValidator;
+	
+	@Autowired
+	private UserRoleRepo userRoleRepo;
+
+	@GetMapping(value = "/getElementDimensionMapping/{userId}/{roleId}/{langCode}")
+	public ServiceResponse getElementdimensionMappingData(@RequestHeader(name = "JobProcessingId") String jobProcessId, @PathVariable("userId") Long userId, 
+			@PathVariable("roleId") Long roleId, @PathVariable("langCode") String langCode) {
+		LOGGER.info("Request received to get element dimensionapping for jpb processing id :" + jobProcessId);
+		
+		try {
+			validateInputRequestToFetchElementDimensionData(jobProcessId, userId, roleId);
+			
+			UserMaster userMaster = userMasterService.getDataById(userId);
+			if(userMaster == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			} else if(userMaster.getRoleType() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			RoleType roleType = userMaster.getRoleType();
+			
+			if(GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().equals(roleType.getRoleTypeId())) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0613.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0613.toString())).build();
+			}
+			
+			List<ElementDimension> elementDimensionMasterList = elementDimensionService.getActiveDataFor(null,null);
+			return new ServiceResponseBuilder().setStatus(true).setResponse(elementDimensionService.prepareElementDimensionMasterResponseList(elementDimensionMasterList)).build();
+		}catch(ApplicationException e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(e.getErrorCode()).setStatusMessage(ObjectCache.getErrorCodeKey(e.getErrorCode())).build();
+		}catch(Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+	
+	
+	@GetMapping(value = "/getElementDimensionMappingWithCodeList/user/{userId}/element/{elementId}")
+	public ServiceResponse getElementdimensionMappingWithCodeList(
+			@RequestHeader(name = "JobProcessingId") String jobProcessId, @PathVariable("userId") Long userId,
+			@PathVariable("elementId") Long elementId) {
+		try {
+			List<ElementDimensionCodeListBean> elementDimensionCodeListBeanList = elementDimensionService
+					.findByElement(elementId);
+
+			return new ServiceResponseBuilder().setStatus(true)
+					.setStatusMessage(ErrorConstants.RECORD_SAVED_SUCCESSFULLY.getErrorMessage())
+					.setResponse(elementDimensionCodeListBeanList).build();
+		} /*
+			 * catch (ApplicationException e) {
+			 * LOGGER.error("Exception occured for job processing Id : " + jobProcessId +
+			 * "", e); return new
+			 * ServiceResponseBuilder().setStatus(false).setStatusCode(e.getErrorCode())
+			 * .setStatusMessage(ObjectCache.getErrorCodeKey(e.getErrorCode())).build(); }
+			 */ catch (Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+		}
+		return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+				.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+	}
+	
+	@GetMapping(value = "/getElementDimensionMappingWithCodeListValue/user/{userId}/element/{elementId}")
+	public ServiceResponse getElementdimensionMappingWithCodeListValue(
+			@RequestHeader(name = "JobProcessingId") String jobProcessId, @PathVariable("userId") Long userId,
+			@PathVariable("elementId") Long elementId) {
+		try {
+			List<ElementDimensionCodeListValueBean> elementDimensionCodeListBeanList = elementDimensionService
+					.findByElementCodeListValue(elementId);
+
+			return new ServiceResponseBuilder().setStatus(true)
+					.setStatusMessage(ErrorConstants.RECORD_SAVED_SUCCESSFULLY.getErrorMessage())
+					.setResponse(elementDimensionCodeListBeanList).build();
+		} /*
+			 * catch (ApplicationException e) {
+			 * LOGGER.error("Exception occured for job processing Id : " + jobProcessId +
+			 * "", e); return new
+			 * ServiceResponseBuilder().setStatus(false).setStatusCode(e.getErrorCode())
+			 * .setStatusMessage(ObjectCache.getErrorCodeKey(e.getErrorCode())).build(); }
+			 */ catch (Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+		}
+		return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString())
+				.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+	}
+
+
+	@PostMapping(value = "/addElementDimensionMappingData")
+	public ServiceResponse addElementDimensionMappingData(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody ElementDimensionBean elementDimensionBean) {
+		LOGGER.info("Request received to get element dimensionapping for jpb processing id :" + jobProcessId);
+		
+		try {
+			validateInputRequestToAddElementDimensionData(jobProcessId, elementDimensionBean);
+			boolean isApprovalRequired = false;
+			UserMaster userMaster = userMasterService.getDataById(elementDimensionBean.getUserId());
+			if(userMaster == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			} else if(userMaster.getRoleType() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			RoleType roleType = userMaster.getRoleType();
+			
+			if(GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().equals(roleType.getRoleTypeId())) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0613.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0613.toString())).build();
+			}
+			
+			int isDeptAdmin =  Integer.parseInt(userRoleRepo.findByUserRoleIdAndIsActiveTrue(elementDimensionBean.getRoleId()).getDeptAdmin());
+			
+			if(isDeptAdmin == 1) {
+				if(!userMaster.getDepartmentIdFk().getIsMaster().equals(Boolean.TRUE)) {
+					isApprovalRequired = true;
+				}
+			} else {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode("ERROR").setStatusMessage("User is not authorized to perform this action").build();			
+			}
+
+			if(elementDimensionService.addElementDimensionMapData(elementDimensionBean, isApprovalRequired)) {
+				return new ServiceResponseBuilder().setStatus(true).setStatusMessage(ErrorConstants.RECORD_SAVED_SUCCESSFULLY.getErrorMessage()).build();
+			}
+		}catch(ApplicationException e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(e.getErrorCode()).setStatusMessage(ObjectCache.getErrorCodeKey(e.getErrorCode())).build();
+		}catch(Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+		}
+		return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+	}
+	
+	@PutMapping(value = "/editElementDimensionMappingData")
+	public ServiceResponse editElementDimensionMappingData(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody ElementDimensionBean elementDimensionBean) {
+		LOGGER.info("Request received to get element dimensionapping for jpb processing id :" + jobProcessId);
+		
+		try {
+			validateInputRequestToEditElementDimensionData(jobProcessId, elementDimensionBean);
+			boolean isApprovalRequired = false;
+			UserMaster userMaster = userMasterService.getDataById(elementDimensionBean.getUserId());
+			if(userMaster == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			} else if(userMaster.getRoleType() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			RoleType roleType = userMaster.getRoleType();
+			
+			if(GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().equals(roleType.getRoleTypeId())) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0613.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0613.toString())).build();
+			}
+			
+			int isDeptAdmin =  Integer.parseInt(userRoleRepo.findByUserRoleIdAndIsActiveTrue(elementDimensionBean.getRoleId()).getDeptAdmin());
+			
+			if(isDeptAdmin != 1) {
+					isApprovalRequired = true;
+			} 
+
+			if(elementDimensionService.editElementDimensionData(elementDimensionBean, isApprovalRequired)) {
+				return new ServiceResponseBuilder().setStatus(true).setStatusMessage(ErrorConstants.RECORD_SAVED_SUCCESSFULLY.getErrorMessage()).build();
+			}
+		}catch(ApplicationException e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(e.getErrorCode()).setStatusMessage(ObjectCache.getErrorCodeKey(e.getErrorCode())).build();
+		}catch(Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+		}
+		return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+	}
+	
+	@DeleteMapping(value = "/deleteElementDimensionMappingData/{userId}/{roleId}/{langCode}/{elementCode}/{elementVersion}")
+	public ServiceResponse deleteElementDimensionMappingData(@RequestHeader(name = "JobProcessingId") String jobProcessId, 
+															@PathVariable(name = "elementCode") String elementCode, 
+															@PathVariable(name = "elementVersion") String elementVersion,
+															@PathVariable(name = "userId") Long userId,
+															@PathVariable(name = "roleId") Long roleId,
+															@PathVariable("langCode") String langCode) {
+		LOGGER.info("Request received to get element dimensionapping for jpb processing id :" + jobProcessId);
+		
+		try {
+			validateInputRequestToDeleteElementDimensionData(jobProcessId, elementCode, elementVersion, userId, roleId);
+			boolean isApprovalRequired = false;
+			UserMaster userMaster = userMasterService.getDataById(userId);
+			if(userMaster == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			} else if(userMaster.getRoleType() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0481.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString())).build();
+			}
+			RoleType roleType = userMaster.getRoleType();
+			
+			if(GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().equals(roleType.getRoleTypeId())) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0613.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0613.toString())).build();
+			}
+			
+			int isDeptAdmin =  Integer.parseInt(userRoleRepo.findByUserRoleIdAndIsActiveTrue(roleId).getDeptAdmin());
+			
+			if(isDeptAdmin != 1) {
+					isApprovalRequired = true;
+			} 
+
+			if(elementDimensionService.deleteElementDimensionMappingData(elementCode, elementVersion, isApprovalRequired, userId)) {
+				return new ServiceResponseBuilder().setStatus(true).setStatusMessage(ErrorConstants.RECORD_SAVED_SUCCESSFULLY.getErrorMessage()).build();
+			}
+		}catch(ApplicationException e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(e.getErrorCode()).setStatusMessage(ObjectCache.getErrorCodeKey(e.getErrorCode())).build();
+		}catch(Exception e) {
+			LOGGER.error("Exception occured for job processing Id : " + jobProcessId + "", e);
+		}
+		return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+	}
+
+	private void validateInputRequestToDeleteElementDimensionData(String jobProcessingId, String elementCode,
+			String elementVersion, Long userId, Long roleId) throws ApplicationException {
+		if (UtilMaster.isEmpty(jobProcessingId) || UtilMaster.isEmpty(userId)
+				|| UtilMaster.isEmpty(roleId)
+				|| UtilMaster.isEmpty(elementCode)
+				|| UtilMaster.isEmpty(elementVersion)) {
+			throw new ApplicationException(ErrorCode.E0889.toString(),ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString()));
+		}
+	}
+
+	private void validateInputRequestToAddElementDimensionData(String jobProcessingId,
+			ElementDimensionBean elementDimensionBean) throws ApplicationException{
+		if (UtilMaster.isEmpty(jobProcessingId) || UtilMaster.isEmpty(elementDimensionBean.getUserId())
+				|| UtilMaster.isEmpty(elementDimensionBean.getRoleId())
+				|| UtilMaster.isEmpty(elementDimensionBean.getDsdCode())
+				|| UtilMaster.isEmpty(elementDimensionBean.getElementVersion())
+		/* || CollectionUtils.isEmpty(elementDimensionBean.getDimensionmasterBeans()) */) {
+			throw new ApplicationException(ErrorCode.E0889.toString(),ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString()));
+		}
+	}
+
+	private void validateInputRequestToFetchElementDimensionData(String jobProcessingId, Long userId, Long roleId) throws ApplicationException {
+		if (UtilMaster.isEmpty(jobProcessingId) || UtilMaster.isEmpty(userId)
+				|| UtilMaster.isEmpty(roleId)) {
+			throw new ApplicationException(ErrorCode.E0889.toString(),ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString()));
+		}
+	}
+
+	private void validateInputRequestToEditElementDimensionData(String jobProcessingId,
+			ElementDimensionBean elementDimensionBean) throws ApplicationException {
+		if (UtilMaster.isEmpty(jobProcessingId) || UtilMaster.isEmpty(elementDimensionBean.getUserId())
+				|| UtilMaster.isEmpty(elementDimensionBean.getRoleId())
+				|| UtilMaster.isEmpty(elementDimensionBean.getDsdCode())
+				|| UtilMaster.isEmpty(elementDimensionBean.getElementVersion())
+		/* || CollectionUtils.isEmpty(elementDimensionBean.getDimensionmasterBeans()) */) {
+			throw new ApplicationException(ErrorCode.E0889.toString(),ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString()));
+		}		
+	}
+	
+	@GetMapping("/getAttachementType/{userId}/{roleId}/{langCode}")
+	public ServiceResponse getAttachementType(@PathVariable(name = "userId") Long userId,
+			@PathVariable(name = "roleId") Long roleId,
+			@PathVariable("langCode") String langCode) {
+		try {
+			List<Attachment> attachment = attachmentService.getAllDataFor(null, null);
+			return new ServiceResponseBuilder().setStatus(true).setResponse(attachment).build();
+		}catch(Exception e) {
+			LOGGER.error("Exception occured to get attachment type", e);
+		}
+		return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+	}
+	
+	/**
+	 * @param jobProcessId
+	 * @param userId
+	 * @param elementId
+	 * @return
+	 */
+	@PostMapping("/isElementDimensionMapExist/{userId}/{elementId}")
+	public ServiceResponse isElementDimensionMapExist(@RequestHeader("JobProcessingId") String jobProcessId,
+			@PathVariable("userId") Long userId, @PathVariable("elementId") Long elementId, @RequestBody SdmxElementExistBean sdmxElementExistBean) {
+		LOGGER.info("START : Request received to check if Element-dimension map exist for jpb processing id :" + jobProcessId);
+
+		ServiceResponse serviceResponse = null;
+		ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+		serviceResponseBuilder.setStatus(true);
+		try {
+			sdmxElementValidator.validateViewMappingDetailRequest(userId, jobProcessId);
+			ElementDimension elDimObject=elementDimensionService.checkElementDimensionMapExist(elementId);
+			serviceResponseBuilder.setStatus(true);
+			if(elDimObject==null) {
+				serviceResponseBuilder.setResponse(null);
+			}else {
+				serviceResponseBuilder.setResponse(elDimObject.getElementDimensionJson());
+				
+			}
+			
+			
+		} catch (ApplicationException applicationException) {
+			serviceResponseBuilder.setStatus(false);
+			serviceResponseBuilder.setStatusCode(applicationException.getErrorCode());
+			serviceResponseBuilder.setStatusMessage(applicationException.getErrorMsg());
+		} catch (Exception e){
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "Job Processing ID : " + jobProcessId, e);
+			serviceResponseBuilder = new ServiceResponseBuilder().setStatus(false)
+					.setStatusCode(ErrorCode.EC0013.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString()));
+		}
+		serviceResponse = serviceResponseBuilder.build();
+		LOGGER.info("END : Request received to check if Element-dimension map exist for jpb processing id :" + jobProcessId);
+
+		return serviceResponse;
+	}
+
+}

@@ -1,0 +1,203 @@
+package com.iris.sdmx.elementdimensionmapping.validator;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.iris.caching.ObjectCache;
+import com.iris.exception.ApplicationException;
+import com.iris.repository.UserRoleRepo;
+import com.iris.sdmx.element.entity.SdmxElementEntity;
+import com.iris.sdmx.element.repo.SdmxElementRepo;
+import com.iris.sdmx.elementdimensionmapping.entity.ElementDimensionMod;
+import com.iris.sdmx.elementdimensionmapping.repo.ElementDimensionModRepo;
+import com.iris.sdmx.status.repo.AdminStatusRepo;
+import com.iris.sdmx.userMangement.UserManagementValidator;
+import com.iris.sdmx.userMangement.bean.ApprovalInputBean;
+import com.iris.util.UtilMaster;
+import com.iris.util.constant.ErrorCode;
+
+/**
+ * @author vjadhav
+ *
+ */
+@Component
+public class ElementDimApprovalValidator {
+	
+	private static final Logger LOGGER = LogManager.getLogger(ElementDimApprovalValidator.class);
+
+	
+	@Autowired
+	private AdminStatusRepo adminStatusRepo;
+	
+	@Autowired
+	private UserManagementValidator userManagementValidator;
+	
+	@Autowired
+	private ElementDimensionModRepo elementDimensionModRepo;
+	
+	@Autowired
+	private SdmxElementRepo sdmxElementRepo;
+	
+	@Autowired
+	private UserRoleRepo userRoleRepo;
+	
+	private static final Object lock1 = new Object();
+	
+	public void validateFetchApprovalRequest(ApprovalInputBean inputBean, ApprovalInputBean validInputBean,
+			String jobProcessId) throws ApplicationException {
+	
+		LOGGER.info("START - Validation request for fetch Element dimension mapping approval requests with Job Processing ID : " + jobProcessId);
+		
+		userManagementValidator.validateApprovalRequest(inputBean, validInputBean, jobProcessId);
+		
+		checkIfDeptAdmin(inputBean);
+		
+		validateAdminStatusId(inputBean.getAdminStatusId(), validInputBean);
+		
+		
+		LOGGER.info("END - Validation request for fetch Element dimension mapping approval requests with Job Processing ID : " + jobProcessId);
+
+		
+	}
+	
+	public void validateApproveRejectElementRequest(ApprovalInputBean inputBean, ApprovalInputBean validInputBean,
+			String jobProcessId) throws ApplicationException {
+	
+		LOGGER.info("START - Validation request for approve/reject Element dimension mapping requests with Job Processing ID : " + jobProcessId);
+		
+		userManagementValidator.validateApproveRejectRequest(inputBean, validInputBean, jobProcessId);
+		
+		checkIfDeptAdmin(inputBean);
+		
+		validateAdminStatusId(inputBean.getAdminStatusId(), validInputBean);
+		
+		validateElementDimensionModId(inputBean.getModTablePkId(), validInputBean.getIsMainDept(),
+				inputBean,validInputBean);
+		
+		validateComment(inputBean.getComments(), inputBean.getAdminStatusId(), validInputBean);
+		
+		validateElementOwnerDeptCode(inputBean, validInputBean);
+		
+		syncValidateMethod(validInputBean.getModTablePkId());
+		
+		validateUserIdForSelfApproval(inputBean.getUserId(),inputBean.getModTablePkId());
+
+		LOGGER.info("END - Validation request for approve/reject Element dimension mapping requests with Job Processing ID : " + jobProcessId);
+
+		
+		
+	}
+	
+	private void validateAdminStatusId(Long adminStatusId, ApprovalInputBean validInputBean) throws ApplicationException {
+		if(adminStatusId == null) {
+			throw new ApplicationException(ErrorCode.E1557.toString(),
+					ObjectCache.getErrorCodeKey(ErrorCode.E1557.toString()));
+		} else if(adminStatusRepo.findByAdminStatusId(adminStatusId) == null) {
+			throw new ApplicationException(ErrorCode.E0889.toString(),
+					ObjectCache.getErrorCodeKey(ErrorCode.E0889.toString()));
+		} else {
+			validInputBean.setAdminStatusId(adminStatusId);
+		}
+		
+		
+	}
+	
+	private void validateElementDimensionModId(Long elementDimensionModId,boolean isMainDept,ApprovalInputBean inputBean, ApprovalInputBean validInputBean) throws ApplicationException {
+		
+		if(elementDimensionModId == null) {
+			throw new ApplicationException(ErrorCode.E0153.toString(),
+					ObjectCache.getErrorCodeKey(ErrorCode.E0153.toString()));
+		}
+		
+		
+		ElementDimensionMod elementDimensionMod = elementDimensionModRepo.findByElementDimensionModId(elementDimensionModId);
+		if(elementDimensionMod == null) {
+			throw new ApplicationException(ErrorCode.E1559.toString(),
+					ObjectCache.getErrorCodeKey(ErrorCode.E1559.toString()));
+		} else if(isMainDept == false && 
+				elementDimensionMod.getActionId() == 1) {
+			throw new ApplicationException(ErrorCode.E1560.toString(),
+					ObjectCache.getErrorCodeKey(ErrorCode.E1560.toString()));
+		} else if(inputBean.getAdminStatusId() == 1 ||
+				inputBean.getAdminStatusId() == 2){
+			throw new ApplicationException(ErrorCode.E1561.toString(),
+					ObjectCache.getErrorCodeKey(ErrorCode.E1561.toString()));
+		}else {
+			//validInputBean.setElementDimensionModId(elementDimensionModId);
+			validInputBean.setModTablePkId(elementDimensionModId);
+			validInputBean.setActionId(Long.valueOf(elementDimensionMod.getActionId()));
+			validInputBean.setElementId(elementDimensionMod.getElement().getElementId());
+			if(!UtilMaster.isEmpty(elementDimensionMod.getElementDimension())) {
+				//validInputBean.setElementDimensionIdFk(elementDimensionMod.getElementDimension().getElementDimensionId());
+				validInputBean.setMasterTablePkId(elementDimensionMod.getElementDimension().getElementDimensionId());
+			}
+			
+		}
+		
+	}
+	
+	private void validateComment(String comment, Long adminStatusId, ApprovalInputBean validInputBean) throws ApplicationException {
+		if(adminStatusId == 3 && UtilMaster.isEmpty(comment)) {
+			throw new ApplicationException(ErrorCode.E1562.toString(),
+					ObjectCache.getErrorCodeKey(ErrorCode.E1562.toString()));
+		}else {
+			validInputBean.setComments(comment);
+		}
+	}
+	
+	private void validateElementOwnerDeptCode(ApprovalInputBean inputBean, ApprovalInputBean validInputBean) throws ApplicationException {
+		 String ownerDeptCode = null;
+		 SdmxElementEntity sdmxElementBean = sdmxElementRepo.findByElementId(validInputBean.getElementId());
+
+		if (validInputBean.getActionId() == 1) {
+			
+			validInputBean.setElementOwnerDeptCode(sdmxElementBean.getRegulatorOwnerIdFk().getRegulatorCode());
+			
+		} else if(validInputBean.getActionId() == 2 || validInputBean.getActionId() == 3) {
+				
+			 if(!UtilMaster.isEmpty(sdmxElementBean)) {
+				 ownerDeptCode = sdmxElementBean.getRegulatorOwnerIdFk().getRegulatorCode();
+				 if(!ownerDeptCode.equalsIgnoreCase(validInputBean.getDeptCode()) ) {
+					 throw new ApplicationException(ErrorCode.E1563.toString(),
+								ObjectCache.getErrorCodeKey(ErrorCode.E1563.toString()));
+					 
+				 }
+				 
+			 }
+			 validInputBean.setElementOwnerDeptCode(ownerDeptCode);
+		}
+		
+		
+	}
+	
+	private void syncValidateMethod(Long elementDimensionModId) throws ApplicationException {
+		int adminStatusId;
+		synchronized (lock1) {
+			 
+			adminStatusId = elementDimensionModRepo.findByElementDimensionModId(elementDimensionModId).getAdminStatusId();
+			 if(adminStatusId != 1) {
+				 throw new ApplicationException(ErrorCode.E1564.toString(),
+							ObjectCache.getErrorCodeKey(ErrorCode.E1564.toString()));
+			 }
+			 
+		}
+	}
+	
+	private void validateUserIdForSelfApproval(Long userId, Long elementDimensionModId) throws ApplicationException {
+		ElementDimensionMod elementDimensionMod = elementDimensionModRepo.findByElementDimensionModId(elementDimensionModId);
+		Long createdBy = elementDimensionMod.getCreatedBy().getUserId();
+		if(userId.equals(createdBy)) {
+			 throw new ApplicationException(ErrorCode.E0203.toString(),
+						ObjectCache.getErrorCodeKey(ErrorCode.E0203.toString()));
+		}
+	}
+	
+	private void checkIfDeptAdmin(ApprovalInputBean inputBean) throws ApplicationException {
+		if(!userRoleRepo.findByUserRoleIdAndIsActiveTrue(inputBean.getRoleId()).getDeptAdmin().equalsIgnoreCase("1")){
+				throw new ApplicationException(ErrorCode.E0613.toString(),
+						ObjectCache.getErrorCodeKey(ErrorCode.E0613.toString()));
+			}
+	}
+}

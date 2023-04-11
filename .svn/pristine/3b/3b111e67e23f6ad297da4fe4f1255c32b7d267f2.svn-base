@@ -1,0 +1,105 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+
+import org.json.simple.JSONArray;
+
+public class AuditLogMsgDetails implements Serializable {
+
+	private static final long serialVersionUID = -6305709528119023051L;
+	
+	private Integer type;
+	private String message;
+	private List<String> colNames;
+	//private List<List<String>> dataList;
+	//private List<List<String>> previousDataList;
+	private String errorMessage;
+	private String browserName;
+	private String operatingSystem;
+	private String loginTime;
+	private String logoutTime;
+	private Boolean isLogedInSuccess;
+	private List<JSONArray> dataList;
+	private List<JSONArray> previousDataList;
+	
+	public Integer getType() {
+		return type;
+	}
+	public void setType(Integer type) {
+		this.type = type;
+	}
+	public String getMessage() {
+		return message;
+	}
+	public void setMessage(String message) {
+		this.message = message;
+	}
+	public List<String> getColNames() {
+		return colNames;
+	}
+	public void setColNames(List<String> colNames) {
+		this.colNames = colNames;
+	}
+//	public List<List<String>> getDataList() {
+//		return dataList;
+//	}
+//	public void setDataList(List<List<String>> dataList) {
+//		this.dataList = dataList;
+//	}
+//	public List<List<String>> getPreviousDataList() {
+//		return previousDataList;
+//	}
+//	public void setPreviousDataList(List<List<String>> previousDataList) {
+//		this.previousDataList = previousDataList;
+//	}
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+	public void setErrorMessage(String errorMessage) {
+		this.errorMessage = errorMessage;
+	}
+	public String getBrowserName() {
+		return browserName;
+	}
+	public void setBrowserName(String browserName) {
+		this.browserName = browserName;
+	}
+	public String getOperatingSystem() {
+		return operatingSystem;
+	}
+	public void setOperatingSystem(String operatingSystem) {
+		this.operatingSystem = operatingSystem;
+	}
+	public String getLoginTime() {
+		return loginTime;
+	}
+	public void setLoginTime(String loginTime) {
+		this.loginTime = loginTime;
+	}
+	public String getLogoutTime() {
+		return logoutTime;
+	}
+	public void setLogoutTime(String logoutTime) {
+		this.logoutTime = logoutTime;
+	}
+	public Boolean getIsLogedInSuccess() {
+		return isLogedInSuccess;
+	}
+	public void setIsLogedInSuccess(Boolean isLogedInSuccess) {
+		this.isLogedInSuccess = isLogedInSuccess;
+	}
+	public List<JSONArray> getDataList() {
+		return dataList;
+	}
+	public void setDataList(List<JSONArray> dataList) {
+		this.dataList = dataList;
+	}
+	public List<JSONArray> getPreviousDataList() {
+		return previousDataList;
+	}
+	public void setPreviousDataList(List<JSONArray> previousDataList) {
+		this.previousDataList = previousDataList;
+	}
+}

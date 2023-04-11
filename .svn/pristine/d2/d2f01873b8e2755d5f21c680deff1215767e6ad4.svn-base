@@ -1,0 +1,55 @@
+
+package com.iris.dynamicDropDown.repo;
+
+import java.util.Date;
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import com.iris.dynamicDropDown.model.DropDownValues;
+
+
+@Repository
+public interface DynamicDropDownRepo extends JpaRepository<DropDownValues, Integer> {
+	
+	@Query("FROM DropDownValues ddv where ddv.dropDownTypeIdFk.dropdownTypeCode = :dropDownType and ddv.isActive = 1 order by ddv.dropDownValueEn asc")
+	List<DropDownValues> findByActiveWithDropDownType(@Param("dropDownType") String dropDownType);
+	
+	@Query("FROM DropDownValues ddv where ddv.dropDownTypeIdFk.dropdownTypeCode = :dropDownType and ddv.isActive = 1 and UPPER(ddv.dropDownTypeIdFk.returnCode) LIKE %:returnCode%  order by ddv.dropDownValueEn asc")
+	List<DropDownValues> findByActiveWithDropDownTypeAndReturnCode(@Param("dropDownType") String dropDownType, @Param("returnCode") String retCode);
+	
+	@Query("FROM DropDownValues ddv where UPPER(ddv.dropDownTypeIdFk.returnCode) LIKE %:returnCode%  order by ddv.dropDownValueEn asc")
+	List<DropDownValues> findDropDownOptionReturnCode(@Param("returnCode") String retCode);
+	
+	@Query("FROM DropDownValues ddv where ddv.dropDownTypeIdFk.dropdownTypeCode = :dropDownType and ddv.isActive = 1 and ddv.dropDownTypeValueIdFk.dropDownValueId = :dropDownTypeValueId order by ddv.dropDownValueEn asc")
+	List<DropDownValues> findByActiveUponDropDownTypeValue(@Param("dropDownType") String dropDownType, @Param("dropDownTypeValueId") Long dropDownTypeValueId);
+	
+	@Query("FROM DropDownValues ddv where ddv.dropDownTypeIdFk.dropdownTypeCode = :dropDownType and ddv.dropDownTypeValueIdFk.dropDownValueId = :dropDownTypeValueId and UPPER(ddv.dropDownTypeIdFk.returnCode) LIKE %:returnCode% and ddv.isActive = 1 order by ddv.dropDownValueEn asc")
+	List<DropDownValues> findByActiveUponDropDownTypeValueAndReturnCode(@Param("dropDownType") String dropDownType, @Param("returnCode") String retCode, @Param("dropDownTypeValueId") Long dropDownTypeValueId);
+
+	@Query("FROM DropDownValues ddv where ddv.dropDownValueCode = :dropDownValueCode and ddv.isActive = 1")
+	DropDownValues findByActiveUponDropDownValueCode(@Param("dropDownValueCode") String dropDownValueCode);
+	
+	@Query("FROM DropDownValues where dropDownTypeIdFk.dropdownTypeCode = :dropDownType and isActive = 1 and effectiveFromDate =(Select MAX(effectiveFromDate) from DropDownValues drop where drop.effectiveFromDate <= (:effectiveDate) and  drop.dropDownTypeIdFk.dropdownTypeCode = :dropDownType)")
+	DropDownValues findByDropDownTypeUponEffFromDate(@Param("dropDownType") String dropDownType, @Param("effectiveDate") Date effectiveDate);
+	
+	//@Query(value = "FROM DropDownValues ddv where ddv.dropDownTypeIdFk.dropdownTypeCode = :dropDownType and UPPER(ddv.dropDownTypeIdFk.returnCode) LIKE %:returnCode% and ddv.details =:details  order by ddv.dropDownValueEn asc", nativeQuery = true)
+	@Query(value = "SELECT * FROM tbl_drop_down_type_values dv, tbl_drop_down_types dt where dt.DROP_DOWN_TYPE_CODE = :dropDownType and dt.RETURN_CODE = :returnCode and DETAILS ->> '$.riskWeightMember' = :details", nativeQuery = true)
+	List<DropDownValues> findByActiveWithDropDownTypeAndReturnCodeAndDetails(@Param("dropDownType") String dropDownType, @Param("returnCode") String retCode, @Param("details") String details);
+	
+	@Query("FROM DropDownValues ddv where ddv.isActive = 1 and ddv.dropDownTypeIdFk.dropdownTypeId = :dropdownTypeId")
+	List<DropDownValues> findByActiveDropDownValue(@Param("dropdownTypeId") Long dropdownTypeId);
+
+	@Query("FROM DropDownValues ddv where ddv.dropDownValueCode = :countryName and ddv.isActive = 1 and ddv.dropDownTypeIdFk.dropdownTypeId =13")
+	List<DropDownValues> findByDrDoValueCode(@Param("countryName") String countryName);
+   
+	@Query("FROM DropDownValues where dropDownTypeIdFk.dropdownTypeCode = :dropDownType order by dropDownValueId")
+	List<DropDownValues> getReportingMonth(@Param("dropDownType") String dropDownType);
+	
+	@Query("FROM DropDownValues where dropDownTypeValueIdFk.dropDownValueId IN (select dropDownValueId from DropDownValues where dropDownTypeIdFk.dropdownTypeId = :dropDownValueIdFk) order by dropDownValueId")
+	List<DropDownValues> findSubDropDownValue(@Param("dropDownValueIdFk") Long dropDownValueIdFk);
+
+	
+}

@@ -1,0 +1,90 @@
+/**
+ * 
+ */
+package com.iris.sdmx.dataCollection.controller;
+
+import java.util.List;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.sdmx.dataCollection.bean.SDMXDataCollectionLimitedFieldBean;
+import com.iris.sdmx.dataCollection.service.SDMXDataCollectionService;
+import com.iris.sdmx.util.SDMXConstants;
+import com.iris.util.constant.ErrorCode;
+
+/**
+ * @author apagaria
+ *
+ */
+@RestController
+@RequestMapping(value = "/service/sdmx/dataCollection")
+public class SDMXDataCollectionController {
+
+	private static final Logger LOGGER = LogManager.getLogger(SDMXDataCollectionController.class);
+
+	@Autowired
+	private SDMXDataCollectionService sdmxDataCollectionService;
+
+	/**
+	 * @param jobProcessId
+	 * @param userId
+	 * @param roleId
+	 * @param langCode
+	 * @param processCode
+	 * @param categoryLable
+	 * @return
+	 */
+	@GetMapping(value = "/user/{userId}/role/{roleId}/lang/{langCode}/process/{processCode}")
+	public ServiceResponse getDataCollectionWithProcessNCategory(@RequestHeader(name = "JobProcessingId") String jobProcessId, @PathVariable("userId") Long userId, @PathVariable(name = "roleId") Long roleId, @PathVariable("langCode") String langCode, @PathVariable("processCode") String processCode) {
+
+		LOGGER.info("START - fetch data collection with process id request received with Job Processing ID : " + jobProcessId + ", Process Id - " + processCode);
+		ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder();
+		serviceResponseBuilder.setStatus(false);
+		try {
+
+			List<SDMXDataCollectionLimitedFieldBean> sdmxDataCollectionLimitedFieldBeanList = sdmxDataCollectionService.getSdmxDataCollectionByProcessIdNCategory(processCode);
+
+			if (!CollectionUtils.isEmpty(sdmxDataCollectionLimitedFieldBeanList)) {
+				LOGGER.info("fetch data collection with process id request received with Job Processing ID : " + jobProcessId + ", size - " + sdmxDataCollectionLimitedFieldBeanList.size());
+				serviceResponseBuilder.setStatus(true);
+				serviceResponseBuilder.setStatusCode(SDMXConstants.SUCCESS_CODE);
+				serviceResponseBuilder.setStatusMessage(SDMXConstants.SUCCESS_MESSAGE);
+				serviceResponseBuilder.setResponse(sdmxDataCollectionLimitedFieldBeanList);
+			} else {
+				LOGGER.info("fetch data collection with process id request received with Job Processing ID : " + jobProcessId + ", No record found");
+				serviceResponseBuilder.setStatus(false);
+				serviceResponseBuilder.setStatusCode(SDMXConstants.FAILURE_CODE);
+				serviceResponseBuilder.setStatusMessage(SDMXConstants.FAILURE_MESSAGE);
+				serviceResponseBuilder.setResponse("No record found");
+			}
+
+		} /*
+			 * catch (ApplicationException applicationException) {
+			 * LOGGER.error("Exception occured while add Sdmx Activity Detail Log records "
+			 * + ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() +
+			 * ", with job Processing ID : " + jobProcessId, applicationException);
+			 * serviceResponseBuilder.setStatusCode(applicationException.getErrorCode());
+			 * serviceResponseBuilder.setStatusMessage(applicationException.getErrorMsg());
+			 * }
+			 */ catch (Exception e) {
+			LOGGER.error("Exception occured while fetch data collection with process id request for job processing Id : " + jobProcessId + "", e);
+			serviceResponseBuilder.setStatusCode(ErrorCode.EC0033.toString());
+			serviceResponseBuilder.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString()));
+		}
+		LOGGER.info("End - fetch data collection with process id request received with Job Processing ID : " + jobProcessId);
+		return serviceResponseBuilder.build();
+
+	}
+
+}

@@ -1,0 +1,68 @@
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.dto.Option;
+import com.iris.dto.ServiceResponse;
+import com.iris.model.BranchMasterOverseas;
+import com.iris.service.impl.BranchMasterOverseasService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.MethodConstants;
+
+@RestController
+@RequestMapping("/service/overseasBranchMaster")
+public class BranchMasterOverseasController {
+
+	static final Logger logger = LogManager.getLogger(BranchMasterOverseasController.class);
+
+	@Autowired
+	private BranchMasterOverseasService branchMasterOverseasService;
+
+	@GetMapping(value = "/fetchOverseasBranchData/{countryCode}/{entityCode}")
+	public ServiceResponse fetchOverseasBranchData(@PathVariable String countryCode, @PathVariable String entityCode) {
+		logger.info("fetch fetchBranchMasterOverseasData method started " + countryCode);
+		ServiceResponse serviceResponse = null;
+		if (StringUtils.isBlank(countryCode) || StringUtils.isBlank(entityCode)) {
+			return serviceResponse;
+		}
+		List<BranchMasterOverseas> listOfActiveBranchMasterOverseas = null;
+		Option option = null;
+		List<Option> optionList = new ArrayList<>();
+		Map<String, Object> columnValueMap = new HashMap<>();
+		columnValueMap.put(ColumnConstants.COUNTRY_CODE.getConstantVal(), countryCode);
+		columnValueMap.put(ColumnConstants.ENTITY_CODE.getConstantVal(), entityCode);
+		listOfActiveBranchMasterOverseas = branchMasterOverseasService.getDataByObject(columnValueMap, MethodConstants.GET_DATA_BY_COUNTRY_CODE.getConstantVal());
+		for (BranchMasterOverseas branchMasterOverseas : listOfActiveBranchMasterOverseas) {
+			option = new Option();
+			option.setKey(branchMasterOverseas.getBranchCode());
+			option.setValue(branchMasterOverseas.getBranch());
+			optionList.add(option);
+		}
+		Collections.sort(optionList, new Comparator<Option>() {
+			@Override
+			public int compare(Option o1, Option o2) {
+				return o1.getValue().compareTo(o2.getValue());
+			}
+		});
+		logger.info("fetch fetchBranchMasterOverseasData list size" + optionList.size());
+		serviceResponse = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+		serviceResponse.setResponse(optionList);
+		return serviceResponse;
+
+	}
+
+}

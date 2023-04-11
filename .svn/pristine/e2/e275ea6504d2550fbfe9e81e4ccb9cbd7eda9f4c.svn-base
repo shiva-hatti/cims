@@ -1,0 +1,445 @@
+/**
+ * 
+ */
+package com.iris.sdmx.element.validator;
+
+import java.util.List;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.iris.dto.RegulatorBean;
+import com.iris.exception.ApplicationException;
+import com.iris.sdmx.element.bean.SdmxAddElementInputBean;
+import com.iris.sdmx.element.bean.SdmxEditElementInputBean;
+import com.iris.sdmx.element.bean.SdmxElementBeanForTemp;
+import com.iris.sdmx.element.repo.SdmxElementRepo;
+import com.iris.sdmx.element.service.SdmxElementClassificationService;
+import com.iris.sdmx.element.service.SdmxElementDependencyTypeService;
+import com.iris.sdmx.element.service.SdmxElementFlowTypeService;
+import com.iris.sdmx.element.service.SdmxElementNatureService;
+import com.iris.sdmx.element.service.SdmxElementSectorService;
+import com.iris.sdmx.element.service.SdmxElementService;
+import com.iris.sdmx.element.service.SdmxElementTempService;
+import com.iris.sdmx.status.entity.AdminStatus;
+import com.iris.sdmx.status.service.AdminStatusService;
+import com.iris.sdmx.util.SDMXConstants;
+import com.iris.service.impl.RegulatorService;
+import com.iris.service.impl.UserMasterService;
+
+/**
+ * @author apagaria
+ *
+ */
+@Component
+public class SdmxElementValidator {
+
+	private static final Logger LOGGER = LogManager.getLogger(SdmxElementValidator.class);
+
+	@Autowired
+	private SdmxElementClassificationService sdmxElementClassificationService;
+
+	@Autowired
+	private SdmxElementFlowTypeService sdmxElementFlowTypeService;
+
+	@Autowired
+	private SdmxElementNatureService sdmxElementNatureService;
+
+	@Autowired
+	private SdmxElementDependencyTypeService sdmxElementDependencyTypeService;
+
+	@Autowired
+	private SdmxElementSectorService sdmxElementSectorService;
+
+	@Autowired
+	private SdmxElementTempService sdmxElementTempService;
+
+	@Autowired
+	private AdminStatusService adminStatusService;
+
+	@Autowired
+	private UserMasterService userMasterService;
+
+	@Autowired
+	private RegulatorService regulatorService;
+
+	@Autowired
+	private SdmxElementService sdmxElementService;
+
+	/**
+	 * 
+	 */
+	public void validateAddElementRequest(SdmxAddElementInputBean sdmxAddElementInputBean, String jobProcessId,
+			SdmxElementBeanForTemp sdmxElementBeanForTemp, Long userId) throws ApplicationException {
+		LOGGER.info("START - Validation request for Add Element with Job Processing ID : " + jobProcessId);
+		validateDsdCode(sdmxAddElementInputBean.getDsdCode());
+
+		validateDsdCodeExistOrNot(sdmxAddElementInputBean.getDsdCode(), sdmxElementBeanForTemp);
+
+		validateElementLabel(sdmxAddElementInputBean.getElementLabel(), sdmxElementBeanForTemp);
+
+		validateElementVersion(sdmxAddElementInputBean.getElementVer(), sdmxElementBeanForTemp);
+
+		validateDsdCodeAndVersion(sdmxAddElementInputBean.getDsdCode(), sdmxAddElementInputBean.getElementVer());
+
+		validateClassificationType(sdmxAddElementInputBean.getClassificationTypeId(), sdmxElementBeanForTemp);
+
+		validateDependencyTypeId(sdmxAddElementInputBean.getDependencyTypeId(), sdmxElementBeanForTemp);
+
+		validateFlowTypeId(sdmxAddElementInputBean.getFlowTypeId(), sdmxElementBeanForTemp);
+
+		validateNatureTypeId(sdmxAddElementInputBean.getNatureTypeId(), sdmxElementBeanForTemp);
+
+		validateSectorTypeId(sdmxAddElementInputBean.getSectorTypeId(), sdmxElementBeanForTemp);
+
+		validateUser(userId, sdmxElementBeanForTemp);
+
+		validateRegulator(sdmxAddElementInputBean.getOwnerDepartmentCode(), sdmxElementBeanForTemp);
+
+		validateParentElement(sdmxAddElementInputBean.getParentElementDsdCode(),
+				sdmxAddElementInputBean.getParentElementVer(), sdmxElementBeanForTemp);
+
+		validateElementDescription(sdmxAddElementInputBean.getElementDesc(), sdmxElementBeanForTemp);
+
+		LOGGER.info("END - Validation request for Add Element with Job Processing ID : " + jobProcessId);
+	}
+
+	/**
+	 * @param sdmxEditElementInputBean
+	 * @param jobProcessId
+	 * @param sdmxElementBeanForTemp
+	 * @throws ApplicationException
+	 */
+	public void validateEditElementRequest(SdmxEditElementInputBean sdmxEditElementInputBean, String jobProcessId,
+			Long userId, SdmxElementBeanForTemp sdmxElementBeanForTemp, Long elementId) throws ApplicationException {
+		LOGGER.info("START - Validation request for Edit Element with Job Processing ID : " + jobProcessId);
+
+		validateElementId(elementId, sdmxElementBeanForTemp);
+
+		validateElementLabel(sdmxEditElementInputBean.getElementLabel(), sdmxElementBeanForTemp);
+
+		validateClassificationType(sdmxEditElementInputBean.getClassificationTypeId(), sdmxElementBeanForTemp);
+
+		validateDependencyTypeId(sdmxEditElementInputBean.getDependencyTypeId(), sdmxElementBeanForTemp);
+
+		validateFlowTypeId(sdmxEditElementInputBean.getFlowTypeId(), sdmxElementBeanForTemp);
+
+		validateNatureTypeId(sdmxEditElementInputBean.getNatureTypeId(), sdmxElementBeanForTemp);
+
+		validateSectorTypeId(sdmxEditElementInputBean.getSectorTypeId(), sdmxElementBeanForTemp);
+
+		validateUser(userId, sdmxElementBeanForTemp);
+
+		validateRegulator(sdmxEditElementInputBean.getOwnerDepartmentCode(), sdmxElementBeanForTemp);
+
+		validateParentElement(sdmxEditElementInputBean.getParentElementDsdCode(),
+				sdmxEditElementInputBean.getParentElementVer(), sdmxElementBeanForTemp);
+
+		validateElementDescription(sdmxEditElementInputBean.getElementDesc(), sdmxElementBeanForTemp);
+
+		LOGGER.info("END - Validation request for Edit Element with Job Processing ID : " + jobProcessId);
+	}
+
+	private void validateElementId(Long elementId, SdmxElementBeanForTemp sdmxElementBeanForTemp)
+			throws ApplicationException {
+		if (elementId == null) {
+			throw new ApplicationException("ER024", "Element Id can't be blank");
+		} else if (!sdmxElementService.findByElementIdAndActiveStatus(elementId, Boolean.TRUE)) {
+			throw new ApplicationException("ER024", "Element Id not exist");
+		} else {
+			sdmxElementBeanForTemp.setElementId(elementId);
+		}
+	}
+
+	/**
+	 * @param elementId
+	 * @param userId
+	 * @param jobProcessId
+	 * @param sdmxElementBeanForTemp
+	 * @throws ApplicationException
+	 */
+	public void validateDeleteElementRequest(Long elementId, Long userId, String jobProcessId,
+			SdmxElementBeanForTemp sdmxElementBeanForTemp) throws ApplicationException {
+		
+		LOGGER.info("START - Validation request for Delete Element with Job Processing ID : " + jobProcessId);
+		
+		validateElementId(elementId, sdmxElementBeanForTemp);
+		
+		validateUser(userId, sdmxElementBeanForTemp);
+		
+		LOGGER.info("END - Validation request for Delete Element with Job Processing ID : " + jobProcessId);
+	}
+
+	/**
+	 * @param userId
+	 * @param jobProcessId
+	 * @param sdmxElementBeanForTemp
+	 * @throws ApplicationException
+	 */
+	public void validateFetchElementsRequest(Long userId, String jobProcessId,
+			SdmxElementBeanForTemp sdmxElementBeanForTemp) throws ApplicationException {
+		LOGGER.info("START - Validation request for Fetch Elements with Job Processing ID : " + jobProcessId);
+		LOGGER.info("END - Validation request for Fetch Elements with Job Processing ID : " + jobProcessId);
+
+	}
+
+	/**
+	 * @param elementId
+	 * @param userId
+	 * @param jobProcessId
+	 * @param sdmxElementBeanForTemp
+	 * @throws ApplicationException
+	 */
+	public void validateFetchElementByIdRequest(String elementId, String userId, String jobProcessId,
+			SdmxElementBeanForTemp sdmxElementBeanForTemp) throws ApplicationException {
+		LOGGER.info("START - Validation request for Fetch Element By Id with Job Processing ID : " + jobProcessId);
+		LOGGER.info("END - Validation request for Fetch Element By Id with Job Processing ID : " + jobProcessId);
+	}
+
+	/**
+	 * @param dsdCode
+	 * @param elementVer
+	 * @throws ApplicationException
+	 */
+	private void validateDsdCodeAndVersion(String dsdCode, String elementVer) throws ApplicationException {
+		List<String> elementVersions = sdmxElementService.findVersionByDsdCode(dsdCode, Boolean.TRUE);
+		boolean isVersionMatch = Boolean.FALSE;
+		if (!CollectionUtils.isEmpty(elementVersions)) {
+			for (String version : elementVersions) {
+				if (version.equalsIgnoreCase(elementVer)) {
+					isVersionMatch = Boolean.TRUE;
+					break;
+				}
+			}
+			if (isVersionMatch) {
+				throw new ApplicationException("ER015", "DSD Code with this version already exist.");
+			}
+		}
+	}
+
+	/**
+	 * @param elementVer
+	 */
+	private void validateElementVersion(String elementVer, SdmxElementBeanForTemp sdmxElementBeanForTemp)
+			throws ApplicationException {
+		if (StringUtils.isBlank(elementVer)) {
+			throw new ApplicationException("ER024", "Element Version can't be blank");
+		} else if (elementVer.length() > 10) {
+			throw new ApplicationException("ER025", "Element Version length can't be greater then 10");
+		} else {
+			sdmxElementBeanForTemp.setElementVer(elementVer);
+		}
+	}
+
+	/**
+	 * @param elementDesc
+	 * @throws ApplicationException
+	 */
+	private void validateElementDescription(String elementDesc, SdmxElementBeanForTemp sdmxElementBeanForTemp)
+			throws ApplicationException {
+		if (StringUtils.isBlank(elementDesc)) {
+			throw new ApplicationException("ER022", "Element Description can't be blank");
+		} else if (elementDesc.length() > 400) {
+			throw new ApplicationException("ER023", "Element Description length exceed from 400 character");
+		} else {
+			sdmxElementBeanForTemp.setElementDesc(elementDesc);
+		}
+
+	}
+
+	/**
+	 * @param parentElementDsdCode
+	 * @param parentElementVer
+	 * @throws ApplicationException
+	 */
+	private void validateParentElement(String parentElementDsdCode, String parentElementVer,
+			SdmxElementBeanForTemp sdmxElementBeanForTemp) throws ApplicationException {
+		if (!StringUtils.isBlank(parentElementDsdCode) && !StringUtils.isBlank(parentElementVer)) {
+			Long elementId = sdmxElementService.findByDsdCodeAndVerAndIsActive(parentElementDsdCode, parentElementVer,
+					true);
+			if (elementId == null) {
+				throw new ApplicationException("ER021", "Parent Element not found");
+			} else {
+				sdmxElementBeanForTemp.setElementParentId(elementId);
+				sdmxElementBeanForTemp.setParentElementDsdCode(parentElementDsdCode);
+				sdmxElementBeanForTemp.setParentElementVer(parentElementVer);
+			}
+
+		}
+	}
+
+	/**
+	 * @param ownerDepartmentCode
+	 * @param sdmxElementBeanForTemp
+	 * @throws ApplicationException
+	 */
+	private void validateRegulator(String ownerDepartmentCode, SdmxElementBeanForTemp sdmxElementBeanForTemp)
+			throws ApplicationException {
+		if (StringUtils.isBlank(ownerDepartmentCode)) {
+			throw new ApplicationException("ER018", "Department Id can't be blank");
+		} else {
+			RegulatorBean regulatorBean = regulatorService.findByRegulatorCode(ownerDepartmentCode, true);
+			if (regulatorBean == null || StringUtils.isBlank(regulatorBean.getRegulatorName())) {
+				throw new ApplicationException("ER019", "Department not found");
+			} else {
+				sdmxElementBeanForTemp.setOwnerDepartmentId(regulatorBean.getRegulatorId());
+				sdmxElementBeanForTemp.setOwnerDepartmentCode(regulatorBean.getRegulatorCode());
+				sdmxElementBeanForTemp.setOwnerDepartmentName(regulatorBean.getRegulatorName());
+			}
+		}
+
+	}
+
+	private void validateUser(Long userId, SdmxElementBeanForTemp sdmxElementBeanForTemp) throws ApplicationException {
+		if (userId == null) {
+			throw new ApplicationException("ER016", "User Id can't blank");
+		} else if (userMasterService.getDataById(userId) == null) {
+			throw new ApplicationException("ER017", "User not Found");
+		}
+	}
+
+	/**
+	 * @param dsdCode
+	 * @throws ApplicationException
+	 */
+	private static void validateDsdCode(String dsdCode) throws ApplicationException {
+		if (StringUtils.isBlank(dsdCode)) {
+			throw new ApplicationException("ER001", "DsdCode can't Blank");
+		} else if (dsdCode.length() > 10) {
+			throw new ApplicationException("ER002", "DsdCode length can't greater than 10");
+		}
+	}
+
+	/**
+	 * @param elementLabel
+	 * @throws ApplicationException
+	 */
+	private static void validateElementLabel(String elementLabel, SdmxElementBeanForTemp sdmxElementBeanForTemp)
+			throws ApplicationException {
+		if (StringUtils.isBlank(elementLabel)) {
+			throw new ApplicationException("ER003", "Element Label can't Blank");
+		} else if (elementLabel.length() > 70) {
+			throw new ApplicationException("ER004", "Element Label length can't greater than 70");
+		} else {
+			sdmxElementBeanForTemp.setElementLabel(elementLabel);
+		}
+	}
+
+	/**
+	 * @param classificationTypeId
+	 * @param sdmxElementBeanForTemp
+	 * @throws ApplicationException
+	 */
+	private void validateClassificationType(Long classificationTypeId, SdmxElementBeanForTemp sdmxElementBeanForTemp)
+			throws ApplicationException {
+		if (classificationTypeId == null) {
+			throw new ApplicationException("ER005", "Classification type can't Blank");
+		} else {
+			String classificationName = sdmxElementClassificationService
+					.findNameByClassificationId(classificationTypeId);
+			if (StringUtils.isBlank(classificationName)) {
+				throw new ApplicationException("ER006", "Classification type is not valid");
+			} else {
+				sdmxElementBeanForTemp.setClassificationTypeId(classificationTypeId);
+				sdmxElementBeanForTemp.setClassificationName(classificationName);
+			}
+		}
+	}
+
+	/**
+	 * @param flowTypeId
+	 * @param sdmxElementBeanForTemp
+	 * @throws ApplicationException
+	 */
+	private void validateFlowTypeId(Long flowTypeId, SdmxElementBeanForTemp sdmxElementBeanForTemp)
+			throws ApplicationException {
+		if (flowTypeId == null) {
+			throw new ApplicationException("ER007", "Flow type can't Blank");
+		} else {
+			String flowTypeName = sdmxElementFlowTypeService.findNameByFlowTypeId(flowTypeId);
+			if (StringUtils.isBlank(flowTypeName)) {
+				throw new ApplicationException("ER008", "Flow type is not valid");
+			} else {
+				sdmxElementBeanForTemp.setFlowTypeId(flowTypeId);
+				sdmxElementBeanForTemp.setFlowTypeName(flowTypeName);
+			}
+		}
+	}
+
+	/**
+	 * @param natureTypeId
+	 * @param sdmxElementBeanForTemp
+	 * @throws ApplicationException
+	 */
+	private void validateNatureTypeId(Long natureTypeId, SdmxElementBeanForTemp sdmxElementBeanForTemp)
+			throws ApplicationException {
+		if (natureTypeId == null) {
+			throw new ApplicationException("ER009", "Nature type can't Blank");
+		} else {
+			String natureTypeName = sdmxElementNatureService.findNameByNatureId(natureTypeId);
+			if (StringUtils.isBlank(natureTypeName)) {
+				throw new ApplicationException("ER010", "Nature type is not valid");
+			} else {
+				sdmxElementBeanForTemp.setNatureTypeId(natureTypeId);
+				sdmxElementBeanForTemp.setNatureTypeName(natureTypeName);
+			}
+		}
+	}
+
+	/**
+	 * @param sectorTypeId
+	 * @param sdmxElementBeanForTemp
+	 * @throws ApplicationException
+	 */
+	private void validateSectorTypeId(Long sectorTypeId, SdmxElementBeanForTemp sdmxElementBeanForTemp)
+			throws ApplicationException {
+		if (sectorTypeId == null) {
+			throw new ApplicationException("ER011", "Sector type can't Blank");
+		} else {
+			String sectorName = sdmxElementSectorService.findNameBySectorId(sectorTypeId);
+			if (StringUtils.isBlank(sectorName)) {
+				throw new ApplicationException("ER012", "Sector type is not valid");
+			} else {
+				sdmxElementBeanForTemp.setSectorTypeId(sectorTypeId);
+				sdmxElementBeanForTemp.setSectorTypeName(sectorName);
+			}
+		}
+	}
+
+	/**
+	 * @param dependencyTypeId
+	 * @param sdmxElementBeanForTemp
+	 * @throws ApplicationException
+	 */
+	private void validateDependencyTypeId(Long dependencyTypeId, SdmxElementBeanForTemp sdmxElementBeanForTemp)
+			throws ApplicationException {
+		if (dependencyTypeId == null) {
+			throw new ApplicationException("ER013", "Dependency type can't Blank");
+		} else {
+			String dependencyName = sdmxElementDependencyTypeService.findNameByDependencyId(dependencyTypeId);
+			if (StringUtils.isBlank(dependencyName)) {
+				throw new ApplicationException("ER014", "Dependency type is not valid");
+			} else {
+				sdmxElementBeanForTemp.setDependencyTypeId(dependencyTypeId);
+				sdmxElementBeanForTemp.setDependencyTypeName(dependencyName);
+			}
+		}
+	}
+
+	private void validateDsdCodeExistOrNot(String dsdCode, SdmxElementBeanForTemp sdmxElementBeanForTemp)
+			throws ApplicationException {
+		Long statusCodeId = adminStatusService
+				.findIdByStatusTechCode(SDMXConstants.StatusTechCode.PENDING_FOR_APPROVAL.getCode());
+		if (sdmxElementTempService.isDataExistWithDsdCodeAndStatus(dsdCode, new AdminStatus(statusCodeId))) {
+			throw new ApplicationException("ER015",
+					"Another request is already is progress with this DSD code. Can't proceed that request");
+		} else {
+			sdmxElementBeanForTemp.setDsdCode(dsdCode);
+		}
+	}
+
+}

@@ -1,0 +1,24 @@
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.AuditFirmInfo;
+import com.iris.model.CountryMaster;
+import com.iris.model.FileDetails;
+
+public interface AuditorFirmRepo extends JpaRepository<AuditFirmInfo, Long> {
+
+	@Query("FROM AuditFirmInfo where auditFirmRegNo=:firmRegNo")
+	AuditFirmInfo getAuditorFirmByRegNo(@Param("firmRegNo") String firmRegNo);
+
+	@Query("FROM AuditFirmInfo order by lastUpdatedOn desc")
+	List<AuditFirmInfo> getAuditorFirmList();
+
+	@Query("FROM AuditFirmInfo where isActive = 1 order by lastUpdatedOn desc")
+	List<AuditFirmInfo> getActiveAuditorFirmList();
+
+}

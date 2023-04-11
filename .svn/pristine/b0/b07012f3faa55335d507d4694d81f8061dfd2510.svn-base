@@ -1,0 +1,107 @@
+package com.iris.service.impl;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.exception.ServiceException;
+import com.iris.model.CityMaster;
+import com.iris.model.DistrictMaster;
+import com.iris.repository.CityMasterRepo;
+import com.iris.repository.DistrictMasterRepo;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.MethodConstants;
+
+/**
+ * @author Pradnya Mhatre
+ *
+ */
+@Service
+public class CityMasterService implements GenericService<CityMaster, Long> {
+
+	@Autowired
+	CityMasterRepo cityMasterRepo;
+
+	@Override
+	public CityMaster add(CityMaster entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean update(CityMaster entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public List<CityMaster> getDataByIds(Long[] ids) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public CityMaster getDataById(Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<CityMaster> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName) throws ServiceException {
+		try {
+			List<String> stateList = null;
+			if (methodName.equalsIgnoreCase(MethodConstants.GET_CITY_LIST_BY_STATE_CODE.getConstantVal())) {
+				stateList = columnValueMap.get(ColumnConstants.STATE_CODE.getConstantVal());
+				return cityMasterRepo.getCityListByState(stateList.get(0));
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_CITY_LIST_BY_STATE_NAME.getConstantVal())) {
+				stateList = columnValueMap.get(ColumnConstants.STATE_NAME.getConstantVal());
+				return cityMasterRepo.getCityListByStateName(stateList.get(0));
+			}
+			return Collections.emptyList();
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<CityMaster> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<CityMaster> getDataByObject(Map<String, Object> columnValueMap, String methodName) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<CityMaster> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		try {
+			if (bean.equals(CityMaster.class) && id == null) {
+				return cityMasterRepo.findAllActiveData();
+			}
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+		return null;
+	}
+
+	@Override
+	public List<CityMaster> getAllDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void deleteData(CityMaster bean) throws ServiceException {
+		// TODO Auto-generated method stub
+
+	}
+
+}

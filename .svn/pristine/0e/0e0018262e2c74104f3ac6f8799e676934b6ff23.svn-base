@@ -1,0 +1,65 @@
+package com.iris.model;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+import com.iris.util.UtilMaster;
+
+/**
+ * @author BHAVANA
+ *
+ */
+@Entity
+@Table(name = "TBL_NBFC_CLASSIFICATIONS")
+public class NbfcClassification implements Serializable {
+	private static final long serialVersionUID = 7797776494021586910L;
+
+	@Id
+	@Column(name = "NBFC_CALSS_ID")
+	private Long nbfcClassId;
+
+	@Column(name = "NBFC_CLASSIFICATION_NAME_EN")
+	private String nbfcClassiNameEn;
+
+	@Column(name = "NBFC_CLASSIFICATION_CODE")
+	private String nbfcClassiCode;
+
+	@Column(name = "NBFC_CLASSIFICATION_NAME_HI")
+	private String nbfcClassiNameHi;
+
+	public Long getNbfcClassId() {
+		return nbfcClassId;
+	}
+
+	public void setNbfcClassId(Long nbfcClassId) {
+		this.nbfcClassId = nbfcClassId;
+	}
+
+	public String getNbfcClassiNameEn() {
+		return nbfcClassiNameEn;
+	}
+
+	public void setNbfcClassiNameEn(String nbfcClassiNameEn) {
+		this.nbfcClassiNameEn = UtilMaster.trimInput(nbfcClassiNameEn);
+	}
+
+	public String getNbfcClassiCode() {
+		return nbfcClassiCode;
+	}
+
+	public void setNbfcClassiCode(String nbfcClassiCode) {
+		this.nbfcClassiCode = UtilMaster.trimInput(nbfcClassiCode);
+	}
+
+	public String getNbfcClassiNameHi() {
+		return nbfcClassiNameHi;
+	}
+
+	public void setNbfcClassiNameHi(String nbfcClassiNameHi) {
+		this.nbfcClassiNameHi = UtilMaster.trimInput(nbfcClassiNameHi);
+	}
+}

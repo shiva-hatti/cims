@@ -1,0 +1,18 @@
+/**
+ * 
+ */
+package com.iris.sdmx.elementdimensionmapping.repo;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.iris.sdmx.elementdimensionmapping.entity.ElementDimensionMod;
+
+/**
+ * @author sajadhav
+ *
+ */
+public interface ElementDimensionModRepo extends JpaRepository<ElementDimensionMod, Long>{
+
+	ElementDimensionMod findByElementDsdCodeAndElementElementVerAndAdminStatusId(String dsdCode, String version, int adminStatuId);
+	
+}

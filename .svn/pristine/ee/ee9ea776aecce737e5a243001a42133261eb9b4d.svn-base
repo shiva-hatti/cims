@@ -1,0 +1,30 @@
+package com.iris.sdmx.status.repo;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.iris.sdmx.status.entity.ActionStatus;
+
+
+
+/**
+ * @author apagaria
+ *
+ */
+public interface ActionStatusRepo extends JpaRepository<ActionStatus, Long> {
+
+	/**
+	 * @param isActive
+	 * @return
+	 */
+	@Query("from ActionStatus where isActive =:isActive")
+	List<ActionStatus> findByActiveStatus(Boolean isActive);
+	
+	@Query("from ActionStatus where actionName =:actionName")
+	ActionStatus findByStatusActionName(String actionName);
+	
+	List<ActionStatus> findAll();
+
+}

@@ -1,0 +1,115 @@
+/**
+ * 
+ */
+package com.iris.sdmx.status.bean;
+
+import java.io.Serializable;
+
+/**
+ * @author apagaria
+ *
+ */
+public class SdmxModuleDetailBean implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 6695990184449061077L;
+
+	/**
+	 * @param moduleStatusId
+	 */
+	public SdmxModuleDetailBean(Long moduleId) {
+		this.moduleId = moduleId;
+	}
+
+	/**
+	 * 
+	 */
+	public SdmxModuleDetailBean() {
+	}
+
+	/**
+	 * 
+	 */
+	private Long moduleId;
+
+	/**
+	 * 
+	 */
+	private String moduleCode;
+
+	/**
+	 * 
+	 */
+	private String moduleName;
+
+	/**
+	 * 
+	 */
+	private String moduleDesc;
+
+	/**
+	 * @return the moduleId
+	 */
+	public Long getModuleId() {
+		return moduleId;
+	}
+
+	/**
+	 * @param moduleId the moduleId to set
+	 */
+	public void setModuleId(Long moduleId) {
+		this.moduleId = moduleId;
+	}
+
+	/**
+	 * @return the moduleCode
+	 */
+	public String getModuleCode() {
+		return moduleCode;
+	}
+
+	/**
+	 * @param moduleCode the moduleCode to set
+	 */
+	public void setModuleCode(String moduleCode) {
+		this.moduleCode = moduleCode;
+	}
+
+	/**
+	 * @return the moduleName
+	 */
+	public String getModuleName() {
+		return moduleName;
+	}
+
+	/**
+	 * @param moduleName the moduleName to set
+	 */
+	public void setModuleName(String moduleName) {
+		this.moduleName = moduleName;
+	}
+
+	/**
+	 * @return the moduleDesc
+	 */
+	public String getModuleDesc() {
+		return moduleDesc;
+	}
+
+	/**
+	 * @param moduleDesc the moduleDesc to set
+	 */
+	public void setModuleDesc(String moduleDesc) {
+		this.moduleDesc = moduleDesc;
+	}
+
+	/**
+	 *
+	 */
+	@Override
+	public String toString() {
+		return "SdmxModuleDetailEntity [moduleId=" + moduleId + ", moduleCode=" + moduleCode + ", moduleName=" + moduleName + ", moduleDesc=" + moduleDesc + "]";
+	}
+}

@@ -1,0 +1,85 @@
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.ReturnEntityMapDto;
+import com.iris.dto.ReturnEntityQueryOutputDto;
+import com.iris.dto.ReturnTemplateDto;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.exception.ApplicationException;
+import com.iris.service.EntityMasterControllerServiceV2;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.validator.DownloadReturnTempValidator;
+
+/**
+ * @author Bhavana Thakare This service class is created to write business logic of get all data ReturnTemplate file
+ *
+ */
+
+@RestController
+@RequestMapping("/service/downloadReturnTempService/V2")
+public class DownloadReturnTemplateControllerV2 {
+	private static final Logger LOGGER = LogManager.getLogger(EntityMasterControllerV2.class);
+	@Autowired
+	private DownloadReturnTempValidator downloadReturnTempValidator;
+	@Autowired
+	private EntityMasterControllerServiceV2 entityMasterControllerServiceV2;
+	@Autowired
+	private ReturnTemplateUploadController returnTemplateUploadController;
+
+	@PostMapping(value = "/getAllDataReturnTemplateDataByReturn")
+	public ServiceResponse getAllDataReturnTemplateDataByReturn(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody ReturnEntityMapDto returnChannelMapReqDto) {
+		LOGGER.info("request received to getAllData Return TemplateData By Return list for job processigid : " + jobProcessId);
+		try {
+			// validator
+			LOGGER.info(jobProcessId + "Request received for getAllDataReturnTemplateDataByReturn");
+			downloadReturnTempValidator.validateReturnTempMapReqDto(returnChannelMapReqDto);
+			// Fetch the result
+			List<ReturnEntityQueryOutputDto> returnEntityQueryOutputDtoList = entityMasterControllerServiceV2.fetchReturnListByRoleNEntity(returnChannelMapReqDto, jobProcessId);
+			LOGGER.info("size  of  fetchReturnListByRoleNEntity function" + returnEntityQueryOutputDtoList.size());
+			// convert result
+			List<String> returnCodeList = convertResultToOutputBean(returnEntityQueryOutputDtoList);
+			if (CollectionUtils.isEmpty(returnCodeList)) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+			}
+			ReturnTemplateDto returnTemplateDto = new ReturnTemplateDto();
+			returnTemplateDto.setLangCode(returnChannelMapReqDto.getLangCode());
+			returnTemplateDto.setReturnCodeList(returnCodeList);
+			LOGGER.info("Call getAllDataOfReturnTemplateFromReturn_new function");
+			List<ReturnTemplateDto> retTempDtoList = returnTemplateUploadController.getAllDataOfReturnTemplateFromReturn_new(returnTemplateDto);
+			LOGGER.info("Call getAllDataOfReturnTemplateFromReturn_new function end");
+			return new ServiceResponseBuilder().setStatus(true).setStatusCode(GeneralConstants.SUCCESS_CODE.getConstantVal()).setStatusMessage(GeneralConstants.SUCCESS.getConstantVal()).setResponse(retTempDtoList).build();
+		} catch (ApplicationException ae) {
+			LOGGER.error(jobProcessId + " Exception occured to fetch getAllDataReturnTemplateDataByReturn V2 ", ae);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ae.getErrorCode()).setStatusMessage(ae.getErrorMsg()).build();
+		} catch (Exception e) {
+			LOGGER.error(jobProcessId + " Exception occured to fetch getAllDataReturnTemplateDataByReturn V2 ", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+
+	private List<String> convertResultToOutputBean(List<ReturnEntityQueryOutputDto> returnEntityQueryOutputDtoList) {
+		List<String> returnCodeList = new ArrayList<>();
+		for (ReturnEntityQueryOutputDto retOutList : returnEntityQueryOutputDtoList) {
+			if (!returnCodeList.contains(retOutList.getReturnCode())) {
+				returnCodeList.add(retOutList.getReturnCode());
+			}
+		}
+
+		return returnCodeList;
+	}
+}

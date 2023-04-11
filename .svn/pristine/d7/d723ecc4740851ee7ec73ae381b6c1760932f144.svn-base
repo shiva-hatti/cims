@@ -1,0 +1,108 @@
+package com.iris.model;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "TBL_RETURN_CUSTOMS_DATE")
+public class ReturnCustomDate implements Serializable {
+
+	private static final long serialVersionUID = 4640729934026994437L;
+	
+	@Id
+	@Column(name = "RETURN_CUSTOM_DATE_PK")
+	private Integer returnCustomDatePk;
+	
+	@Column(name = "YTD_START_DATE")
+	private boolean isYtdStartDate;
+	
+	@Column(name = "YTD_END_DATE")
+	private boolean isYtdEndDate;
+	
+	@Column(name = "PQ_END_DATE")
+	private boolean isPqEndDate;
+	
+	@Column(name = "PY_END_DATE")
+	private boolean isPyEndDate;
+	
+	@Column(name = "CUR_Q_START_DATE")
+	private boolean isCurQStartDate;
+	
+	@Column(name = "CUR_Q_END_DATE")
+	private boolean isCurQEndDate;
+	
+	@ManyToOne
+	@JoinColumn(name = "RETURN_ID_FK")
+	private Return returnIdFk;
+
+	public Integer getReturnCustomDatePk() {
+		return returnCustomDatePk;
+	}
+
+	public void setReturnCustomDatePk(Integer returnCustomDatePk) {
+		this.returnCustomDatePk = returnCustomDatePk;
+	}
+
+	public boolean isYtdStartDate() {
+		return isYtdStartDate;
+	}
+
+	public void setYtdStartDate(boolean isYtdStartDate) {
+		this.isYtdStartDate = isYtdStartDate;
+	}
+
+	public boolean isYtdEndDate() {
+		return isYtdEndDate;
+	}
+
+	public void setYtdEndDate(boolean isYtdEndDate) {
+		this.isYtdEndDate = isYtdEndDate;
+	}
+
+	public boolean isPqEndDate() {
+		return isPqEndDate;
+	}
+
+	public void setPqEndDate(boolean isPqEndDate) {
+		this.isPqEndDate = isPqEndDate;
+	}
+
+	public boolean isPyEndDate() {
+		return isPyEndDate;
+	}
+
+	public void setPyEndDate(boolean isPyEndDate) {
+		this.isPyEndDate = isPyEndDate;
+	}
+
+	public boolean isCurQStartDate() {
+		return isCurQStartDate;
+	}
+
+	public void setCurQStartDate(boolean isCurQStartDate) {
+		this.isCurQStartDate = isCurQStartDate;
+	}
+
+	public boolean isCurQEndDate() {
+		return isCurQEndDate;
+	}
+
+	public void setCurQEndDate(boolean isCurQEndDate) {
+		this.isCurQEndDate = isCurQEndDate;
+	}
+
+	public Return getReturnIdFk() {
+		return returnIdFk;
+	}
+
+	public void setReturnIdFk(Return returnIdFk) {
+		this.returnIdFk = returnIdFk;
+	}
+
+}

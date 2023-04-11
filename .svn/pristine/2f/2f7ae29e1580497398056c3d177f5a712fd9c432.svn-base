@@ -1,0 +1,42 @@
+package com.iris.repository;
+
+import java.util.List;
+
+import javax.persistence.Column;
+import javax.persistence.Id;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.iris.model.ReturnApprovalDetail;
+
+/**
+ * @author sikhan
+ */
+public interface ReturnApprovalDetailsRepo extends JpaRepository<ReturnApprovalDetail, Long> {
+
+	@Query(value = "select new com.iris.model.ReturnApprovalDetail(rd.uploadId, det.returnApprovalDetailId, ret.returnId," + " ent.entityId, ent.entityCode, fs.filingStatusId, role.userRoleId, usr.userId, " + " usr.userName, rd.prevUploadId, rd.workFlowMaster.workflowId, det.workflowStep," + " channel.uploadChannelDesc, " + " channel.uploadChannelId, rd.fileType, rd.instanceFile, " + " fd.fileName, rd.attachedFile, fd.supportiveDocName, " + " fs.status, fr.frequencyName, rd.endDate, " + " rd.startDate, ret.returnCode, rd.unlockingReqId.unlockingReqId, " + " value.returnProprtyValId, retLabel.returnLabel, enLabel.entityNameLabel, " + " fd.creationDate, rd.taxonomyId.returnTemplateId) " + " from ReturnApprovalDetail det, ReturnsUploadDetails rd, EntityBean ent, " + " UserMaster usr, EntityLabelBean enLabel, ReturnLabel retLabel, LanguageMaster lang, " + " FileDetails fd, UploadChannel channel, FilingStatus fs, Frequency fr, Return ret, UserRole role left join ReturnPropertyValue value " + " on value.returnProprtyValId = rd.returnPropertyValue.returnProValue" + " where det.workFlowActivity.activityId IN(:activityIds)" + " and lang.languageCode =:langCode" + " and det.isComplete = false " + " and det.reviewStatus is null " + " and rd.uploadedBy.userId !=:loggedInUserId " + " and rd.returnObj.returnId IN (:returnIds) " + " and rd.entity.entityId IN (:entityIds) and rd.active = 1 " + " and ent.entityId = rd.entity.entityId and usr.userId = rd.uploadedBy.userId and fd.id = rd.fileDetailsBean.id " + " and channel.uploadChannelId = fd.uploadChannelIdFk.uploadChannelId and fr.frequencyId = rd.frequency.frequencyId " + " and ret.returnId = rd.returnObj.returnId  and role.userRoleId = rd.uploadUsrRole.userRoleId" + " and det.returnUploadDetails.uploadId = rd.uploadId " + " and fs.filingStatusId = rd.filingStatus.filingStatusId " + " and enLabel.languageMaster.languageId = lang.languageId " + " and retLabel.langIdFk.languageId = lang.languageId" + " and ent.entityId = enLabel.entityBean.entityId" + " and ret.returnId = retLabel.returnIdFk.returnId" + " order by rd.uploadedDate asc")
+	List<ReturnApprovalDetail> getPendignForApprovalData(@Param("activityIds") List<Long> activityIds, @Param("loggedInUserId") Long loggedInUserId, @Param("entityIds") List<Long> entityIds, @Param("returnIds") List<Long> returnIds, @Param("langCode") String langCode);
+
+	@Query(value = "SELECT count (det.returnApprovalDetailId) From ReturnApprovalDetail det, ReturnsUploadDetails rd where " + "det.workFlowActivity.activityId IN (:activityIds) and det.isComplete = false and det.reviewStatus is null and rd.uploadedBy.userId !=:loggedInUserId " + "and rd.returnObj.returnId IN (:returnIds) and rd.entity.entityId IN (:entityIds) and rd.active = 1 and det.returnUploadDetails.uploadId = rd.uploadId")
+	Long getPendingForApprovalDataCount(@Param("activityIds") List<Long> activityIds, @Param("loggedInUserId") Long loggedInUserId, @Param("entityIds") List<Long> entityIds, @Param("returnIds") List<Long> returnIds);
+
+	@Query(value = "select det from ReturnApprovalDetail det, ReturnsUploadDetails rd " + " where det.isComplete = false " + " and det.reviewStatus is null " + " and rd.active = 1 and det.returnUploadDetails.uploadId = rd.uploadId")
+	List<ReturnApprovalDetail> getPendingForApprovalData();
+
+	List<ReturnApprovalDetail> findByReturnUploadDetailsUploadIdOrderByCreationTimeDesc(Long uploadID);
+
+	//	@Query(value = "select new com.iris.model.Return(ret.returnId, ret.returnCode, retLable.returnLabel) from UserRoleReturnMapping userRoleRet,"
+	//			+ " Return ret, ReturnLabel retLable, LanguageMaster langMas" 
+	//			+ " where userRoleRet.roleIdFk.userRoleId =:roleId and userRoleRet.isActive =:isActive "
+	//			+ " and langMas.languageCode =:langCode"
+	//			+ " and ret.isActive =:isActive"
+	//			+ " and langMas.languageId = retLable.langIdFk.languageId "
+	//			+ " and ret.returnId = retLable.returnIdFk.returnId and ret.returnId = userRoleRet.returnIdFk.returnId")
+	//	List<Return> getListOfReturnMappeToRoleId(@Param("roleId") Long roleId, @Param("isActive") boolean isActive,@Param("langCode") String langCode);
+
+	ReturnApprovalDetail getDataByReturnApprovalDetailId(Long returnApprovalDtlId);
+}

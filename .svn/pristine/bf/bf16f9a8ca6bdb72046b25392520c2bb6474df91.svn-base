@@ -1,0 +1,220 @@
+/**
+ * 
+ */
+package com.iris.sdmx.element.bean;
+
+/**
+ * @author apagaria
+ *
+ */
+public class SdmxAddElementInputBean {
+	
+	private String dsdCode;
+	
+	private String elementLabel;
+	
+	private String elementVer;
+	
+	private String classificationName;
+	
+	private String flowTypeName;
+	
+	private String natureTypeName;
+	
+	private String dependencyTypeName;
+	
+	private String sectorTypeName;
+	
+	private Long ownerDepartmentId;
+	
+	private Long elementParentId;
+	
+	private String elementDesc;
+	
+	private String userName;
+
+	/**
+	 * @return the dsdCode
+	 */
+	public String getDsdCode() {
+		return dsdCode;
+	}
+
+	/**
+	 * @param dsdCode the dsdCode to set
+	 */
+	public void setDsdCode(String dsdCode) {
+		this.dsdCode = dsdCode;
+	}
+
+	/**
+	 * @return the elementLabel
+	 */
+	public String getElementLabel() {
+		return elementLabel;
+	}
+
+	/**
+	 * @param elementLabel the elementLabel to set
+	 */
+	public void setElementLabel(String elementLabel) {
+		this.elementLabel = elementLabel;
+	}
+
+	/**
+	 * @return the elementVer
+	 */
+	public String getElementVer() {
+		return elementVer;
+	}
+
+	/**
+	 * @param elementVer the elementVer to set
+	 */
+	public void setElementVer(String elementVer) {
+		this.elementVer = elementVer;
+	}
+
+	/**
+	 * @return the classificationName
+	 */
+	public String getClassificationName() {
+		return classificationName;
+	}
+
+	/**
+	 * @param classificationName the classificationName to set
+	 */
+	public void setClassificationName(String classificationName) {
+		this.classificationName = classificationName;
+	}
+
+	/**
+	 * @return the flowTypeName
+	 */
+	public String getFlowTypeName() {
+		return flowTypeName;
+	}
+
+	/**
+	 * @param flowTypeName the flowTypeName to set
+	 */
+	public void setFlowTypeName(String flowTypeName) {
+		this.flowTypeName = flowTypeName;
+	}
+
+	/**
+	 * @return the natureTypeName
+	 */
+	public String getNatureTypeName() {
+		return natureTypeName;
+	}
+
+	/**
+	 * @param natureTypeName the natureTypeName to set
+	 */
+	public void setNatureTypeName(String natureTypeName) {
+		this.natureTypeName = natureTypeName;
+	}
+
+	/**
+	 * @return the dependencyTypeName
+	 */
+	public String getDependencyTypeName() {
+		return dependencyTypeName;
+	}
+
+	/**
+	 * @param dependencyTypeName the dependencyTypeName to set
+	 */
+	public void setDependencyTypeName(String dependencyTypeName) {
+		this.dependencyTypeName = dependencyTypeName;
+	}
+
+	/**
+	 * @return the sectorTypeName
+	 */
+	public String getSectorTypeName() {
+		return sectorTypeName;
+	}
+
+	/**
+	 * @param sectorTypeName the sectorTypeName to set
+	 */
+	public void setSectorTypeName(String sectorTypeName) {
+		this.sectorTypeName = sectorTypeName;
+	}
+
+	/**
+	 * @return the ownerDepartmentId
+	 */
+	public Long getOwnerDepartmentId() {
+		return ownerDepartmentId;
+	}
+
+	/**
+	 * @param ownerDepartmentId the ownerDepartmentId to set
+	 */
+	public void setOwnerDepartmentId(Long ownerDepartmentId) {
+		this.ownerDepartmentId = ownerDepartmentId;
+	}
+
+	/**
+	 * @return the elementParentId
+	 */
+	public Long getElementParentId() {
+		return elementParentId;
+	}
+
+	/**
+	 * @param elementParentId the elementParentId to set
+	 */
+	public void setElementParentId(Long elementParentId) {
+		this.elementParentId = elementParentId;
+	}
+
+	/**
+	 * @return the elementDesc
+	 */
+	public String getElementDesc() {
+		return elementDesc;
+	}
+
+	/**
+	 * @param elementDesc the elementDesc to set
+	 */
+	public void setElementDesc(String elementDesc) {
+		this.elementDesc = elementDesc;
+	}
+
+	/**
+	 * @return the userName
+	 */
+	public String getUserName() {
+		return userName;
+	}
+
+	/**
+	 * @param userName the userName to set
+	 */
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	/**
+	 *
+	 */
+	@Override
+	public String toString() {
+		return "SdmxAddElementInputBean [dsdCode=" + dsdCode + ", elementLabel=" + elementLabel + ", elementVer="
+				+ elementVer + ", classificationName=" + classificationName + ", flowTypeName=" + flowTypeName
+				+ ", natureTypeName=" + natureTypeName + ", dependencyTypeName=" + dependencyTypeName
+				+ ", sectorTypeName=" + sectorTypeName + ", ownerDepartmentId=" + ownerDepartmentId
+				+ ", elementParentId=" + elementParentId + ", elementDesc=" + elementDesc + ", userName=" + userName
+				+ "]";
+	}
+
+	
+
+	
+}

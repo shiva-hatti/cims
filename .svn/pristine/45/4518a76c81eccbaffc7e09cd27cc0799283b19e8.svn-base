@@ -1,0 +1,14 @@
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.iris.model.FileStatus;
+
+public interface FileStatusRepo extends JpaRepository<FileStatus, Long> {
+	 
+	 @Query(value = "FROM FileStatus ")
+	 List<FileStatus> fetchAllFileStatus();
+}

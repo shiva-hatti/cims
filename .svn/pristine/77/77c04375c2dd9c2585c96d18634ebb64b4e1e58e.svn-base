@@ -1,0 +1,124 @@
+package com.iris.nbfc.service;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import com.iris.exception.ServiceException;
+import com.iris.nbfc.model.NbfcCertificationDetails;
+import com.iris.nbfc.repository.NbfcCertificationDetailsRepo;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.MethodConstants;
+@Service	
+public class NbfcCertificationDetailsService implements GenericService<NbfcCertificationDetails, Long> {
+	
+	@Autowired
+	NbfcCertificationDetailsRepo nbfcCertificationDetailsRepo;
+
+	@Override
+	public NbfcCertificationDetails add(NbfcCertificationDetails entity) throws ServiceException {
+		entity = nbfcCertificationDetailsRepo.save(entity);
+		return entity;
+	}
+
+	@Override
+	public boolean update(NbfcCertificationDetails entity) throws ServiceException {
+		try {
+			nbfcCertificationDetailsRepo.save(entity);
+			return true;
+		} catch(Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<NbfcCertificationDetails> getDataByIds(Long[] ids) throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public NbfcCertificationDetails getDataById(Long id) throws ServiceException {
+		return nbfcCertificationDetailsRepo.findByNbfcCerDetalId(id);
+	}
+
+	@Override
+	public List<NbfcCertificationDetails> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcCertificationDetails> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName)
+			throws ServiceException {
+		try {
+			List<Long> idList  = null;
+			List<Long> pageNoList  = null;
+			List<Long> subPageNoList  = null;
+			List<Long> companyOtherTypeIdList  = null;
+			if(methodName.equalsIgnoreCase(MethodConstants.GET_NBFC_CERTIFICATION_DETAILS_BY_ENTITY_ID.getConstantVal())) {
+				idList = columnValueMap.get(ColumnConstants.ENTITY_ID_LIST.getConstantVal());
+				pageNoList = columnValueMap.get(ColumnConstants.FORM_PAGE_NO.getConstantVal());
+				subPageNoList = columnValueMap.get(ColumnConstants.SUB_FORM_PAGE_NO.getConstantVal());
+				companyOtherTypeIdList = columnValueMap.get(ColumnConstants.COMAPNY_OTHER_TYPE_ID.getConstantVal());
+				if(subPageNoList != null && !CollectionUtils.isEmpty(subPageNoList) && !Objects.isNull(subPageNoList.get(0))) {
+					if(companyOtherTypeIdList != null && !CollectionUtils.isEmpty(companyOtherTypeIdList) && !Objects.isNull(companyOtherTypeIdList.get(0))) {
+						return nbfcCertificationDetailsRepo.getNbfcCertificationDetilsbyNbfcEntityIdAndPageNoAndSubPageNoAndComapnyOtherTypeId(idList.get(0), pageNoList.get(0), subPageNoList.get(0), companyOtherTypeIdList.get(0));
+					} else {
+						return nbfcCertificationDetailsRepo.getNbfcCertificationDetilsbyNbfcEntityIdAndPageNoAndSubPageNo(idList.get(0), pageNoList.get(0), subPageNoList.get(0));
+					}
+				} else {
+					return nbfcCertificationDetailsRepo.getNbfcCertificationDetilsbyNbfcEntityIdAndPageNo(idList.get(0), pageNoList.get(0));
+				}
+			} else if(methodName.equalsIgnoreCase(MethodConstants.GET_NBFC_CERTIFICATION_DETAILS_BY_USER_ID.getConstantVal())) {
+				idList = columnValueMap.get(ColumnConstants.USER_ID.getConstantVal());
+				pageNoList = columnValueMap.get(ColumnConstants.FORM_PAGE_NO.getConstantVal());
+				subPageNoList = columnValueMap.get(ColumnConstants.SUB_FORM_PAGE_NO.getConstantVal());
+				companyOtherTypeIdList = columnValueMap.get(ColumnConstants.COMAPNY_OTHER_TYPE_ID.getConstantVal());
+				if(subPageNoList != null && !CollectionUtils.isEmpty(subPageNoList) && !Objects.isNull(subPageNoList.get(0))) {
+					if(companyOtherTypeIdList != null && !CollectionUtils.isEmpty(companyOtherTypeIdList) && !Objects.isNull(companyOtherTypeIdList.get(0))) {
+						return nbfcCertificationDetailsRepo.getNbfcCertificationDetilsbyUserIdAndSubPageNoAndComapnyOtherTypeId(idList.get(0), pageNoList.get(0), subPageNoList.get(0), companyOtherTypeIdList.get(0));
+					} else {
+						return nbfcCertificationDetailsRepo.getNbfcCertificationDetilsbyUserIdAndSubPageNo(idList.get(0), pageNoList.get(0),subPageNoList.get(0));
+					}
+				} else if(pageNoList != null && !CollectionUtils.isEmpty(pageNoList) && pageNoList.get(0).equals(13L) && subPageNoList == null && companyOtherTypeIdList != null && !CollectionUtils.isEmpty(companyOtherTypeIdList) && !Objects.isNull(companyOtherTypeIdList.get(0))) {
+					return nbfcCertificationDetailsRepo.getNbfcCertificationDetilsbyUserIdAndPageNoAndComapnyOtherTypeId(idList.get(0), pageNoList.get(0), companyOtherTypeIdList.get(0));
+				} else {
+					return nbfcCertificationDetailsRepo.getNbfcCertificationDetilsbyUserId(idList.get(0), pageNoList.get(0));
+				}
+			} else if(methodName.equalsIgnoreCase(MethodConstants.GET_LAST_SAVED_NBFC_CERTIFICATION_DETAILS_BY_ID.getConstantVal())) {
+				idList = columnValueMap.get(ColumnConstants.USER_ID.getConstantVal());
+				return nbfcCertificationDetailsRepo.getNbfcCertificationDetilsbyUserIdAndEntityId(idList.get(0));
+			} 
+			return null;
+		}catch(Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<NbfcCertificationDetails> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcCertificationDetails> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcCertificationDetails> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public void deleteData(NbfcCertificationDetails bean) throws ServiceException {
+	}	
+}

@@ -1,0 +1,209 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Set;
+
+import com.iris.model.RegulatorLabel;
+
+/**
+ * @author apagaria
+ * 
+ * 
+ */
+public class RegulatorBean implements Serializable {
+
+	private static final long serialVersionUID = 883729007961721091L;
+
+	private Long regulatorId;
+
+	private String regulatorName;
+
+	private String regulatorCode;
+
+	private Boolean isActive;
+
+	private Long createdByFk;
+
+	private Date createdOn;
+
+	private Long lastModifiedByFk;
+
+	private Date lastModifiedOn;
+
+	private Date lastUpdatedOn;
+
+	private Set<RegulatorLabel> regulatorLblSet;
+
+	private String aseJscLogo;
+
+	private Boolean isMaster;
+
+	/**
+	 * @return the regulatorId
+	 */
+	public Long getRegulatorId() {
+		return regulatorId;
+	}
+
+	/**
+	 * @param regulatorId the regulatorId to set
+	 */
+	public void setRegulatorId(Long regulatorId) {
+		this.regulatorId = regulatorId;
+	}
+
+	/**
+	 * @return the regulatorName
+	 */
+	public String getRegulatorName() {
+		return regulatorName;
+	}
+
+	/**
+	 * @param regulatorName the regulatorName to set
+	 */
+	public void setRegulatorName(String regulatorName) {
+		this.regulatorName = regulatorName;
+	}
+
+	/**
+	 * @return the regulatorCode
+	 */
+	public String getRegulatorCode() {
+		return regulatorCode;
+	}
+
+	/**
+	 * @param regulatorCode the regulatorCode to set
+	 */
+	public void setRegulatorCode(String regulatorCode) {
+		this.regulatorCode = regulatorCode;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the createdByFk
+	 */
+	public Long getCreatedByFk() {
+		return createdByFk;
+	}
+
+	/**
+	 * @param createdByFk the createdByFk to set
+	 */
+	public void setCreatedByFk(Long createdByFk) {
+		this.createdByFk = createdByFk;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the lastModifiedByFk
+	 */
+	public Long getLastModifiedByFk() {
+		return lastModifiedByFk;
+	}
+
+	/**
+	 * @param lastModifiedByFk the lastModifiedByFk to set
+	 */
+	public void setLastModifiedByFk(Long lastModifiedByFk) {
+		this.lastModifiedByFk = lastModifiedByFk;
+	}
+
+	/**
+	 * @return the lastModifiedOn
+	 */
+	public Date getLastModifiedOn() {
+		return lastModifiedOn;
+	}
+
+	/**
+	 * @param lastModifiedOn the lastModifiedOn to set
+	 */
+	public void setLastModifiedOn(Date lastModifiedOn) {
+		this.lastModifiedOn = lastModifiedOn;
+	}
+
+	/**
+	 * @return the lastUpdatedOn
+	 */
+	public Date getLastUpdatedOn() {
+		return lastUpdatedOn;
+	}
+
+	/**
+	 * @param lastUpdatedOn the lastUpdatedOn to set
+	 */
+	public void setLastUpdatedOn(Date lastUpdatedOn) {
+		this.lastUpdatedOn = lastUpdatedOn;
+	}
+
+	/**
+	 * @return the regulatorLblSet
+	 */
+	public Set<RegulatorLabel> getRegulatorLblSet() {
+		return regulatorLblSet;
+	}
+
+	/**
+	 * @param regulatorLblSet the regulatorLblSet to set
+	 */
+	public void setRegulatorLblSet(Set<RegulatorLabel> regulatorLblSet) {
+		this.regulatorLblSet = regulatorLblSet;
+	}
+
+	/**
+	 * @return the aseJscLogo
+	 */
+	public String getAseJscLogo() {
+		return aseJscLogo;
+	}
+
+	/**
+	 * @param aseJscLogo the aseJscLogo to set
+	 */
+	public void setAseJscLogo(String aseJscLogo) {
+		this.aseJscLogo = aseJscLogo;
+	}
+
+	/**
+	 * @return the isMaster
+	 */
+	public Boolean getIsMaster() {
+		return isMaster;
+	}
+
+	/**
+	 * @param isMaster the isMaster to set
+	 */
+	public void setIsMaster(Boolean isMaster) {
+		this.isMaster = isMaster;
+	}
+}

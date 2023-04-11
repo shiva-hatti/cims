@@ -1,0 +1,368 @@
+/**
+ * 
+ */
+package com.iris.sdmx.codelist.entity;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.iris.model.UserMaster;
+
+/**
+ * @author sajadhav
+ *
+ */
+@Entity
+@Table(name= "TBL_SDMX_CL_MASTER_MOD")
+@JsonInclude(Include.NON_NULL)
+public class CodeListMasterMod implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 4684784601124587116L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "MOD_CL_ID")
+	private Long clMasterModId;
+	
+	@Column(name = "CL_CODE")
+	private String clCode;
+	
+	@Column(name = "CL_VER")
+	private String clVersion;
+	
+	@Column(name = "CL_MASTER_JSON")
+	private String clMasterJson;
+	
+	@Column(name = "IS_ACTIVE")
+	private boolean isActive;
+
+	@Column(name = "COMMENTS")
+	private String comments;
+	
+	@Column(name = "ACTION_ID_FK")
+	private int actionId;
+	
+	@Column(name = "ADMIN_STATUS_ID_FK")
+	private int adminStatusId;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "CL_ID_FK")
+	private CodeListMaster codeListMaster;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "CREATED_BY_FK")
+	private UserMaster createdBy;
+	
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "LAST_MODIFIED_BY_FK")
+	private UserMaster lastModifiedBy;
+
+	@Column(name = "LAST_MODIFIED_ON")
+	private Date lastModifiedOn;
+	
+	@Column(name = "LAST_UPDATE_ON")
+	private Date lastUpdatedOn;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "LAST_APPROVED_BY_FK")
+	private UserMaster lastApprovedBy;
+	
+	@Column(name = "LAST_APPROVED_ON")
+	private Date lastApprovedOn;
+
+	@Transient
+	private Long createdOnInLong;
+	
+	@Transient
+	private Long lastModifiedOnInLong;
+
+	@Transient
+	private Long lastUpdatedOnInLong;
+	
+	
+	/**
+	 * @return the createdOnInLong
+	 */
+	public Long getCreatedOnInLong() {
+		return createdOnInLong;
+	}
+
+	/**
+	 * @return the clCode
+	 */
+	public String getClCode() {
+		return clCode;
+	}
+
+	/**
+	 * @param clCode the clCode to set
+	 */
+	public void setClCode(String clCode) {
+		this.clCode = clCode;
+	}
+
+	/**
+	 * @return the clVersion
+	 */
+	public String getClVersion() {
+		return clVersion;
+	}
+
+	/**
+	 * @param clVersion the clVersion to set
+	 */
+	public void setClVersion(String clVersion) {
+		this.clVersion = clVersion;
+	}
+
+	/**
+	 * @param createdOnInLong the createdOnInLong to set
+	 */
+	public void setCreatedOnInLong(Long createdOnInLong) {
+		this.createdOnInLong = createdOnInLong;
+	}
+
+	/**
+	 * @return the lastModifiedOnInLong
+	 */
+	public Long getLastModifiedOnInLong() {
+		return lastModifiedOnInLong;
+	}
+
+	/**
+	 * @param lastModifiedOnInLong the lastModifiedOnInLong to set
+	 */
+	public void setLastModifiedOnInLong(Long lastModifiedOnInLong) {
+		this.lastModifiedOnInLong = lastModifiedOnInLong;
+	}
+
+	/**
+	 * @return the lastUpdatedOnInLong
+	 */
+	public Long getLastUpdatedOnInLong() {
+		return lastUpdatedOnInLong;
+	}
+
+	/**
+	 * @param lastUpdatedOnInLong the lastUpdatedOnInLong to set
+	 */
+	public void setLastUpdatedOnInLong(Long lastUpdatedOnInLong) {
+		this.lastUpdatedOnInLong = lastUpdatedOnInLong;
+	}
+
+	/**
+	 * @return the clMasterModId
+	 */
+	public Long getClMasterModId() {
+		return clMasterModId;
+	}
+
+	/**
+	 * @param clMasterModId the clMasterModId to set
+	 */
+	public void setClMasterModId(Long clMasterModId) {
+		this.clMasterModId = clMasterModId;
+	}
+
+	/**
+	 * @return the clMasterJson
+	 */
+	public String getClMasterJson() {
+		return clMasterJson;
+	}
+
+	/**
+	 * @param clMasterJson the clMasterJson to set
+	 */
+	public void setClMasterJson(String clMasterJson) {
+		this.clMasterJson = clMasterJson;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public boolean isActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setActive(boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the comments
+	 */
+	public String getComments() {
+		return comments;
+	}
+
+	/**
+	 * @param comments the comments to set
+	 */
+	public void setComments(String comments) {
+		this.comments = comments;
+	}
+
+	/**
+	 * @return the actionId
+	 */
+	public int getActionId() {
+		return actionId;
+	}
+
+	/**
+	 * @param actionId the actionId to set
+	 */
+	public void setActionId(int actionId) {
+		this.actionId = actionId;
+	}
+
+	/**
+	 * @return the adminStatusId
+	 */
+	public int getAdminStatusId() {
+		return adminStatusId;
+	}
+
+	/**
+	 * @param adminStatusId the adminStatusId to set
+	 */
+	public void setAdminStatusId(int adminStatusId) {
+		this.adminStatusId = adminStatusId;
+	}
+
+	/**
+	 * @return the codelistMaster
+	 */
+	public CodeListMaster getCodeListMaster() {
+		return codeListMaster;
+	}
+
+	/**
+	 * @param codeListMaster the codelistMaster to set
+	 */
+	public void setCodeListMaster(CodeListMaster codeListMaster) {
+		this.codeListMaster = codeListMaster;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the lastModifiedBy
+	 */
+	public UserMaster getLastModifiedBy() {
+		return lastModifiedBy;
+	}
+
+	/**
+	 * @param lastModifiedBy the lastModifiedBy to set
+	 */
+	public void setLastModifiedBy(UserMaster lastModifiedBy) {
+		this.lastModifiedBy = lastModifiedBy;
+	}
+
+	/**
+	 * @return the lastModifiedOn
+	 */
+	public Date getLastModifiedOn() {
+		return lastModifiedOn;
+	}
+
+	/**
+	 * @param lastModifiedOn the lastModifiedOn to set
+	 */
+	public void setLastModifiedOn(Date lastModifiedOn) {
+		this.lastModifiedOn = lastModifiedOn;
+	}
+
+	/**
+	 * @return the lastUpdatedOn
+	 */
+	public Date getLastUpdatedOn() {
+		return lastUpdatedOn;
+	}
+
+	/**
+	 * @param lastUpdatedOn the lastUpdatedOn to set
+	 */
+	public void setLastUpdatedOn(Date lastUpdatedOn) {
+		this.lastUpdatedOn = lastUpdatedOn;
+	}
+
+	/**
+	 * @return the lastApprovedBy
+	 */
+	public UserMaster getLastApprovedBy() {
+		return lastApprovedBy;
+	}
+
+	/**
+	 * @param lastApprovedBy the lastApprovedBy to set
+	 */
+	public void setLastApprovedBy(UserMaster lastApprovedBy) {
+		this.lastApprovedBy = lastApprovedBy;
+	}
+
+	/**
+	 * @return the lastApprovedOn
+	 */
+	public Date getLastApprovedOn() {
+		return lastApprovedOn;
+	}
+
+	/**
+	 * @param lastApprovedOn the lastApprovedOn to set
+	 */
+	public void setLastApprovedOn(Date lastApprovedOn) {
+		this.lastApprovedOn = lastApprovedOn;
+	}
+	
+}

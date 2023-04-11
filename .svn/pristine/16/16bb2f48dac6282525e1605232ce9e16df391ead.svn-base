@@ -1,0 +1,20 @@
+package com.iris.sdmx.lockrecord.repo;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.iris.sdmx.lockrecord.entity.SdmxLockRecordEntity;
+
+/**
+ * @author apagaria
+ *
+ */
+public interface SdmxLockRecordRepo extends JpaRepository<SdmxLockRecordEntity, Long> {
+
+	@Query("FROM SdmxLockRecordEntity where recordDetailEncode=:recordDetailEncode and isActive =:isActive")
+	SdmxLockRecordEntity findByRecordDetailEncodeNActive(String recordDetailEncode, Boolean isActive);
+	
+	@Query("FROM SdmxLockRecordEntity where recordDetailEncode=:recordDetailEncode")
+	SdmxLockRecordEntity findByRecordDetailEncode(String recordDetailEncode);
+
+}

@@ -1,0 +1,87 @@
+package com.iris.nbfc.service;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.exception.ServiceException;
+import com.iris.nbfc.model.NbfcDirectorType;
+import com.iris.nbfc.repository.NbfcDirectorTypeRepo;
+import com.iris.service.GenericService;
+
+@Service
+public class NbfcDirectorTypeService implements GenericService<NbfcDirectorType, Long> {
+	
+	@Autowired
+	NbfcDirectorTypeRepo nbfcDirectorTypeRepo;
+
+	@Override
+	public NbfcDirectorType add(NbfcDirectorType entity) throws ServiceException {
+		
+		return null;
+	}
+
+	@Override
+	public boolean update(NbfcDirectorType entity) throws ServiceException {
+		
+		return false;
+	}
+
+	@Override
+	public List<NbfcDirectorType> getDataByIds(Long[] ids) throws ServiceException {
+		
+		return Collections.emptyList();
+	}
+
+	@Override
+	public NbfcDirectorType getDataById(Long id) throws ServiceException {
+	
+		return null;
+	}
+
+	@Override
+	public List<NbfcDirectorType> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+	
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcDirectorType> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName)
+			throws ServiceException {
+		
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcDirectorType> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcDirectorType> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		if(bean.equals(NbfcDirectorType.class) && Objects.isNull(id)) {
+			return nbfcDirectorTypeRepo.findByIsActiveTrue();
+		}
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcDirectorType> getAllDataFor(Class bean, Long id) throws ServiceException {
+		
+		return Collections.emptyList();
+	}
+
+	@Override
+	public void deleteData(NbfcDirectorType bean) throws ServiceException {
+		
+		
+	}
+
+}

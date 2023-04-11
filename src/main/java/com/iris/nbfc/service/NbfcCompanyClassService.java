@@ -1,0 +1,73 @@
+package com.iris.nbfc.service;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.exception.ServiceException;
+import com.iris.nbfc.model.NbfcCompanyClass;
+import com.iris.nbfc.repository.NbfcCompanyClassRepo;
+import com.iris.service.GenericService;
+
+@Service
+public class NbfcCompanyClassService implements GenericService<NbfcCompanyClass, Long> {
+
+	@Autowired
+	NbfcCompanyClassRepo nbfcCompanyClassRepo;
+
+	@Override
+	public NbfcCompanyClass add(NbfcCompanyClass entity) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public boolean update(NbfcCompanyClass entity) throws ServiceException {
+		return false;
+	}
+
+	@Override
+	public List<NbfcCompanyClass> getDataByIds(Long[] ids) throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public NbfcCompanyClass getDataById(Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<NbfcCompanyClass> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName) throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcCompanyClass> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName) throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcCompanyClass> getDataByObject(Map<String, Object> columnValueMap, String methodName) throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcCompanyClass> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		if (bean.equals(NbfcCompanyClass.class) && Objects.isNull(id)) {
+			return nbfcCompanyClassRepo.findByIsActiveTrue();
+		}
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcCompanyClass> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public void deleteData(NbfcCompanyClass bean) throws ServiceException {
+	}
+}

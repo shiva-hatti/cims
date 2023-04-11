@@ -1,0 +1,360 @@
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.google.gson.Gson;
+import com.iris.caching.ObjectCache;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.dto.UserDto;
+import com.iris.exception.ApplicationException;
+import com.iris.model.Category;
+import com.iris.model.CategoryLabel;
+import com.iris.model.DynamicDropDownBean;
+import com.iris.model.EntityBean;
+import com.iris.model.SubCategory;
+import com.iris.model.SubCategoryLabel;
+import com.iris.model.UserMaster;
+import com.iris.model.UserRoleMaster;
+import com.iris.service.GenericService;
+import com.iris.util.Validations;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.util.constant.MethodConstants;
+
+/**
+ * @author sajadhav
+ */
+@RestController
+@RequestMapping(value = "/service/categoryController")
+public class CategoryController {
+
+	private static final Logger LOGGER = LogManager.getLogger(CategoryController.class);
+	
+	@Autowired
+	private GenericService<UserMaster, Long> userMasterService;
+	
+	
+	@Autowired
+	private GenericService<Category, Long> categoryService;
+	
+	@Autowired
+	private GenericService<SubCategory, Long> subCategoryService;
+	
+	@PostMapping(value = "/getApplicableCategory")
+	public ServiceResponse getApplicableCategory(@RequestHeader(name = "JobProcessingId") String jobProcessId,
+			@RequestBody UserDto userDto) {
+
+		LOGGER.info("request received to get applicable category list for job processigid : "+ jobProcessId);
+
+		try {
+			valdateUserDto(userDto);
+			
+			UserMaster userMaster= userMasterService.getDataById(userDto.getUserId());
+
+			if(Objects.isNull(userMaster)) {
+				LOGGER.error("User not found for job processigid" + jobProcessId);
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			}
+			
+			if(userMaster.getRoleType().getRoleTypeId().equals(GeneralConstants.REGULATOR_ROLE_TYPE_ID.getConstantLongVal())) {
+				if(userMaster.getDepartmentIdFk()!= null) {
+//					if(userMaster.getDepartmentIdFk().getIsMaster()) {
+						LOGGER.info("Logged in user from master department");
+						Map<String, Object> valueMap = new HashMap<String, Object>();
+						valueMap.put(ColumnConstants.IS_ACTIVE.getConstantVal(), userDto.getIsActive());
+						valueMap.put(ColumnConstants.LANG_CODE.getConstantVal(), userDto.getLangCode());
+						valueMap.put(ColumnConstants.USER_ID.getConstantVal(), userDto.getUserId());
+						
+						List<Category> categoryList = categoryService.getDataByObject(valueMap, MethodConstants.GET_CATEGORY_FOR_MASTER_DEPT_USER.getConstantVal());
+						List<SubCategory> subCategoryList =subCategoryService.getDataByObject(valueMap, MethodConstants.GET_SUB_CATEGORY_FOR_MASTER_DEPT_USER.getConstantVal());
+						
+						if(!CollectionUtils.isEmpty(categoryList)) {
+							List<Category> finalCategoryObject = prepareCategoryObject(categoryList, subCategoryList,userDto.getIsActive());
+							return new ServiceResponseBuilder().setStatus(true).setResponse(finalCategoryObject).build();
+						}
+//					}else {
+//						Map<String, Object> valueMap = new HashMap<>();
+//						valueMap.put(ColumnConstants.ROLEID.getConstantVal(), userDto.getRoleId());
+//						valueMap.put(ColumnConstants.USER_ID.getConstantVal(), userMaster.getUserId());
+//
+//						List<DeptUserEntityMapping> deptUserEntityMapping = deptUserEntityMappingService.getDataByObject(valueMap, MethodConstants.GET_USER_ROLE_ENT_DATA_BY_ROLE_ID.getConstantVal());
+//						
+//						if(CollectionUtils.isEmpty(deptUserEntityMapping)) {
+//							valueMap = new HashMap<String, Object>();
+//							valueMap.put(ColumnConstants.IS_ACTIVE.getConstantVal(), userDto.getIsActive());
+//							valueMap.put(ColumnConstants.LANG_CODE.getConstantVal(), userDto.getLangCode());
+//							valueMap.put(ColumnConstants.ROLEID.getConstantVal(), userDto.getRoleId());
+//							valueMap.put(ColumnConstants.USER_ID.getConstantVal(), userMaster.getUserId());
+//							
+//							List<Category> categoryList = categoryService.getDataByObject(valueMap, MethodConstants.GET_CATEGORY_FOR_NON_MASTER_DEPT_USER.getConstantVal());
+//							List<SubCategory> subCategoryList =subCategoryService.getDataByObject(valueMap, MethodConstants.GET_SUB_CATEGORY_FOR_NON_MASTER_DEPT_USER.getConstantVal());
+//							
+//							if(!CollectionUtils.isEmpty(categoryList)) {
+//								List<Category> finalCategoryObject = prepareCategoryObject(categoryList, subCategoryList, userDto.getIsActive());
+//								return new ServiceResponseBuilder().setStatus(true).setResponse(finalCategoryObject).build();
+//							}else {
+//								return new ServiceResponseBuilder().setStatus(true).build();
+//							}
+//						}else {
+//							List<Category> categoryList	= prepareCategoryList(deptUserEntityMapping,userDto.getLangCode(),userDto.getIsActive());
+//							return new ServiceResponseBuilder().setStatus(true).setResponse(categoryList).build();
+//						}
+//					}
+				}else {
+					// return with error code
+					return new ServiceResponseBuilder().setStatus(false).setStatusMessage(ErrorCode.E0808.toString()).setStatusCode(ObjectCache.getErrorCodeKey(ErrorCode.E0808.toString())).build();
+				}
+			}else {
+				// Entity User
+				LOGGER.info("Request for entity User for job procesing Id : " + jobProcessId);
+				EntityBean userMappedEntity = null;
+				UserRoleMaster userRoleMaster = userMaster.getUsrRoleMstrSet().stream().filter(userRole -> userRole.getUserRole().getUserRoleId().equals(userDto.getRoleId())).findAny().orElse(null);
+				if(userRoleMaster!= null) {
+					if(!CollectionUtils.isEmpty(userRoleMaster.getUserEntityRole())) {
+						// Entity user always mapped to only one entity..hence getting first record from set
+						userMappedEntity = userRoleMaster.getUserEntityRole().iterator().next().getEntityBean();
+						List<Category> categoryList = getCategoryList(userMappedEntity, userDto.getLangCode());
+						return new ServiceResponseBuilder().setStatus(true).setResponse(categoryList).build();
+					}else{
+						return new ServiceResponseBuilder().setStatus(false).setStatusMessage(ErrorCode.E0807.toString()).setStatusCode(ObjectCache.getErrorCodeKey(ErrorCode.E0807.toString())).build();
+					}
+				}else {
+					return new ServiceResponseBuilder().setStatus(false).setStatusMessage(ErrorCode.E0807.toString()).setStatusCode(ObjectCache.getErrorCodeKey(ErrorCode.E0807.toString())).build();
+				}
+			}
+		}catch(ApplicationException applicationException) {
+			LOGGER.error("Eception occured for job processigid" + jobProcessId);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(applicationException.getErrorCode()).setStatusMessage(applicationException.getErrorMsg()).build();
+		}catch(Exception e) {
+			LOGGER.error("Eception occured for job processigid", jobProcessId);
+			LOGGER.error(ErrorConstants.DEFAULT_ERROR.getConstantVal(), e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+		return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+	}
+
+//	private List<Category> prepareCategoryList(List<DeptUserEntityMapping> deptUserEntityMappings,String langCode, Boolean isActive) {
+//		Map<String, Category> categoryMap = new HashMap<>();
+//		Map<String, SubCategory> subCategoryMap = new HashMap<>();
+//		
+//		for (DeptUserEntityMapping deptUserEntityMapping : deptUserEntityMappings) {
+//			if(deptUserEntityMapping.isActive() && deptUserEntityMapping.getEntity().getIsActive()
+//					&& deptUserEntityMapping.getEntity().getCategory().getIsActive()) {
+//				Category category = deptUserEntityMapping.getEntity().getCategory();
+//
+//				if(category.getIsActive()) {
+//					Category returnCategory = new Category();
+//					returnCategory.setCategoryId(category.getCategoryId());
+//					returnCategory.setCategoryCode(category.getCategoryCode());
+//					
+//					CategoryLabel categoryLabel = category.getCatLblSet().stream().filter(f -> f.getLangIdFk().getLanguageCode().equalsIgnoreCase(langCode)).findAny().orElse(null);
+//					if(categoryLabel!= null) {
+//						returnCategory.setCategoryName(categoryLabel.getCategoryLabel());
+//					}else {
+//						returnCategory.setCategoryName(category.getCategoryName());
+//					}
+//					categoryMap.put(returnCategory.getCategoryId()+"", returnCategory);
+//					
+//					SubCategory subCategory = deptUserEntityMapping.getEntity().getSubCategory();
+//
+//					if(subCategory.getIsActive()) {
+//						SubCategory returnSubCategory = new SubCategory();
+//						returnSubCategory.setSubCategoryId(subCategory.getSubCategoryId());
+//						returnSubCategory.setCategoryId(returnCategory.getCategoryId());
+//						returnSubCategory.setSubCategoryCode(subCategory.getSubCategoryCode());
+//						
+//						SubCategoryLabel subcategoryLabel = subCategory.getSubCatLblSet().stream().filter(f -> f.getLangIdFk().getLanguageCode().equalsIgnoreCase(langCode)).findAny().orElse(null);
+//						if(subcategoryLabel!= null) {
+//							returnSubCategory.setSubCategoryName(subcategoryLabel.getSubCategoryLabel());
+//						}else {
+//							returnSubCategory.setSubCategoryName(category.getCategoryName());
+//						}
+//						
+//						subCategoryMap.put(returnSubCategory.getSubCategoryId()+"", returnSubCategory);
+//					}
+//				}
+//			}
+//		}
+//		return prepareCategoryObject(categoryMap, subCategoryMap);
+//	}
+
+	private List<Category> getCategoryList(EntityBean userMappedEntity, String langCode) {
+		List<Category> categoryList = new ArrayList<Category>();
+
+		CategoryLabel categoryLable = userMappedEntity.getCategory().getCatLblSet().stream().
+				filter(cat -> cat.getLangIdFk().getLanguageCode().equalsIgnoreCase(langCode)).findAny().orElse(null);
+		Category category = new Category();
+		category.setCategoryId(userMappedEntity.getCategory().getCategoryId());
+		category.setCategoryCode(userMappedEntity.getCategory().getCategoryCode());
+		if(categoryLable!= null) {
+			category.setCategoryName(categoryLable.getCategoryLabel());
+		}else {
+			category.setCategoryName(userMappedEntity.getCategory().getCategoryName());
+		}
+
+		Set<SubCategory> subCategorySet = new HashSet<SubCategory>();
+
+		SubCategoryLabel subCategoryLabel = userMappedEntity.getSubCategory().getSubCatLblSet().stream().
+				filter(cat -> cat.getLangIdFk().getLanguageCode().equalsIgnoreCase(langCode)).findAny().orElse(null);
+		SubCategory subcategory = new SubCategory();
+		subcategory.setSubCategoryId(userMappedEntity.getSubCategory().getSubCategoryId());
+		subcategory.setSubCategoryCode(userMappedEntity.getSubCategory().getSubCategoryCode());
+		if(subCategoryLabel!= null) {
+			subcategory.setSubCategoryName(subCategoryLabel.getSubCategoryLabel());
+		}else {
+			subcategory.setSubCategoryName(userMappedEntity.getSubCategory().getSubCategoryName());
+		}
+		
+		subCategorySet.add(subcategory);
+		category.setSubCategory(subCategorySet);
+		
+		categoryList.add(category);
+		return categoryList;
+	}
+
+	private List<Category> prepareCategoryObject(List<Category> categoryList, List<SubCategory> subCategoryList, boolean isActive) {
+		List<Category> finalCategoryList = new ArrayList<>();
+
+		for (Category category : categoryList) {
+			List<SubCategory> subcategoryList = new ArrayList<>();
+			if(!CollectionUtils.isEmpty(subCategoryList)) {
+				for (SubCategory subCategory : subCategoryList) {
+					if (subCategory.getCategoryId().equals(category.getCategoryId())) {
+						subcategoryList.add(subCategory);
+					}
+				}
+				category.setSubCategory(new LinkedHashSet<>(subcategoryList));
+			}
+			finalCategoryList.add(category);
+		}
+
+		return finalCategoryList;
+	}
+
+	private List<Category> prepareCategoryObject(Map<String, Category> categoryMap,
+			Map<String, SubCategory> subCategoryMap) {
+
+		List<Category> finalCategoryList = new ArrayList<>();
+
+		for (String categoryKey : categoryMap.keySet()) {
+			Category category = categoryMap.get(categoryKey);
+
+			Set<SubCategory> subcategorySet = new HashSet<>();
+
+			for (String subCategoryKey : subCategoryMap.keySet()) {
+				SubCategory subCategory = subCategoryMap.get(subCategoryKey);
+
+				if (subCategory.getCategoryId().equals(category.getCategoryId())) {
+					subcategorySet.add(subCategory);
+				}
+			}
+			category.setSubCategory(subcategorySet);
+			finalCategoryList.add(category);
+		}
+
+		return finalCategoryList;
+	}
+
+	private void valdateUserDto(UserDto userDto) throws ApplicationException {
+
+		String errorMessage = "";
+		if(userDto.getUserId() == null) {
+			if(!errorMessage.equals("")) {
+				errorMessage = ErrorConstants.USR_ID_NOT_FOUND.getConstantVal();
+			}else {
+				errorMessage = errorMessage + ErrorConstants.USR_ID_NOT_FOUND.getConstantVal();
+			}
+		}else if(userDto.getRoleId() == null) {
+			if(!errorMessage.equals("")) {
+				errorMessage = ErrorConstants.USER_ROLE_ID_NOT_FOUND.getConstantVal();
+			}else {
+				errorMessage = errorMessage + ErrorConstants.USER_ROLE_ID_NOT_FOUND.getConstantVal();
+			}
+		}else if(userDto.getIsActive() == null) {
+			if(!errorMessage.equals("")) {
+				errorMessage = ErrorConstants.ACTIVE_FLAG_NOT_FOUND.getConstantVal();
+			}else {
+				errorMessage = errorMessage + ErrorConstants.ACTIVE_FLAG_NOT_FOUND.getConstantVal();
+			}
+		}else if(userDto.getLangCode() == null) {
+			if(!errorMessage.equals("")) {
+				errorMessage = ErrorConstants.LANG_CODE_NOT_FOUND.getConstantVal();
+			}else {
+				errorMessage = errorMessage + ErrorConstants.LANG_CODE_NOT_FOUND.getConstantVal();
+			}
+		}
+		
+		if(!errorMessage.equals("")) {
+			throw new ApplicationException(ErrorCode.EC0391.toString(), ObjectCache.getErrorCodeKey(ErrorCode.EC0391.toString()));
+		}
+	
+	}
+	
+	@GetMapping(value = "/fetchActiveCategoryDropdownList/{languageCode}")
+	public ServiceResponse fetchActiveCategoryDropdownList(@PathVariable String languageCode) {
+		ServiceResponse serviceResponse = null;
+		try {
+			LOGGER.error("API call start of fetch Active Category DropdownList");
+		
+			DynamicDropDownBean option = new DynamicDropDownBean();
+			
+			List<DynamicDropDownBean> optionList = null;
+			if (languageCode != null) {
+
+				optionList = new ArrayList<>();
+			
+				List<Category> listOfActiveCountryData = categoryService.getActiveDataFor(Category.class, 1L);
+				if(CollectionUtils.isEmpty(listOfActiveCountryData)) {
+					LOGGER.error("Exception while fetching Dynamic drop down of category, if drop down type list is empty");
+					serviceResponse = new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+					serviceResponse.setResponse(null);
+					return serviceResponse;
+				}
+				for (Category categoryMaster : listOfActiveCountryData) {
+					option = new DynamicDropDownBean();
+					option.setKey(categoryMaster.getCategoryId());
+					CategoryLabel categoryLabel = categoryMaster.getCatLblSet().stream().filter(f -> f.getLangIdFk().getLanguageCode().equalsIgnoreCase(languageCode)).findAny().orElse(null);
+					if(categoryLabel != null) {
+						if(!Validations.isEmpty(categoryLabel.getCategoryLabel())) {
+							option.setValue(categoryLabel.getCategoryLabel());
+						} else {
+							option.setValue(categoryMaster.getCategoryName());
+						}	
+					}
+					optionList.add(option);
+				}
+
+				String jsonResult = new Gson().toJson(optionList);
+				serviceResponse = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+				serviceResponse.setResponse(jsonResult);
+			}
+			
+		} catch (Exception e) {
+			LOGGER.error("Error in API call fetch Active Category DropdownList"+e);
+			serviceResponse = new ServiceResponse.ServiceResponseBuilder().setStatus(false).build();
+		}
+		return serviceResponse;
+	}
+}

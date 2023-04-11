@@ -1,0 +1,93 @@
+package com.iris.model;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+import com.iris.util.Validations;
+
+/**
+ * @author psawant
+ * @version 1.0
+ * @date 10/09/2020
+ */
+@Entity
+@Table(name = "TBL_SAP_BO_DETAILS")
+public class SapBoDetails implements Serializable {
+
+	private static final long serialVersionUID = 8369476085524984362L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "SAP_BO_DETAILS_ID")
+	private Integer sapBoDetailsId;
+
+	@Column(name = "USERNAME")
+	private String username;
+
+	@Column(name = "CMS")
+	private String cms;
+
+	@Column(name = "PASSWORD")
+	private String password;
+
+	@Column(name = "PORT")
+	private String port;
+
+	@Column(name = "LOGON_PORT")
+	private String logonPort;
+
+	public Integer getSapBoDetailsId() {
+		return sapBoDetailsId;
+	}
+
+	public void setSapBoDetailsId(Integer sapBoDetailsId) {
+		this.sapBoDetailsId = sapBoDetailsId;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = Validations.trimInput(username);
+	}
+
+	public String getCms() {
+		return cms;
+	}
+
+	public void setCms(String cms) {
+		this.cms = Validations.trimInput(cms);
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = Validations.trimInput(password);
+	}
+
+	public String getPort() {
+		return port;
+	}
+
+	public void setPort(String port) {
+		this.port = Validations.trimInput(port);
+	}
+
+	public String getLogonPort() {
+		return logonPort;
+	}
+
+	public void setLogonPort(String logonPort) {
+		this.logonPort = Validations.trimInput(logonPort);
+	}
+
+}

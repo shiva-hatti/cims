@@ -1,0 +1,85 @@
+package com.iris.nbfc.service;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.exception.ServiceException;
+import com.iris.nbfc.model.NbfcSubPageMaster;
+import com.iris.nbfc.repository.NbfcSubPageMasterRepo;
+import com.iris.service.GenericService;
+
+@Service
+public class NbfcSubPageMasterService implements GenericService<NbfcSubPageMaster, Long> {
+	
+	@Autowired
+	NbfcSubPageMasterRepo nbfcSubPageMasterRepo;
+
+	@Override
+	public NbfcSubPageMaster add(NbfcSubPageMaster entity) throws ServiceException {
+		
+		return null;
+	}
+
+	@Override
+	public boolean update(NbfcSubPageMaster entity) throws ServiceException {
+		
+		return false;
+	}
+
+	@Override
+	public List<NbfcSubPageMaster> getDataByIds(Long[] ids) throws ServiceException {
+		
+		return Collections.emptyList();
+	}
+
+	@Override
+	public NbfcSubPageMaster getDataById(Long id) throws ServiceException {
+	
+		return null;
+	}
+
+	@Override
+	public List<NbfcSubPageMaster> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+	
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcSubPageMaster> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName)
+			throws ServiceException {
+		
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcSubPageMaster> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcSubPageMaster> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcSubPageMaster> getAllDataFor(Class bean, Long id) throws ServiceException {
+		if(bean.equals(NbfcSubPageMaster.class) && Objects.isNull(id)) {
+			return nbfcSubPageMasterRepo.findAll();
+		}
+		return Collections.emptyList();
+	}
+
+	@Override
+	public void deleteData(NbfcSubPageMaster bean) throws ServiceException {
+		
+		
+	}
+
+}

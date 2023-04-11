@@ -1,0 +1,95 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+
+public class DropDownGroup implements Serializable {
+
+	private static final long serialVersionUID = 7047297338309122468L;
+
+	private DropDownGroup group;
+	private List<DropDownGroup> groupList = new ArrayList<>();
+	private DropDownObject dropDown;
+	private List<DropDownObject> dropDownList = new ArrayList<>();
+	private String display;
+	private Long id;
+	private String selected = StringUtils.EMPTY;
+	private Long key;
+	private Boolean hasChild = false;
+
+	public Boolean getHasChild() {
+		return hasChild;
+	}
+
+	public void setHasChild(Boolean hasChild) {
+		this.hasChild = hasChild;
+	}
+
+	public Long getKey() {
+		return key;
+	}
+
+	public void setKey(Long key) {
+		this.key = key;
+	}
+
+	public String getSelected() {
+		return selected;
+	}
+
+	public void setSelected(String selected) {
+		this.selected = selected;
+	}
+
+	public List<DropDownObject> getDropDownList() {
+		return dropDownList;
+	}
+
+	public void setDropDownList(List<DropDownObject> dropDownList) {
+		this.dropDownList = dropDownList;
+	}
+
+	public String getDisplay() {
+		return display;
+	}
+
+	public void setDisplay(String display) {
+		this.display = display;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public DropDownGroup getGroup() {
+		return group;
+	}
+
+	public void setGroup(DropDownGroup group) {
+		this.group = group;
+	}
+
+	public DropDownObject getDropDown() {
+		return dropDown;
+	}
+
+	public void setDropDown(DropDownObject dropDown) {
+		this.dropDown = dropDown;
+	}
+
+	public List<DropDownGroup> getGroupList() {
+		return groupList;
+	}
+
+	public void setGroupList(List<DropDownGroup> groupList) {
+		this.groupList = groupList;
+	}
+
+}

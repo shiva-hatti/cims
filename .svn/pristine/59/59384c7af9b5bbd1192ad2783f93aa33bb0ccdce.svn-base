@@ -1,0 +1,27 @@
+/**
+ * 
+ */
+package com.iris.sdmx.util;
+
+/**
+ * @author sajadhav
+ *
+ */
+public enum SDMXWebServiceConstant {
+
+	SUBMIT_FUSION_DATA("SUBMIT_FUSION_DATA"),
+	DELETE_CODE_LIST_FUSION_DATA("DELETE_CODE_LIST_FUSION_DATA"),
+	DELETE_ELE_DIMN_FUSION_DATA("DELETE_ELE_DIMN_FUSION_DATA"),
+	GENERATE_DSD_FUSION("GENERATE_DSD_FUSION");
+	
+	private String name;
+	
+	private SDMXWebServiceConstant(String name) {
+		this.name = name;
+	}
+	
+	
+	public String getConstantVal() {
+		return name;
+	}
+}

@@ -1,0 +1,60 @@
+package com.iris.controller;
+
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.CategoryDto;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.dto.UserDto;
+import com.iris.exception.ApplicationException;
+import com.iris.service.impl.CategoryServiceV2;
+import com.iris.util.constant.ErrorCode;
+import com.iris.validator.CategoryValidatorV2;
+
+/**
+ * @author sajadhav
+ */
+@RestController
+@RequestMapping(value = "/service/categoryController/V2")
+public class CategoryControllerV2 {
+
+	private static final Logger LOGGER = LogManager.getLogger(CategoryControllerV2.class);
+
+	@Autowired
+	private CategoryServiceV2 categoryServiceV2;
+	
+	@Autowired
+	private CategoryValidatorV2 categoryValidatorV2;
+	
+	@PostMapping(value = "/getApplicableCategory")
+	public ServiceResponse getApplicableCategory(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody UserDto userDto) {
+		LOGGER.info(jobProcessId + " Request received to get applicable category list V2");
+		try {
+			ServiceResponseBuilder serviceResponseBuilder = new ServiceResponseBuilder(); 
+			categoryValidatorV2.validateUserDto(userDto);
+			
+			List<CategoryDto> categoryDtos = categoryServiceV2.getApplicableCategoryForUser(userDto, jobProcessId);
+			
+			LOGGER.info(jobProcessId + " Request completed to get applicable category list V2");
+
+			return serviceResponseBuilder.setStatus(true).setResponse(categoryDtos).build();
+		} catch (ApplicationException applicationException) {
+			LOGGER.error(jobProcessId + " Exception occured to get applicable category list V2 : " , applicationException);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(applicationException.getErrorCode()).setStatusMessage(applicationException.getErrorMsg()).build();
+		} catch (Exception e) {
+			LOGGER.error(jobProcessId + " Exception occured to get applicable category list V2 : ", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+	}
+
+}

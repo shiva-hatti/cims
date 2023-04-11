@@ -1,0 +1,19 @@
+/**
+ * 
+ */
+package com.iris.sdmx.util;
+
+/**
+ * @author apagaria
+ *
+ */
+public class SDMXConstants {
+
+	private SDMXConstants() {
+	}
+
+	public static final String SUCCESS_CODE = "00";
+
+	public static final String SUCCESS_MESSAGE = "SUCCESS";
+
+}

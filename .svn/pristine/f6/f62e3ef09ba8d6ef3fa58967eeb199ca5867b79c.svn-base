@@ -1,0 +1,37 @@
+/**
+ * 
+ */
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.UserRoleEntityMapping;
+import com.iris.model.UserRoleReturnMapping;
+
+/**
+ * @author sajadhav
+ *
+ */
+public interface UserRoleEntityMappingRepo extends JpaRepository<UserRoleEntityMapping, Long>{
+
+	@Query(value = "From UserRoleEntityMapping where userRole.userRoleId in :ids")
+	List<UserRoleEntityMapping> fetchAllActiveDataByRoleId(Long[] ids);
+	
+	@Modifying
+	@Query("update UserRoleEntityMapping u set u.isActive = false where u.userRole.userRoleId=:userRoleId")
+	void cancelUserRoleEntityMapping(@Param("userRoleId") Long userRoleId);
+	
+	List<UserRoleEntityMapping> findByUserRoleUserRoleIdAndIsActiveTrue(Long userRoleId);
+	
+	List<UserRoleEntityMapping> findByUserRoleUserRoleId(Long userRoleId);
+
+	@Query(value = "select new com.iris.model.UserRoleEntityMapping(userRoleEntityMapping.userRole.userRoleId, "
+			+ " userRoleEntityMapping.entity.entityId, userRoleEntityMapping.entity.entityCode,userRoleEntityMapping.isActive) "
+			+ " FROM UserRoleEntityMapping userRoleEntityMapping where userRoleEntityMapping.userRole.userRoleId IN :roleIds order by lastmMdifiedOn asc")
+	List<UserRoleEntityMapping> getLightWeightUserRoleEntityByRoleId(@Param("roleIds") Long[] roleIds);
+}

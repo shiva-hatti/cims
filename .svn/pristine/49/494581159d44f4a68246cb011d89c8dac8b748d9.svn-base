@@ -1,0 +1,376 @@
+/**
+ * 
+ */
+package com.iris.ebr.business.technical.metadata.bean;
+
+import java.io.Serializable;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+
+
+
+
+/**
+ * @author sdhone
+ *
+ */
+
+public class ElementDimensionBean implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 5790304708460230401L;
+
+	private int elementId;
+	
+	private String dsdCode;
+	
+	private String elementVersion;
+	
+	private String elementLabel;
+	
+	private Long userId;
+	
+	private Long roleId;
+	
+	private String langCode;
+	
+	private List<SDMXDimensionBean> dimensionmasterBeans;
+	
+	private Boolean isActive;
+	
+	private String elementDesc;
+	
+	private Long lastUpdatedOnInLong;
+	
+	private String elementDimensions;
+	
+	private String modelDim;
+	
+	private String modelCode ;
+	
+	private String elementReturnTempSheetNo;
+	
+	private String returnCode;
+	
+	private String returnName;
+	
+	private String returnTempSheetName;
+	
+	private String returnSectionCode;
+	
+	private String returnSectionName;
+	
+	private String returnCellRef;
+	
+	private int frequencyId;
+	
+	private String frequency;
+	
+	private String encodedString;
+	
+	private String agencyMasterCode;
+	
+	private int agencyId;
+	
+	private String natureName;
+	
+	
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the userId
+	 */
+	public Long getUserId() {
+		return userId;
+	}
+
+	/**
+	 * @param userId the userId to set
+	 */
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	/**
+	 * @return the roleId
+	 */
+	public Long getRoleId() {
+		return roleId;
+	}
+
+	/**
+	 * @param roleId the roleId to set
+	 */
+	public void setRoleId(Long roleId) {
+		this.roleId = roleId;
+	}
+
+	/**
+	 * @return the langCode
+	 */
+	public String getLangCode() {
+		return langCode;
+	}
+
+	/**
+	 * @param langCode the langCode to set
+	 */
+	public void setLangCode(String langCode) {
+		this.langCode =StringUtils.trim(langCode);
+	}
+
+	/**
+	 * @return the elementLabel
+	 */
+	public String getElementLabel() {
+		return elementLabel;
+	}
+
+	/**
+	 * @param elementLabel the elementLabel to set
+	 */
+	public void setElementLabel(String elementLabel) {
+		this.elementLabel =StringUtils.trim(elementLabel); 
+	}
+
+	/**
+	 * @return the elementId
+	 */
+	
+	
+
+	/**
+	 * @return the dsdCode
+	 */
+	public String getDsdCode() {
+		return dsdCode;
+	}
+
+	public int getElementId() {
+		return elementId;
+	}
+
+	public void setElementId(int elementId) {
+		this.elementId = elementId;
+	}
+
+	/**
+	 * @param dsdCode the dsdCode to set
+	 */
+	public void setDsdCode(String dsdCode) {
+		this.dsdCode =StringUtils.trim(dsdCode);  
+	}
+
+	/**
+	 * @return the elementVersion
+	 */
+	public String getElementVersion() {
+		return elementVersion;
+	}
+
+	/**
+	 * @param elementVersion the elementVersion to set
+	 */
+	public void setElementVersion(String elementVersion) {
+		this.elementVersion = StringUtils.trim(elementVersion);
+	}
+
+	public List<SDMXDimensionBean> getDimensionmasterBeans() {
+		return dimensionmasterBeans;
+	}
+
+	public void setDimensionmasterBeans(List<SDMXDimensionBean> dimensionmasterBeans) {
+		this.dimensionmasterBeans = dimensionmasterBeans;
+	}
+
+	public String getElementDesc() {
+		return elementDesc;
+	}
+
+	public void setElementDesc(String elementDesc) {
+		this.elementDesc = StringUtils.trim(elementDesc);
+	}
+
+	public Long getLastUpdatedOnInLong() {
+		return lastUpdatedOnInLong;
+	}
+
+	public void setLastUpdatedOnInLong(Long lastUpdatedOnInLong) {
+		this.lastUpdatedOnInLong = lastUpdatedOnInLong;
+	}
+
+	public String getElementDimensions() {
+		return elementDimensions;
+	}
+
+	public void setElementDimensions(String elementDimensions) {
+		this.elementDimensions = StringUtils.trim(elementDimensions);
+	}
+
+	public String getModelDim() {
+		return modelDim;
+	}
+
+	public void setModelDim(String modelDim) {
+		this.modelDim = StringUtils.trim(modelDim);
+	}
+
+	public String getModelCode() {
+		return modelCode;
+	}
+
+	public void setModelCode(String modelCode) {
+		this.modelCode =StringUtils.trim(modelCode);
+	}
+
+	public String getElementReturnTempSheetNo() {
+		return elementReturnTempSheetNo;
+	}
+
+	public void setElementReturnTempSheetNo(String elementReturnTempSheetNo) {
+		this.elementReturnTempSheetNo = StringUtils.trim(elementReturnTempSheetNo);
+	}
+
+	public String getReturnCode() {
+		return returnCode;
+	}
+
+	public void setReturnCode(String returnCode) {
+		this.returnCode = StringUtils.trim(returnCode); 
+	}
+
+	public String getReturnName() {
+		return returnName;
+	}
+
+	public void setReturnName(String returnName) {
+		this.returnName = StringUtils.trim(returnName); 
+	}
+
+	public String getReturnTempSheetName() {
+		return returnTempSheetName;
+	}
+
+	public void setReturnTempSheetName(String returnTempSheetName) {
+		this.returnTempSheetName = StringUtils.trim(returnTempSheetName);  
+	}
+
+	public String getReturnSectionCode() {
+		return returnSectionCode;
+	}
+
+	public void setReturnSectionCode(String returnSectionCode) {
+		this.returnSectionCode = StringUtils.trim(returnSectionCode);  
+	}
+
+	public String getReturnSectionName() {
+		return returnSectionName;
+	}
+
+	public void setReturnSectionName(String returnSectionName) {
+		this.returnSectionName = StringUtils.trim(returnSectionName);
+	}
+
+	public String getReturnCellRef() {
+		return returnCellRef;
+	}
+
+	public void setReturnCellRef(String returnCellRef) {
+		this.returnCellRef =  StringUtils.trim(returnCellRef);
+	}
+
+	public int getFrequencyId() {
+		return frequencyId;
+	}
+
+	public void setFrequencyId(int frequencyId) {
+		this.frequencyId = frequencyId;
+	}
+
+	public String getFrequency() {
+		return frequency;
+	}
+
+	public void setFrequency(String frequency) {
+		this.frequency = StringUtils.trim(frequency);
+	}
+
+	/**
+	 * @return the encodedString
+	 */
+	public String getEncodedString() {
+		return encodedString;
+	}
+
+	/**
+	 * @param encodedString the encodedString to set
+	 */
+	public void setEncodedString(String encodedString) {
+		this.encodedString = encodedString;
+	}
+
+	/**
+	 * @return the agencyMasterCode
+	 */
+	public String getAgencyMasterCode() {
+		return agencyMasterCode;
+	}
+
+	/**
+	 * @param agencyMasterCode the agencyMasterCode to set
+	 */
+	public void setAgencyMasterCode(String agencyMasterCode) {
+		this.agencyMasterCode = agencyMasterCode;
+	}
+
+	/**
+	 * @return the agencyId
+	 */
+	public int getAgencyId() {
+		return agencyId;
+	}
+
+	/**
+	 * @param agencyId the agencyId to set
+	 */
+	public void setAgencyId(int agencyId) {
+		this.agencyId = agencyId;
+	}
+
+	/**
+	 * @return the natureName
+	 */
+	public String getNatureName() {
+		return natureName;
+	}
+
+	/**
+	 * @param natureName the natureName to set
+	 */
+	public void setNatureName(String natureName) {
+		this.natureName = natureName;
+	}
+	
+	
+	
+	
+	
+
+	
+	
+}

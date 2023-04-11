@@ -1,0 +1,533 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import com.iris.util.AESV2;
+import com.iris.util.Validations;
+
+public class EntityInfo implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -519937402193990518L;
+	private Long entityId;
+	private String entityName;
+	private String entityCode;
+	private String ifscCode;
+	private String entityShortName;
+	private String entityNameBil;
+	private String entityShortNameBil;
+	private String entityEmailId;
+	private Long categoryId;
+	private Long subCategoryId;
+	private String entityPhoneNo;
+	private Integer maxUserBank;
+	private Long createdByUserId;
+	private Long finYrFormatId;
+	private String categoryName;
+	private String subCategoryName;
+	private Boolean isActive;
+	private String createdByUserName;
+	private Date createdOn;
+	private String lastModifiedByUserName;
+	private Long lastModifiedByUserId;
+	private Date lastModifiedOn;
+	private Long bankTypeId;
+	private String bankTypeName;
+	private Boolean isNBFCEntity;
+	private String companyTypeName;
+	private String langCode;
+	private String opLevel1;
+	private String opLevel2;
+	private String opLevel3;
+	private String opLevel4;
+	private String opLevel5;
+
+	public EntityInfo() {
+	}
+
+	public EntityInfo(Long entityId, String entityName, String entityCode, String ifscCode, String entityShortName, String entityNameBil, String entityShortNameBil, String entityEmailId, String entityPhoneNo, Integer maxUserBank, String categoryName, String subCategoryName, Boolean isActive, String createdByUserName, Date createdOn, String bankTypeName, String companyTypeName, String opLevel1, String opLevel2, String opLevel3, String opLevel4, String opLevel5, Date lastModifiedOn) {
+		this.entityId = entityId;
+		this.entityName = entityName;
+		this.entityCode = entityCode;
+		this.ifscCode = ifscCode;
+		this.entityShortName = entityShortName;
+		this.entityNameBil = entityNameBil;
+		this.entityShortNameBil = entityShortNameBil;
+		this.entityEmailId = entityEmailId;
+		this.entityPhoneNo = entityPhoneNo;
+		this.maxUserBank = maxUserBank;
+		this.categoryName = categoryName;
+		this.subCategoryName = subCategoryName;
+		this.isActive = isActive;
+
+		if (!Validations.isEmpty(createdByUserName)) {
+			try {
+				this.createdByUserName = AESV2.getInstance().decrypt(createdByUserName);
+			} catch (Exception e) {
+				this.createdByUserName = createdByUserName;
+			}
+		} else {
+			this.createdByUserName = createdByUserName;
+		}
+
+		this.lastModifiedOn = lastModifiedOn;
+		this.createdOn = createdOn;
+		this.bankTypeName = bankTypeName;
+		this.companyTypeName = companyTypeName;
+		this.opLevel1 = opLevel1;
+		this.opLevel2 = opLevel2;
+		this.opLevel3 = opLevel3;
+		this.opLevel4 = opLevel4;
+		this.opLevel5 = opLevel5;
+	}
+
+	/**
+	 * @return the bankTypeName
+	 */
+	public String getBankTypeName() {
+		return bankTypeName;
+	}
+
+	/**
+	 * @param bankTypeName the bankTypeName to set
+	 */
+	public void setBankTypeName(String bankTypeName) {
+		this.bankTypeName = bankTypeName;
+	}
+
+	/**
+	 * @return the categoryName
+	 */
+	public String getCategoryName() {
+		return categoryName;
+	}
+
+	/**
+	 * @param categoryName the categoryName to set
+	 */
+	public void setCategoryName(String categoryName) {
+		this.categoryName = categoryName;
+	}
+
+	/**
+	 * @return the subCategoryName
+	 */
+	public String getSubCategoryName() {
+		return subCategoryName;
+	}
+
+	/**
+	 * @param subCategoryName the subCategoryName to set
+	 */
+	public void setSubCategoryName(String subCategoryName) {
+		this.subCategoryName = subCategoryName;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the createdByUserName
+	 */
+	public String getCreatedByUserName() {
+		return createdByUserName;
+	}
+
+	/**
+	 * @param createdByUserName the createdByUserName to set
+	 */
+	public void setCreatedByUserName(String createdByUserName) {
+		this.createdByUserName = createdByUserName;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the lastModifiedByUserName
+	 */
+	public String getLastModifiedByUserName() {
+		return lastModifiedByUserName;
+	}
+
+	/**
+	 * @param lastModifiedByUserName the lastModifiedByUserName to set
+	 */
+	public void setLastModifiedByUserName(String lastModifiedByUserName) {
+		this.lastModifiedByUserName = lastModifiedByUserName;
+	}
+
+	/**
+	 * @return the lastModifiedByUserId
+	 */
+	public Long getLastModifiedByUserId() {
+		return lastModifiedByUserId;
+	}
+
+	/**
+	 * @param lastModifiedByUserId the lastModifiedByUserId to set
+	 */
+	public void setLastModifiedByUserId(Long lastModifiedByUserId) {
+		this.lastModifiedByUserId = lastModifiedByUserId;
+	}
+
+	/**
+	 * @return the lastModifiedOn
+	 */
+	public Date getLastModifiedOn() {
+		return lastModifiedOn;
+	}
+
+	/**
+	 * @param lastModifiedOn the lastModifiedOn to set
+	 */
+	public void setLastModifiedOn(Date lastModifiedOn) {
+		this.lastModifiedOn = lastModifiedOn;
+	}
+
+	/**
+	 * @return the entityId
+	 */
+	public Long getEntityId() {
+		return entityId;
+	}
+
+	/**
+	 * @param entityId the entityId to set
+	 */
+	public void setEntityId(Long entityId) {
+		this.entityId = entityId;
+	}
+
+	/**
+	 * @return the entityName
+	 */
+	public String getEntityName() {
+		return entityName;
+	}
+
+	/**
+	 * @param entityName the entityName to set
+	 */
+	public void setEntityName(String entityName) {
+		this.entityName = entityName;
+	}
+
+	/**
+	 * @return the entityCode
+	 */
+	public String getEntityCode() {
+		return entityCode;
+	}
+
+	/**
+	 * @param entityCode the entityCode to set
+	 */
+	public void setEntityCode(String entityCode) {
+		this.entityCode = entityCode;
+	}
+
+	/**
+	 * @return the ifscCode
+	 */
+	public String getIfscCode() {
+		return ifscCode;
+	}
+
+	/**
+	 * @param ifscCode the ifscCode to set
+	 */
+	public void setIfscCode(String ifscCode) {
+		this.ifscCode = ifscCode;
+	}
+
+	/**
+	 * @return the entityShortName
+	 */
+	public String getEntityShortName() {
+		return entityShortName;
+	}
+
+	/**
+	 * @param entityShortName the entityShortName to set
+	 */
+	public void setEntityShortName(String entityShortName) {
+		this.entityShortName = entityShortName;
+	}
+
+	/**
+	 * @return the entityNameBil
+	 */
+	public String getEntityNameBil() {
+		return entityNameBil;
+	}
+
+	/**
+	 * @param entityNameBil the entityNameBil to set
+	 */
+	public void setEntityNameBil(String entityNameBil) {
+		this.entityNameBil = entityNameBil;
+	}
+
+	/**
+	 * @return the entityShortNameBil
+	 */
+	public String getEntityShortNameBil() {
+		return entityShortNameBil;
+	}
+
+	/**
+	 * @param entityShortNameBil the entityShortNameBil to set
+	 */
+	public void setEntityShortNameBil(String entityShortNameBil) {
+		this.entityShortNameBil = entityShortNameBil;
+	}
+
+	/**
+	 * @return the entityEmailId
+	 */
+	public String getEntityEmailId() {
+		return entityEmailId;
+	}
+
+	/**
+	 * @param entityEmailId the entityEmailId to set
+	 */
+	public void setEntityEmailId(String entityEmailId) {
+		this.entityEmailId = entityEmailId;
+	}
+
+	/**
+	 * @return the categoryId
+	 */
+	public Long getCategoryId() {
+		return categoryId;
+	}
+
+	/**
+	 * @param categoryId the categoryId to set
+	 */
+	public void setCategoryId(Long categoryId) {
+		this.categoryId = categoryId;
+	}
+
+	/**
+	 * @return the subCategoryId
+	 */
+	public Long getSubCategoryId() {
+		return subCategoryId;
+	}
+
+	/**
+	 * @param subCategoryId the subCategoryId to set
+	 */
+	public void setSubCategoryId(Long subCategoryId) {
+		this.subCategoryId = subCategoryId;
+	}
+
+	/**
+	 * @return the entityPhoneNo
+	 */
+	public String getEntityPhoneNo() {
+		return entityPhoneNo;
+	}
+
+	/**
+	 * @param entityPhoneNo the entityPhoneNo to set
+	 */
+	public void setEntityPhoneNo(String entityPhoneNo) {
+		this.entityPhoneNo = entityPhoneNo;
+	}
+
+	/**
+	 * @return the maxUserBank
+	 */
+	public Integer getMaxUserBank() {
+		return maxUserBank;
+	}
+
+	/**
+	 * @param maxUserBank the maxUserBank to set
+	 */
+	public void setMaxUserBank(Integer maxUserBank) {
+		this.maxUserBank = maxUserBank;
+	}
+
+	/**
+	 * @return the createdByUserId
+	 */
+	public Long getCreatedByUserId() {
+		return createdByUserId;
+	}
+
+	/**
+	 * @param createdByUserId the createdByUserId to set
+	 */
+	public void setCreatedByUserId(Long createdByUserId) {
+		this.createdByUserId = createdByUserId;
+	}
+
+	/**
+	 * @return the finYrFormatId
+	 */
+	public Long getFinYrFormatId() {
+		return finYrFormatId;
+	}
+
+	/**
+	 * @param finYrFormatId the finYrFormatId to set
+	 */
+	public void setFinYrFormatId(Long finYrFormatId) {
+		this.finYrFormatId = finYrFormatId;
+	}
+
+	/**
+	 * @return the bankTypeId
+	 */
+	public Long getBankTypeId() {
+		return bankTypeId;
+	}
+
+	/**
+	 * @param bankTypeId the bankTypeId to set
+	 */
+	public void setBankTypeId(Long bankTypeId) {
+		this.bankTypeId = bankTypeId;
+	}
+
+	/**
+	 * @return the isNBFCEntity
+	 */
+	public Boolean getIsNBFCEntity() {
+		return isNBFCEntity;
+	}
+
+	/**
+	 * @param isNBFCEntity the isNBFCEntity to set
+	 */
+	public void setIsNBFCEntity(Boolean isNBFCEntity) {
+		this.isNBFCEntity = isNBFCEntity;
+	}
+
+	/**
+	 * @return the companyTypeName
+	 */
+	public String getCompanyTypeName() {
+		return companyTypeName;
+	}
+
+	/**
+	 * @param companyTypeName the companyTypeName to set
+	 */
+	public void setCompanyTypeName(String companyTypeName) {
+		this.companyTypeName = companyTypeName;
+	}
+
+	/**
+	 * @return the langCode
+	 */
+	public String getLangCode() {
+		return langCode;
+	}
+
+	/**
+	 * @param langCode the langCode to set
+	 */
+	public void setLangCode(String langCode) {
+		this.langCode = langCode;
+	}
+
+	/**
+	 * @return the opLevel1
+	 */
+	public String getOpLevel1() {
+		return opLevel1;
+	}
+
+	/**
+	 * @param opLevel1 the opLevel1 to set
+	 */
+	public void setOpLevel1(String opLevel1) {
+		this.opLevel1 = opLevel1;
+	}
+
+	/**
+	 * @return the opLevel2
+	 */
+	public String getOpLevel2() {
+		return opLevel2;
+	}
+
+	/**
+	 * @param opLevel2 the opLevel2 to set
+	 */
+	public void setOpLevel2(String opLevel2) {
+		this.opLevel2 = opLevel2;
+	}
+
+	/**
+	 * @return the opLevel3
+	 */
+	public String getOpLevel3() {
+		return opLevel3;
+	}
+
+	/**
+	 * @param opLevel3 the opLevel3 to set
+	 */
+	public void setOpLevel3(String opLevel3) {
+		this.opLevel3 = opLevel3;
+	}
+
+	/**
+	 * @return the opLevel4
+	 */
+	public String getOpLevel4() {
+		return opLevel4;
+	}
+
+	/**
+	 * @param opLevel4 the opLevel4 to set
+	 */
+	public void setOpLevel4(String opLevel4) {
+		this.opLevel4 = opLevel4;
+	}
+
+	/**
+	 * @return the opLevel5
+	 */
+	public String getOpLevel5() {
+		return opLevel5;
+	}
+
+	/**
+	 * @param opLevel5 the opLevel5 to set
+	 */
+	public void setOpLevel5(String opLevel5) {
+		this.opLevel5 = opLevel5;
+	}
+}

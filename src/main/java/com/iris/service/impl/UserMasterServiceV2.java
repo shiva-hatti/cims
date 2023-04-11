@@ -1,0 +1,585 @@
+package com.iris.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.persistence.Tuple;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.dto.CategoryDto;
+import com.iris.dto.EntityDto;
+import com.iris.dto.PageableEntityV2;
+import com.iris.dto.SubCategoryDto;
+import com.iris.dto.UserDetailsDto;
+import com.iris.dto.UserDto;
+import com.iris.dto.UserRoleDto;
+import com.iris.exception.ApplicationException;
+import com.iris.exception.ServiceException;
+import com.iris.model.UserMaster;
+import com.iris.repository.UserMasterRepo;
+import com.iris.service.GenericService;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.util.constant.QueryParameterConstants;
+
+@Service
+public class UserMasterServiceV2 implements GenericService<UserMaster, Long> {
+
+	private static final Logger LOGGER = LogManager.getLogger(UserMasterServiceV2.class);
+
+	@Autowired
+	UserMasterRepo userMasterRepo;
+
+	@Autowired
+	private EntityManager em;
+
+	@Override
+	public UserMaster add(UserMaster entity) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public boolean update(UserMaster entity) throws ServiceException {
+		return false;
+	}
+
+	@Override
+	public List<UserMaster> getDataByIds(Long[] ids) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<UserMaster> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<UserMaster> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<UserMaster> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public void deleteData(UserMaster bean) throws ServiceException {
+
+	}
+
+	@Override
+	public List<UserMaster> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public UserMaster getDataById(Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<UserMaster> getDataByObject(Map<String, Object> columnValueMap, String methodName) throws ServiceException {
+		return null;
+	}
+
+	//Child class methods
+	public UserDetailsDto getUserWithEntityDetails(UserDto userDto) throws ApplicationException {
+		UserDetailsDto userDetailsDto = getUserDetails(userDto);
+
+		if (userDetailsDto == null) {
+			return null;
+		}
+
+		if (userDto.getRoleId() != null && userDetailsDto.getUserRoleDtos().stream().filter(f -> f.getUserRoleId().equals(userDto.getRoleId())).findAny().orElse(null) == null) {
+			throw new ApplicationException("PASSED ROLE ID not EXIST", "PASSED ROLE ID not EXIST");
+		}
+
+		String sql = null;
+		Query query = null;
+		boolean allowSubCategoryFilter = false;
+		boolean allowEntityNameLike = false;
+		if (!CollectionUtils.isEmpty(userDto.getSubCategoryCodes())) {
+			allowSubCategoryFilter = true;
+		}
+
+		if (!Objects.isNull(userDto.getEntityNameLike())) {
+			allowEntityNameLike = true;
+		}
+
+		if (userDetailsDto.getRoleTypeId().intValue() == GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().intValue()) {
+			sql = getEntityDetailsQueryForEntityUser(allowSubCategoryFilter, allowEntityNameLike, userDto.getPage(), userDto.getFetchSize(), false);
+			query = em.createNativeQuery(sql, Tuple.class);
+			List<Long> roleIds = new ArrayList<>();
+			if (userDto.getRoleId() != null) {
+				roleIds.add(userDto.getRoleId());
+			} else {
+				roleIds.addAll(userDetailsDto.getUserRoleDtos().stream().map(f -> f.getUserRoleId()).collect(Collectors.toList()));
+			}
+			query.setParameter(QueryParameterConstants.USER_ROLE_IDS.getConstants(), roleIds);
+		} else if (userDetailsDto.getRoleTypeId().intValue() == GeneralConstants.REGULATOR_ROLE_TYPE_ID.getConstantLongVal().intValue()) {
+			sql = getEntityDetailsQueryForRegulatorUser(allowSubCategoryFilter, allowEntityNameLike, userDto.getPage(), userDto.getFetchSize(), false);
+			query = em.createNativeQuery(sql, Tuple.class);
+		}
+
+		if (query != null) {
+			query.setParameter(QueryParameterConstants.IS_ACTIVE.getConstants(), userDto.getIsActive());
+			query.setParameter(QueryParameterConstants.LANGUAGE_CODE.getConstants(), userDto.getLangCode());
+			query.setParameter(QueryParameterConstants.USER_ID.getConstants(), userDto.getUserId());
+			if (allowSubCategoryFilter) {
+				//				query.setParameter(QueryParameterConstants.CAT_CODES.getConstants(), userDto.getCategoryCodes());
+				query.setParameter(QueryParameterConstants.SUB_CAT_CODES.getConstants(), userDto.getSubCategoryCodes());
+			}
+			if (allowEntityNameLike) {
+				query.setParameter(QueryParameterConstants.LIKE_STRING.getConstants(), "%" + userDto.getEntityNameLike().toUpperCase() + "%");
+			}
+
+			List<Tuple> result = query.getResultList();
+
+			for (Tuple tuple : result) {
+				EntityDto entityDto = getEntityDto(tuple);
+				if (userDetailsDto.getEntityDtos() != null) {
+					userDetailsDto.getEntityDtos().add(entityDto);
+				} else {
+					List<EntityDto> entityDtos = new ArrayList<>();
+					entityDtos.add(entityDto);
+					userDetailsDto.setEntityDtos(entityDtos);
+				}
+			}
+		}
+
+		return userDetailsDto;
+	}
+
+	//Child class methods
+	public UserDetailsDto getUserWithEntityDetailsV2(UserDto userDto) throws ApplicationException {
+		UserDetailsDto userDetailsDto = getUserDetailsV2(userDto);
+
+		if (userDetailsDto == null) {
+			return null;
+		}
+
+		if (userDto.getRoleId() != null && userDetailsDto.getUserRoleDtos().stream().filter(f -> f.getUserRoleId().equals(userDto.getRoleId())).findAny().orElse(null) == null) {
+			throw new ApplicationException("PASSED ROLE ID not EXIST", "PASSED ROLE ID not EXIST");
+		}
+
+		String sql = null;
+		Query query = null;
+		boolean allowSubCategoryFilter = false;
+		boolean allowEntityNameLike = false;
+		if (!CollectionUtils.isEmpty(userDto.getSubCategoryCodes())) {
+			allowSubCategoryFilter = true;
+		}
+
+		if (!Objects.isNull(userDto.getEntityNameLike())) {
+			allowEntityNameLike = true;
+		}
+
+		if (userDetailsDto.getRoleTypeId().intValue() == GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().intValue()) {
+			sql = getEntityDetailsQueryForEntityUserV2(allowSubCategoryFilter, allowEntityNameLike, userDto.getPage(), userDto.getFetchSize(), false);
+			query = em.createNativeQuery(sql, Tuple.class);
+			List<Long> roleIds = new ArrayList<>();
+			if (userDto.getRoleId() != null) {
+				roleIds.add(userDto.getRoleId());
+			} else {
+				roleIds.addAll(userDetailsDto.getUserRoleDtos().stream().map(f -> f.getUserRoleId()).collect(Collectors.toList()));
+			}
+			query.setParameter(QueryParameterConstants.USER_ROLE_IDS.getConstants(), roleIds);
+		} else if (userDetailsDto.getRoleTypeId().intValue() == GeneralConstants.REGULATOR_ROLE_TYPE_ID.getConstantLongVal().intValue()) {
+			sql = getEntityDetailsQueryForRegulatorUserV2(allowSubCategoryFilter, allowEntityNameLike, userDto.getPage(), userDto.getFetchSize(), false);
+			query = em.createNativeQuery(sql, Tuple.class);
+		}
+
+		if (query != null) {
+			query.setParameter(QueryParameterConstants.LANGUAGE_CODE.getConstants(), userDto.getLangCode());
+			query.setParameter(QueryParameterConstants.USER_ID.getConstants(), userDto.getUserId());
+			if (allowSubCategoryFilter) {
+				//				query.setParameter(QueryParameterConstants.CAT_CODES.getConstants(), userDto.getCategoryCodes());
+				query.setParameter(QueryParameterConstants.SUB_CAT_CODES.getConstants(), userDto.getSubCategoryCodes());
+			}
+			if (allowEntityNameLike) {
+				query.setParameter(QueryParameterConstants.LIKE_STRING.getConstants(), "%" + userDto.getEntityNameLike().toUpperCase() + "%");
+			}
+
+			List<Tuple> result = query.getResultList();
+
+			for (Tuple tuple : result) {
+				EntityDto entityDto = getEntityDto(tuple);
+				if (userDetailsDto.getEntityDtos() != null) {
+					userDetailsDto.getEntityDtos().add(entityDto);
+				} else {
+					List<EntityDto> entityDtos = new ArrayList<>();
+					entityDtos.add(entityDto);
+					userDetailsDto.setEntityDtos(entityDtos);
+				}
+			}
+		}
+
+		return userDetailsDto;
+	}
+
+	//Child class methods
+	public PageableEntityV2 getPagableEntityDetails(UserDto userDto) throws ApplicationException {
+		UserDetailsDto userDetailsDto = getUserDetails(userDto);
+
+		PageableEntityV2 pageableEntityV2 = new PageableEntityV2();
+
+		if (userDetailsDto == null) {
+			return null;
+		}
+
+		if (userDto.getRoleId() != null && userDetailsDto.getUserRoleDtos().stream().filter(f -> f.getUserRoleId().equals(userDto.getRoleId())).findAny().orElse(null) == null) {
+			throw new ApplicationException("PASSED ROLE ID not EXIST", "PASSED ROLE ID not EXIST");
+		}
+
+		String dataSql = null;
+		String countSql = null;
+
+		Query dataQuery = null;
+		Query countQuery = null;
+
+		boolean allowSubCategoryFilter = false;
+		boolean allowEntityNameLike = false;
+		if (!CollectionUtils.isEmpty(userDto.getSubCategoryCodes())) {
+			allowSubCategoryFilter = true;
+		}
+
+		if (!Objects.isNull(userDto.getEntityNameLike())) {
+			allowEntityNameLike = true;
+		}
+
+		if (userDetailsDto.getRoleTypeId().intValue() == GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().intValue()) {
+			dataSql = getEntityDetailsQueryForEntityUser(allowSubCategoryFilter, allowEntityNameLike, userDto.getPage(), userDto.getFetchSize(), false);
+			countSql = getEntityDetailsQueryForEntityUser(allowSubCategoryFilter, allowEntityNameLike, null, null, true);
+
+			dataQuery = em.createNativeQuery(dataSql, Tuple.class);
+			countQuery = em.createNativeQuery(countSql, Tuple.class);
+
+			List<Long> roleIds = new ArrayList<>();
+			if (userDto.getRoleId() != null) {
+				roleIds.add(userDto.getRoleId());
+			} else {
+				roleIds.addAll(userDetailsDto.getUserRoleDtos().stream().map(f -> f.getUserRoleId()).collect(Collectors.toList()));
+			}
+			dataQuery.setParameter(QueryParameterConstants.USER_ROLE_IDS.getConstants(), roleIds);
+			countQuery.setParameter(QueryParameterConstants.USER_ROLE_IDS.getConstants(), roleIds);
+
+		} else if (userDetailsDto.getRoleTypeId().intValue() == GeneralConstants.REGULATOR_ROLE_TYPE_ID.getConstantLongVal().intValue()) {
+			dataSql = getEntityDetailsQueryForRegulatorUser(allowSubCategoryFilter, allowEntityNameLike, userDto.getPage(), userDto.getFetchSize(), false);
+			countSql = getEntityDetailsQueryForRegulatorUser(allowSubCategoryFilter, allowEntityNameLike, null, null, true);
+
+			dataQuery = em.createNativeQuery(dataSql, Tuple.class);
+			countQuery = em.createNativeQuery(countSql, Tuple.class);
+		}
+
+		if (dataQuery != null) {
+			dataQuery.setParameter(QueryParameterConstants.IS_ACTIVE.getConstants(), userDto.getIsActive());
+			dataQuery.setParameter(QueryParameterConstants.LANGUAGE_CODE.getConstants(), userDto.getLangCode());
+			dataQuery.setParameter(QueryParameterConstants.USER_ID.getConstants(), userDto.getUserId());
+			if (allowSubCategoryFilter) {
+				//				dataQuery.setParameter(QueryParameterConstants.CAT_CODES.getConstants(), userDto.getCategoryCodes());
+				dataQuery.setParameter(QueryParameterConstants.SUB_CAT_CODES.getConstants(), userDto.getSubCategoryCodes());
+			}
+			if (allowEntityNameLike) {
+				dataQuery.setParameter(QueryParameterConstants.LIKE_STRING.getConstants(), "%" + userDto.getEntityNameLike().toUpperCase() + "%");
+			}
+
+			List<Tuple> result = dataQuery.getResultList();
+
+			for (Tuple tuple : result) {
+				EntityDto entityDto = getEntityDto(tuple);
+				if (userDetailsDto.getEntityDtos() != null) {
+					userDetailsDto.getEntityDtos().add(entityDto);
+				} else {
+					List<EntityDto> entityDtos = new ArrayList<>();
+					entityDtos.add(entityDto);
+					userDetailsDto.setEntityDtos(entityDtos);
+				}
+			}
+		}
+
+		if (countQuery != null) {
+			countQuery.setParameter(QueryParameterConstants.IS_ACTIVE.getConstants(), userDto.getIsActive());
+			countQuery.setParameter(QueryParameterConstants.LANGUAGE_CODE.getConstants(), userDto.getLangCode());
+			countQuery.setParameter(QueryParameterConstants.USER_ID.getConstants(), userDto.getUserId());
+			if (allowSubCategoryFilter) {
+				//				countQuery.setParameter(QueryParameterConstants.CAT_CODES.getConstants(), userDto.getCategoryCodes());
+				countQuery.setParameter(QueryParameterConstants.SUB_CAT_CODES.getConstants(), userDto.getSubCategoryCodes());
+			}
+			if (allowEntityNameLike) {
+				countQuery.setParameter(QueryParameterConstants.LIKE_STRING.getConstants(), "%" + userDto.getEntityNameLike().toUpperCase() + "%");
+			}
+
+			List<Tuple> result = countQuery.getResultList();
+
+			for (Tuple tuple : result) {
+				pageableEntityV2.setTotalCount(Long.parseLong(tuple.get(0) + ""));
+			}
+		}
+
+		pageableEntityV2.setContent(userDetailsDto.getEntityDtos());
+
+		return pageableEntityV2;
+	}
+
+	private EntityDto getEntityDto(Tuple tuple) {
+		EntityDto entityDto = new EntityDto();
+		entityDto.setEntityId(Long.parseLong(tuple.get(6) + ""));
+		entityDto.setEntityCode(tuple.get(7) + "");
+		entityDto.setIfscCode(tuple.get(8) + "");
+		entityDto.setEntityName(tuple.get(9) + "");
+		entityDto.setEntityNameAndCode(tuple.get(9) + "" + "(" + tuple.get(7) + ")");
+
+		CategoryDto categoryDto = new CategoryDto();
+		categoryDto.setCategoryId(Integer.parseInt(tuple.get(10) + ""));
+		categoryDto.setCategoryName(tuple.get(11) + "");
+		categoryDto.setCategoryCode(tuple.get(12) + "");
+
+		SubCategoryDto subCategoryDto = new SubCategoryDto();
+		subCategoryDto.setSubCategoryId(Integer.parseInt(tuple.get(13) + ""));
+		subCategoryDto.setSubCategoryName(tuple.get(14) + "");
+		subCategoryDto.setSubCategoryCode(tuple.get(15) + "");
+
+		entityDto.setCategoryDto(categoryDto);
+		entityDto.setSubCategoryDto(subCategoryDto);
+
+		return entityDto;
+	}
+
+	private String getEntityDetailsQueryForEntityUser(boolean allowSubCategoryFilter, boolean allowEntityNameLike, Integer page, Integer fetchSize, boolean isCountQuery) {
+
+		StringBuilder entityDetailsQuery = new StringBuilder();
+		if (isCountQuery) {
+			entityDetailsQuery.append("select count(distinct usr.USER_ID, usr.USER_NAME, usr.FIRST_NAME, usr.LAST_NAME,  usr.ROLE_TYPE_FK, " + "\"ENTITY_USER\", ent.ENTITY_ID , ent.ENTITY_CODE , ent.IFSC_CODE , entLabel.ENTITY_NAME_LABEL ,  " + " cat.CATEGORY_ID, catLabel.CATEGORY_LABEL , cat.CATEGORY_CODE , subCat.SUB_CATEGORY_ID, subCatLabel.SUB_CATEGORY_LABEL ," + " subCat.SUB_CATEGORY_CODE )");
+		} else {
+			entityDetailsQuery.append("select distinct usr.USER_ID, usr.USER_NAME, usr.FIRST_NAME, usr.LAST_NAME,  usr.ROLE_TYPE_FK, " + "\"ENTITY_USER\", ent.ENTITY_ID , ent.ENTITY_CODE , ent.IFSC_CODE , entLabel.ENTITY_NAME_LABEL ,  " + " cat.CATEGORY_ID, catLabel.CATEGORY_LABEL , cat.CATEGORY_CODE , subCat.SUB_CATEGORY_ID, subCatLabel.SUB_CATEGORY_LABEL ," + " subCat.SUB_CATEGORY_CODE ");
+		}
+
+		entityDetailsQuery.append("from TBL_USER_MASTER usr, TBL_USER_ROLE_MASTER roleMas," + " TBL_USER_ROLE rle, TBL_USER_ROLE_LABEL roleLabel," + "  TBL_USER_ENTITY_ROLE entRole, TBL_ENTITY ent," + " TBL_ENTITY_LABEL entLabel,  TBL_CATEGORY cat, TBL_CATEGORY_LABEL catLabel, " + " TBL_SUB_CATEGORY subCat, " + " TBL_SUB_CATEGORY_LABEL subCatLabel, TBL_LANGUAGE_MASTER lang  where usr.USER_ID =:userId " + "" + "  and usr.IS_ACTIVE =:isActive " + " and roleMas.IS_ACTIVE =:isActive" + " and rle.IS_ACTIVE =:isActive " + " " + " and entRole.IS_ACTIVE =:isActive " + " and ent.IS_ACTIVE =:isActive " + " and lang.LANGUAGE_CODE =:languageCode " + " and rle.USER_ROLE_ID IN(:userRoleIds)" + " and entLabel.LANGUAGE_ID_FK = lang.LANGUAGE_ID " + "" + "  and cat.IS_ACTIVE =:isActive " + " and subCat.IS_ACTIVE =:isActive ");
+
+		if (allowSubCategoryFilter) {
+			//			entityDetailsQuery.append(" and cat.CATEGORY_CODE IN(:categoryCodes)");
+			entityDetailsQuery.append(" and subCat.SUB_CATEGORY_CODE IN(:subCategoryCodes)");
+		}
+
+		if (allowEntityNameLike) {
+			entityDetailsQuery.append(" and (upper(entLabel.ENTITY_NAME_LABEL) like :likeString or upper(ent.ENTITY_CODE) like :likeString)");
+		}
+
+		entityDetailsQuery.append(" and roleLabel.LANG_ID_FK = lang.LANGUAGE_ID " + " and catLabel.LANG_ID_FK = lang.LANGUAGE_ID " + " and subCatLabel.LANG_ID_FK = lang.LANGUAGE_ID " + " and usr.USER_ID = roleMas.USER_MASTER_ID_FK and " + " roleMas.USER_ROLE_ID_FK = rle.USER_ROLE_ID and rle.USER_ROLE_ID = roleLabel.USER_ROLE_ID_FK" + " and entRole.USER_ROLE_MASTER_ID_FK = roleMas.USER_ROLE_MASTER_ID and ent.ENTITY_ID = entRole.ENTITY_ID_FK " + " and ent.ENTITY_ID = entLabel.ENTITY_ID_FK and ent.CATEGORY_ID_FK = cat.CATEGORY_ID and catLabel.CATEGORY_ID_FK = cat.CATEGORY_ID " + " and ent.SUB_CATEGORY_ID_FK = subCat.SUB_CATEGORY_ID and subCatLabel.SUB_CATEGORY_ID_FK = subCat.SUB_CATEGORY_ID ");
+
+		if (page != null && fetchSize != null) {
+			entityDetailsQuery.append("order by ENTITY_NAME_LABEL limit " + (page * fetchSize) + ", " + fetchSize + "");
+		}
+
+		return entityDetailsQuery.toString();
+	}
+
+	private String getEntityDetailsQueryForRegulatorUser(boolean allowSubCategoryFilter, boolean allowEntityNameLike, Integer page, Integer fetchSize, boolean isCountQuery) {
+		StringBuilder entityDetailsQuery = new StringBuilder();
+
+		if (isCountQuery) {
+			entityDetailsQuery.append("select count(*)");
+		} else {
+			entityDetailsQuery.append("select usr.USER_ID, usr.USER_NAME, usr.FIRST_NAME, usr.LAST_NAME,  usr.ROLE_TYPE_FK, regLabel.REGULATOR_LABEL, ent.ENTITY_ID , " + "ent.ENTITY_CODE , ent.IFSC_CODE , entLabel.ENTITY_NAME_LABEL ,  cat.CATEGORY_ID, catLabel.CATEGORY_LABEL , cat.CATEGORY_CODE , subCat.SUB_CATEGORY_ID, subCatLabel.SUB_CATEGORY_LABEL , " + "subCat.SUB_CATEGORY_CODE ");
+		}
+
+		entityDetailsQuery.append("from TBL_USER_MASTER usr, TBL_DEPT_USER_ENTITY_MAPPING map, TBL_ENTITY ent, TBL_ENTITY_LABEL entLabel,  TBL_CATEGORY cat, " + " TBL_CATEGORY_LABEL catLabel, TBL_SUB_CATEGORY subCat, TBL_SUB_CATEGORY_LABEL subCatLabel, " + " TBL_REGULATOR reg, TBL_REGULATOR_LABEL regLabel, TBL_LANGUAGE_MASTER lang where usr.USER_ID =:userId " + " and usr.IS_ACTIVE =:isActive and ent.IS_ACTIVE =:isActive and map.IS_ACTIVE =:isActive " + " and entLabel.LANGUAGE_ID_FK = lang.LANGUAGE_ID " + " and cat.IS_ACTIVE =:isActive " + " and subCat.IS_ACTIVE =:isActive " + " and lang.LANGUAGE_CODE =:languageCode ");
+
+		if (allowSubCategoryFilter) {
+			//			entityDetailsQuery.append(" and cat.CATEGORY_CODE IN(:categoryCodes)");
+			entityDetailsQuery.append(" and subCat.SUB_CATEGORY_CODE IN(:subCategoryCodes)");
+		}
+
+		if (allowEntityNameLike) {
+			entityDetailsQuery.append(" and (upper(entLabel.ENTITY_NAME_LABEL) like :likeString or upper(ent.ENTITY_CODE) like :likeString)");
+		}
+
+		entityDetailsQuery.append(" and catLabel.LANG_ID_FK = lang.LANGUAGE_ID " + " and subCatLabel.LANG_ID_FK = lang.LANGUAGE_ID " + " and regLabel.LANGUAGE_ID_FK = lang.LANGUAGE_ID " + " and reg.IS_ACTIVE =:isActive and ent.ENTITY_ID = entLabel.ENTITY_ID_FK and ent.CATEGORY_ID_FK = cat.CATEGORY_ID " + " and catLabel.CATEGORY_ID_FK = cat.CATEGORY_ID " + " and ent.SUB_CATEGORY_ID_FK = subCat.SUB_CATEGORY_ID and subCatLabel.SUB_CATEGORY_ID_FK = subCat.SUB_CATEGORY_ID  " + " and map.USER_ID_FK = usr.USER_ID " + " and map.ENTITY_ID_FK = ent.ENTITY_ID " + " and usr.DEPARTMENT_ID_FK = reg.REGULATOR_ID and usr.DEPARTMENT_ID_FK = regLabel.REGULATOR_ID_FK");
+
+		if (page != null && fetchSize != null) {
+			entityDetailsQuery.append(" order by ENTITY_NAME_LABEL limit " + (page * fetchSize) + " , " + fetchSize + "");
+		}
+
+		return entityDetailsQuery.toString();
+	}
+
+	private String getEntityDetailsQueryForEntityUserV2(boolean allowSubCategoryFilter, boolean allowEntityNameLike, Integer page, Integer fetchSize, boolean isCountQuery) {
+
+		StringBuilder entityDetailsQuery = new StringBuilder();
+		if (isCountQuery) {
+			entityDetailsQuery.append("select count(distinct usr.USER_ID, usr.USER_NAME, usr.FIRST_NAME, usr.LAST_NAME,  usr.ROLE_TYPE_FK, " + "\"ENTITY_USER\", ent.ENTITY_ID , ent.ENTITY_CODE , ent.IFSC_CODE , entLabel.ENTITY_NAME_LABEL ,  " + " cat.CATEGORY_ID, catLabel.CATEGORY_LABEL , cat.CATEGORY_CODE , subCat.SUB_CATEGORY_ID, subCatLabel.SUB_CATEGORY_LABEL ," + " subCat.SUB_CATEGORY_CODE )");
+		} else {
+			entityDetailsQuery.append("select distinct usr.USER_ID, usr.USER_NAME, usr.FIRST_NAME, usr.LAST_NAME,  usr.ROLE_TYPE_FK, " + "\"ENTITY_USER\", ent.ENTITY_ID , ent.ENTITY_CODE , ent.IFSC_CODE , entLabel.ENTITY_NAME_LABEL ,  " + " cat.CATEGORY_ID, catLabel.CATEGORY_LABEL , cat.CATEGORY_CODE , subCat.SUB_CATEGORY_ID, subCatLabel.SUB_CATEGORY_LABEL ," + " subCat.SUB_CATEGORY_CODE ");
+		}
+
+		entityDetailsQuery.append("from TBL_USER_MASTER usr, TBL_USER_ROLE_MASTER roleMas," + " TBL_USER_ROLE rle, TBL_USER_ROLE_LABEL roleLabel," + "  TBL_USER_ENTITY_ROLE entRole, TBL_ENTITY ent," + " TBL_ENTITY_LABEL entLabel,  TBL_CATEGORY cat, TBL_CATEGORY_LABEL catLabel, " + " TBL_SUB_CATEGORY subCat, " + " TBL_SUB_CATEGORY_LABEL subCatLabel, TBL_LANGUAGE_MASTER lang  where usr.USER_ID =:userId " + "" + " and roleMas.IS_ACTIVE = 1" + " " + " and entRole.IS_ACTIVE = 1 " + " and ent.IS_ACTIVE = 1 " + " and lang.LANGUAGE_CODE =:languageCode " + " and rle.USER_ROLE_ID IN(:userRoleIds)" + " and entLabel.LANGUAGE_ID_FK = lang.LANGUAGE_ID " + "" + "  and cat.IS_ACTIVE = 1 " + " and subCat.IS_ACTIVE = 1 ");
+
+		if (allowSubCategoryFilter) {
+			//			entityDetailsQuery.append(" and cat.CATEGORY_CODE IN(:categoryCodes)");
+			entityDetailsQuery.append(" and subCat.SUB_CATEGORY_CODE IN(:subCategoryCodes)");
+		}
+
+		if (allowEntityNameLike) {
+			entityDetailsQuery.append(" and (upper(entLabel.ENTITY_NAME_LABEL) like :likeString or upper(ent.ENTITY_CODE) like :likeString)");
+		}
+
+		entityDetailsQuery.append(" and roleLabel.LANG_ID_FK = lang.LANGUAGE_ID " + " and catLabel.LANG_ID_FK = lang.LANGUAGE_ID " + " and subCatLabel.LANG_ID_FK = lang.LANGUAGE_ID " + " and usr.USER_ID = roleMas.USER_MASTER_ID_FK and " + " roleMas.USER_ROLE_ID_FK = rle.USER_ROLE_ID and rle.USER_ROLE_ID = roleLabel.USER_ROLE_ID_FK" + " and entRole.USER_ROLE_MASTER_ID_FK = roleMas.USER_ROLE_MASTER_ID and ent.ENTITY_ID = entRole.ENTITY_ID_FK " + " and ent.ENTITY_ID = entLabel.ENTITY_ID_FK and ent.CATEGORY_ID_FK = cat.CATEGORY_ID and catLabel.CATEGORY_ID_FK = cat.CATEGORY_ID " + " and ent.SUB_CATEGORY_ID_FK = subCat.SUB_CATEGORY_ID and subCatLabel.SUB_CATEGORY_ID_FK = subCat.SUB_CATEGORY_ID ");
+
+		if (page != null && fetchSize != null) {
+			entityDetailsQuery.append("order by ENTITY_NAME_LABEL limit " + (page * fetchSize) + ", " + fetchSize + "");
+		}
+
+		return entityDetailsQuery.toString();
+	}
+
+	private String getEntityDetailsQueryForRegulatorUserV2(boolean allowSubCategoryFilter, boolean allowEntityNameLike, Integer page, Integer fetchSize, boolean isCountQuery) {
+		StringBuilder entityDetailsQuery = new StringBuilder();
+
+		if (isCountQuery) {
+			entityDetailsQuery.append("select count(*)");
+		} else {
+			entityDetailsQuery.append("select usr.USER_ID, usr.USER_NAME, usr.FIRST_NAME, usr.LAST_NAME,  usr.ROLE_TYPE_FK, regLabel.REGULATOR_LABEL, ent.ENTITY_ID , " + "ent.ENTITY_CODE , ent.IFSC_CODE , entLabel.ENTITY_NAME_LABEL ,  cat.CATEGORY_ID, catLabel.CATEGORY_LABEL , cat.CATEGORY_CODE , subCat.SUB_CATEGORY_ID, subCatLabel.SUB_CATEGORY_LABEL , " + "subCat.SUB_CATEGORY_CODE ");
+		}
+
+		entityDetailsQuery.append("from TBL_USER_MASTER usr, TBL_DEPT_USER_ENTITY_MAPPING map, TBL_ENTITY ent, TBL_ENTITY_LABEL entLabel,  TBL_CATEGORY cat, " + " TBL_CATEGORY_LABEL catLabel, TBL_SUB_CATEGORY subCat, TBL_SUB_CATEGORY_LABEL subCatLabel, " + " TBL_REGULATOR reg, TBL_REGULATOR_LABEL regLabel, TBL_LANGUAGE_MASTER lang where usr.USER_ID =:userId " + " and ent.IS_ACTIVE = 1 and map.IS_ACTIVE = 1 " + " and entLabel.LANGUAGE_ID_FK = lang.LANGUAGE_ID " + " and cat.IS_ACTIVE = 1 " + " and subCat.IS_ACTIVE = 1 " + " and lang.LANGUAGE_CODE =:languageCode ");
+
+		if (allowSubCategoryFilter) {
+			//			entityDetailsQuery.append(" and cat.CATEGORY_CODE IN(:categoryCodes)");
+			entityDetailsQuery.append(" and subCat.SUB_CATEGORY_CODE IN(:subCategoryCodes)");
+		}
+
+		if (allowEntityNameLike) {
+			entityDetailsQuery.append(" and (upper(entLabel.ENTITY_NAME_LABEL) like :likeString or upper(ent.ENTITY_CODE) like :likeString)");
+		}
+
+		entityDetailsQuery.append(" and catLabel.LANG_ID_FK = lang.LANGUAGE_ID " + " and subCatLabel.LANG_ID_FK = lang.LANGUAGE_ID " + " and regLabel.LANGUAGE_ID_FK = lang.LANGUAGE_ID " + " and reg.IS_ACTIVE = 1 and ent.ENTITY_ID = entLabel.ENTITY_ID_FK and ent.CATEGORY_ID_FK = cat.CATEGORY_ID " + " and catLabel.CATEGORY_ID_FK = cat.CATEGORY_ID " + " and ent.SUB_CATEGORY_ID_FK = subCat.SUB_CATEGORY_ID and subCatLabel.SUB_CATEGORY_ID_FK = subCat.SUB_CATEGORY_ID  " + " and map.USER_ID_FK = usr.USER_ID " + " and map.ENTITY_ID_FK = ent.ENTITY_ID " + " and usr.DEPARTMENT_ID_FK = reg.REGULATOR_ID and usr.DEPARTMENT_ID_FK = regLabel.REGULATOR_ID_FK");
+
+		if (page != null && fetchSize != null) {
+			entityDetailsQuery.append(" order by ENTITY_NAME_LABEL limit " + (page * fetchSize) + " , " + fetchSize + "");
+		}
+
+		return entityDetailsQuery.toString();
+	}
+
+	public UserDetailsDto getUserDetails(UserDto userDto) {
+
+		String sql = "SELECT mas.userId, roleType.roleTypeId, userRole.userRoleId, userRoleLabel.userRoleLabel, userRole.user.userId " + " FROM UserMaster mas left join RoleType roleType  on mas.roleType.roleTypeId = roleType.roleTypeId " + "left join UserRoleMaster roleMas on roleMas.userMaster.userId = mas.userId left join UserRole userRole " + "on userRole.userRoleId =  roleMas.userRole.userRoleId left join UserRoleLabel userRoleLabel " + "on userRoleLabel.userRoleIdFk.userRoleId =  userRole.userRoleId where mas.userId =:userId" + " and roleType.isActive =:isActive  and roleMas.isActive =:isActive and userRole.isActive =:isActive " + "and mas.isActive =:isActive and userRoleLabel.langIdFk.languageCode =:languageCode";
+
+		Query query = em.createQuery(sql, Tuple.class);
+		query.setParameter(QueryParameterConstants.USER_ID.getConstants(), userDto.getUserId());
+		query.setParameter(QueryParameterConstants.LANGUAGE_CODE.getConstants(), userDto.getLangCode());
+		query.setParameter(QueryParameterConstants.IS_ACTIVE.getConstants(), userDto.getIsActive());
+
+		List<Tuple> result = query.getResultList();
+
+		UserDetailsDto userDetailsDto = null;
+
+		for (Tuple tuple : result) {
+			if (userDetailsDto != null) {
+				UserRoleDto userRoleDto = getUserRoleDtoObject(tuple);
+				if (userRoleDto != null) {
+					if (userDetailsDto.getUserRoleDtos() != null) {
+						userDetailsDto.getUserRoleDtos().add(userRoleDto);
+					} else {
+						List<UserRoleDto> userRoleDtos = new ArrayList<>();
+						userRoleDtos.add(userRoleDto);
+					}
+				}
+			} else {
+				userDetailsDto = new UserDetailsDto();
+
+				if (tuple.get(0) != null) {
+					userDetailsDto.setUserId(Long.parseLong(tuple.get(0) + ""));
+				}
+
+				if (tuple.get(1) != null) {
+					userDetailsDto.setRoleTypeId(Integer.parseInt(tuple.get(1) + ""));
+				}
+				UserRoleDto userRoleDto = getUserRoleDtoObject(tuple);
+				if (userRoleDto != null) {
+					List<UserRoleDto> userRoleDtos = new ArrayList<>();
+					userRoleDtos.add(userRoleDto);
+					userDetailsDto.setUserRoleDtos(userRoleDtos);
+				}
+			}
+		}
+
+		return userDetailsDto;
+	}
+
+	private UserRoleDto getUserRoleDtoObject(Tuple tuple) {
+
+		if (tuple.get(2) != null) {
+			UserRoleDto userRoleDto = new UserRoleDto();
+			userRoleDto.setUserRoleId(Long.parseLong(tuple.get(2) + ""));
+
+			if (tuple.get(3) != null) {
+				userRoleDto.setRoleDesc(tuple.get(3) + "");
+			}
+
+			if (tuple.get(4) != null) {
+				userRoleDto.setCreatedByRole(Long.parseLong(tuple.get(4) + ""));
+			}
+
+			return userRoleDto;
+		}
+
+		return null;
+	}
+
+	public UserDetailsDto getUserDetailsV2(UserDto userDto) {
+
+		String sql = "SELECT mas.userId, roleType.roleTypeId, userRole.userRoleId, userRoleLabel.userRoleLabel, userRole.user.userId " + " FROM UserMaster mas left join RoleType roleType  on mas.roleType.roleTypeId = roleType.roleTypeId " + "left join UserRoleMaster roleMas on roleMas.userMaster.userId = mas.userId left join UserRole userRole " + "on userRole.userRoleId =  roleMas.userRole.userRoleId left join UserRoleLabel userRoleLabel " + "on userRoleLabel.userRoleIdFk.userRoleId =  userRole.userRoleId where mas.userId =:userId" + " and roleType.isActive = 1  and roleMas.isActive = 1 and userRoleLabel.langIdFk.languageCode =:languageCode";
+
+		Query query = em.createQuery(sql, Tuple.class);
+		query.setParameter(QueryParameterConstants.USER_ID.getConstants(), userDto.getUserId());
+		query.setParameter(QueryParameterConstants.LANGUAGE_CODE.getConstants(), userDto.getLangCode());
+
+		List<Tuple> result = query.getResultList();
+
+		UserDetailsDto userDetailsDto = null;
+
+		for (Tuple tuple : result) {
+			if (userDetailsDto != null) {
+				UserRoleDto userRoleDto = getUserRoleDtoObject(tuple);
+				if (userRoleDto != null) {
+					if (userDetailsDto.getUserRoleDtos() != null) {
+						userDetailsDto.getUserRoleDtos().add(userRoleDto);
+					} else {
+						List<UserRoleDto> userRoleDtos = new ArrayList<>();
+						userRoleDtos.add(userRoleDto);
+					}
+				}
+			} else {
+				userDetailsDto = new UserDetailsDto();
+
+				if (tuple.get(0) != null) {
+					userDetailsDto.setUserId(Long.parseLong(tuple.get(0) + ""));
+				}
+
+				if (tuple.get(1) != null) {
+					userDetailsDto.setRoleTypeId(Integer.parseInt(tuple.get(1) + ""));
+				}
+				UserRoleDto userRoleDto = getUserRoleDtoObject(tuple);
+				if (userRoleDto != null) {
+					List<UserRoleDto> userRoleDtos = new ArrayList<>();
+					userRoleDtos.add(userRoleDto);
+					userDetailsDto.setUserRoleDtos(userRoleDtos);
+				}
+			}
+		}
+
+		return userDetailsDto;
+	}
+
+}

@@ -1,0 +1,24 @@
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.Frequency;
+
+public interface FrequencyRepository extends JpaRepository<Frequency, Long> {
+
+	Frequency findByFrequencyId(Long frequenctyId);
+
+	@Query(value = "FROM Frequency where isActive = '1' order by frequencyId asc")
+	List<Frequency> fetchAllActiveFrequency();
+
+	@Query(value = "FROM Frequency where isActive = '1' and frequencyId =:returnFrequencyId")
+	Frequency fetchName(Long returnFrequencyId);
+
+	@Query(value = "FROM Frequency where isActive = '1' and frequencyId =:formFreqId")
+	Frequency getFreqName(@Param("formFreqId") Long formFreqId);
+
+}

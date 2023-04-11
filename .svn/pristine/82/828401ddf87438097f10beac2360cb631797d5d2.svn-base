@@ -1,0 +1,75 @@
+package com.iris.nbfc.service;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.exception.ServiceException;
+import com.iris.nbfc.model.NbfcCompanyTypeOther;
+import com.iris.nbfc.repository.NbfcCompanyTypeOtherRepo;
+import com.iris.service.GenericService;
+@Service	
+public class NbfcCompanyTypeOtherService implements GenericService<NbfcCompanyTypeOther, Long> {
+	
+	@Autowired
+	NbfcCompanyTypeOtherRepo nbfcCompanyTypeOtherRepo;
+
+	@Override
+	public NbfcCompanyTypeOther add(NbfcCompanyTypeOther entity) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public boolean update(NbfcCompanyTypeOther entity) throws ServiceException {
+		return false;
+	}
+
+	@Override
+	public List<NbfcCompanyTypeOther> getDataByIds(Long[] ids) throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public NbfcCompanyTypeOther getDataById(Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<NbfcCompanyTypeOther> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcCompanyTypeOther> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName)
+			throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcCompanyTypeOther> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcCompanyTypeOther> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		if(bean.equals(NbfcCompanyTypeOther.class) && Objects.isNull(id)) {
+			return nbfcCompanyTypeOtherRepo.findByIsActiveTrue();
+		}
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NbfcCompanyTypeOther> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public void deleteData(NbfcCompanyTypeOther bean) throws ServiceException {
+	}	
+}

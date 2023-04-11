@@ -1,0 +1,83 @@
+package com.iris.service.impl;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.exception.ServiceException;
+import com.iris.model.Nationality;
+import com.iris.repository.NationalityRepo;
+import com.iris.service.GenericService;
+
+@Service
+public class NationalityService implements GenericService<Nationality, Long> {
+
+	@Autowired
+	NationalityRepo nationalityRepo;
+
+	@Override
+	public Nationality add(Nationality entity) throws ServiceException {
+
+		return null;
+	}
+
+	@Override
+	public boolean update(Nationality entity) throws ServiceException {
+
+		return false;
+	}
+
+	@Override
+	public List<Nationality> getDataByIds(Long[] ids) throws ServiceException {
+
+		return Collections.emptyList();
+	}
+
+	@Override
+	public Nationality getDataById(Long id) throws ServiceException {
+
+		return null;
+	}
+
+	@Override
+	public List<Nationality> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName) throws ServiceException {
+
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<Nationality> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName) throws ServiceException {
+
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<Nationality> getDataByObject(Map<String, Object> columnValueMap, String methodName) throws ServiceException {
+
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<Nationality> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		if (bean.equals(Nationality.class) && Objects.isNull(id)) {
+			return nationalityRepo.findByIsActiveTrue();
+		}
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<Nationality> getAllDataFor(Class bean, Long id) throws ServiceException {
+
+		return Collections.emptyList();
+	}
+
+	@Override
+	public void deleteData(Nationality bean) throws ServiceException {
+
+	}
+
+}

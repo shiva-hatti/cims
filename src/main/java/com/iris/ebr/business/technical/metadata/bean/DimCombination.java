@@ -1,0 +1,67 @@
+/**
+ * 
+ */
+package com.iris.ebr.business.technical.metadata.bean;
+
+import java.io.Serializable;
+
+/**
+ * @author sajadhav
+ *
+ */
+public class DimCombination implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 7306878879751806615L;
+
+	private String dimConceptId;
+
+	private String attachmentType;
+
+	private String conceptVersion;
+
+	/**
+	 * @return the dimConceptId
+	 */
+	public String getDimConceptId() {
+		return dimConceptId;
+	}
+
+	/**
+	 * @param dimConceptId the dimConceptId to set
+	 */
+	public void setDimConceptId(String dimConceptId) {
+		this.dimConceptId = dimConceptId;
+	}
+
+	/**
+	 * @return the attachmentType
+	 */
+	public String getAttachmentType() {
+		return attachmentType;
+	}
+
+	/**
+	 * @param attachmentType the attachmentType to set
+	 */
+	public void setAttachmentType(String attachmentType) {
+		this.attachmentType = attachmentType;
+	}
+
+	/**
+	 * @return the conceptVersion
+	 */
+	public String getConceptVersion() {
+		return conceptVersion;
+	}
+
+	/**
+	 * @param conceptVersion the conceptVersion to set
+	 */
+	public void setConceptVersion(String conceptVersion) {
+		this.conceptVersion = conceptVersion;
+	}
+
+}

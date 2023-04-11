@@ -1,0 +1,403 @@
+/**
+ * 
+ */
+package com.iris.sdmx.dimesnsion.entity;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import com.iris.model.UserMaster;
+import com.iris.sdmx.codelist.entity.CodeListMaster;
+
+/**
+ * @author sajadhav
+ *
+ */
+@Table(name = "TBL_SDMX_DIMENSION_MASTER")
+@Entity
+public class DimensionMaster implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5801295323057175510L;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "SDMX_DIM_MASTER_ID")
+	private Long dimesnsionMasterId;
+	
+	@ManyToOne
+	@JoinColumn(name = "CL_ID_FK")
+	private CodeListMaster codeListMaster;
+	
+	@ManyToOne
+	@JoinColumn(name = "DIMENSION_TYPE_ID_FK")
+	private DimensionType dimensionType;
+	
+	@ManyToOne
+	@JoinColumn(name = "REGEX_FK")
+	private Regex regex;
+	
+	@Column(name = "DIM_CODE_MIN_LENGTH")
+	private Integer minLength;
+	
+	@Column(name = "DIM_CODE_MAX_LENGTH")
+	private Integer maxLength;
+	
+	@Column(name = "DIM_NAME")
+	private String dimensionName;
+	
+	@Column(name = "DIM_CODE")
+	private String dimensionCode;
+	
+	@Column(name = "DIM_DESC")
+	private String dimDesc;
+	
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+	
+	@OneToMany(mappedBy = "parentDimensionMaster")
+	private List<DimensionMaster> dimesnionMasterList;
+	
+	@ManyToOne
+	@JoinColumn(name = "PARENT_SDMX_DIM_MASTER_ID_FK")
+	private DimensionMaster parentDimensionMaster;
+	
+	@ManyToOne
+	@JoinColumn(name = "CREATED_BY_FK")
+	private UserMaster createdBy;
+	
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+	
+	@ManyToOne
+	@JoinColumn(name = "LAST_MODIFIED_BY_FK")
+	private UserMaster lastModifiedBy;
+	
+	@Column(name = "LAST_MODIFIED_ON")
+	private Date lastModifiedOn;
+	
+	@Column(name = "LAST_UPDATED_ON")
+	private Date lastUpdatedOn;
+	
+	@ManyToOne
+	@JoinColumn(name = "LAST_APPROVED_BY_FK")
+	private UserMaster lastApprovedBy;
+	
+	@Column(name = "LAST_APPROVED_ON")
+	private Date lastApprovedOn;
+	
+	@Column(name = "IS_COMMON")
+	private Boolean isCommon;
+	
+	@Column(name = "IS_MANDATORY")
+	private Boolean isMandatory;
+	
+	@Column(name = "DATA_TYPE")
+	private String dataType;
+
+	/**
+	 * @return the dimesnsionMasterId
+	 */
+	public Long getDimesnsionMasterId() {
+		return dimesnsionMasterId;
+	}
+
+	/**
+	 * @param dimesnsionMasterId the dimesnsionMasterId to set
+	 */
+	public void setDimesnsionMasterId(Long dimesnsionMasterId) {
+		this.dimesnsionMasterId = dimesnsionMasterId;
+	}
+
+	/**
+	 * @return the codeListMaster
+	 */
+	public CodeListMaster getCodeListMaster() {
+		return codeListMaster;
+	}
+
+	/**
+	 * @param codeListMaster the codeListMaster to set
+	 */
+	public void setCodeListMaster(CodeListMaster codeListMaster) {
+		this.codeListMaster = codeListMaster;
+	}
+	
+
+	/**
+	 * @return the dimensionCode
+	 */
+	public String getDimensionCode() {
+		return dimensionCode;
+	}
+
+	/**
+	 * @param dimensionCode the dimensionCode to set
+	 */
+	public void setDimensionCode(String dimensionCode) {
+		this.dimensionCode = dimensionCode;
+	}
+
+	/**
+	 * @return the dimDesc
+	 */
+	public String getDimDesc() {
+		return dimDesc;
+	}
+
+	/**
+	 * @param dimDesc the dimDesc to set
+	 */
+	public void setDimDesc(String dimDesc) {
+		this.dimDesc = dimDesc;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the lastModifiedBy
+	 */
+	public UserMaster getLastModifiedBy() {
+		return lastModifiedBy;
+	}
+
+	/**
+	 * @param lastModifiedBy the lastModifiedBy to set
+	 */
+	public void setLastModifiedBy(UserMaster lastModifiedBy) {
+		this.lastModifiedBy = lastModifiedBy;
+	}
+
+	/**
+	 * @return the lastModifiedOn
+	 */
+	public Date getLastModifiedOn() {
+		return lastModifiedOn;
+	}
+
+	/**
+	 * @param lastModifiedOn the lastModifiedOn to set
+	 */
+	public void setLastModifiedOn(Date lastModifiedOn) {
+		this.lastModifiedOn = lastModifiedOn;
+	}
+
+	/**
+	 * @return the lastUpdatedOn
+	 */
+	public Date getLastUpdatedOn() {
+		return lastUpdatedOn;
+	}
+
+	/**
+	 * @param lastUpdatedOn the lastUpdatedOn to set
+	 */
+	public void setLastUpdatedOn(Date lastUpdatedOn) {
+		this.lastUpdatedOn = lastUpdatedOn;
+	}
+
+	/**
+	 * @return the lastApprovedBy
+	 */
+	public UserMaster getLastApprovedBy() {
+		return lastApprovedBy;
+	}
+
+	/**
+	 * @param lastApprovedBy the lastApprovedBy to set
+	 */
+	public void setLastApprovedBy(UserMaster lastApprovedBy) {
+		this.lastApprovedBy = lastApprovedBy;
+	}
+
+	/**
+	 * @return the lastApprovedOn
+	 */
+	public Date getLastApprovedOn() {
+		return lastApprovedOn;
+	}
+
+	/**
+	 * @param lastApprovedOn the lastApprovedOn to set
+	 */
+	public void setLastApprovedOn(Date lastApprovedOn) {
+		this.lastApprovedOn = lastApprovedOn;
+	}
+
+	/**
+	 * @return the dimensionType
+	 */
+	public DimensionType getDimensionType() {
+		return dimensionType;
+	}
+
+	/**
+	 * @param dimensionType the dimensionType to set
+	 */
+	public void setDimensionType(DimensionType dimensionType) {
+		this.dimensionType = dimensionType;
+	}
+
+	/**
+	 * @return the dimesnionMasterList
+	 */
+	public List<DimensionMaster> getDimensionMasterList() {
+		return dimesnionMasterList;
+	}
+
+	/**
+	 * @param dimesnionMasterList the dimesnionMasterList to set
+	 */
+	public void setDimesnionMasterList(List<DimensionMaster> dimesnionMasterList) {
+		this.dimesnionMasterList = dimesnionMasterList;
+	}
+
+	/**
+	 * @return the parentDimensionMaster
+	 */
+	public DimensionMaster getParentDimensionMaster() {
+		return parentDimensionMaster;
+	}
+
+	/**
+	 * @param parentDimensionMaster the parentDimensionMaster to set
+	 */
+	public void setParentDimensionMaster(DimensionMaster parentDimensionMaster) {
+		this.parentDimensionMaster = parentDimensionMaster;
+	}
+
+	/**
+	 * @return the regEx
+	 */
+	public Regex getRegex() {
+		return regex;
+	}
+
+	/**
+	 * @param regEx the regEx to set
+	 */
+	public void setRegex(Regex regEx) {
+		this.regex = regEx;
+	}
+
+
+	/**
+	 * @return the minLength
+	 */
+	public Integer getMinLength() {
+		return minLength;
+	}
+
+	/**
+	 * @param minLength the minLength to set
+	 */
+	public void setMinLength(Integer minLength) {
+		this.minLength = minLength;
+	}
+
+	
+
+	/**
+	 * @return the maxLength
+	 */
+	public Integer getMaxLength() {
+		return maxLength;
+	}
+
+	/**
+	 * @param maxLength the maxLength to set
+	 */
+	public void setMaxLength(Integer maxLength) {
+		this.maxLength = maxLength;
+	}
+
+	/**
+	 * @return the dimensionName
+	 */
+	public String getDimensionName() {
+		return dimensionName;
+	}
+
+	/**
+	 * @param dimensionName the dimensionName to set
+	 */
+	public void setDimensionName(String dimensionName) {
+		this.dimensionName = dimensionName;
+	}
+
+	public Boolean getIsCommon() {
+		return isCommon;
+	}
+
+	public void setIsCommon(Boolean isCommon) {
+		this.isCommon = isCommon;
+	}
+
+	public Boolean getIsMandatory() {
+		return isMandatory;
+	}
+
+	public void setIsMandatory(Boolean isMandatory) {
+		this.isMandatory = isMandatory;
+	}
+
+	public String getDataType() {
+		return dataType;
+	}
+
+	public void setDataType(String dataType) {
+		this.dataType = dataType;
+	}
+}

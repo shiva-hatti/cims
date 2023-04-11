@@ -1,0 +1,78 @@
+package com.iris.repository;
+
+import java.util.List;
+
+import javax.ws.rs.QueryParam;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.iris.model.Category;
+
+public interface CategoryRepo extends JpaRepository<Category, Long> {
+	 
+//	@Query("select distinct new com.iris.model.Category(cat.categoryId, catLabel.categoryLabel,cat.categoryCode) from EntityBean en, "
+//			+ " Category cat, CategoryLabel catLabel, LanguageMaster lang "
+//			+ " where cat.isActive =:isActive "
+//			+ " and en.isActive =:isActive"
+//			+ " and lang.isActive =:isActive "
+//			+ " and lang.languageCode =:langCode "
+//			+ " and en.category.categoryId = cat.categoryId "
+//			+ " and cat.categoryId = catLabel.categoryIdFk.categoryId "
+//			+ " and catLabel.langIdFk.languageId = lang.languageId order by catLabel.categoryLabel asc ")
+	
+	@Query("select distinct new com.iris.model.Category(cat.categoryId, catLabel.categoryLabel,cat.categoryCode) "
+			+ " from DeptUserEntityMapping duem, EntityBean en, "
+			+ " Category cat, CategoryLabel catLabel, LanguageMaster lang "
+			+ " where cat.isActive =:isActive "
+			+ " and en.isActive =:isActive"
+			+ " and lang.isActive =:isActive "
+			+ " and lang.languageCode =:langCode and duem.entity.entityId = en.entityId "
+			+ " and en.category.categoryId = cat.categoryId "
+			+ " and cat.categoryId = catLabel.categoryIdFk.categoryId "
+			+ " and duem.userIdFk.userId =:userId "
+			+ " and duem.isActive =:isActive "
+			+ " and catLabel.langIdFk.languageId = lang.languageId order by catLabel.categoryLabel asc ")
+	List<Category> loadCategoryForMainDeptUser(@QueryParam("isActive") boolean isActive, @QueryParam("langCode") String langCode ,@QueryParam("userId") Long userId);
+	
+//	@Query("select distinct(cat.CATEGORY_ID), cat.CATEGORY_NAME from UserRoleEntityMapping entMap, "
+//			+ " EntityBean en, Category cat  where entMap.userRole.roleId =:roleId "
+//			+ " and entMap.entity.entityId = en.entityId and cat.categoryId = en.category.categoryId")
+//	List<Category> loadCategoryUsingRoleEntityMapping(@QueryParam("roleId") Long roleId,@QueryParam("isActive") boolean isActive, @QueryParam("langCode") String langCode);
+	
+//	@Query("select distinct new com.iris.model.Category(cat.categoryId, catLabel.categoryLabel,cat.categoryCode) "
+//			+ " from UserRoleReturnMapping rolRetMap, ReturnEntityMappingNew retEntMap, EntityBean en, "
+//			+ " Category cat, CategoryLabel catLabel, LanguageMaster lang "
+//			+ " where rolRetMap.roleIdFk.userRoleId =:roleId "
+//			+ " and rolRetMap.returnIdFk.returnId = retEntMap.returnObj.returnId"
+//			+ " and en.entityId = retEntMap.entity.entityId"
+//			+ " and lang.languageCode =:langCode"
+//			+ " and lang.isActive =:isActive"
+//			+ " and en.isActive =:isActive"
+//			+ " and cat.isActive =:isActive"
+//			+ " and rolRetMap.isActive =:isActive"
+//			+ " and retEntMap.isActive =:isActive"
+//			+ " and en.category.categoryId = cat.categoryId "
+//			+ " and cat.categoryId = catLabel.categoryIdFk.categoryId "
+//			+ " and catLabel.langIdFk.languageId = lang.languageId order by catLabel.categoryLabel asc")
+	
+	@Query("select distinct new com.iris.model.Category(cat.categoryId, catLabel.categoryLabel,cat.categoryCode) "
+			+ " from UserRoleReturnMapping rolRetMap, ReturnEntityMappingNew retEntMap, EntityBean en, "
+			+ " Category cat, CategoryLabel catLabel, LanguageMaster lang "
+			+ " where rolRetMap.roleIdFk.userRoleId =:roleId "
+			+ " and rolRetMap.returnIdFk.returnId = retEntMap.returnObj.returnId"
+			+ " and en.entityId = retEntMap.entity.entityId"
+			+ " and lang.languageCode =:langCode"
+			+ " and lang.isActive =:isActive"
+			+ " and en.isActive =:isActive"
+			+ " and cat.isActive =:isActive"
+			+ " and rolRetMap.isActive =:isActive"
+			+ " and retEntMap.isActive =:isActive"
+			+ " and en.category.categoryId = cat.categoryId "
+			+ " and cat.categoryId = catLabel.categoryIdFk.categoryId "
+			+ " and catLabel.langIdFk.languageId = lang.languageId order by catLabel.categoryLabel asc")
+	List<Category> loadCategoryForNonMainDeptUser(@QueryParam("roleId") Long roleId, @QueryParam("isActive") boolean isActive, @QueryParam("langCode") String langCode);
+	
+	@Query(value = "FROM Category where isActive = 1")
+	List<Category> findByIsActiveTrue();
+}

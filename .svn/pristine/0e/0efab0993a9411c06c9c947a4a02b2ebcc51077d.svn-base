@@ -1,0 +1,18 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+
+public class Headers implements Serializable {
+
+private static final long serialVersionUID = -3748986667082496771L;
+private String appId;
+
+public String getAppId() {
+	return appId;
+}
+
+public void setAppId(String appId) {
+	this.appId = appId;
+}
+ 
+}

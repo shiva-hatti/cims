@@ -1,0 +1,30 @@
+
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.iris.model.ReturnGroupMapping;
+
+/**
+ * @author bthakare
+ *
+ */
+public interface ReturnGroupMappingRepo extends JpaRepository<ReturnGroupMapping, Long> {
+	/*
+	 * @Query(value = "FROM ReturnGroupMapping where returnGroupMapId=:id")
+	 * ReturnGroupMapping getDataById(@Param("id") Long id);
+	 */
+
+	@Query(value = "select * FROM TBL_RETURN_GROUP_MAPPING rgm where rgm.RETURN_GROUP_MAP_ID=:id ", nativeQuery = true)
+	ReturnGroupMapping getDataById(Long id);
+
+	@Query(value = "select * FROM TBL_RETURN_GROUP_MAPPING rgm where rgm.IS_ACTIVE = '1' order by RETURN_GROUP_MAP_ID desc", nativeQuery = true)
+	List<ReturnGroupMapping> getAllActiveData();
+
+	@Query(value = "select * FROM TBL_RETURN_GROUP_MAPPING rgm where rgm.IS_ACTIVE = '1' and rgm.IS_CROSS_VALIDATION = '1'", nativeQuery = true)
+	List<ReturnGroupMapping> getSetList();
+
+}

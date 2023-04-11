@@ -1,0 +1,112 @@
+/**
+ * 
+ */
+package com.iris.sdmx.element.helper;
+
+import org.springframework.beans.BeanUtils;
+
+import com.iris.model.UserMaster;
+import com.iris.sdmx.element.bean.SdmxAddElementInputBean;
+import com.iris.sdmx.element.bean.SdmxElementBean;
+import com.iris.sdmx.element.bean.SdmxElementBeanForTemp;
+import com.iris.sdmx.element.bean.SdmxElementClassificationBean;
+import com.iris.sdmx.element.bean.SdmxElementDependencyTypeBean;
+import com.iris.sdmx.element.bean.SdmxElementFlowTypeBean;
+import com.iris.sdmx.element.bean.SdmxElementNatureBean;
+import com.iris.sdmx.element.bean.SdmxElementSectorBean;
+import com.iris.sdmx.element.entity.SdmxElementEntity;
+
+/**
+ * @author apagaria
+ *
+ */
+public class SdmxElementHelper {
+
+	private SdmxElementHelper() {
+
+	}
+
+	/**
+	 * @param sdmxElementSectorEntity
+	 * @param sdmxElementSectorBean
+	 */
+	public static void convertEntityToBean(SdmxElementEntity sdmxElementEntity, SdmxElementBean sdmxElementBean) {
+		BeanUtils.copyProperties(sdmxElementEntity, sdmxElementBean);
+		// Removing extra data from user master for created By field
+		if (sdmxElementEntity.getCreatedBy() != null && sdmxElementEntity.getCreatedBy().getUserId() != null) {
+			UserMaster userMaster = new UserMaster();
+			userMaster.setUserId(sdmxElementEntity.getCreatedBy().getUserId());
+			userMaster.setUserName(sdmxElementEntity.getCreatedBy().getUserName());
+			// Todo: User master Bean
+			sdmxElementBean.setCreatedBy(userMaster.getUserId());
+		}
+		// Removing extra data from user master for modify By field
+		if (sdmxElementEntity.getModifyBy() != null && sdmxElementEntity.getModifyBy().getUserId() != null) {
+			UserMaster userMaster = new UserMaster();
+			userMaster.setUserId(sdmxElementEntity.getModifyBy().getUserId());
+			userMaster.setUserName(sdmxElementEntity.getModifyBy().getUserName());
+			// Todo: User master Bean
+			sdmxElementBean.setModifyBy(userMaster.getUserId());
+		}
+
+		// Classification
+		if (sdmxElementEntity.getClassificationIdFk() != null) {
+			SdmxElementClassificationBean sdmxElementClassificationBean = new SdmxElementClassificationBean();
+			sdmxElementClassificationBean
+					.setClassificationId(sdmxElementEntity.getClassificationIdFk().getClassificationId());
+			sdmxElementClassificationBean
+					.setClassificationName(sdmxElementEntity.getClassificationIdFk().getClassificationName());
+			sdmxElementBean.setClassificationBeanIdFk(sdmxElementClassificationBean);
+		}
+
+		// Dependency Type
+		if (sdmxElementEntity.getDependencyTypeIdFk() != null) {
+			SdmxElementDependencyTypeBean sdmxElementDependencyTypeBean = new SdmxElementDependencyTypeBean();
+			sdmxElementDependencyTypeBean
+					.setDependencyTypeId(sdmxElementEntity.getDependencyTypeIdFk().getDependencyTypeId());
+			sdmxElementDependencyTypeBean
+					.setDependencyTypeName(sdmxElementEntity.getDependencyTypeIdFk().getDependencyTypeName());
+			sdmxElementBean.setDependencyTypeBeanIdFk(sdmxElementDependencyTypeBean);
+
+		}
+
+		// Nature
+		if (sdmxElementEntity.getNatureIdFk() != null) {
+			SdmxElementNatureBean sdmxElementNatureBean = new SdmxElementNatureBean();
+			sdmxElementNatureBean.setNatureId(sdmxElementEntity.getNatureIdFk().getNatureId());
+			sdmxElementNatureBean.setNatureName(sdmxElementEntity.getNatureIdFk().getNatureName());
+			sdmxElementBean.setNatureBeanIdFk(sdmxElementNatureBean);
+		}
+
+		// Flow Type
+		if (sdmxElementEntity.getFlowTypeIdFk() != null) {
+			SdmxElementFlowTypeBean sdmxElementFlowTypeBean = new SdmxElementFlowTypeBean();
+			sdmxElementFlowTypeBean.setFlowTypeId(sdmxElementEntity.getFlowTypeIdFk().getFlowTypeId());
+			sdmxElementFlowTypeBean.setFlowTypeName(sdmxElementEntity.getFlowTypeIdFk().getFlowTypeName());
+			sdmxElementBean.setFlowTypeBeanIdFk(sdmxElementFlowTypeBean);
+		}
+
+		// Sector
+		if (sdmxElementEntity.getSectorIdFk() != null) {
+			SdmxElementSectorBean sdmxElementSectorBean = new SdmxElementSectorBean();
+			sdmxElementSectorBean.setSectorId(sdmxElementEntity.getSectorIdFk().getSectorId());
+			sdmxElementSectorBean.setSectorName(sdmxElementEntity.getSectorIdFk().getSectorName());
+			sdmxElementBean.setSectorBeanIdFk(sdmxElementSectorBean);
+		}
+
+		// Parent Element
+		if (sdmxElementEntity.getParentElementIdFk() != null) {
+			SdmxElementBean sdmxParentElementBean = new SdmxElementBean();
+			sdmxParentElementBean.setElementId(sdmxElementEntity.getParentElementIdFk().getElementId());
+			sdmxParentElementBean.setElementLable(sdmxElementEntity.getParentElementIdFk().getElementVer());
+			sdmxParentElementBean.setElementVer(sdmxElementEntity.getParentElementIdFk().getElementVer());
+			sdmxElementBean.setSdmxParentElementBeanFk(sdmxParentElementBean);
+		}
+	}
+
+	public static void convertInputBeanToEntity(SdmxAddElementInputBean sdmxAddElementInputBean, String jobProcessId,
+			SdmxElementBeanForTemp sdmxElementBeanForTemp) {
+		BeanUtils.copyProperties(sdmxAddElementInputBean, sdmxElementBeanForTemp);		
+	}
+
+}

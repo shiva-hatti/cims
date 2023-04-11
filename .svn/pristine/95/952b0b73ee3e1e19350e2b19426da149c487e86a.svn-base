@@ -1,0 +1,185 @@
+package com.iris.sdmx.fusion.bean;
+
+import java.util.List;
+
+/**
+ * @author apagaria
+ *
+ */
+public class Contentconstraints {
+
+	private String name;
+	private Names names;
+	private String id;
+	private String version;
+	private String agencyID;
+	private Boolean isExternalReference;
+	private Boolean isFinal;
+	private String type;
+	private Constraintattachment constraintAttachment;
+	private List<Datakeysets> dataKeySets;
+	private List<Links> links;
+
+	/**
+	 * @return the name
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * @param name the name to set
+	 */
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	/**
+	 * @return the names
+	 */
+	public Names getNames() {
+		return names;
+	}
+
+	/**
+	 * @param names the names to set
+	 */
+	public void setNames(Names names) {
+		this.names = names;
+	}
+
+	/**
+	 * @return the id
+	 */
+	public String getId() {
+		return id;
+	}
+
+	/**
+	 * @param id the id to set
+	 */
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	/**
+	 * @return the version
+	 */
+	public String getVersion() {
+		return version;
+	}
+
+	/**
+	 * @param version the version to set
+	 */
+	public void setVersion(String version) {
+		this.version = version;
+	}
+
+	/**
+	 * @return the agencyID
+	 */
+	public String getAgencyID() {
+		return agencyID;
+	}
+
+	/**
+	 * @param agencyID the agencyID to set
+	 */
+	public void setAgencyID(String agencyID) {
+		this.agencyID = agencyID;
+	}
+
+	/**
+	 * @return the isExternalReference
+	 */
+	public Boolean getIsExternalReference() {
+		return isExternalReference;
+	}
+
+	/**
+	 * @param isExternalReference the isExternalReference to set
+	 */
+	public void setIsExternalReference(Boolean isExternalReference) {
+		this.isExternalReference = isExternalReference;
+	}
+
+	/**
+	 * @return the isFinal
+	 */
+	public Boolean getIsFinal() {
+		return isFinal;
+	}
+
+	/**
+	 * @param isFinal the isFinal to set
+	 */
+	public void setIsFinal(Boolean isFinal) {
+		this.isFinal = isFinal;
+	}
+
+	/**
+	 * @return the type
+	 */
+	public String getType() {
+		return type;
+	}
+
+	/**
+	 * @param type the type to set
+	 */
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	/**
+	 * @return the constraintAttachment
+	 */
+	public Constraintattachment getConstraintAttachment() {
+		return constraintAttachment;
+	}
+
+	/**
+	 * @param constraintAttachment the constraintAttachment to set
+	 */
+	public void setConstraintAttachment(Constraintattachment constraintAttachment) {
+		this.constraintAttachment = constraintAttachment;
+	}
+
+	/**
+	 * @return the dataKeySets
+	 */
+	public List<Datakeysets> getDataKeySets() {
+		return dataKeySets;
+	}
+
+	/**
+	 * @param dataKeySets the dataKeySets to set
+	 */
+	public void setDataKeySets(List<Datakeysets> dataKeySets) {
+		this.dataKeySets = dataKeySets;
+	}
+
+	/**
+	 * @return the links
+	 */
+	public List<Links> getLinks() {
+		return links;
+	}
+
+	/**
+	 * @param links the links to set
+	 */
+	public void setLinks(List<Links> links) {
+		this.links = links;
+	}
+
+	/**
+	 *
+	 */
+	@Override
+	public String toString() {
+		return "Contentconstraints [name=" + name + ", names=" + names + ", id=" + id + ", version=" + version + ", agencyID=" + agencyID + ", isExternalReference=" + isExternalReference + ", isFinal=" + isFinal + ", type=" + type + ", constraintAttachment=" + constraintAttachment + ", dataKeySets=" + dataKeySets + ", links=" + links + "]";
+	}
+
+}

@@ -1,0 +1,494 @@
+/**
+ * 
+ */
+package com.iris.dto;
+
+import java.io.Serializable;
+
+/**
+ * @author Siddique
+ *
+ */
+public class XmlElementsDto implements Serializable {
+
+	private static final long serialVersionUID = 1665724805665409357L;
+
+	private String errType;
+	private String langCodeRef;
+	private String errCode;
+	/**
+	 * To Display the error code label
+	 */
+	private String businessErrorCodeLabel;
+	private String formula;
+	private long minLength;
+	private long maxLength;
+	private String langCodeComb;
+	private String columnComb;
+	private String fieldTypeId;
+	private String formulaVals;
+	private String formulaTag;
+	private String condition;
+	private String conditionTag;
+	private String dateFactor;
+	private Integer addFactor;
+	private Integer formulaRounding;
+	private Integer conditionRounding;
+	private Integer tableHeadId;
+	private String methodURI;
+	private String isKeyFetch;
+	private String isNullAllow;
+	private String methodType;
+	private String maxRowCount;
+	private String isRowPositionCheck;
+	private String isValidationOnParticularRow;
+	private String formulaType;
+	private String tableCode;
+	private boolean isTotalRowCountAvailable;
+	private boolean isGrandTotalAvailable;
+	private boolean rowCountValidation;
+	private Boolean isUniqueValueCheck;
+	private String isPairCheck;
+	private String splitType;
+
+	public String getIsPairCheck() {
+		return isPairCheck;
+	}
+
+	public void setIsPairCheck(String isPairCheck) {
+		this.isPairCheck = isPairCheck;
+	}
+
+	public String getSplitType() {
+		return splitType;
+	}
+
+	public void setSplitType(String splitType) {
+		this.splitType = splitType;
+	}
+
+	public Boolean getIsUniqueValueCheck() {
+		return isUniqueValueCheck;
+	}
+
+	public void setIsUniqueValueCheck(Boolean isUniqueValueCheck) {
+		this.isUniqueValueCheck = isUniqueValueCheck;
+	}
+
+	/**
+	 * @return the maxRowCount
+	 */
+	public String getMaxRowCount() {
+		return maxRowCount;
+	}
+
+	/**
+	 * @param maxRowCount the maxRowCount to set
+	 */
+	public void setMaxRowCount(String maxRowCount) {
+		this.maxRowCount = maxRowCount;
+	}
+
+	public boolean isRowCountValidation() {
+		return rowCountValidation;
+	}
+
+	public void setRowCountValidation(boolean rowCountValidation) {
+		this.rowCountValidation = rowCountValidation;
+	}
+
+	public long getMinLength() {
+		return minLength;
+	}
+
+	public void setMinLength(long minLength) {
+		this.minLength = minLength;
+	}
+
+	public long getMaxLength() {
+		return maxLength;
+	}
+
+	public void setMaxLength(long maxLength) {
+		this.maxLength = maxLength;
+	}
+
+	/**
+	 * @return the isTotalRowCountAvailable
+	 */
+	public boolean isTotalRowCountAvailable() {
+		return isTotalRowCountAvailable;
+	}
+
+	/**
+	 * @param isTotalRowCountAvailable the isTotalRowCountAvailable to set
+	 */
+	public void setTotalRowCountAvailable(boolean isTotalRowCountAvailable) {
+		this.isTotalRowCountAvailable = isTotalRowCountAvailable;
+	}
+
+	/**
+	 * @return the isGrandTotalAvailable
+	 */
+	public boolean isGrandTotalAvailable() {
+		return isGrandTotalAvailable;
+	}
+
+	/**
+	 * @param isGrandTotalAvailable the isGrandTotalAvailable to set
+	 */
+	public void setGrandTotalAvailable(boolean isGrandTotalAvailable) {
+		this.isGrandTotalAvailable = isGrandTotalAvailable;
+	}
+
+	/**
+	 * @return the errType
+	 */
+	public String getErrType() {
+		return errType;
+	}
+
+	/**
+	 * @param errType the errType to set
+	 */
+	public void setErrType(String errType) {
+		this.errType = errType;
+	}
+
+	/**
+	 * @return the langCodeRef
+	 */
+	public String getLangCodeRef() {
+		return langCodeRef;
+	}
+
+	/**
+	 * @param langCodeRef the langCodeRef to set
+	 */
+	public void setLangCodeRef(String langCodeRef) {
+		this.langCodeRef = langCodeRef;
+	}
+
+	/**
+	 * @return the errCode
+	 */
+	public String getErrCode() {
+		return errCode;
+	}
+
+	/**
+	 * @param errCode the errCode to set
+	 */
+	public void setErrCode(String errCode) {
+		this.errCode = errCode;
+	}
+
+	/**
+	 * @return the businessErrorCodeLabel
+	 */
+	public String getBusinessErrorCodeLabel() {
+		return businessErrorCodeLabel;
+	}
+
+	/**
+	 * @param businessErrorCodeLabel the businessErrorCodeLabel to set
+	 */
+	public void setBusinessErrorCodeLabel(String businessErrorCodeLabel) {
+		this.businessErrorCodeLabel = businessErrorCodeLabel;
+	}
+
+	/**
+	 * @return the formula
+	 */
+	public String getFormula() {
+		return formula;
+	}
+
+	/**
+	 * @param formula the formula to set
+	 */
+	public void setFormula(String formula) {
+		this.formula = formula;
+	}
+
+	/**
+	 * @return the langCodeComb
+	 */
+	public String getLangCodeComb() {
+		return langCodeComb;
+	}
+
+	/**
+	 * @param langCodeComb the langCodeComb to set
+	 */
+	public void setLangCodeComb(String langCodeComb) {
+		this.langCodeComb = langCodeComb;
+	}
+
+	/**
+	 * @return the columnComb
+	 */
+	public String getColumnComb() {
+		return columnComb;
+	}
+
+	/**
+	 * @param columnComb the columnComb to set
+	 */
+	public void setColumnComb(String columnComb) {
+		this.columnComb = columnComb;
+	}
+
+	/**
+	 * @return the fieldTypeId
+	 */
+	public String getFieldTypeId() {
+		return fieldTypeId;
+	}
+
+	/**
+	 * @param fieldTypeId the fieldTypeId to set
+	 */
+	public void setFieldTypeId(String fieldTypeId) {
+		this.fieldTypeId = fieldTypeId;
+	}
+
+	/**
+	 * @return the formulaVals
+	 */
+	public String getFormulaVals() {
+		return formulaVals;
+	}
+
+	/**
+	 * @param formulaVals the formulaVals to set
+	 */
+	public void setFormulaVals(String formulaVals) {
+		this.formulaVals = formulaVals;
+	}
+
+	/**
+	 * @return the formulaTag
+	 */
+	public String getFormulaTag() {
+		return formulaTag;
+	}
+
+	/**
+	 * @param formulaTag the formulaTag to set
+	 */
+	public void setFormulaTag(String formulaTag) {
+		this.formulaTag = formulaTag;
+	}
+
+	/**
+	 * @return the condition
+	 */
+	public String getCondition() {
+		return condition;
+	}
+
+	/**
+	 * @param condition the condition to set
+	 */
+	public void setCondition(String condition) {
+		this.condition = condition;
+	}
+
+	/**
+	 * @return the conditionTag
+	 */
+	public String getConditionTag() {
+		return conditionTag;
+	}
+
+	/**
+	 * @param conditionTag the conditionTag to set
+	 */
+	public void setConditionTag(String conditionTag) {
+		this.conditionTag = conditionTag;
+	}
+
+	/**
+	 * @return the dateFactor
+	 */
+	public String getDateFactor() {
+		return dateFactor;
+	}
+
+	/**
+	 * @param dateFactor the dateFactor to set
+	 */
+	public void setDateFactor(String dateFactor) {
+		this.dateFactor = dateFactor;
+	}
+
+	/**
+	 * @return the addFactor
+	 */
+	public Integer getAddFactor() {
+		return addFactor;
+	}
+
+	/**
+	 * @param addFactor the addFactor to set
+	 */
+	public void setAddFactor(Integer addFactor) {
+		this.addFactor = addFactor;
+	}
+
+	/**
+	 * @return the formulaRounding
+	 */
+	public Integer getFormulaRounding() {
+		return formulaRounding;
+	}
+
+	/**
+	 * @param formulaRounding the formulaRounding to set
+	 */
+	public void setFormulaRounding(Integer formulaRounding) {
+		this.formulaRounding = formulaRounding;
+	}
+
+	/**
+	 * @return the conditionRounding
+	 */
+	public Integer getConditionRounding() {
+		return conditionRounding;
+	}
+
+	/**
+	 * @param conditionRounding the conditionRounding to set
+	 */
+	public void setConditionRounding(Integer conditionRounding) {
+		this.conditionRounding = conditionRounding;
+	}
+
+	/**
+	 * @return the tableHeadId
+	 */
+	public Integer getTableHeadId() {
+		return tableHeadId;
+	}
+
+	/**
+	 * @param tableHeadId the tableHeadId to set
+	 */
+	public void setTableHeadId(Integer tableHeadId) {
+		this.tableHeadId = tableHeadId;
+	}
+
+	/**
+	 * @return the methodURI
+	 */
+	public String getMethodURI() {
+		return methodURI;
+	}
+
+	/**
+	 * @param methodURI the methodURI to set
+	 */
+	public void setMethodURI(String methodURI) {
+		this.methodURI = methodURI;
+	}
+
+	/**
+	 * @return the isKeyFetch
+	 */
+	public String getIsKeyFetch() {
+		return isKeyFetch;
+	}
+
+	/**
+	 * @param isKeyFetch the isKeyFetch to set
+	 */
+	public void setIsKeyFetch(String isKeyFetch) {
+		this.isKeyFetch = isKeyFetch;
+	}
+
+	/**
+	 * @return the isNullAllow
+	 */
+	public String getIsNullAllow() {
+		return isNullAllow;
+	}
+
+	/**
+	 * @param isNullAllow the isNullAllow to set
+	 */
+	public void setIsNullAllow(String isNullAllow) {
+		this.isNullAllow = isNullAllow;
+	}
+
+	/**
+	 * @return the methodType
+	 */
+	public String getMethodType() {
+		return methodType;
+	}
+
+	/**
+	 * @param methodType the methodType to set
+	 */
+	public void setMethodType(String methodType) {
+		this.methodType = methodType;
+	}
+
+	/**
+	 * @return the isRowPositionCheck
+	 */
+	public String getIsRowPositionCheck() {
+		return isRowPositionCheck;
+	}
+
+	/**
+	 * @param isRowPositionCheck the isRowPositionCheck to set
+	 */
+	public void setIsRowPositionCheck(String isRowPositionCheck) {
+		this.isRowPositionCheck = isRowPositionCheck;
+	}
+
+	/**
+	 * @return the isValidationOnParticularRow
+	 */
+	public String getIsValidationOnParticularRow() {
+		return isValidationOnParticularRow;
+	}
+
+	/**
+	 * @param isValidationOnParticularRow the isValidationOnParticularRow to set
+	 */
+	public void setIsValidationOnParticularRow(String isValidationOnParticularRow) {
+		this.isValidationOnParticularRow = isValidationOnParticularRow;
+	}
+
+	/**
+	 * @return the formulaType
+	 */
+	public String getFormulaType() {
+		return formulaType;
+	}
+
+	/**
+	 * @param formulaType the formulaType to set
+	 */
+	public void setFormulaType(String formulaType) {
+		this.formulaType = formulaType;
+	}
+
+	/**
+	 * @return the tableCode
+	 */
+	public String getTableCode() {
+		return tableCode;
+	}
+
+	/**
+	 * @param tableCode the tableCode to set
+	 */
+	public void setTableCode(String tableCode) {
+		this.tableCode = tableCode;
+	}
+
+}

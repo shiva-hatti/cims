@@ -1,0 +1,373 @@
+/**
+ * 
+ */
+package com.iris.sdmx.elementdimensionmapping.service;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import javax.transaction.Transactional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.iris.caching.ObjectCache;
+import com.iris.exception.ApplicationException;
+import com.iris.exception.ServiceException;
+import com.iris.model.UserMaster;
+import com.iris.sdmx.dimesnsion.bean.DimensionMasterBean;
+import com.iris.sdmx.dimesnsion.entity.DimensionMaster;
+import com.iris.sdmx.dimesnsion.repo.DimensionRepo;
+import com.iris.sdmx.element.entity.SdmxElementEntity;
+import com.iris.sdmx.element.repo.SdmxElementRepo;
+import com.iris.sdmx.elementdimensionmapping.bean.ElementDimensionBean;
+import com.iris.sdmx.elementdimensionmapping.bean.ElementDimensionStoredJson;
+import com.iris.sdmx.elementdimensionmapping.entity.ElementDimension;
+import com.iris.sdmx.elementdimensionmapping.entity.ElementDimensionMod;
+import com.iris.sdmx.elementdimensionmapping.repo.ElementDimensionModRepo;
+import com.iris.sdmx.elementdimensionmapping.repo.ElementDimensionRepo;
+import com.iris.service.GenericService;
+import com.iris.util.JsonUtility;
+import com.iris.util.UtilMaster;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.GeneralConstants;
+
+/**
+ * @author sajadhav
+ *
+ */
+@Service
+public class ElementDimensionService implements GenericService<ElementDimension, Long>{
+
+	@Autowired
+	private DimensionRepo dimensionRepo;
+	
+	@Autowired
+	private ElementDimensionRepo elementDimensionRepo;
+	
+	@Autowired
+	private ElementDimensionModRepo elementDimensionModRepo;
+	
+	@Autowired
+	private SdmxElementRepo sdmxElementRepo;
+	
+	@Override
+	public ElementDimension add(ElementDimension entity) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public boolean update(ElementDimension entity) throws ServiceException {
+		return false;
+	}
+
+	@Override
+	public List<ElementDimension> getDataByIds(Long[] ids) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public ElementDimension getDataById(Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<ElementDimension> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<ElementDimension> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName)
+			throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<ElementDimension> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<ElementDimension> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		
+		try {
+			if(bean == null && id == null) {
+				return elementDimensionRepo.findByIsActiveTrue();
+			}
+		}catch(Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getErrorCode(), e);
+		}
+		return null;
+	}
+
+	@Override
+	public List<ElementDimension> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public void deleteData(ElementDimension bean) throws ServiceException {
+		
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<ElementDimensionBean> prepareElementDimensionMasterResponseList(List<ElementDimension> elementDimensionMasterList) {
+		if(!CollectionUtils.isEmpty(elementDimensionMasterList)) {
+			List<DimensionMaster> dimensionlist = dimensionRepo.findByIsActiveTrue();
+			Map<String, DimensionMaster> dimensionMasterMap = dimensionlist.stream().collect(Collectors.toMap(DimensionMaster::getDimensionCode, d -> d));
+			
+			String dimensionString = null;
+			List<String> dimensionCodeList = null;
+			List<ElementDimensionBean> elementDimensionBeans = new ArrayList<>();
+			for (ElementDimension elementDimension : elementDimensionMasterList) {
+				ElementDimensionBean elementDimensionBean = new ElementDimensionBean();
+				if(elementDimension.getElement()!= null) {
+					elementDimensionBean.setElementId(elementDimension.getElement().getElementId());
+					elementDimensionBean.setDsdCode(elementDimension.getElement().getDsdCode());
+					elementDimensionBean.setElementVersion(elementDimension.getElement().getElementVer());
+				}
+				
+				if(elementDimension.getElementDimensionJson()!= null) {
+					dimensionString = JsonUtility.extractResponseValueFromServiceResponseString(elementDimension.getElementDimensionJson(), "dimCombination");
+					
+					if(dimensionString!= null) {
+						dimensionCodeList = JsonUtility.getGsonObject().fromJson(dimensionString, List.class);
+						
+						List<DimensionMasterBean> dimensionmasterBeans = new ArrayList<>();
+						
+						for (String dimensionCode : dimensionCodeList) {
+							DimensionMasterBean dimensionMasterBean = new DimensionMasterBean();
+							dimensionMasterBean.setDimensionCode(dimensionCode);
+							if(dimensionMasterMap.containsKey(dimensionCode)) {
+								dimensionMasterBean.setDimensionName(dimensionMasterMap.get(dimensionCode).getDimensionName());
+							}
+							dimensionmasterBeans.add(dimensionMasterBean);
+						}
+						elementDimensionBean.setDimensionmasterBeans(dimensionmasterBeans);
+					}
+				}
+				
+				elementDimensionBeans.add(elementDimensionBean);
+			}
+			
+			return elementDimensionBeans;
+		}
+		
+		return Collections.emptyList();
+	}
+
+	@Transactional(rollbackOn = Exception.class)
+	public boolean addCodeListmasterData(ElementDimensionBean elementDimensionBean, boolean isApprovalRequired) throws ApplicationException {
+
+		ElementDimension dbElementDimension = elementDimensionRepo.findByElementDsdCodeAndElementElementVer(elementDimensionBean.getDsdCode(), elementDimensionBean.getElementVersion());
+		
+		if (dbElementDimension != null && dbElementDimension.getIsActive().equals(Boolean.TRUE)) {
+			throw new ApplicationException("E002", "Elemet dimension mapping entry alredy exist");
+		}
+		
+		SdmxElementEntity sdmxElement = sdmxElementRepo.findByDsdCodeAndVer(elementDimensionBean.getDsdCode(), elementDimensionBean.getElementVersion(), true);
+		
+		if (UtilMaster.isEmpty(sdmxElement)) {
+			// SDMX element not found
+			throw new ApplicationException(ErrorCode.E1171.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E1171.toString()));
+		}
+		
+		ElementDimensionMod pendingCodeListRecord = elementDimensionModRepo.findByElementDsdCodeAndElementElementVerAndAdminStatusId(elementDimensionBean.getDsdCode(), 
+				elementDimensionBean.getElementVersion(), GeneralConstants.PENDING_ADMIN_STATUS_ID.getConstantIntVal());
+		
+		if (!UtilMaster.isEmpty(pendingCodeListRecord)) {
+			throw new ApplicationException(ErrorCode.E0267.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E0267.toString()));
+		}
+
+		Date createdOn = new Date();
+		UserMaster createdBy = new UserMaster();
+		createdBy.setUserId(elementDimensionBean.getUserId());
+		
+		ElementDimensionStoredJson elementDimensionStoredJson = new ElementDimensionStoredJson();
+		elementDimensionStoredJson.setDsdId(elementDimensionBean.getDsdCode());
+		if(elementDimensionBean.getDimensionmasterBeans()!= null) {
+			elementDimensionStoredJson.setDimCombination(elementDimensionBean.getDimensionmasterBeans().stream().map(f -> f.getDimensionCode()).collect(Collectors.toList()));
+		}
+		
+		String jsonString = JsonUtility.getGsonObject().toJson(elementDimensionStoredJson);
+		
+		ElementDimensionMod elementDimensionMod = new ElementDimensionMod();
+		elementDimensionMod.setActionId(GeneralConstants.ACTIONID_ADDITION.getConstantIntVal());
+		elementDimensionMod.setCreatedBy(createdBy);
+		elementDimensionMod.setCreatedOn(createdOn);
+		elementDimensionMod.setLastUpdatedOn(createdOn);
+		elementDimensionMod.setElement(sdmxElement);
+		elementDimensionMod.setElementDimensionJson(jsonString);
+		elementDimensionMod.setElement(sdmxElement);
+		elementDimensionMod.setIsActive(true);
+		
+		if(isApprovalRequired) {
+			elementDimensionMod.setAdminStatusId(GeneralConstants.PENDING_ADMIN_STATUS_ID.getConstantIntVal());
+		}else {
+			elementDimensionMod.setAdminStatusId(GeneralConstants.APPROVED_ADMIN_STATUS_ID.getConstantIntVal());
+		}
+		
+		elementDimensionMod = elementDimensionModRepo.save(elementDimensionMod);
+		
+		if(!isApprovalRequired && elementDimensionMod.getElementDimensionModId()!= null) {
+			if(!UtilMaster.isEmpty(dbElementDimension) && dbElementDimension!= null) {
+				dbElementDimension.setElement(sdmxElement);
+				dbElementDimension.setElementDimensionJson(jsonString);
+				dbElementDimension.setCreatedBy(createdBy);
+				dbElementDimension.setCreatedOn(createdOn);
+				dbElementDimension.setLastUpdatedOn(createdOn);
+				dbElementDimension.setIsActive(true);
+				elementDimensionRepo.save(dbElementDimension);
+			}else {
+				ElementDimension elementDimension = new ElementDimension();
+				elementDimension.setElement(sdmxElement);
+				elementDimension.setElementDimensionJson(jsonString);
+				elementDimension.setCreatedBy(createdBy);
+				elementDimension.setCreatedOn(createdOn);
+				elementDimension.setLastUpdatedOn(createdOn);
+				elementDimension.setIsActive(true);
+				elementDimensionRepo.save(elementDimension);
+			}
+		}
+		return true;
+	}
+
+	@Transactional(rollbackOn = Exception.class)
+	public boolean editCodeListmasterData(ElementDimensionBean elementDimensionBean, boolean isApprovalRequired) throws ApplicationException {
+
+		ElementDimension dbElementDimension = elementDimensionRepo.findByElementDsdCodeAndElementElementVer(elementDimensionBean.getDsdCode(), elementDimensionBean.getElementVersion());
+		
+		if (UtilMaster.isEmpty(dbElementDimension)) {
+			throw new ApplicationException(ErrorCode.E1171.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E1171.toString()));
+		}
+		
+		SdmxElementEntity sdmxElement = sdmxElementRepo.findByDsdCodeAndVer(elementDimensionBean.getDsdCode(), elementDimensionBean.getElementVersion(), true);
+		
+		if (UtilMaster.isEmpty(sdmxElement)) {
+			// SDMX element not found
+			throw new ApplicationException(ErrorCode.E1171.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E1171.toString()));
+		}
+		
+		ElementDimensionMod pendingCodeListRecord = elementDimensionModRepo.findByElementDsdCodeAndElementElementVerAndAdminStatusId(elementDimensionBean.getDsdCode(), 
+				elementDimensionBean.getElementVersion(), GeneralConstants.PENDING_ADMIN_STATUS_ID.getConstantIntVal());
+		
+		if (!UtilMaster.isEmpty(pendingCodeListRecord)) {
+			throw new ApplicationException(ErrorCode.E0267.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E0267.toString()));
+		}
+
+		Date createdOn = new Date();
+		UserMaster createdBy = new UserMaster();
+		createdBy.setUserId(elementDimensionBean.getUserId());
+		
+		ElementDimensionStoredJson elementDimensionStoredJson = new ElementDimensionStoredJson();
+		elementDimensionStoredJson.setDsdId(elementDimensionBean.getDsdCode());
+		if(elementDimensionBean.getDimensionmasterBeans()!= null) {
+			elementDimensionStoredJson.setDimCombination(elementDimensionBean.getDimensionmasterBeans().stream().map(f -> f.getDimensionCode()).collect(Collectors.toList()));
+		}
+		
+		String jsonString = JsonUtility.getGsonObject().toJson(elementDimensionStoredJson);
+		
+		ElementDimensionMod elementDimensionMod = new ElementDimensionMod();
+		elementDimensionMod.setActionId(GeneralConstants.ACTIONID_EDITION.getConstantIntVal());
+		elementDimensionMod.setCreatedBy(createdBy);
+		elementDimensionMod.setCreatedOn(createdOn);
+		elementDimensionMod.setLastUpdatedOn(createdOn);
+		elementDimensionMod.setElementDimensionJson(jsonString);
+		elementDimensionMod.setElementDimension(dbElementDimension);
+		elementDimensionMod.setElement(sdmxElement);
+		elementDimensionMod.setIsActive(true);
+		
+		if(isApprovalRequired) {
+			elementDimensionMod.setAdminStatusId(GeneralConstants.PENDING_ADMIN_STATUS_ID.getConstantIntVal());
+		}else {
+			elementDimensionMod.setAdminStatusId(GeneralConstants.APPROVED_ADMIN_STATUS_ID.getConstantIntVal());
+		}
+		
+		elementDimensionMod = elementDimensionModRepo.save(elementDimensionMod);
+		
+		if(!isApprovalRequired && elementDimensionMod.getElementDimensionModId()!= null) {
+			dbElementDimension.setElementDimensionJson(jsonString);
+			dbElementDimension.setLastModifiedBy(createdBy);
+			dbElementDimension.setLastModifiedOn(createdOn);
+			dbElementDimension.setLastUpdatedOn(createdOn);
+			elementDimensionRepo.save(dbElementDimension);
+		}
+		return true;
+	}
+
+	public boolean deleteElementDimensionMappingData(String elementCode, String elementVersion, boolean isApprovalRequired, Long userId) throws ApplicationException {
+
+		ElementDimension dbElementDimension = elementDimensionRepo.findByElementDsdCodeAndElementElementVer(elementCode, elementVersion);
+		
+		if (UtilMaster.isEmpty(dbElementDimension)) {
+			throw new ApplicationException(ErrorCode.E1171.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E1171.toString()));
+		}
+		
+		SdmxElementEntity sdmxElement = sdmxElementRepo.findByDsdCodeAndVer(elementCode, elementVersion, true);
+		
+		if (UtilMaster.isEmpty(sdmxElement)) {
+			// SDMX element not found
+			throw new ApplicationException(ErrorCode.E1171.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E1171.toString()));
+		}
+		
+		ElementDimensionMod pendingCodeListRecord = elementDimensionModRepo.findByElementDsdCodeAndElementElementVerAndAdminStatusId(elementCode, 
+				elementVersion, GeneralConstants.PENDING_ADMIN_STATUS_ID.getConstantIntVal());
+		
+		if (!UtilMaster.isEmpty(pendingCodeListRecord)) {
+			throw new ApplicationException(ErrorCode.E0267.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E0267.toString()));
+		}
+
+		Date createdOn = new Date();
+		UserMaster createdBy = new UserMaster();
+		createdBy.setUserId(userId);
+		
+		ElementDimensionStoredJson elementDimensionStoredJson = new ElementDimensionStoredJson();
+		elementDimensionStoredJson.setIsActive(false);
+		String jsonString = JsonUtility.getGsonObject().toJson(elementDimensionStoredJson);
+
+		ElementDimensionMod elementDimensionMod = new ElementDimensionMod();
+		elementDimensionMod.setActionId(GeneralConstants.ACTIONID_EDITION.getConstantIntVal());
+		elementDimensionMod.setCreatedBy(createdBy);
+		elementDimensionMod.setCreatedOn(createdOn);
+		elementDimensionMod.setLastUpdatedOn(createdOn);
+		elementDimensionMod.setElementDimensionJson(jsonString);
+		elementDimensionMod.setElementDimension(dbElementDimension);
+		elementDimensionMod.setElement(sdmxElement);
+		elementDimensionMod.setIsActive(true);
+		
+		if(isApprovalRequired) {
+			elementDimensionMod.setAdminStatusId(GeneralConstants.PENDING_ADMIN_STATUS_ID.getConstantIntVal());
+		}else {
+			elementDimensionMod.setAdminStatusId(GeneralConstants.APPROVED_ADMIN_STATUS_ID.getConstantIntVal());
+		}
+		
+		elementDimensionMod = elementDimensionModRepo.save(elementDimensionMod);
+		
+		if(!isApprovalRequired && elementDimensionMod.getElementDimensionModId()!= null) {
+			dbElementDimension.setIsActive(false);
+			dbElementDimension.setLastModifiedBy(createdBy);
+			dbElementDimension.setLastModifiedOn(createdOn);
+			dbElementDimension.setLastUpdatedOn(createdOn);
+			elementDimensionRepo.save(dbElementDimension);
+		}
+		return true;
+	}
+
+	public static void main(String[] args) {
+		ElementDimensionStoredJson elemt = new ElementDimensionStoredJson();
+		elemt.setDsdId("abc");
+		elemt.setDimCombination(Arrays.asList("pqr"));
+		System.out.println(JsonUtility.getGsonObject().toJson(elemt));
+	}
+}

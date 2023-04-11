@@ -1,0 +1,25 @@
+package com.iris.sdmx.ebrtorbr.repo;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.iris.sdmx.ebrtorbr.bean.SdmxEbrToRbrPreparationBean;
+import com.iris.sdmx.ebrtorbr.entity.SdmxEbrToRbrPreparation;
+
+public interface SdmxEbrToRbrPreparationRepo extends JpaRepository<SdmxEbrToRbrPreparation, Long>{
+	
+//	@Query("select new com.iris.sdmx.ebrtorbr.bean.SdmxEbrToRbrPreparationBean(entity.entityId, startDate, endDate, returnObj.returnId, "
+//			+ " mandateDatapointExpectedJson, mandateDatapointReceivedJson, optionalDatapointExpectedJson, "
+//			+ " optionalDatapointReceivedJson, reportPreStartOn, reportPreEndOn, returnPropertyVal.returnProprtyValId) "
+//			+ " from SdmxEbrToRbrPreparation where isFilingDone = 0")
+//	List<SdmxEbrToRbrPreparationBean> getNotCompletedEBRFiling();
+	
+	
+//	@EntityGraph(attributePaths = {"returnPropertyVal"})
+	@Query("from SdmxEbrToRbrPreparation where isFilingDone = 0")
+	List<SdmxEbrToRbrPreparation> getNotCompletedEBRFiling();
+	
+}

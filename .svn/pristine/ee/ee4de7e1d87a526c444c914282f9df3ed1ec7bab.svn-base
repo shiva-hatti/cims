@@ -1,0 +1,102 @@
+package com.iris.sdmx.exceltohtml.repo;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.ReturnTemplate;
+import com.iris.sdmx.exceltohtml.entity.SdmxReturnPreviewEntity;
+import com.iris.sdmx.status.entity.SdmxModuleStatus;
+
+/**
+ * @author apagaria
+ *
+ */
+public interface SdmxReturnPreviewRepo extends JpaRepository<SdmxReturnPreviewEntity, Long> {
+
+	@Query("from SdmxReturnPreviewEntity where returnTemplateIdFk=:returnTemplate")
+	SdmxReturnPreviewEntity findByReturnTemplate(ReturnTemplate returnTemplate);
+
+	@Query("from SdmxReturnPreviewEntity u where u.returnTemplateIdFk=:returnTemplate and u.moduleStatusIdFk IN(3,5) and u.isActive=:isActive and u.returnPreviewTypeId=:returnPreviewId")
+	SdmxReturnPreviewEntity fetchHtmlByReturnTemplateId(ReturnTemplate returnTemplate,
+			 Boolean isActive, Long returnPreviewId);
+
+	@Query("from SdmxReturnPreviewEntity u where u.moduleStatusIdFk=:moduleStatusIdFk and isActive=:isActive")
+	List<SdmxReturnPreviewEntity> fetchEntityByStatusId(SdmxModuleStatus moduleStatusIdFk, Boolean isActive);
+
+	@Query("from SdmxReturnPreviewEntity u where u.returnTemplateIdFk=:returnTemplate and u.isActive=:isActive")
+	List<SdmxReturnPreviewEntity> fetchActiveByReturnTemplateId(ReturnTemplate returnTemplate, Boolean isActive);
+
+	@Query("from SdmxReturnPreviewEntity ORDER BY createdOn DESC")
+	List<SdmxReturnPreviewEntity> fetchEntitiesInDescCreateOnOrder();
+
+	@Query("from SdmxReturnPreviewEntity u where u.returnTemplateIdFk=:returnTemplate and u.moduleStatusIdFk.moduleStatusId IN(1,2,3) and u.isActive=1 and u.isPublished=0")
+	SdmxReturnPreviewEntity checkUploadStatus(ReturnTemplate returnTemplate);
+
+	
+	 @Query("SELECT new com.iris.sdmx.exceltohtml.entity.SdmxReturnPreviewEntity(srp.returnPreviewTypeId, "
+	  +
+	  "srp.returnTemplateIdFk,"
+	  + " srp.lastUpdatedOn, srp.createdBy.userId, srp.createdBy.userName, " +
+	  "srp.moduleStatusIdFk, srp.ebrVersion,srp.isPublished,srp.validFromDate,srp.description,srp.userSpecificFileName,srp.xlsxFilePath) "
+	  + " from SdmxReturnPreviewEntity srp,ReturnTemplate rt where" +
+	  " rt.returnObj.returnId IN(:returnIdList)" +
+	  " AND rt.returnTemplateId = srp.returnTemplateIdFk.returnTemplateId" +
+	  " AND srp.isActive = true" + " ORDER BY srp.createdOn DESC")
+	  List<SdmxReturnPreviewEntity> fetchEntitiesByReturnId(List<Long> returnIdList);
+	 
+	@Query("select new com.iris.sdmx.exceltohtml.entity.SdmxReturnPreviewEntity(preview.returnPreviewTypeId, temp.returnObj.returnId, preview.validFromDate) "
+			+ " from SdmxReturnPreviewEntity preview, ReturnTemplate temp "
+			+ "  where preview.returnTemplateIdFk.returnTemplateId = temp.returnTemplateId "
+				+ " and preview.validFromDate <=:fromDate and preview.isPublished = 1 and preview.isActive = 1 "
+				+ " and temp.returnObj.returnId in (:returnIds) order by preview.validFromDate asc")
+	List<SdmxReturnPreviewEntity> fethEBRReturnPreview(Date fromDate, Set<Long> returnIds);
+		
+
+	/*@Query("from SdmxReturnPreviewEntity srp,ReturnTemplate rt where" + " rt.returnObj.returnId IN(:returnIdList)"
+			+ " AND rt.returnTemplateId = srp.returnTemplateIdFk.returnTemplateId" + " AND srp.isActive = true"
+			+ " ORDER BY srp.createdOn DESC")
+	List<SdmxReturnPreviewEntity> fetchEntitiesByReturnId(List<Long> returnIdList);*/
+	 
+	@Query("from SdmxReturnPreviewEntity u where u.returnTemplateIdFk=:returnTemplate and u.isActive=:isActive and u.returnPreviewTypeId=:returnPreviewId")
+	SdmxReturnPreviewEntity fetchReturnTemplateActive(ReturnTemplate returnTemplate, Boolean isActive,Long returnPreviewId);
+
+	@Query("SELECT new com.iris.sdmx.exceltohtml.entity.SdmxReturnPreviewEntity(u.ebrVersion) "
+			+ "from SdmxReturnPreviewEntity u,ReturnTemplate rt,Return r where r.returnCode IN(:returnCodeList) "
+			+ "and r.returnId = rt.returnObj.returnId and rt.returnTemplateId = u.returnTemplateIdFk.returnTemplateId "
+			+ "and rt.isActive = 1 and r.isActive = 1 "
+			+ "and u.isActive = 1")
+	List<SdmxReturnPreviewEntity> getAllRbrEbrVersions(List<String> returnCodeList);
+	
+	@Query("from SdmxReturnPreviewEntity u where u.returnPreviewTypeId=:returnPreviewTypeId and u.isActive=1")
+	SdmxReturnPreviewEntity findByreturnPreviewTypeId(Long returnPreviewTypeId);
+	 
+	SdmxReturnPreviewEntity findByReturnPreviewTypeIdAndIsActive(Long returnPreviewTypeId, Boolean isActive);
+	
+	@Query("SELECT new com.iris.sdmx.exceltohtml.entity.SdmxReturnPreviewEntity(u.validFromDate) "
+			+ "from SdmxReturnPreviewEntity u,ReturnTemplate rt,Return r where r.returnCode=:returnCode "
+			+ "and r.returnId = rt.returnObj.returnId and rt.returnTemplateId = u.returnTemplateIdFk.returnTemplateId "
+			+ "and rt.isActive = 1 and r.isActive = 1 and u.isActive = 1"
+			+ " and u.moduleStatusIdFk.moduleStatusId = 3")
+	List<SdmxReturnPreviewEntity> checkValidFromDateExist(String returnCode);
+	
+	@Query("from SdmxReturnPreviewEntity u where u.returnTemplateIdFk.returnTemplateId =:returnTemplateId and u.isActive=1"
+			+ "and u.moduleStatusIdFk.moduleStatusId = 3 and u.isPublished=false")
+	SdmxReturnPreviewEntity isUnpublishActivetedTemplateExist(Long returnTemplateId);
+	
+	@Query("select new com.iris.sdmx.exceltohtml.entity.SdmxReturnPreviewEntity(preview.returnPreviewTypeId, preview.returnTemplateIdFk,preview.ebrVersion) "
+			+ " from SdmxReturnPreviewEntity preview, ReturnTemplate temp "
+			+ "  where preview.returnTemplateIdFk.returnTemplateId = temp.returnTemplateId "
+				+ " and preview.isPublished = 1 and preview.isActive = 1 "
+				+ " and temp.returnObj.returnId in (:returnIds) ")
+	List<SdmxReturnPreviewEntity> fetchPublishTemplate(Set<Long> returnIds);
+	
+	@Query(value = "SELECT * FROM TBL_SDMX_RETURN_PREVIEW where IS_ACTIVE=1 and JSON_EXTRACT(`OTHER_DETAIL_JSON` , '$.oldReturnTemplateId') IN(:templateIdList) and"
+			+ " MODULE_STATUS_ID_FK IN(1,2)", nativeQuery = true)
+	List<SdmxReturnPreviewEntity> validateReusedTemplate(@Param("templateIdList") List<String> templateIdList);
+	
+}

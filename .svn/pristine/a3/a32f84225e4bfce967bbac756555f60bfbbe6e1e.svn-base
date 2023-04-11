@@ -1,0 +1,12 @@
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.iris.model.ReturnSectionMap;
+
+public interface ReturnSectionMapRepo extends JpaRepository<ReturnSectionMap, Long> {
+
+	List<ReturnSectionMap> findByReturnIdFkReturnIdAndIsActiveTrue(Long returnId);
+}

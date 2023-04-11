@@ -1,0 +1,177 @@
+package com.iris.service.impl;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import com.iris.dto.UserDto;
+import com.iris.exception.ServiceException;
+import com.iris.model.EntityBean;
+import com.iris.model.UserMaster;
+import com.iris.model.UserRoleMaster;
+import com.iris.repository.UserMasterRepo;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.util.constant.MethodConstants;
+
+@Service
+public class UserMasterService implements GenericService<UserMaster, Long> {
+
+	@Autowired
+	UserMasterRepo userMasterRepo;
+
+//	public UserMaster getDataById(Long id){
+//		return userMasterRepo.findByUserId(id);
+//	}
+
+	@Override
+	public UserMaster add(UserMaster entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean update(UserMaster entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public List<UserMaster> getDataByIds(Long[] ids) throws ServiceException {
+		try {
+			return userMasterRepo.findByUserIdIn(ids);
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+
+	}
+
+	@Override
+	public List<UserMaster> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+		try {
+			List<String> emailIds = null;
+			List<String> userNameList = null;
+
+			for (String columnName : columnValueMap.keySet()) {
+				if (columnValueMap.get(columnName) != null && columnValueMap.get(columnName).size() > 0) {
+					if (columnName.equalsIgnoreCase(ColumnConstants.EMAIL_ID.getConstantVal())) {
+						emailIds = columnValueMap.get(columnName);
+					} else if (columnName.equalsIgnoreCase(ColumnConstants.USER_NAME.getConstantVal())) {
+						userNameList = columnValueMap.get(columnName);
+					}
+				}
+			}
+			if (methodName.equalsIgnoreCase(MethodConstants.GET_USER_DATA_BY_EMAIL_ID.getConstantVal())) {
+				return userMasterRepo.getDataByPrimaryEmailInAndIsActiveTrue(emailIds);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_USER_DATA_BY_USER_NAME.getConstantVal())) {
+				return userMasterRepo.getDataByUserName(userNameList);
+			}
+			return null;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<UserMaster> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		return Arrays.asList(userMasterRepo.findByUserIdAndIsActiveTrue(id));
+	}
+
+	@Override
+	public List<UserMaster> getAllDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void deleteData(UserMaster bean) throws ServiceException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public List<UserMaster> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName)
+			throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public UserMaster getDataById(Long id) throws ServiceException {
+		try {
+			return userMasterRepo.findByUserIdAndIsActiveTrue(id);
+
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	/**
+	 * @param userId
+	 * @return
+	 */
+	public String getUserNameByUserId(Long userId) {
+		try {
+			return userMasterRepo.getUserNameByUserId(userId);
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<UserMaster> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		try {
+			List<Long> userIdList = null;
+			List<Boolean> isActiveList = null;
+
+			for (String columnName : columnValueMap.keySet()) {
+				if (columnValueMap.get(columnName) != null) {
+					if (columnName.equalsIgnoreCase(ColumnConstants.USER_ID.getConstantVal())) {
+						userIdList = (List<Long>) columnValueMap.get(columnName);
+					} else if (columnName.equalsIgnoreCase(ColumnConstants.IS_ACTIVE.getConstantVal())) {
+						isActiveList = (List<Boolean>) columnValueMap.get(columnName);
+					}
+				}
+			}
+			if (methodName.equalsIgnoreCase(MethodConstants.GET_USER_DATA_BY_USER_ID_ACITVE_FLAG.getConstantVal())) {
+				return userMasterRepo.findByUserIdInAndIsActiveIn(userIdList, isActiveList);
+			}
+			return null;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+	
+	public EntityBean getEntityOfEntityRoleType(Long userId, Long roleId, UserMaster userObj){
+
+		if (userObj == null) {
+			return null;
+		}
+
+		if (userObj.getRoleType().getRoleTypeId().equals(GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal())) {
+			UserRoleMaster userRoleMaster = userObj.getUsrRoleMstrSet().stream().filter(
+					userRole -> userRole.getUserRole().getUserRoleId().equals(roleId))
+					.findAny().orElse(null);
+			if (userRoleMaster != null) {
+				if (!CollectionUtils.isEmpty(userRoleMaster.getUserEntityRole())) {
+					// Entity user always mapped to only one entity..hence getting first record from
+					return  userRoleMaster.getUserEntityRole().iterator().next().getEntityBean();
+				}
+			}
+		} 
+		
+		return null;
+	}
+	
+	
+	public UserDto getLightWeightUserDto(Long userId) {
+		return userMasterRepo.getLighWeightUserDto(userId);
+	}
+}

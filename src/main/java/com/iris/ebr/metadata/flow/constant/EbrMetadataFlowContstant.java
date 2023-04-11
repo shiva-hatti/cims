@@ -1,0 +1,30 @@
+package com.iris.ebr.metadata.flow.constant;
+
+/**
+ * @author sdhone
+ *
+ */
+public enum EbrMetadataFlowContstant {
+
+	VIEW_EBR_ELEMENTS("VIEW_EBR_ELEMENTS"), ON_GOING_REVERSE_CONV_METADATA("ON_GOING_REVERSE_CONV_METADATA"), EBR_ELEMENTS_METADATA_EBR_FNL_REPO("EBR_ELEMENTS_METADATA - EBR_FNL_REPO"), EBR_ELEMENT_DIMENSION_METADATA_EBR_FNL_REPO("EBR_ELEMENT_DIMENSION_METADATA - EBR_FNL_REPO"), SEQUENCE(1), PRIORITY(30), STATUS(0), SADP("SADP"), ELEMENT("Element"), DIMENSION("Dimension"), VIEW_EBR_DIMENSIONS("VIEW_EBR_DIMENSIONS"), FLOW_ID_FOR_ELEMENTS(8), FLOW_ID_FOR_DIMENSIONS(9);
+
+	private String name;
+	private Integer number;
+
+	public String getConstantVal() {
+		return name;
+	}
+
+	private EbrMetadataFlowContstant(String name) {
+		this.name = name;
+	}
+
+	private EbrMetadataFlowContstant(Integer number) {
+		this.number = number;
+	}
+
+	public Integer getConstantIntVal() {
+		return number;
+	}
+
+}

@@ -1,0 +1,287 @@
+package com.iris.service;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+
+import com.google.gson.Gson;
+import com.iris.dto.DynamicContent;
+import com.iris.dto.EmailHistoryBean;
+import com.iris.dto.MailContentDto;
+import com.iris.dto.MailInfoBean;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.UserRoleEmailInfoBean;
+import com.iris.dto.UserRoleEmailInputDto;
+import com.iris.exception.ServiceException;
+import com.iris.model.WebServiceComponentUrl;
+import com.iris.service.impl.WebServiceComponentService;
+import com.iris.util.Validations;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.util.constant.MethodConstants;
+import com.iris.webservices.client.CIMSRestWebserviceClient;
+import com.iris.webservices.client.WebServiceResponseReader;
+
+@Component
+@Scope("prototype")
+public class MailPrepareService implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1450909131429152334L;
+
+	@Autowired
+	private WebServiceComponentService webServiceComponentService;
+
+	@Autowired
+	private WebServiceResponseReader webServiceResponseReader;
+
+	final static Logger LOGGER = LogManager.getLogger(MailPrepareService.class);
+
+	private List<Long> usrRoleMastPkList = new ArrayList<>();
+	private Long eAlertId;
+
+	public Map<Integer, List<String>> getUserRoleEmailList(long emailAlertId, Long entityId, Long auditorId) {
+		Map<Integer, List<String>> emailMap = null;
+		try {
+			eAlertId = emailAlertId;
+			WebServiceComponentUrl componentUrl = getWebServiceComponentURL(GeneralConstants.GET_ROLE_EMAIL_LIST.getConstantVal(), CIMSRestWebserviceClient.HTTP_METHOD_TYPE_POST);
+
+			CIMSRestWebserviceClient restServiceClient = new CIMSRestWebserviceClient();
+
+			UserRoleEmailInputDto userRoleEmailInputBean = new UserRoleEmailInputDto();
+			userRoleEmailInputBean.setEmailAlertId(emailAlertId);
+
+			userRoleEmailInputBean.setEntityId(entityId);
+			userRoleEmailInputBean.setAuditorId(auditorId);
+			String response = restServiceClient.callRestWebService(componentUrl, userRoleEmailInputBean);
+			if (Validations.isEmpty(response)) {
+				return emailMap;
+			}
+
+			ServiceResponse serviceResponse = (ServiceResponse) webServiceResponseReader.readServiceResponse(ServiceResponse.class, response, componentUrl.getUrlProduceType());
+			if (!serviceResponse.isStatus()) {
+				//	GlobalLogger.logApplicationErrorLog(serviceResponse.getStatusMessage(), LOGGER);
+				return emailMap;
+			}
+			response = (String) serviceResponse.getResponse();
+			if (Validations.isEmpty(response)) {
+				return emailMap;
+			}
+
+			UserRoleEmailInfoBean userRoleEmailInfoBean = new Gson().fromJson(response, UserRoleEmailInfoBean.class);
+
+			if (!CollectionUtils.isEmpty(userRoleEmailInfoBean.getUsrRoleMastPkList())) {
+				usrRoleMastPkList.addAll(userRoleEmailInfoBean.getUsrRoleMastPkList());
+			}
+
+			Map<String, List<String>> emailAlertMap = userRoleEmailInfoBean.getEmailMap();
+			if (CollectionUtils.isEmpty(emailAlertMap)) {
+				return emailMap;
+			}
+
+			emailMap = new HashMap<>();
+			for (Map.Entry<String, List<String>> map : emailAlertMap.entrySet()) {
+				if (CollectionUtils.isEmpty(map.getValue())) {
+					continue;
+				}
+				emailMap.put(Integer.parseInt(map.getKey()), map.getValue());
+			}
+
+			return emailMap;
+		} catch (Exception e) {
+			LOGGER.error("Exception : ", e);
+		}
+		return emailMap;
+	}
+
+	public EmailHistoryBean getUserDetail(Long userId, Long roleId) {
+		EmailHistoryBean emailHistoryBean = new EmailHistoryBean();
+
+		try {
+			emailHistoryBean.setUserId(userId);
+			emailHistoryBean.setUserRoleId(roleId);
+		} catch (Exception e) {
+			LOGGER.error("Exception : ", e);
+		}
+		return emailHistoryBean;
+	}
+
+	public void prepareMailContent(List<DynamicContent> dynamicContents, Map<Integer, List<String>> emailMap) {
+
+		//		EmailHistoryDto emailHistoryDto = null;
+
+		//		if (ServletActionContext.getContext() != null) {
+		//			sessionMap = ServletActionContext.getContext().getSession();
+		//			isWizSet = (int) sessionMap.get(SessionConstants.IS_WIZARD_SET.getConstantVal());
+		//		}
+		//		if (isWizSet == 0) {
+		//			return;
+		//		}
+		//
+		//		if (eAlertId == null) {
+		//			return;
+		//		}
+
+		//		emailHistoryDto = getUserDetail(ServletActionContext.getContext().getName());
+
+		MailContentDto mailContentBean = new MailContentDto();
+
+		for (Map.Entry<Integer, List<String>> map : emailMap.entrySet()) {
+			if (CollectionUtils.isEmpty(map.getValue())) {
+				continue;
+			}
+
+			if (map.getKey().equals(GeneralConstants.EMAIL_TO.getConstantIntVal())) {
+				mailContentBean.setEmailTOList(map.getValue());
+			}
+			if (map.getKey().equals(GeneralConstants.EMAIL_CC.getConstantIntVal())) {
+				mailContentBean.setEmailCCList(map.getValue());
+			}
+			if (map.getKey().equals(GeneralConstants.EMAIL_BCC.getConstantIntVal())) {
+				mailContentBean.setEmailBCCList(map.getValue());
+			}
+		}
+		mailContentBean.setEmailAlertId(eAlertId);
+		mailContentBean.setDynamicContents(dynamicContents);
+
+		try {
+			/* this call is to get emailBody and mail subject details */
+			WebServiceComponentUrl componentUrl = getWebServiceComponentURL(GeneralConstants.PREPARE_MAIL_CONTENT.getConstantVal(), CIMSRestWebserviceClient.HTTP_METHOD_TYPE_POST);
+
+			CIMSRestWebserviceClient restServiceClient = new CIMSRestWebserviceClient();
+			String response = restServiceClient.callRestWebService(componentUrl, mailContentBean);
+			if (Validations.isEmpty(response)) {
+				return;
+			}
+
+			ServiceResponse serviceResponse = (ServiceResponse) webServiceResponseReader.readServiceResponse(ServiceResponse.class, response, componentUrl.getUrlProduceType());
+			if (!serviceResponse.isStatus()) {
+				//	GlobalLogger.logApplicationErrorLog(serviceResponse.getStatusMessage(), LOGGER);
+				return;
+			}
+
+			MailInfoBean mailInfoBean = new Gson().fromJson((String) serviceResponse.getResponse(), MailInfoBean.class);
+			if (mailInfoBean == null) {
+				return;
+			}
+
+			boolean isEmailListFound = false;
+			if (mailInfoBean.getRecipientIds() != null) {
+				isEmailListFound = true;
+			}
+
+			if (mailInfoBean.getCcMailIds() != null) {
+				isEmailListFound = true;
+			}
+
+			if (mailInfoBean.getBccMailIds() != null) {
+				isEmailListFound = true;
+			}
+
+			if (!isEmailListFound) {
+				//	GlobalLogger.logApplicationErrorLog("Email list not found in response of webservice call prepareMailContent", LOGGER);
+				return;
+			}
+			/* END */
+
+			/* this call is to send mail notification */
+			componentUrl = getWebServiceComponentURL(GeneralConstants.MAIL_COMPONENT_TYPE.getConstantVal(), CIMSRestWebserviceClient.HTTP_METHOD_TYPE_POST);
+
+			MailService.sendMail(componentUrl, mailInfoBean);
+
+			//			if (emailHistoryDto != null) {
+			//				//saveMailHistory(mailInfoBean, emailHistoryDto, usrRoleMastPkList);
+			//			}
+			/* END */
+		} catch (Exception e) {
+			//			System.out.println("exception in prepare mail" +e);
+			LOGGER.error("Exception : ", e);
+		}
+	}
+
+	/**
+	 * This method is to send mail with attachment
+	 */
+	public void prepareMailContent(MailInfoBean mailInfoBean) {
+		WebServiceComponentUrl componentUrl = getWebServiceComponentURL(GeneralConstants.MAIL_COMPONENT_TYPE.getConstantVal(), CIMSRestWebserviceClient.HTTP_METHOD_TYPE_POST);
+		MailService.sendMail(componentUrl, mailInfoBean);
+	}
+
+	WebServiceComponentUrl getWebServiceComponentURL(String componentName, String methodType) {
+		Map<String, List<String>> valueMap = new HashMap<String, List<String>>();
+
+		List<String> valueList = new ArrayList<>();
+		valueList.add(componentName);
+		valueMap.put(ColumnConstants.COMPONENTTYPE.getConstantVal(), valueList);
+
+		valueList = new ArrayList<>();
+		valueList.add(methodType);
+		valueMap.put(ColumnConstants.METHODTYPE.getConstantVal(), valueList);
+
+		WebServiceComponentUrl componentUrl = null;
+		try {
+			componentUrl = webServiceComponentService.getDataByColumnValue(valueMap, MethodConstants.GET_ACTIVE_DATA_BY_COMPONENTTYPE_METHODTYPE.getConstantVal()).get(0);
+		} catch (ServiceException e) {
+			LOGGER.error("Exception : ", e);
+		}
+		return componentUrl;
+	}
+
+	/**
+	 * @param mailInfoBean
+	 * @param emailHistoryBean
+	 */
+	public void saveMailHistory(MailInfoBean mailInfoBean, EmailHistoryBean emailHistoryBean, List<Long> usrRoleMastList) {
+		try {
+			emailHistoryBean.setMailBody(mailInfoBean.getBody());
+			emailHistoryBean.setMailSubject(mailInfoBean.getSubject());
+
+			List<String> emailList = new ArrayList<>();
+			if (mailInfoBean.getRecipientIds() != null) {
+				emailList.addAll(Arrays.asList(mailInfoBean.getRecipientIds()));
+			}
+
+			if (mailInfoBean.getCcMailIds() != null) {
+				emailList.addAll(Arrays.asList(mailInfoBean.getCcMailIds()));
+			}
+
+			if (mailInfoBean.getBccMailIds() != null) {
+				emailList.addAll(Arrays.asList(mailInfoBean.getBccMailIds()));
+			}
+
+			if (CollectionUtils.isEmpty(emailList)) {
+				LOGGER.info("Email list not found");
+				return;
+			}
+
+			emailHistoryBean.setMailRecipients((String.join(",", emailList)));
+			emailHistoryBean.setUserRoleMstrList(usrRoleMastList);
+
+			WebServiceComponentUrl componentUrl = getWebServiceComponentURL(GeneralConstants.ADD_EMAIL_HISTORY.getConstantVal(), CIMSRestWebserviceClient.HTTP_METHOD_TYPE_POST);
+
+			CIMSRestWebserviceClient restServiceClient = new CIMSRestWebserviceClient();
+			String response = restServiceClient.callRestWebService(componentUrl, emailHistoryBean);
+			ServiceResponse serviceResponse = (ServiceResponse) webServiceResponseReader.readServiceResponse(ServiceResponse.class, response, componentUrl.getUrlProduceType());
+
+			if (!serviceResponse.isStatus()) {
+				LOGGER.info(serviceResponse.getStatusMessage());
+				return;
+			}
+		} catch (Exception e) {
+			LOGGER.error("Exception : ", e);
+		}
+	}
+
+}

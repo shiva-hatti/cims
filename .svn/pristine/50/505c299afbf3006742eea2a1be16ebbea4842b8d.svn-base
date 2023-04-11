@@ -1,0 +1,117 @@
+package com.iris.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dto.CategoryDto;
+import com.iris.dto.EntityDto;
+import com.iris.dto.SubCategoryDto;
+import com.iris.dto.UserDetailsDto;
+import com.iris.dto.UserDto;
+import com.iris.exception.ApplicationException;
+import com.iris.exception.ServiceException;
+import com.iris.model.Category;
+import com.iris.repository.CategoryRepo;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.MethodConstants;
+
+@Service
+public class CategoryService implements GenericService<Category, Long> {
+
+	@Autowired
+	private CategoryRepo categoryRepo;
+
+	private static final Logger LOGGER = LogManager.getLogger(CategoryService.class);
+
+	@Override
+	public Category add(Category entity) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public boolean update(Category entity) throws ServiceException {
+		return false;
+	}
+
+	@Override
+	public List<Category> getDataByIds(Long[] ids) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public Category getDataById(Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<Category> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<Category> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<Category> getDataByObject(Map<String, Object> columnValueMap, String methodName) throws ServiceException {
+
+		try {
+			boolean isActive = false;
+			String langCode = null;
+			Long roleId = null;
+			Long userId = null;
+			if (columnValueMap != null) {
+				for (String columnName : columnValueMap.keySet()) {
+					if (columnValueMap.get(columnName) != null) {
+						if (columnName.equalsIgnoreCase(ColumnConstants.IS_ACTIVE.getConstantVal())) {
+							isActive = (boolean) columnValueMap.get(columnName);
+						} else if (columnName.equalsIgnoreCase(ColumnConstants.LANG_CODE.getConstantVal())) {
+							langCode = (String) columnValueMap.get(columnName);
+						} else if (columnName.equalsIgnoreCase(ColumnConstants.ROLEID.getConstantVal())) {
+							roleId = (Long) columnValueMap.get(columnName);
+						} else if (columnName.equalsIgnoreCase(ColumnConstants.USER_ID.getConstantVal())) {
+							userId = (Long) columnValueMap.get(columnName);
+						}
+					}
+				}
+			}
+			if (methodName.equalsIgnoreCase(MethodConstants.GET_CATEGORY_FOR_MASTER_DEPT_USER.getConstantVal())) {
+				return categoryRepo.loadCategoryForMainDeptUser(isActive, langCode, userId);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_CATEGORY_FOR_NON_MASTER_DEPT_USER.getConstantVal())) {
+				return categoryRepo.loadCategoryForNonMainDeptUser(roleId, isActive, langCode);
+			}
+			return null;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+
+	}
+
+	@Override
+	public List<Category> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		return categoryRepo.findByIsActiveTrue();
+	}
+
+	@Override
+	public List<Category> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public void deleteData(Category bean) throws ServiceException {
+
+	}
+
+}

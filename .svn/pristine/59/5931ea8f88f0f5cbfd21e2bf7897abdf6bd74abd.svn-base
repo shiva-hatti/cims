@@ -1,0 +1,133 @@
+/**
+ * 
+ */
+package com.iris.sdmx.element.service;
+
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.iris.model.UserMaster;
+import com.iris.sdmx.element.bean.SdmxAddElementInputBean;
+import com.iris.sdmx.element.bean.SdmxEditElementInputBean;
+import com.iris.sdmx.element.bean.SdmxElementBean;
+import com.iris.sdmx.element.bean.SdmxElementBeanForTemp;
+import com.iris.sdmx.element.bean.SdmxElementTempBean;
+import com.iris.sdmx.element.helper.SdmxElementHelper;
+import com.iris.sdmx.status.service.AdminStatusService;
+import com.iris.sdmx.util.SDMXConstants;
+import com.iris.service.impl.UserMasterService;
+
+/**
+ * @author apagaria
+ *
+ */
+@Service
+@Transactional(rollbackFor = Exception.class)
+public class SdmxElementControllerService {
+
+	@Autowired
+	private SdmxElementTempService sdmxElementTempService;
+
+	@Autowired
+	private UserMasterService userMasterService;
+
+	@Autowired
+	private AdminStatusService adminStatusService;
+
+	@Autowired
+	private SdmxElementService sdmxElementService;
+
+	/**
+	 * @param sdmxAddElementInputBean
+	 * @param jobProcessId
+	 */
+	public void addElement(SdmxAddElementInputBean sdmxAddElementInputBean, String jobProcessId,
+			SdmxElementBeanForTemp sdmxElementBeanForTemp, Long userId) {
+		// SdmxElementHelper.convertInputBeanToEntity(sdmxAddElementInputBean,
+		// jobProcessId, sdmxElementBeanForTemp);
+		SdmxElementTempBean sdmxElementTempBean = new SdmxElementTempBean();
+		BeanUtils.copyProperties(sdmxAddElementInputBean, sdmxElementTempBean);
+		sdmxElementTempBean.setSdmxElementEntity(sdmxElementBeanForTemp);
+		sdmxElementTempBean.setCreatedBy(userId);
+		UserMaster userMaster = userMasterService.getDataById(userId);
+		if (!userMaster.getDepartmentIdFk().getIsMaster()) {
+			sdmxElementTempBean.setStatusId(adminStatusService
+					.findIdByStatusTechCode(SDMXConstants.StatusTechCode.PENDING_FOR_APPROVAL.getCode()));
+		} else {
+			SdmxElementBean sdmxElementBean = new SdmxElementBean();
+			BeanUtils.copyProperties(sdmxElementBeanForTemp, sdmxElementBean);
+			BeanUtils.copyProperties(sdmxElementTempBean, sdmxElementBean);
+			sdmxElementService.addEntityByBean(sdmxElementBean);
+			sdmxElementTempBean.setStatusId(
+					adminStatusService.findIdByStatusTechCode(SDMXConstants.StatusTechCode.APPROVED.getCode()));
+
+		}
+		sdmxElementTempBean.setActionStatusId(SDMXConstants.ActionStatus.ADDITION.getId());
+		sdmxElementTempService.addEntityByBean(sdmxElementTempBean);
+	}
+
+	/**
+	 * @param sdmxAddElementInputBean
+	 * @param jobProcessId
+	 * @param sdmxElementBeanForTemp
+	 * @param userId
+	 */
+	public void editElement(SdmxEditElementInputBean sdmxEditElementInputBean, String jobProcessId,
+			SdmxElementBeanForTemp sdmxElementBeanForTemp, Long userId) {
+		SdmxElementTempBean sdmxElementTempBean = new SdmxElementTempBean();
+		// BeanUtils.copyProperties(sdmxEditElementInputBean, sdmxElementTempBean);
+		// BeanUtils.copyProperties(sdmxEditElementInputBean, sdmxElementBeanForTemp);
+		sdmxElementTempBean.setCreatedBy(userId);
+		UserMaster userMaster = userMasterService.getDataById(userId);
+		SdmxElementBean sdmxElementBean = sdmxElementService
+				.findEntityByActiveStatus(sdmxElementBeanForTemp.getElementId(), Boolean.TRUE);
+		if (!userMaster.getDepartmentIdFk().getIsMaster()) {
+			sdmxElementTempBean.setStatusId(adminStatusService
+					.findIdByStatusTechCode(SDMXConstants.StatusTechCode.PENDING_FOR_APPROVAL.getCode()));
+			sdmxElementTempBean.setDsdCode(sdmxElementBean.getDsdCode());
+			sdmxElementBeanForTemp.setDsdCode(sdmxElementBean.getDsdCode());
+			sdmxElementTempBean.setElementVer(sdmxElementBean.getElementVer());
+			sdmxElementBeanForTemp.setElementVer(sdmxElementBean.getElementVer());
+		} else {
+			SdmxElementHelper.copyEditedData(sdmxElementBeanForTemp, sdmxElementBean);
+			sdmxElementService.editEntityByBean(sdmxElementBean, sdmxElementBeanForTemp.getElementId());
+			sdmxElementTempBean.setStatusId(
+					adminStatusService.findIdByStatusTechCode(SDMXConstants.StatusTechCode.APPROVED.getCode()));
+			BeanUtils.copyProperties(sdmxElementBean, sdmxElementTempBean);
+			BeanUtils.copyProperties(sdmxElementBean, sdmxElementBeanForTemp);
+		}
+		sdmxElementTempBean.setSdmxElementEntity(sdmxElementBeanForTemp);
+		sdmxElementTempBean.setActionStatusId(SDMXConstants.ActionStatus.EDITION.getId());
+		sdmxElementTempService.addEntityByBean(sdmxElementTempBean);
+	}
+
+	/**
+	 * @param sdmxEditElementInputBean
+	 * @param jobProcessId
+	 * @param userId
+	 */
+	public void deleteElement(String jobProcessId, Long userId, Long elementId) {
+		SdmxElementTempBean sdmxElementTempBean = new SdmxElementTempBean();
+		UserMaster userMaster = userMasterService.getDataById(userId);
+		SdmxElementBean sdmxElementBean = sdmxElementService.findEntityByActiveStatus(elementId, Boolean.TRUE);
+		sdmxElementBean.setIsActive(Boolean.FALSE);
+		if (!userMaster.getDepartmentIdFk().getIsMaster()) {
+			sdmxElementTempBean.setStatusId(adminStatusService
+					.findIdByStatusTechCode(SDMXConstants.StatusTechCode.PENDING_FOR_APPROVAL.getCode()));
+		} else {
+			sdmxElementTempBean.setStatusId(
+					adminStatusService.findIdByStatusTechCode(SDMXConstants.StatusTechCode.APPROVED.getCode()));
+			sdmxElementService.deleteEntityById(elementId);
+		}
+		SdmxElementBeanForTemp sdmxElementBeanForTemp = new SdmxElementBeanForTemp();
+		BeanUtils.copyProperties(sdmxElementBean, sdmxElementBeanForTemp);
+		sdmxElementTempBean.setCreatedBy(userId);
+		sdmxElementTempBean.setDsdCode(sdmxElementBean.getDsdCode());
+		sdmxElementTempBean.setElementVer(sdmxElementBean.getElementVer());
+		sdmxElementTempBean.setSdmxElementEntity(sdmxElementBeanForTemp);
+		sdmxElementTempBean.setActionStatusId(SDMXConstants.ActionStatus.DELETION.getId());
+		sdmxElementTempService.addEntityByBean(sdmxElementTempBean);
+	}
+}

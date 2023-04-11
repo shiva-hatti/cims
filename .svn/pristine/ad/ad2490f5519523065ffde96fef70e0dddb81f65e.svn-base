@@ -1,0 +1,88 @@
+/**
+ * 
+ */
+package com.iris.sdmx.upload.bean;
+
+import java.io.Serializable;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * @author sajadhav
+ *
+ */
+public class ReturnDataPoint implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3866485276923298968L;
+	
+	private String returnCode;
+	
+	private Set<String> dataPoints;
+
+//	@Override
+//	public boolean equals(Object obj) {
+//		if(obj != null) {
+//			if (this.getClass() != obj.getClass())
+//			    return false;
+//			
+//			DataSet dataSet = (DataSet) obj;
+//			if(dataSet.getStructureRef().getCode().equalsIgnoreCase(this.structureRef.getCode())) {
+//				return  true;
+//			}
+//		}
+//		return false;
+//	}
+//	
+//	@Override
+//	public int hashCode() {
+//		if(this.structureRef.getCode()!= null) {
+//			return this.structureRef.getCode().hashCode();
+//		}
+//		return 0;
+//	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if(obj!= null) {
+
+			if(this.getClass()!= obj.getClass()) {
+				return false;
+			}
+			
+			ReturnDataPoint returnDataPointMap = (ReturnDataPoint) obj;
+			if(returnDataPointMap.getReturnCode().equalsIgnoreCase(this.returnCode)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	@Override
+	public int hashCode() {
+		if(this.returnCode!= null) {
+			return this.returnCode.hashCode();
+		}
+		return 0;
+	}
+	
+	public String getReturnCode() {
+		return returnCode;
+	}
+
+	public void setReturnCode(String returnCode) {
+		this.returnCode = returnCode;
+	}
+
+	public Set<String> getDataPoints() {
+		return dataPoints;
+	}
+
+	public void setDataPoints(Set<String> dataPoints) {
+		this.dataPoints = dataPoints;
+	}
+	
+
+}

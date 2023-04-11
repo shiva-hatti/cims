@@ -1,0 +1,80 @@
+package com.iris.formula.gen.controller;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.iris.formula.gen.FormulaBean;
+import com.iris.formula.gen.service.FormulaGeneratorService;
+import com.iris.webservices.client.ServiceResponse;  
+
+@RestController
+@RequestMapping("/service/formula")
+public class FormulaGenController {
+	private static final Logger Logger = LoggerFactory.getLogger(FormulaGenController.class);
+
+	@Autowired
+	private FormulaGeneratorService service;
+
+	@PostMapping("/saveFormula")
+	public ServiceResponse saveFormula(@RequestHeader(name = "JobProcessingId") String jobProcessId,@RequestBody
+			FormulaBean formula) throws JsonProcessingException  {
+		Logger.info("into Save Formula Controller");
+		service.saveFormula(formula);
+		return new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+	}
+	
+	@PostMapping("/getValidations")
+	public ServiceResponse getValidations(@RequestHeader(name = "JobProcessingId") String jobProcessId,@RequestBody
+			FormulaBean formula) throws JsonProcessingException  {
+		Logger.info("into getValidations Formula Controller");
+		formula = service.prepareEditFormula(formula);
+		if(!CollectionUtils.isEmpty(formula.getFormulaJsonMap())) {
+			Logger.info("into getValidations Formula Controller"+ formula);
+			service.saveOldFormulaGen(formula);
+		}
+		return new ServiceResponse.ServiceResponseBuilder().setResponse(formula).setStatus(true).build();
+	}
+	
+	@PostMapping("/saveFormulaGen")
+	public ServiceResponse saveAndGetFormulaGen(@RequestHeader(name = "JobProcessingId") String jobProcessId,@RequestBody
+			FormulaBean formula) {
+		Logger.info("into Save and Get Formula Gen Controller");
+		//check formula is alredy present or not
+		formula = service.saveAndGetFormulaGen(formula);
+		formula = service.prepareFormulaTableRow(formula);
+		formula.setIsFormulaPresentAlready(false);
+		return new ServiceResponse.ServiceResponseBuilder().setResponse(formula).setStatus(true).build();
+	}
+	
+	@PostMapping("/deleteFormula")
+	public ServiceResponse deleteFormula(@RequestHeader(name = "JobProcessingId") String jobProcessId,@RequestBody
+			FormulaBean formula) {
+		Logger.info("into delete Formula Controller");
+		service.deleteFormula(formula);
+		return new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+	}
+	
+	@PostMapping("/getFormulaGen")
+	public ServiceResponse getFormulaGen(@RequestHeader(name = "JobProcessingId") String jobProcessId,@RequestBody
+			FormulaBean formula) {
+		Logger.info("into get Formula Controller");
+		formula = service.getFormulaGen(formula);
+		return new ServiceResponse.ServiceResponseBuilder().setResponse(formula).setStatus(true).build();
+	}
+	
+	@PostMapping("/updatetFormulaGen")
+	public ServiceResponse updatetFormulaGen(@RequestHeader(name = "JobProcessingId") String jobProcessId,@RequestBody
+			FormulaBean formula) throws JsonProcessingException {
+		Logger.info("into updatet FormulaGen in Formula Controller");
+		service.updateFormulaGen(formula);
+		return new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+	}
+}

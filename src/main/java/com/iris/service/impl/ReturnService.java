@@ -1,0 +1,184 @@
+package com.iris.service.impl;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.dto.ReturnDto;
+import com.iris.exception.ServiceException;
+import com.iris.model.Return;
+import com.iris.repository.ReturnRepo;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.MethodConstants;
+
+@Service
+public class ReturnService implements GenericService<Return, Long> {
+
+	final static Logger LOGGER = LogManager.getLogger(ReturnService.class);
+
+	@Autowired
+	ReturnRepo returnRepo;
+
+	@Override
+	public Return add(Return entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean update(Return entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public List<Return> getDataByIds(Long[] ids) throws ServiceException {
+		try {
+			return returnRepo.getDataByReturnIdInAndIsActiveTrue(ids);
+		} catch (Exception e) {
+			throw new ServiceException("Exception in service class", e);
+		}
+	}
+
+	@Override
+	public List<Return> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName) throws ServiceException {
+		try {
+			List<String> returnCodeList = null;
+			for (String columnName : columnValueMap.keySet()) {
+				if (columnValueMap.get(columnName) != null && columnValueMap.get(columnName).size() > 0) {
+					if (columnName.equalsIgnoreCase(ColumnConstants.RETURN_CODE.getConstantVal())) {
+						returnCodeList = columnValueMap.get(columnName);
+					}
+				}
+			}
+			if (methodName.equalsIgnoreCase(MethodConstants.GET_RETURN_DATA_BY_CODE.getConstantVal())) {
+				return returnRepo.getDataByReturnCodeInIgnoreCaseAndIsActiveTrue(returnCodeList);
+			}
+		} catch (Exception e) {
+			throw new ServiceException("Exception : ", e);
+		}
+		return null;
+	}
+
+	@Override
+	public List<Return> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName) throws ServiceException {
+
+		return null;
+	}
+
+	@Override
+	public List<Return> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<Return> getAllDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void deleteData(Return bean) throws ServiceException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public Return getDataById(Long id) throws ServiceException {
+		try {
+			return returnRepo.getDataByReturnIdAndIsActiveTrue(id);
+		} catch (Exception e) {
+			throw new ServiceException("Exception in service class", e);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Return> getDataByObject(Map<String, Object> columnValueMap, String methodName) throws ServiceException {
+		try {
+			Long roleId = null;
+			Boolean isActive = false;
+			String langCode = null;
+			Long userId = null;
+			String entCode = null;
+			List<Long> retIds = null;
+			Long returnGroupId = null;
+			List<String> retCodeList = null;
+
+			for (String columnName : columnValueMap.keySet()) {
+				if (columnName.equalsIgnoreCase(ColumnConstants.ROLEID.getConstantVal())) {
+					roleId = (Long) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.IS_ACTIVE.getConstantVal())) {
+					isActive = (Boolean) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.LANG_CODE.getConstantVal())) {
+					langCode = (String) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.USER_ID.getConstantVal())) {
+					userId = (Long) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.ENT_CODE.getConstantVal())) {
+					entCode = (String) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.RETURN_ID_ARRAY.getConstantVal())) {
+					retIds = (List<Long>) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.RETURN_GROUP_ID.getConstantVal())) {
+					returnGroupId = (Long) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.RETURN_CODE_LIST.getConstantVal())) {
+					retCodeList = (List<String>) columnValueMap.get(columnName);
+				}
+			}
+			if (methodName.equalsIgnoreCase(MethodConstants.GET_RETURNS_BY_ROLE_ID.getConstantVal())) {
+				return returnRepo.getListOfReturnMappeToRoleId(roleId, isActive, langCode);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_REGULATOR_RETURN_LIST_BASED_UPON_ENTITY.getConstantVal())) {
+				return returnRepo.getRegulatorUserReturnListBasedUponEntity(roleId, isActive, langCode, entCode);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_ENTITY_RETURN_LIST_BASED_UPON_ENTITY.getConstantVal())) {
+				return returnRepo.getReturnListBasedUponEntityId(entCode, isActive, langCode);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_RETURN_LIST_WITH_LABEL.getConstantVal())) {
+				return returnRepo.getReturnListWithLabelBasedUponReturnIds(isActive, langCode, retIds);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_RETURN_LIST_WITH_FREQUENCY.getConstantVal())) {
+				return returnRepo.getReturnListWithFrequencyBasedUponReturnIds(isActive, langCode, retIds);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_RETURN_LIST_WITH_FREQUENCY_BY_RETURN_CODE.getConstantVal())) {
+				return returnRepo.getReturnListWithFrequencyBasedUponReturnCodes(isActive, langCode, retCodeList);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_RETURN_LIST_WITH_OUT_RETURN_GROUP.getConstantVal())) {
+				return returnRepo.getReturnListWithoutReturnGroup(isActive, langCode);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_ALL_RETURN_LIST_WITH_LABEL.getConstantVal())) {
+				return returnRepo.getAllReturnListWithLabelBasedUponReturnIds(isActive, langCode);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_RETURN_LIST_MAPPED_TO_RETURN_GROUP.getConstantVal())) {
+				return returnRepo.getReturnListForReturnGroup(isActive, langCode, returnGroupId);
+			}
+			return null;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	public List<Return> getDataByFrequencyId(Long frequencyId) {
+		try {
+			return returnRepo.getDataByFrequencyId(frequencyId);
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	public List<ReturnDto> getReturnRegulatorMapping(List<Long> returnIds, String langCode) {
+		try {
+			return returnRepo.getReturnRegulatorMapping(returnIds, langCode);
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	public List<Return> getDataByCode(String[] returnCode) throws ServiceException {
+		try {
+			return returnRepo.getDataByReturnCodeInIgnoreCaseAndIsActiveTrue(new ArrayList<>(Arrays.asList(returnCode)));
+		} catch (Exception e) {
+			throw new ServiceException("Exception in service class", e);
+		}
+	}
+}

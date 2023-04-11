@@ -1,0 +1,85 @@
+/**
+ * 
+ */
+package com.iris.sdmx.upload.bean;
+
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * @author sajadhav
+ *
+ */
+public class DataSet implements Serializable{
+
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1307014955988230304L;
+
+	private StructureRef structureRef;
+	
+    private Map<String, String> attached_attributes;
+	
+    private Map<String, String> dataset_attributes;
+    
+	private List<Map<String, String>> data;
+	
+	@Override
+	public boolean equals(Object obj) {
+		if(obj != null) {
+			if (this.getClass() != obj.getClass())
+			    return false;
+			
+			DataSet dataSet = (DataSet) obj;
+			if(dataSet.getStructureRef().getCode().equalsIgnoreCase(this.structureRef.getCode())) {
+				return  true;
+			}
+		}
+		return false;
+	}
+	
+	@Override
+	public int hashCode() {
+		if(this.structureRef.getCode()!= null) {
+			return this.structureRef.getCode().hashCode();
+		}
+		return 0;
+	}
+	
+	
+	public Map<String, String> getDataset_attributes() {
+		return dataset_attributes;
+	}
+
+	public void setDataset_attributes(Map<String, String> dataset_attributes) {
+		this.dataset_attributes = dataset_attributes;
+	}
+
+	public StructureRef getStructureRef() {
+		return structureRef;
+	}
+
+	public void setStructureRef(StructureRef structureRef) {
+		this.structureRef = structureRef;
+	}
+
+	public List<Map<String, String>> getData() {
+		return data;
+	}
+
+	public void setData(List<Map<String, String>> data) {
+		this.data = data;
+	}
+
+	public Map<String, String> getAttached_attributes() {
+		return attached_attributes;
+	}
+
+	public void setAttached_attributes(Map<String, String> attached_attributes) {
+		this.attached_attributes = attached_attributes;
+	}
+
+}

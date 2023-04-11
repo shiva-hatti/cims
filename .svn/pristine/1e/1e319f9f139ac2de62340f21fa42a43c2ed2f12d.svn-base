@@ -1,0 +1,172 @@
+/**
+ * 
+ */
+package com.iris.sdmx.exceltohtml.service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.iris.exception.ServiceException;
+import com.iris.model.ReturnTemplate;
+import com.iris.sdmx.exceltohtml.bean.SdmxReturnSheetInfoBean;
+import com.iris.sdmx.exceltohtml.entity.SdmxReturnModelInfoEntity;
+import com.iris.sdmx.exceltohtml.entity.SdmxReturnSheetInfoEntity;
+import com.iris.sdmx.exceltohtml.helper.SdmxReturnSheetInfoHelper;
+import com.iris.sdmx.exceltohtml.repo.SdmxReturnModelInfoRepo;
+import com.iris.sdmx.exceltohtml.repo.SdmxReturnSheetInfoRepo;
+import com.iris.service.GenericService;
+
+/**
+ * @author apagaria
+ *
+ */
+@Service
+@Transactional(readOnly = true)
+public class SdmxReturnSheetInfoService implements GenericService<SdmxReturnSheetInfoEntity, Long> {
+
+	@Autowired
+	private SdmxReturnSheetInfoRepo sdmxReturnSheetInfoRepo;
+
+	@Autowired
+	private SdmxReturnModelInfoRepo sdmxReturnModelInfoRepo;
+
+	@Override
+	public SdmxReturnSheetInfoEntity add(SdmxReturnSheetInfoEntity entity) throws ServiceException {
+		return sdmxReturnSheetInfoRepo.save(entity);
+	}
+
+	@Override
+	public boolean update(SdmxReturnSheetInfoEntity entity) throws ServiceException {
+		return false;
+	}
+
+	@Override
+	public List<SdmxReturnSheetInfoEntity> getDataByIds(Long[] ids) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public SdmxReturnSheetInfoEntity getDataById(Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<SdmxReturnSheetInfoEntity> getDataByColumnValue(Map<String, List<String>> columnValueMap,
+			String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<SdmxReturnSheetInfoEntity> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap,
+			String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<SdmxReturnSheetInfoEntity> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<SdmxReturnSheetInfoEntity> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<SdmxReturnSheetInfoEntity> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public void deleteData(SdmxReturnSheetInfoEntity bean) throws ServiceException {
+		sdmxReturnSheetInfoRepo.delete(bean);
+	}
+
+	/**
+	 * @return
+	 */
+	@Transactional(readOnly = false)
+	public void saveEntityByBean(List<SdmxReturnSheetInfoBean> sdmxReturnSheetInfoBeanList, Long returnTemplateId,
+			Long userId, Map<Integer, SdmxReturnModelInfoEntity> oldCellRefWithModelCodeMap,
+			Map<String, Long> sheetCodeNewIdMap, Map<String, List<Integer>> sheetCellMapping,
+			String oldReturnTemplateId) {
+		int count = 0;
+		List<SdmxReturnSheetInfoEntity> sdmxReturnSheetInfoEntities = new ArrayList<>();
+		for (SdmxReturnSheetInfoBean sdmxReturnSheetInfoBean : sdmxReturnSheetInfoBeanList) {
+			SdmxReturnSheetInfoEntity sdmxReturnSheetInfoEntity = new SdmxReturnSheetInfoEntity();
+			SdmxReturnSheetInfoHelper.convertBeanToEntity(sdmxReturnSheetInfoBean, sdmxReturnSheetInfoEntity,
+					returnTemplateId, userId);
+			if (count == 0) {
+				// old return sheet details of data template
+				List<SdmxReturnSheetInfoEntity> oldSdmxReturnSheetInfoEntityList = sdmxReturnSheetInfoRepo
+						.findByReturnTemplate(sdmxReturnSheetInfoEntity.getReturnTemplateIdFk());
+				for (SdmxReturnSheetInfoEntity oldSdmxReturnSheetInfoEntity : oldSdmxReturnSheetInfoEntityList) {
+					deleteData(oldSdmxReturnSheetInfoEntity);
+				}
+				
+				List<SdmxReturnModelInfoEntity> sdmxReturnModelInfoEntitieList = null;
+				// Fetch other template mapping details which need to map with current template
+				if (!StringUtils.isBlank(oldReturnTemplateId)) {
+					sdmxReturnModelInfoEntitieList = sdmxReturnModelInfoRepo
+							.findListByReturnTemplate(new ReturnTemplate(new Long(oldReturnTemplateId)));
+				}
+
+				// Map of cell ref and model entity.  Map<Integer, SdmxReturnModelInfoEntity>  
+				if (!CollectionUtils.isEmpty(sdmxReturnModelInfoEntitieList)) {
+					for (SdmxReturnModelInfoEntity sdmxReturnModelInfoEntity : sdmxReturnModelInfoEntitieList) {
+						oldCellRefWithModelCodeMap.put(sdmxReturnModelInfoEntity.getReturnCellRef(),
+								sdmxReturnModelInfoEntity);
+					}
+				}
+
+				
+
+			}
+			for (Map.Entry<String, String> entry : sdmxReturnSheetInfoBean.getSectionInfo().entrySet()) {
+				SdmxReturnSheetInfoEntity sdmxReturnSheetInfoEntityTemp = new SdmxReturnSheetInfoEntity();
+				BeanUtils.copyProperties(sdmxReturnSheetInfoEntity, sdmxReturnSheetInfoEntityTemp);
+				sdmxReturnSheetInfoEntityTemp.setSectionCode(entry.getKey());
+				sdmxReturnSheetInfoEntityTemp.setSectionName(entry.getValue());
+				if (!CollectionUtils.isEmpty(sheetCellMapping.get(sdmxReturnSheetInfoEntity.getSectionCode()))) {
+					sdmxReturnSheetInfoEntityTemp
+							.setNoOfDataPoints(sheetCellMapping.get(sdmxReturnSheetInfoEntity.getSectionCode()).size());
+				} else {
+					sdmxReturnSheetInfoEntityTemp.setNoOfDataPoints(0);
+				}
+				sdmxReturnSheetInfoEntities.add(sdmxReturnSheetInfoEntityTemp);
+			}
+			for (SdmxReturnSheetInfoEntity sdmxReturnSheetInfoEntity2 : sdmxReturnSheetInfoEntities) {
+				add(sdmxReturnSheetInfoEntity2);
+				sheetCodeNewIdMap.put(sdmxReturnSheetInfoEntity2.getSectionCode(),
+						sdmxReturnSheetInfoEntity2.getReturnSheetInfoId());
+			}
+			count++;
+		}
+	}
+
+	/**
+	 * @param sheetCode
+	 * @param sheetName
+	 * @param sectionCode
+	 * @param sectionName
+	 * @return
+	 */
+	public Long findIdByOtherDetail(String sheetCode, String sheetName, String sectionCode, String sectionName,
+			Long returnTemplateIdFk) {
+		SdmxReturnSheetInfoEntity sdmxReturnSheetInfoEntity = sdmxReturnSheetInfoRepo.findByOtherDetail(sheetCode,
+				sheetName, sectionCode, sectionName, new ReturnTemplate(returnTemplateIdFk));
+		return sdmxReturnSheetInfoEntity.getReturnSheetInfoId();
+	}
+
+}

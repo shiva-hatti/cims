@@ -1,0 +1,83 @@
+/**
+ * 
+ */
+package com.iris.nbfc.service;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.exception.ServiceException;
+import com.iris.nbfc.model.NBFCEmailSentHistory;
+import com.iris.nbfc.repository.NbfcEmailSentHistoryRepo;
+import com.iris.service.GenericService;
+
+/**
+ * @author sajadhav
+ *
+ */
+
+@Service
+public class NBFCEmailSentHistoryService implements GenericService<NBFCEmailSentHistory, Long>{
+
+	@Autowired
+	NbfcEmailSentHistoryRepo nbfcEmailSentHistoryRepo;
+
+	@Override
+	public NBFCEmailSentHistory add(NBFCEmailSentHistory entity) throws ServiceException {
+		return nbfcEmailSentHistoryRepo.save(entity);
+	}
+
+	@Override
+	public boolean update(NBFCEmailSentHistory entity) throws ServiceException {
+		return false;
+	}
+
+	@Override
+	public List<NBFCEmailSentHistory> getDataByIds(Long[] ids) throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public NBFCEmailSentHistory getDataById(Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<NBFCEmailSentHistory> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NBFCEmailSentHistory> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap,
+			String methodName) throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NBFCEmailSentHistory> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NBFCEmailSentHistory> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<NBFCEmailSentHistory> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public void deleteData(NBFCEmailSentHistory bean) throws ServiceException {
+		// TODO Auto-generated method stub
+		
+	}
+	
+}

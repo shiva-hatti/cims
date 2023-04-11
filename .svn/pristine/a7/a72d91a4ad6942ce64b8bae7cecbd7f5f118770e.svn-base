@@ -1,0 +1,129 @@
+package com.iris.formula.gen;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+
+import com.iris.model.AutoCalculationFormula;
+import com.iris.model.Return;
+import com.iris.model.ReturnTemplate;
+import com.iris.model.UserMaster;
+
+@Entity
+@Table(name = "TBL_FORMULA_GEN")
+public class FormulaGen implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2350715759651691461L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "FORMULA_ID")
+	private Long formulaId;
+
+	@ManyToOne
+	@JoinColumn(name = "RETURN_ID_FK")
+	private Return returnIdFk;
+	
+	@OneToOne
+	@JoinColumn(name = "AUTO_CAL_ID_FK")
+	private AutoCalculationFormula autoFormula;
+
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	@Column(name = "FORMULA_JSON")
+	private String formulaJson;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "RETURN_TEMPLATE_ID_FK")
+	private ReturnTemplate returnTemplateIdFk;
+	
+	@ManyToOne( fetch = FetchType.LAZY)
+	@JoinColumn(name = "MODIFIED_BY")
+	private UserMaster modifiedByFk;
+
+	@Column(name = "MODIFIED_ON")
+	private Date modifedOn;
+	
+	public Long getFormulaId() {
+		return formulaId;
+	}
+
+	public void setFormulaId(Long formulaId) {
+		this.formulaId = formulaId;
+	}
+
+	public Return getReturnIdFk() {
+		return returnIdFk;
+	}
+
+	public void setReturnIdFk(Return returnIdFk) {
+		this.returnIdFk = returnIdFk;
+	}
+
+	public AutoCalculationFormula getAutoFormula() {
+		return autoFormula;
+	}
+
+	public void setAutoFormula(AutoCalculationFormula autoFormula) {
+		this.autoFormula = autoFormula;
+	}
+
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	public String getFormulaJson() {
+		return formulaJson;
+	}
+
+	public void setFormulaJson(String formulaJson) {
+		this.formulaJson = formulaJson;
+	}
+
+	public ReturnTemplate getReturnTemplateIdFk() {
+		return returnTemplateIdFk;
+	}
+
+	public void setReturnTemplateIdFk(ReturnTemplate returnTemplateIdFk) {
+		this.returnTemplateIdFk = returnTemplateIdFk;
+	}
+
+	public UserMaster getModifiedByFk() {
+		return modifiedByFk;
+	}
+
+	public void setModifiedByFk(UserMaster modifiedByFk) {
+		this.modifiedByFk = modifiedByFk;
+	}
+
+	public Date getModifedOn() {
+		return modifedOn;
+	}
+
+	public void setModifedOn(Date modifedOn) {
+		this.modifedOn = modifedOn;
+	}
+
+	
+	
+
+}

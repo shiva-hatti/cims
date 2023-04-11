@@ -1,0 +1,24 @@
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.ErrorCodeDetail;
+
+public interface ErrorCodeDetailRepo extends JpaRepository<ErrorCodeDetail,Long> {
+	
+	@Query(value = "from ErrorCodeDetail where technicalErrorCode = (select max(technicalErrorCode)"
+			+ " from ErrorCodeDetail where  technicalErrorCode like %:technicalErrorCodeLike%)")
+	ErrorCodeDetail findMaxErrorCodeDetail(String technicalErrorCodeLike);
+	
+	@Query(value = "select * from TBL_ERROR_CODE_DETAIL where  TECHNICAL_ERROR_CODE like %:technicalErrorCodeLike%",nativeQuery = true)
+	List<ErrorCodeDetail> findErrorCodeDetail(String technicalErrorCodeLike);
+
+	@Query("from ErrorCodeDetail b where  b.technicalErrorCode IN (:staticErrorCodeList)")
+	List<ErrorCodeDetail> getStaticErrorCodeLabels(List<String> staticErrorCodeList);
+
+	ErrorCodeDetail findByTechnicalErrorCode(@Param("technicalErrorCode") String technicalErrorCode);
+}

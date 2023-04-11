@@ -1,0 +1,437 @@
+/**
+ * 
+ */
+package com.iris.sdmx.exceltohtml.service;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+
+import com.iris.caching.ObjectCache;
+import com.iris.exception.ApplicationException;
+import com.iris.exception.ServiceException;
+import com.iris.model.ReturnTemplate;
+import com.iris.model.UserMaster;
+import com.iris.sdmx.exceltohtml.bean.PreviewPublishBean;
+import com.iris.sdmx.exceltohtml.bean.SdmxReturnPreviewBean;
+import com.iris.sdmx.exceltohtml.entity.SdmxReturnPreviewEntity;
+import com.iris.sdmx.exceltohtml.entity.SdmxReturnSheetInfoEntity;
+import com.iris.sdmx.exceltohtml.helper.SdmxReturnPreviewHelper;
+import com.iris.sdmx.exceltohtml.repo.SdmxReturnPreviewRepo;
+import com.iris.sdmx.exceltohtml.repo.SdmxReturnSheetInfoRepo;
+import com.iris.sdmx.sdmxDataModelCodesDownloadBean.SdmxModelCodesDownloadBean;
+import com.iris.sdmx.sdmxDataModelCodesDownloadService.SdmxModelCodesDownloadService;
+import com.iris.sdmx.status.entity.ActionStatus;
+import com.iris.sdmx.status.entity.SdmxModuleStatus;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.GeneralConstants;
+
+/**
+ * @author apagaria
+ *
+ */
+@Service
+@Transactional(readOnly = true)
+public class SdmxReturnPreviewService implements GenericService<SdmxReturnPreviewEntity, Long> {
+
+	private static final Logger LOGGER = LogManager.getLogger(SdmxReturnPreviewService.class);
+
+	@Autowired
+	private SdmxReturnPreviewRepo sdmxReturnPreviewRepo;
+	
+	@Autowired
+	private SdmxReturnSheetInfoRepo sdmxReturnSheetInfoRepo;
+
+	@Autowired
+	private SdmxModelCodesDownloadService sdmxModelCodesDownloadService;
+	@Override
+	@Transactional(readOnly = false)
+	public SdmxReturnPreviewEntity add(SdmxReturnPreviewEntity entity) throws ServiceException {
+		return sdmxReturnPreviewRepo.save(entity);
+	}
+
+	@Override
+	@Transactional(readOnly = false)
+	public boolean update(SdmxReturnPreviewEntity entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public List<SdmxReturnPreviewEntity> getDataByIds(Long[] ids) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public SdmxReturnPreviewEntity getDataById(Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<SdmxReturnPreviewEntity> getDataByColumnValue(Map<String, List<String>> columnValueMap,
+			String methodName) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<SdmxReturnPreviewEntity> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap,
+			String methodName) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<SdmxReturnPreviewEntity> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<SdmxReturnPreviewEntity> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<SdmxReturnPreviewEntity> getAllDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	@Transactional(readOnly = false)
+	public void deleteData(SdmxReturnPreviewEntity bean) throws ServiceException {
+		// TODO Auto-generated method stub
+
+	}
+
+	public boolean isReturnTemplatePublished(Long returnTemplateId,Long returnPreviewId) {
+		Boolean isTemplatePublished = Boolean.FALSE;
+		ReturnTemplate returnTemplate = new ReturnTemplate();
+		returnTemplate.setReturnTemplateId(returnTemplateId);
+		SdmxReturnPreviewEntity sdmxReturnPreviewEntity = sdmxReturnPreviewRepo.fetchReturnTemplateActive(returnTemplate,Boolean.TRUE,returnPreviewId);
+		if(sdmxReturnPreviewEntity != null) {
+			if(sdmxReturnPreviewEntity.getIsPublished().equals(Boolean.TRUE)) {
+				isTemplatePublished = Boolean.TRUE;
+			}
+		}
+		
+		return isTemplatePublished;
+	}
+	
+	public boolean isReturnTemplatePreviewExist(Long returnTemplateId,Long returnPreviewId) {
+		Boolean isTemplatePreviewExist = Boolean.FALSE;
+		ReturnTemplate returnTemplate = new ReturnTemplate();
+		returnTemplate.setReturnTemplateId(returnTemplateId);
+		SdmxReturnPreviewEntity sdmxReturnPreviewEntity = sdmxReturnPreviewRepo.fetchReturnTemplateActive(returnTemplate,Boolean.TRUE,returnPreviewId);
+		
+		if(sdmxReturnPreviewEntity != null) {
+			isTemplatePreviewExist = Boolean.TRUE;
+		}
+		return isTemplatePreviewExist;
+	}
+	
+	/**
+	 * @return
+	 */
+	public List<SdmxReturnPreviewBean> fetchAllRecord() {
+		List<SdmxReturnPreviewBean> sdmxReturnPreviewBeans = null;
+		LOGGER.debug("Fetch All the record to display on return preview grid - START");
+		List<SdmxReturnPreviewEntity> sdmxReturnPreviewEntities = sdmxReturnPreviewRepo
+				.fetchEntitiesInDescCreateOnOrder();
+		LOGGER.debug("Fetch All the record to display on return preview grid - END");
+		if (!CollectionUtils.isEmpty(sdmxReturnPreviewEntities)) {
+			LOGGER.debug("Fetch All the record to display on return preview grid - Record Receive - "
+					+ sdmxReturnPreviewEntities.size());
+			sdmxReturnPreviewBeans = new ArrayList<>();
+			for (SdmxReturnPreviewEntity sdmxReturnPreviewEntity : sdmxReturnPreviewEntities) {
+				SdmxReturnPreviewBean sdmxReturnPreviewBean = new SdmxReturnPreviewBean();
+				SdmxReturnPreviewHelper.convertEntityToBean(sdmxReturnPreviewEntity, sdmxReturnPreviewBean);
+				sdmxReturnPreviewBeans.add(sdmxReturnPreviewBean);
+			}
+		}
+		return sdmxReturnPreviewBeans;
+	}
+
+	/**
+	 * @param returnTemplateId
+	 * @return
+	 */
+	public SdmxReturnPreviewBean fetchHtmlByReturnTemplateId(Long returnTemplateId,Long returnPreviewId) {
+		SdmxReturnPreviewBean sdmxReturnPreviewBean = null;
+		ReturnTemplate returnTemplate = new ReturnTemplate();
+		returnTemplate.setReturnTemplateId(returnTemplateId);
+		SdmxReturnPreviewEntity sdmxReturnPreviewEntity = sdmxReturnPreviewRepo
+				.fetchHtmlByReturnTemplateId(returnTemplate, true, returnPreviewId);
+		if (sdmxReturnPreviewEntity != null) {
+			sdmxReturnPreviewBean = new SdmxReturnPreviewBean();
+			SdmxReturnPreviewHelper.convertEntityToBean(sdmxReturnPreviewEntity, sdmxReturnPreviewBean);
+		}
+		return sdmxReturnPreviewBean;
+	}
+
+	/**
+	 * @param statusId
+	 * @param isActive
+	 * @return
+	 */
+	public List<SdmxReturnPreviewBean> fetchEntityByStatusId(Integer statusId, Boolean isActive) {
+		List<SdmxReturnPreviewBean> sdmxReturnPreviewBeanList = null;
+		List<SdmxReturnPreviewEntity> sdmxReturnPreviewEntityList = sdmxReturnPreviewRepo
+				.fetchEntityByStatusId(new SdmxModuleStatus(new Long(statusId)), isActive);
+		if (!CollectionUtils.isEmpty(sdmxReturnPreviewEntityList)) {
+			sdmxReturnPreviewBeanList = new ArrayList<>();
+			for (SdmxReturnPreviewEntity sdmxReturnPreviewEntity : sdmxReturnPreviewEntityList) {
+				if (sdmxReturnPreviewEntity != null) {
+					SdmxReturnPreviewBean sdmxReturnPreviewBean = new SdmxReturnPreviewBean();
+					SdmxReturnPreviewHelper.convertEntityToBean(sdmxReturnPreviewEntity, sdmxReturnPreviewBean);
+					sdmxReturnPreviewBeanList.add(sdmxReturnPreviewBean);
+				}
+			}
+		}
+		return sdmxReturnPreviewBeanList;
+	}
+
+	/**
+	 * @return
+	 */
+	@Transactional(readOnly = false)
+	public Long saveEntityByBean(SdmxReturnPreviewBean sdmxReturnPreviewBean) {
+		SdmxReturnPreviewEntity sdmxReturnPreviewEntity = new SdmxReturnPreviewEntity();
+		SdmxReturnPreviewHelper.convertBeanToEntity(sdmxReturnPreviewBean, sdmxReturnPreviewEntity);
+		sdmxReturnPreviewEntity = add(sdmxReturnPreviewEntity);
+		return sdmxReturnPreviewEntity.getReturnPreviewTypeId();
+	}
+
+	public List<SdmxReturnPreviewEntity> fetchActiveByReturnTemplateId(ReturnTemplate returnTemplate,
+			Boolean isActive) {
+		return sdmxReturnPreviewRepo.fetchActiveByReturnTemplateId(returnTemplate, isActive);
+	}
+
+	/**
+	 * @param returnTemplate
+	 * @return
+	 */
+	public boolean isReturnUploadable(ReturnTemplate returnTemplate) {
+		Boolean isReturnUploadable = false;
+		SdmxReturnPreviewEntity sdmxReturnPreviewEntity = sdmxReturnPreviewRepo.checkUploadStatus(returnTemplate);
+		if (sdmxReturnPreviewEntity != null) {
+			isReturnUploadable = false;
+		} else {
+			isReturnUploadable = true;
+		}
+		return isReturnUploadable;
+	}
+
+	public List<SdmxReturnPreviewBean> fetchRecordByReturnId(List<Long> returnIdList, String jobProcessId,Long roleTypeId ) {
+		List<SdmxReturnPreviewBean> sdmxReturnPreviewBeans = new ArrayList<>();
+		Map<Long,Long> templateCellTotal = new HashMap<>();
+		Map<Long,Long> templateCellMapped = new HashMap<>();
+		LOGGER.debug("Fetch All the record by return id to display on return preview grid - START Job Processing ID : "
+				+ jobProcessId);
+		List<SdmxReturnPreviewEntity> sdmxReturnPreviewEntities = sdmxReturnPreviewRepo
+				.fetchEntitiesByReturnId(returnIdList);
+
+		LOGGER.debug("Fetch All the record by return id to display on return preview grid - END Job Processing ID : "
+				+ jobProcessId);
+		if (!CollectionUtils.isEmpty(sdmxReturnPreviewEntities)) {
+			LOGGER.debug("Fetch All the record to display on return preview grid - Record Receive - "
+					+ sdmxReturnPreviewEntities.size() + " Job Processing ID : " + jobProcessId);
+			sdmxReturnPreviewBeans = new ArrayList<>();
+			for (SdmxReturnPreviewEntity sdmxReturnPreviewEntity : sdmxReturnPreviewEntities) {
+				
+				if(GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().equals(roleTypeId) && sdmxReturnPreviewEntity.getIsPublished().booleanValue()) {
+					SdmxReturnPreviewBean sdmxReturnPreviewBean = new SdmxReturnPreviewBean();
+					SdmxReturnPreviewHelper.convertEntityToBean(sdmxReturnPreviewEntity, sdmxReturnPreviewBean);
+					sdmxReturnPreviewBeans.add(sdmxReturnPreviewBean);
+				}else if(GeneralConstants.REGULATOR_ROLE_TYPE_ID.getConstantLongVal().equals(roleTypeId)){
+					SdmxReturnPreviewBean sdmxReturnPreviewBean = new SdmxReturnPreviewBean();
+					SdmxReturnPreviewHelper.convertEntityToBean(sdmxReturnPreviewEntity, sdmxReturnPreviewBean);
+					sdmxReturnPreviewBeans.add(sdmxReturnPreviewBean);
+				}
+			}
+			
+		}
+		
+		return sdmxReturnPreviewBeans;
+	}
+	
+	@Transactional(readOnly = false, rollbackFor = Exception.class)
+	public Boolean publishReturnTemplate(SdmxReturnPreviewBean sdmxReturnPreviewBean, String jobProcessId, Long userId, Long roleId, String langCode) throws ApplicationException,Exception {
+		LOGGER.debug("START - fetching record by return template Id : " + jobProcessId);
+		ReturnTemplate returnTemplate = new ReturnTemplate();
+		returnTemplate.setReturnTemplateId(sdmxReturnPreviewBean.getReturnTemplateIdFk());
+		SdmxReturnPreviewEntity sdmxReturnPreviewEntity = sdmxReturnPreviewRepo.fetchReturnTemplateActive(returnTemplate,Boolean.TRUE,sdmxReturnPreviewBean.getReturnPreviewTypeId());
+		
+		if(sdmxReturnPreviewEntity != null) {
+			LOGGER.debug("END - fetching record by return template Id : " + jobProcessId);
+			LOGGER.debug("START - Check if valid from date already exist : " + jobProcessId);
+			List<SdmxReturnPreviewEntity> sdmxReturnPreviewList = sdmxReturnPreviewRepo.
+					checkValidFromDateExist(sdmxReturnPreviewBean.getReturnCode());
+			LOGGER.debug("END - Check if valid from date already exist : " + jobProcessId);
+			if (sdmxReturnPreviewList != null) {
+				SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");  
+			    String strDate1 = formatter.format(sdmxReturnPreviewBean.getValidFromDate()); 
+			    
+				for(SdmxReturnPreviewEntity obj: sdmxReturnPreviewList) {
+					if(obj.getValidFromDate() != null) {
+						String strDate2 = formatter.format(obj.getValidFromDate()); 
+						if(strDate1.equals(strDate2)) {
+							LOGGER.error("valid from date already exist : " + jobProcessId);
+							throw new ApplicationException(ErrorCode.E1194.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E1194.toString()));
+						
+						}
+					}
+					
+				}
+			}
+			sdmxReturnPreviewEntity.setEbrVersion(sdmxReturnPreviewBean.getEbrVersion());
+			sdmxReturnPreviewEntity.setValidFromDate(sdmxReturnPreviewBean.getValidFromDate());
+			sdmxReturnPreviewEntity.setDescription(sdmxReturnPreviewBean.getDescription());
+			sdmxReturnPreviewEntity.setIsPublished(Boolean.TRUE);
+			sdmxReturnPreviewEntity.setLastUpdatedOn(new Date());
+			sdmxReturnPreviewRepo.save(sdmxReturnPreviewEntity);
+			
+			SdmxModelCodesDownloadBean sdmxModelCodesDownloadBean = new SdmxModelCodesDownloadBean();
+			sdmxModelCodesDownloadBean.setUserId(userId);
+			sdmxModelCodesDownloadBean.setRoleId(roleId);
+			sdmxModelCodesDownloadBean.setLangCode(langCode);
+			sdmxModelCodesDownloadBean.setReturnCode(sdmxReturnPreviewBean.getReturnCode());
+			sdmxModelCodesDownloadBean.setReturnPreviewTypeId(sdmxReturnPreviewBean.getReturnPreviewTypeId());
+			sdmxModelCodesDownloadBean.setVersionNumber(sdmxReturnPreviewBean.getEbrVersion());
+			
+			UserMaster userMaster = new UserMaster();
+			userMaster.setUserId(userId);
+			sdmxModelCodesDownloadService.generateCsvForTemplateNew(sdmxModelCodesDownloadBean, jobProcessId, userMaster);
+			
+			return true;
+		} else {
+			LOGGER.debug("END -No record fetched : " + jobProcessId);
+			return false;
+		}
+		
+		
+	}
+	
+	@Transactional(readOnly = false)
+	public void activateDeactivateTemplate(SdmxReturnPreviewBean sdmxReturnPreviewBean, String jobProcessId) throws ApplicationException {
+		LOGGER.debug("START - fetching record by return preview Id : " + jobProcessId);
+		
+		Long moduleStatusId = sdmxReturnPreviewBean.getModuleStatusId();
+		ReturnTemplate returnTemplate = new ReturnTemplate();
+		returnTemplate.setReturnTemplateId(sdmxReturnPreviewBean.getReturnTemplateIdFk());
+		SdmxReturnPreviewEntity sdmxReturnPreviewEntity = sdmxReturnPreviewRepo.
+				fetchReturnTemplateActive(returnTemplate,Boolean.TRUE,sdmxReturnPreviewBean.getReturnPreviewTypeId());
+		LOGGER.debug("END - fetching record by return preview Id : " + jobProcessId);
+		if(moduleStatusId == 5) {
+			
+			LOGGER.debug("START - Deactivate return template : " + jobProcessId);
+			SdmxModuleStatus sdmxModuleStatus = new SdmxModuleStatus();
+			sdmxModuleStatus.setModuleStatusId(moduleStatusId);
+			sdmxReturnPreviewEntity.setModuleStatusIdFk(sdmxModuleStatus);
+			sdmxReturnPreviewEntity.setLastUpdatedOn(new Date());
+			sdmxReturnPreviewRepo.save(sdmxReturnPreviewEntity);
+			LOGGER.debug("END - Deactivate return template : " + jobProcessId);
+			
+		} else if (moduleStatusId == 3) {
+			
+			LOGGER.debug("START - Activate return template : " + jobProcessId);
+			if(sdmxReturnPreviewEntity.getIsPublished().equals(Boolean.TRUE)) {
+				LOGGER.debug("published return template : " + jobProcessId);
+				LOGGER.debug("START - Check if valid from date already exist : " + jobProcessId);
+				List<SdmxReturnPreviewEntity> sdmxReturnPreviewList = sdmxReturnPreviewRepo.
+						checkValidFromDateExist(sdmxReturnPreviewBean.getReturnCode());
+				LOGGER.debug("END - Check if valid from date already exist : " + jobProcessId);
+				if (sdmxReturnPreviewList != null) {
+					SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");  
+				    String strDate1 = formatter.format(sdmxReturnPreviewBean.getValidFromDate()); 
+				    
+					for(SdmxReturnPreviewEntity obj: sdmxReturnPreviewList) {
+						if(obj.getValidFromDate() != null) {
+							String strDate2 = formatter.format(obj.getValidFromDate()); 
+							if(strDate1.equals(strDate2)) {
+								LOGGER.error("valid from date already exist : " + jobProcessId);
+								throw new ApplicationException(ErrorCode.E1194.toString(), ObjectCache.getErrorCodeKey(ErrorCode.E1194.toString()));
+							
+							}
+						}
+						
+					}
+				}
+				SdmxModuleStatus sdmxModuleStatus = new SdmxModuleStatus();
+				sdmxModuleStatus.setModuleStatusId(moduleStatusId);
+				sdmxReturnPreviewEntity.setModuleStatusIdFk(sdmxModuleStatus);
+				sdmxReturnPreviewEntity.setValidFromDate(sdmxReturnPreviewBean.getValidFromDate());
+				sdmxReturnPreviewEntity.setDescription(sdmxReturnPreviewBean.getDescription());
+				sdmxReturnPreviewEntity.setLastUpdatedOn(new Date());
+				sdmxReturnPreviewRepo.save(sdmxReturnPreviewEntity);
+			} else {
+				LOGGER.debug("Un-published return template : " + jobProcessId);
+				SdmxReturnPreviewEntity SdmxReturnPreview= sdmxReturnPreviewRepo.
+						isUnpublishActivetedTemplateExist(sdmxReturnPreviewBean.getReturnTemplateIdFk());
+				if (SdmxReturnPreview != null) {
+					LOGGER.error("Un-published activated return Exist : " + jobProcessId);
+					throw new ApplicationException("ERROR", "Unpublished activated return exists");
+				}
+				
+				SdmxModuleStatus sdmxModuleStatus = new SdmxModuleStatus();
+				sdmxModuleStatus.setModuleStatusId(moduleStatusId);
+				sdmxReturnPreviewEntity.setModuleStatusIdFk(sdmxModuleStatus);
+				sdmxReturnPreviewEntity.setLastUpdatedOn(new Date());
+				sdmxReturnPreviewRepo.save(sdmxReturnPreviewEntity);
+			}
+			LOGGER.debug("END - Activate return template : " + jobProcessId);
+			
+		}
+		
+	}
+	
+	@Transactional(readOnly = true)
+	public PreviewPublishBean totalMappedCellCalculation(PreviewPublishBean previewPublishBean, String jobProcessId) throws ApplicationException {
+		LOGGER.debug("Cell calculation service- START Job Processing ID : "+ jobProcessId);
+		LOGGER.debug("Fetching total cells in template - START Job Processing ID : "
+				+ jobProcessId);
+		SdmxReturnSheetInfoEntity sheetInfoEntityForTotalCell = sdmxReturnSheetInfoRepo.getTotalCellCount(previewPublishBean.getReturnPreviewTypeId());
+		
+		LOGGER.debug("Fetching total cells in template - END Job Processing ID : "
+				+ jobProcessId);
+		if(sheetInfoEntityForTotalCell != null) {
+			previewPublishBean.setTotalCells(sheetInfoEntityForTotalCell.getTotalCells());
+		}
+		
+		LOGGER.debug("Fetching Mapped cells in template - START Job Processing ID : "
+				+ jobProcessId);
+		
+		SdmxReturnSheetInfoEntity sheetInfoEntityForMappedCell = sdmxReturnSheetInfoRepo.getMappedCellCount(previewPublishBean.getReturnPreviewTypeId());
+		
+		LOGGER.debug("Fetching Mapped cells in template - END Job Processing ID : "
+				+ jobProcessId);
+		
+		if(sheetInfoEntityForMappedCell != null) {
+			previewPublishBean.setMappedCells(sheetInfoEntityForMappedCell.getTotalCells());
+		}
+		
+		LOGGER.debug("Cell calculation service - START Job Processing ID : "+ jobProcessId);
+		return previewPublishBean;
+	}
+	
+}

@@ -1,0 +1,473 @@
+package com.iris.rbrToEbr.entity;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.persistence.Transient;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.iris.model.UserMaster;
+
+/**
+ * @author vjadhav
+ *
+ */
+@Entity
+@Table(name = "TBL_CTL_EBR_RBR_FLOW")
+@JsonInclude(Include.NON_NULL)
+public class EbrRbrFlow implements Serializable{
+	
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -6477980045211664576L;
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "CONTROL_PK")
+	private Long controlId;
+	
+	@Column(name = "JOB_ID")
+	private String jobId;
+	
+	@Column(name = "ENTITY_CODE")
+	private String entityCode;
+	
+	@Column(name = "RETURN_CODE")
+	private String returnCode;
+	
+	@Column(name = "AUDIT_STATUS")
+	private int auditStatus;
+	
+	@Column(name = "FREQUENCY")
+	private String frequency;
+	
+	@Temporal(TemporalType.DATE)
+	@Column(name = "REPORTING_PERIOD")
+	private Date reportingPeriod; 
+	
+	@Column(name = "FLOW_ID_FK")
+	private int flowIdfk;
+	
+	@Column(name = "FLOW_NAME")
+	private String flowName;
+	
+	@Column(name = "TASK_NAME")
+	private String taskName;
+	
+	@Column(name = "SEQUENCE")
+	private int sequence;
+	
+	@Column(name = "PRIORITY")
+	private int priority;
+	
+	@Column(name = "STATUS")
+	private int status;
+	
+	@Column(name = "CREATED_BY")
+	private String createdBy;
+
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "CREATED_DATE")
+	private Date createdDate;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "MODIFIED_BY")
+	private UserMaster modifiedBy;
+
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "MODIFIED_DATE")
+	private Date modifiedDate;
+	
+	@Column(name = "UPLOAD_ID")
+	private Integer uploadId;
+	
+	@Transient
+	private String entityName;
+	
+	@Transient
+	private String returnName;
+	
+	@Transient
+	private String auditStatusName;
+
+	public EbrRbrFlow() {}
+
+	public EbrRbrFlow(String jobId, String entityCode, String returnCode, Date createdDate ,int auditStatus, String frequency,
+			Integer uploadId, Date reportingPeriod, String createdBy, int status) {
+		
+		this.jobId = jobId;
+		this.entityCode = entityCode;
+		this.returnCode = returnCode;
+		this.auditStatus = auditStatus;
+		this.frequency = frequency;
+		this.uploadId = uploadId;
+		this.reportingPeriod = reportingPeriod;
+		this.status = status;
+		this.createdBy = createdBy;
+		this.createdDate = createdDate;
+	}
+
+	public EbrRbrFlow(String jobId, String entityCode, String returnCode, int auditStatus, String frequency,
+			Integer uploadId, Date reportingPeriod, int flowIdfk, String flowName, String taskName, int sequence,
+			int priority, int status, String createdBy, Date createdDate, UserMaster modifiedBy, Date modifiedDate,
+			String entityName, String returnName, String auditStatusName) {
+		
+		this.jobId = jobId;
+		this.entityCode = entityCode;
+		this.returnCode = returnCode;
+		this.auditStatus = auditStatus;
+		this.frequency = frequency;
+		this.uploadId = uploadId;
+		this.reportingPeriod = reportingPeriod;
+		this.flowIdfk = flowIdfk;
+		this.flowName = flowName;
+		this.taskName = taskName;
+		this.sequence = sequence;
+		this.priority = priority;
+		this.status = status;
+		this.createdBy = createdBy;
+		this.createdDate = createdDate;
+		this.modifiedBy = modifiedBy;
+		this.modifiedDate = modifiedDate;
+		this.entityName = entityName;
+		this.returnName = returnName;
+		this.auditStatusName = auditStatusName;
+	}
+	
+	public EbrRbrFlow(String jobId, String entityCode, String returnCode, int auditStatus, String frequency,
+			Integer uploadId, Date reportingPeriod, int flowIdfk, String flowName, String taskName, int sequence,
+			int priority, int status, String createdBy, Date createdDate, UserMaster modifiedBy, Date modifiedDate) {
+		
+		this.jobId = jobId;
+		this.entityCode = entityCode;
+		this.returnCode = returnCode;
+		this.auditStatus = auditStatus;
+		this.frequency = frequency;
+		this.uploadId = uploadId;
+		this.reportingPeriod = reportingPeriod;
+		this.flowIdfk = flowIdfk;
+		this.flowName = flowName;
+		this.taskName = taskName;
+		this.sequence = sequence;
+		this.priority = priority;
+		this.status = status;
+		this.createdBy = createdBy;
+		this.createdDate = createdDate;
+		this.modifiedBy = modifiedBy;
+		this.modifiedDate = modifiedDate;
+		
+	}
+
+	/**
+	 * @return the controlId
+	 */
+	public Long getControlId() {
+		return controlId;
+	}
+
+	/**
+	 * @param controlId the controlId to set
+	 */
+	public void setControlId(Long controlId) {
+		this.controlId = controlId;
+	}
+
+	/**
+	 * @param auditStatusName the auditStatusName to set
+	 */
+	public void setAuditStatusName(String auditStatusName) {
+		this.auditStatusName = auditStatusName;
+	}
+
+	/**
+	 * @return the jobId
+	 */
+	public String getJobId() {
+		return jobId;
+	}
+
+	/**
+	 * @param jobId the jobId to set
+	 */
+	public void setJobId(String jobId) {
+		this.jobId = jobId;
+	}
+
+	/**
+	 * @return the entityCode
+	 */
+	public String getEntityCode() {
+		return entityCode;
+	}
+
+	/**
+	 * @param entityCode the entityCode to set
+	 */
+	public void setEntityCode(String entityCode) {
+		this.entityCode = entityCode;
+	}
+
+	/**
+	 * @return the returnCode
+	 */
+	public String getReturnCode() {
+		return returnCode;
+	}
+
+	/**
+	 * @param returnCode the returnCode to set
+	 */
+	public void setReturnCode(String returnCode) {
+		this.returnCode = returnCode;
+	}
+
+	/**
+	 * @return the auditStatus
+	 */
+	public int getAuditStatus() {
+		return auditStatus;
+	}
+
+	/**
+	 * @param auditStatus the auditStatus to set
+	 */
+	public void setAuditStatus(int auditStatus) {
+		this.auditStatus = auditStatus;
+	}
+
+	/**
+	 * @return the frequency
+	 */
+	public String getFrequency() {
+		return frequency;
+	}
+
+	/**
+	 * @param frequency the frequency to set
+	 */
+	public void setFrequency(String frequency) {
+		this.frequency = frequency;
+	}
+
+	/**
+	 * @return the uploadId
+	 */
+	public Integer getUploadId() {
+		return uploadId;
+	}
+
+	/**
+	 * @param uploadId the uploadId to set
+	 */
+	public void setUploadId(Integer uploadId) {
+		this.uploadId = uploadId;
+	}
+
+	/**
+	 * @return the reportingPeriod
+	 */
+	public Date getReportingPeriod() {
+		return reportingPeriod;
+	}
+
+	/**
+	 * @param reportingPeriod the reportingPeriod to set
+	 */
+	public void setReportingPeriod(Date reportingPeriod) {
+		this.reportingPeriod = reportingPeriod;
+	}
+
+	/**
+	 * @return the flowIdfk
+	 */
+	public int getFlowIdfk() {
+		return flowIdfk;
+	}
+
+	/**
+	 * @param flowIdfk the flowIdfk to set
+	 */
+	public void setFlowIdfk(int flowIdfk) {
+		this.flowIdfk = flowIdfk;
+	}
+
+	/**
+	 * @return the flowName
+	 */
+	public String getFlowName() {
+		return flowName;
+	}
+
+	/**
+	 * @param flowName the flowName to set
+	 */
+	public void setFlowName(String flowName) {
+		this.flowName = flowName;
+	}
+
+	/**
+	 * @return the taskName
+	 */
+	public String getTaskName() {
+		return taskName;
+	}
+
+	/**
+	 * @param taskName the taskName to set
+	 */
+	public void setTaskName(String taskName) {
+		this.taskName = taskName;
+	}
+
+	/**
+	 * @return the sequence
+	 */
+	public int getSequence() {
+		return sequence;
+	}
+
+	/**
+	 * @param sequence the sequence to set
+	 */
+	public void setSequence(int sequence) {
+		this.sequence = sequence;
+	}
+
+	/**
+	 * @return the priority
+	 */
+	public int getPriority() {
+		return priority;
+	}
+
+	/**
+	 * @param priority the priority to set
+	 */
+	public void setPriority(int priority) {
+		this.priority = priority;
+	}
+
+	/**
+	 * @return the status
+	 */
+	public int getStatus() {
+		return status;
+	}
+
+	/**
+	 * @param status the status to set
+	 */
+	public void setStatus(int status) {
+		this.status = status;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public String getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(String createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the createdDate
+	 */
+	public Date getCreatedDate() {
+		return createdDate;
+	}
+
+	/**
+	 * @param createdDate the createdDate to set
+	 */
+	public void setCreatedDate(Date createdDate) {
+		this.createdDate = createdDate;
+	}
+
+	/**
+	 * @return the modifiedBy
+	 */
+	public UserMaster getModifiedBy() {
+		return modifiedBy;
+	}
+
+	/**
+	 * @param modifiedBy the modifiedBy to set
+	 */
+	public void setModifiedBy(UserMaster modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+
+	/**
+	 * @return the modifiedDate
+	 */
+	public Date getModifiedDate() {
+		return modifiedDate;
+	}
+
+	/**
+	 * @param modifiedDate the modifiedDate to set
+	 */
+	public void setModifiedDate(Date modifiedDate) {
+		this.modifiedDate = modifiedDate;
+	}
+
+
+	/**
+	 * @return the entityName
+	 */
+	public String getEntityName() {
+		return entityName;
+	}
+
+
+	/**
+	 * @param entityName the entityName to set
+	 */
+	public void setEntityName(String entityName) {
+		this.entityName = entityName;
+	}
+
+
+	/**
+	 * @return the returnName
+	 */
+	public String getReturnName() {
+		return returnName;
+	}
+
+
+	/**
+	 * @param returnName the returnName to set
+	 */
+	public void setReturnName(String returnName) {
+		this.returnName = returnName;
+	}
+
+
+	/**
+	 * @return the auditStatusName
+	 */
+	public String getAuditStatusName() {
+		return auditStatusName;
+	}
+}

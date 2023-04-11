@@ -1,0 +1,62 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+import java.util.List;
+
+import com.iris.model.FileStatus;
+import com.iris.model.UploadChannel;
+
+
+public class EntityChannelRequestBean implements Serializable {
+
+	private static final long serialVersionUID = 335819880966920789L;
+
+	private List<Long> entityIds;
+	
+	private List<FileStatus> fileStatusList;
+	
+	private List<UploadChannel> uploadChannelList;
+
+	/**
+	 * @return the entityIds
+	 */
+	public List<Long> getEntityIds() {
+		return entityIds;
+	}
+
+	/**
+	 * @param entityIds the entityIds to set
+	 */
+	public void setEntityIds(List<Long> entityIds) {
+		this.entityIds = entityIds;
+	}
+
+	/**
+	 * @return the fileStatusList
+	 */
+	public List<FileStatus> getFileStatusList() {
+		return fileStatusList;
+	}
+
+	/**
+	 * @param fileStatusList the fileStatusList to set
+	 */
+	public void setFileStatusList(List<FileStatus> fileStatusList) {
+		this.fileStatusList = fileStatusList;
+	}
+
+	/**
+	 * @return the uploadChannelList
+	 */
+	public List<UploadChannel> getUploadChannelList() {
+		return uploadChannelList;
+	}
+
+	/**
+	 * @param uploadChannelList the uploadChannelList to set
+	 */
+	public void setUploadChannelList(List<UploadChannel> uploadChannelList) {
+		this.uploadChannelList = uploadChannelList;
+	}
+	
+}

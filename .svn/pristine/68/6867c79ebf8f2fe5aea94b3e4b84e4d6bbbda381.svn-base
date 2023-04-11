@@ -1,0 +1,233 @@
+package com.iris.service.impl;
+
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import javax.sql.DataSource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.exception.ServiceException;
+import com.iris.model.ReturnGroupMapping;
+import com.iris.model.ReturnGroupMod;
+import com.iris.repository.ReturnGroupMappingRepo;
+import com.iris.repository.ReturnGroupModRepo;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.GeneralConstants;
+
+@Service
+public class ReturnGroupMappingService implements GenericService<ReturnGroupMapping, Long> {
+    
+	private static final Logger LOGGER = LoggerFactory.getLogger(ReturnGroupMappingService.class);
+	
+	@Autowired
+	ReturnGroupMappingRepo returnGroupMappingRepo;
+	
+	@Autowired
+	ReturnGroupModRepo returnGroupModRepo;
+	
+	@Autowired
+	DataSource datasource; 
+
+	@Override
+	public ReturnGroupMapping add(ReturnGroupMapping returnGroupMapping) throws ServiceException {
+		try(Connection con = datasource.getConnection();
+				CallableStatement stmt1 = con.prepareCall(GeneralConstants.RETURN_GROUP_MAP_LABEL_PROCEDURE.getConstantVal());
+				CallableStatement stmt2 = con.prepareCall(GeneralConstants.SP_UPDATE_RETURNGROUP.getConstantVal());) {
+			returnGroupMapping = returnGroupMappingRepo.save(returnGroupMapping);
+			LOGGER.debug("Request served to add returnGroupMappingBean when approval not required.");
+			if (returnGroupMapping.getSingleLanguage() == 0) {
+				stmt1.setLong(1, returnGroupMapping.getReturnGroupMapId());
+				stmt1.executeQuery();
+				LOGGER.debug("returnGroupMap Label Procedure executed successfully.");
+			} 
+			if (returnGroupMapping.getSingleLanguage() == 0) {
+				stmt2.setLong(1, returnGroupMapping.getReturnGroupMapId());
+				stmt2.setString(2, returnGroupMapping.getAllottedReturns());
+				stmt2.registerOutParameter(3, Types.INTEGER);
+				stmt2.executeQuery();
+				int number = stmt2.getInt(3);
+				if (number > 0) {
+					throw new ServiceException(ErrorCode.E0771.toString());
+				}
+				LOGGER.debug("returnGroupMap Return Procedure executed successfully.");
+			}
+		}  catch (ServiceException e) {
+			throw e;
+		} catch (SQLException e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.toString(), e);
+		}
+		return returnGroupMapping;
+	}
+
+	@Override
+	public boolean update(ReturnGroupMapping returnGroupMappingBean) throws ServiceException {
+		boolean flag = false;
+		Connection con = null;
+		ReturnGroupMapping returnGroupMapping = null;
+		try {
+			ReturnGroupMapping oldRtnGroup = returnGroupMappingRepo.getDataById(returnGroupMappingBean.getReturnGroupMapId());
+			if (oldRtnGroup == null) {
+				return false;
+			}
+		/*
+		 * This block of code is to add the new record in modified table when
+		 * approval is required
+		 */
+//		loggerBean.setType(GeneralConstants.ACTIONID_EDITION.getConstantIntVal());
+//		List<String> colNames = new ArrayList<>();
+//		List<List<Object>> dataList = new ArrayList<>();
+//		List<Object> dataBefore = new ArrayList<>();
+//		List<Object> dataAfter = new ArrayList<>();
+//
+//		colNames.add("field.return.group");
+//		colNames.add("field.returnGroupIsActive");
+//
+//		loggerBean.setColNames(colNames);
+//		if (returnGroupMappingBean.getSingleLanguage() == 1) {
+//			dataBefore.add(oldRtnGroup.getDefaultGroupName());
+//		} else {
+//			dataBefore.add(returnGroupMappingBean.getDefaultGroupName());
+//		}
+//		dataBefore.add(oldRtnGroup.getIsActive());
+//		dataList.add(dataBefore);
+
+			ReturnGroupMod returnGroupMod = null;
+	
+	//			loggerBean.setActionStatus("grid.status.autoApproved");
+				/*
+				 * This block of code is to add the new record in modified table
+				 * when approval is not required
+				 */
+			if (oldRtnGroup.getLastModifiedOn() == null) {
+				returnGroupMod = new ReturnGroupMod();
+				returnGroupMod.setReturnGroupMap(oldRtnGroup);
+				returnGroupMod.setReturnGroupName(oldRtnGroup.getDefaultGroupName());
+				returnGroupMod.setIsActive(oldRtnGroup.getIsActive());
+				returnGroupMod.setAdminStatusId_FK(GeneralConstants.STATUS_COMPLETED.getConstantIntVal());
+				if (oldRtnGroup.getLastModifiedOn() == null) {
+					returnGroupMod.setActionId_FK(GeneralConstants.ACTIONID_ADDITION.getConstantIntVal());
+					returnGroupMod.setUserModify(oldRtnGroup.getCreatedBy());
+					returnGroupMod.setModifiedOn(oldRtnGroup.getCreatedOn());
+				} else {
+					returnGroupMod.setActionId_FK(GeneralConstants.ACTIONID_EDITION.getConstantIntVal());
+					returnGroupMod.setUserModify(oldRtnGroup.getUserModify());
+					returnGroupMod.setModifiedOn(oldRtnGroup.getLastModifiedOn());
+				}
+				returnGroupMod = returnGroupModRepo.save(returnGroupMod);
+				LOGGER.debug("Request served to add returnGroup when approval not required");
+			}
+			oldRtnGroup.setLastModifiedOn(returnGroupMappingBean.getLastModifiedOn());
+			oldRtnGroup.setIsActive(returnGroupMappingBean.getIsActive());
+			oldRtnGroup.setUserModify(returnGroupMappingBean.getUserModify());
+			returnGroupMapping = returnGroupMappingRepo.save(oldRtnGroup);
+ 			if(returnGroupMapping != null) {
+				flag = true;
+			}
+			LOGGER.debug("Request served to add returnGroupMappingBean when approval not required.");
+			if (!Objects.isNull(returnGroupMapping) && returnGroupMapping!= null && returnGroupMapping.getSingleLanguage() == 0) {
+				callProcedureToSaveReturnGroup(returnGroupMappingBean);
+				LOGGER.debug("returnGroupMap Return Procedure executed successfully.");
+			}
+		} catch (ServiceException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		} 
+//		dataAfter.add(returnGroupMappingBean.getDefaultGroupName());
+//		dataAfter.add(returnGroupMappingBean.getIsActive());
+//		dataList.add(dataAfter);
+//
+//		loggerBean.setDataList(dataList);
+//
+//		String loggerString = new Gson().toJson(loggerBean);
+//		LOGGER.info(loggerString);
+		return flag;
+	}
+
+	private void callProcedureToSaveReturnGroup(ReturnGroupMapping returnGroupMappingBean)
+			throws SQLException {
+		try(Connection con = datasource.getConnection();CallableStatement stmt = con.prepareCall(GeneralConstants.SP_UPDATE_RETURNGROUP.getConstantVal());){
+			stmt.setLong(1, returnGroupMappingBean.getReturnGroupMapId());
+			stmt.setString(2, returnGroupMappingBean.getAllottedReturns());
+			stmt.registerOutParameter(3, Types.INTEGER);
+			stmt.executeQuery();
+			int number = stmt.getInt(3);
+			if (number > 0) {
+				throw new ServiceException(ErrorConstants.UPDATE_RETURN_WITH_RET_GRP_ERROR.getConstantVal());
+			}
+		} catch (ServiceException e) {
+			throw new ServiceException(ErrorConstants.UPDATE_RETURN_WITH_RET_GRP_ERROR.getConstantVal(), e);
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	@Override
+	public List<ReturnGroupMapping> getDataByIds(Long[] ids) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<ReturnGroupMapping> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+
+
+		return null;
+	}
+
+	@Override
+	public List<ReturnGroupMapping> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName)
+			throws ServiceException {
+			return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<ReturnGroupMapping> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		List<ReturnGroupMapping> returnGroupMappingList = null;
+		try {
+			if(bean.isInstance(ReturnGroupMapping.class) && id == null) {
+				returnGroupMappingList =  returnGroupMappingRepo.getAllActiveData();
+			}
+		}catch(Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+		return returnGroupMappingList;
+	}
+
+	@Override
+	public List<ReturnGroupMapping> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public void deleteData(ReturnGroupMapping bean) throws ServiceException {
+		
+	}
+
+	@Override
+	public ReturnGroupMapping getDataById(Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<ReturnGroupMapping> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		
+		return null;
+	}
+
+	
+}

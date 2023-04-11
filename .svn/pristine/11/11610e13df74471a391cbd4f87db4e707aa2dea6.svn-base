@@ -1,0 +1,38 @@
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.iris.model.PanMapping;
+import com.iris.model.PanMasterTemp;
+
+@Repository
+public interface PanMappingRepo extends JpaRepository<PanMapping, Long> {
+	@Query("select count(*) FROM PanMapping pmt where pmt.requestedByEntityId.entityId =:entityId and pmt.status =:verificationStatus")
+	Long getTotalCount(@Param("verificationStatus") Integer verificationStatus, @Param("entityId") Long entityId);
+
+	@Query("FROM PanMapping pmt where pmt.requestedByEntityId.entityId =:entityId and pmt.status =:verificationStatus order by createdOn desc")
+	List<PanMapping> findByStatusAndRequestedByEntityIdOrderByCreatedOnDesc(@Param("verificationStatus") Integer verificationStatus, @Param("entityId") Long entityId, Pageable pageable);
+
+	//@Query("FROM PanMapping pmt where pmt.requestedByEntityId =:entityId")
+	List<PanMapping> findByRequestedByEntityId(Long entityId);
+
+	@Query("FROM PanMapping pmt where pmt.status =:verificationStatus order by createdOn desc")
+	List<PanMapping> findByStatusOrderByCreatedOnDesc(@Param("verificationStatus") Integer verificationStatus);
+
+	@Query("From PanMapping pmt where pmt.status =:verificationStatus and pmt.dummyPanNumber in (:dummyPanNumber)")
+	List<PanMapping> getPanList(@Param("dummyPanNumber") List<String> dummyPanNumber, @Param("verificationStatus") Integer verificationStatus);
+
+	@Transactional
+	@Modifying(clearAutomatically = true)
+	@Query("update PanMapping SET status = :verificationStatus, comment = :comment, approvedOn = current_timestamp, approvedByFk.userId = :approvedByFk  " + " where dummyPanNumber in (:panNumber) and status = 0")
+	int updateVerificationStatus(@Param("verificationStatus") Integer verificationStatus, @Param("comment") String comment, @Param("approvedByFk") Long approvedByFk, @Param("panNumber") String panNumber);
+
+}

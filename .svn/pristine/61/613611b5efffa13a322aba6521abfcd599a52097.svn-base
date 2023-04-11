@@ -1,0 +1,153 @@
+/**
+ * 
+ */
+package com.iris.sdmx.status.entity;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+
+/**
+ * @author apagaria
+ *
+ */
+@Entity
+@Table(name = "TBL_SDMX_MODULE_STATUS")
+public class SdmxModuleStatus implements Serializable {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 6695990184449061077L;
+	
+	
+
+	/**
+	 * @param moduleStatusId
+	 */
+	public SdmxModuleStatus(Long moduleStatusId) {
+		this.moduleStatusId = moduleStatusId;
+	}
+
+	/**
+	 * 
+	 */
+	public SdmxModuleStatus() {
+	}
+
+	/**
+	 * 
+	 */
+	@Id
+	@Column(name = "MODULE_STATUS_ID")
+	private Long moduleStatusId;
+
+	/**
+	 * 
+	 */
+	@Column(name = "MODULE_STATUS_CODE")
+	private String moduleStatusCode;
+	
+	/**
+	 * 
+	 */
+	@Column(name = "MODULE_STATUS_LABEL")
+	private String moduleStatusLabel;
+	
+	/**
+	 * 
+	 */
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "MODULE_DETAIL_ID_FK")
+	private SdmxModuleDetailEntity moduleDetailIdFk;
+	
+	/**
+	 * 
+	 */
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	
+	public SdmxModuleStatus(Long moduleStatusId, String moduleStatusCode, String moduleStatusLabel) {
+		super();
+		this.moduleStatusId = moduleStatusId;
+		this.moduleStatusCode = moduleStatusCode;
+		this.moduleStatusLabel = moduleStatusLabel;
+	}
+
+	/**
+	 * @return the moduleStatusId
+	 */
+	public Long getModuleStatusId() {
+		return moduleStatusId;
+	}
+
+	/**
+	 * @param moduleStatusId the moduleStatusId to set
+	 */
+	public void setModuleStatusId(Long moduleStatusId) {
+		this.moduleStatusId = moduleStatusId;
+	}
+
+	/**
+	 * @return the moduleStatusCode
+	 */
+	public String getModuleStatusCode() {
+		return moduleStatusCode;
+	}
+
+	/**
+	 * @param moduleStatusCode the moduleStatusCode to set
+	 */
+	public void setModuleStatusCode(String moduleStatusCode) {
+		this.moduleStatusCode = moduleStatusCode;
+	}
+
+	/**
+	 * @return the moduleStatusLabel
+	 */
+	public String getModuleStatusLabel() {
+		return moduleStatusLabel;
+	}
+
+	/**
+	 * @param moduleStatusLabel the moduleStatusLabel to set
+	 */
+	public void setModuleStatusLabel(String moduleStatusLabel) {
+		this.moduleStatusLabel = moduleStatusLabel;
+	}
+
+	/**
+	 * @return the moduleDetailIdFk
+	 */
+	public SdmxModuleDetailEntity getModuleDetailIdFk() {
+		return moduleDetailIdFk;
+	}
+
+	/**
+	 * @param moduleDetailIdFk the moduleDetailIdFk to set
+	 */
+	public void setModuleDetailIdFk(SdmxModuleDetailEntity moduleDetailIdFk) {
+		this.moduleDetailIdFk = moduleDetailIdFk;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+}

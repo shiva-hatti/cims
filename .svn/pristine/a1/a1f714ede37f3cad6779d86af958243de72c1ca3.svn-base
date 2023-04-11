@@ -1,0 +1,24 @@
+/**
+ * 
+ */
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.ReturnEntityChannelMapModification;
+
+
+/**
+ * @author sikhan
+ *
+ */
+public interface ReturnEntityChannelMapModificationRepo extends JpaRepository<ReturnEntityChannelMapModification, Long>{
+
+	@Query(value = "FROM ReturnEntityChannelMapModification recm where recm.entityIdFk.entityId =:entityId and recm.returnIdFk.returnId =:returnId order by modifiedOn desc" )
+	List<ReturnEntityChannelMapModification> getModHistoryData(@Param("entityId") Long entityId, @Param("returnId") Long returnId);
+
+}

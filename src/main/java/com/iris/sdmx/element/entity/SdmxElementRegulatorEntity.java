@@ -1,0 +1,150 @@
+package com.iris.sdmx.element.entity;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.iris.model.UserMaster;
+
+@Entity
+@Table(name = "TBL_REGULATOR")
+@JsonInclude(Include.NON_NULL)
+public class SdmxElementRegulatorEntity implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "REGULATOR_ID")
+	private Long regulatorId;
+
+	@Column(name = "REGULATOR_NMAE")
+	private String regulatorName;
+
+	@Column(name = "REGULATOR_CODE")
+	private String regulatorCode;
+
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "LAST_UPDATED_ON")
+	private Date lastUpdatedOn;
+
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "LAST_MODIFIED_ON")
+	private Date lastModifiedOn;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "CREATED_BY_FK")
+	private UserMaster createdBy;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "LAST_MODIFIED_BY_FK")
+	private UserMaster modifyBy;
+
+	public Long getRegulatorId() {
+		return regulatorId;
+	}
+
+	public void setRegulatorId(Long regulatorId) {
+		this.regulatorId = regulatorId;
+	}
+
+	public String getRegulatorName() {
+		return regulatorName;
+	}
+
+	public void setRegulatorName(String regulatorName) {
+		this.regulatorName = regulatorName;
+	}
+
+	public String getRegulatorCode() {
+		return regulatorCode;
+	}
+
+	public void setRegulatorCode(String regulatorCode) {
+		this.regulatorCode = regulatorCode;
+	}
+
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	public Date getLastUpdatedOn() {
+		return lastUpdatedOn;
+	}
+
+	public void setLastUpdatedOn(Date lastUpdatedOn) {
+		this.lastUpdatedOn = lastUpdatedOn;
+	}
+
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	public Date getLastModifiedOn() {
+		return lastModifiedOn;
+	}
+
+	public void setLastModifiedOn(Date lastModifiedOn) {
+		this.lastModifiedOn = lastModifiedOn;
+	}
+
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	public UserMaster getModifyBy() {
+		return modifyBy;
+	}
+
+	public void setModifyBy(UserMaster modifyBy) {
+		this.modifyBy = modifyBy;
+	}
+
+	@Override
+	public String toString() {
+		return "SdmxElementRegulatorEntity [regulatorId=" + regulatorId + ", regulatorName=" + regulatorName + ", regulatorCode=" + regulatorCode + ", isActive=" + isActive + ", lastUpdatedOn=" + lastUpdatedOn + ", createdOn=" + createdOn + ", lastModifiedOn=" + lastModifiedOn + ", createdBy=" + createdBy + ", modifyBy=" + modifyBy + "]";
+	}
+
+	public SdmxElementRegulatorEntity(Long regulatorId, String regulatorName, String regulatorCode) {
+		super();
+		this.regulatorId = regulatorId;
+		this.regulatorName = regulatorName;
+		this.regulatorCode = regulatorCode;
+	}
+
+}

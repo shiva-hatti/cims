@@ -1,0 +1,114 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+/**
+ * @author psheke
+ * @date 27/10/2020
+ */
+@Entity
+@Table(name = "TBL_AUDIT_FIRM_LABEL_MOD_HISTORY")
+public class AuditFirmLabelMod implements Serializable {
+
+	private static final long serialVersionUID = 672095329612634545L;
+
+	@Id
+	@Column(name = "AUDIT_FIRM_LABEL_MOD_HISTORY_ID")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long auditFirmLabelModHistId;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "AUDIT_FIRM_LABEL_ID_FK")
+	private AuditFirmLabelInfo auditFirmLabelModId;
+
+	@Column(name = "MODIFICATION_JSON")
+	private String auditFirmLabelModJson;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "LAST_MODIFIED_BY_FK")
+	private UserMaster lastModifiedBy;
+
+	@Column(name = "LAST_MODIFIED_ON")
+	private Date lastModifiedOn;
+
+	/**
+	 * @return the auditFirmLabelModHistId
+	 */
+	public Long getAuditFirmLabelModHistId() {
+		return auditFirmLabelModHistId;
+	}
+
+	/**
+	 * @param auditFirmLabelModHistId the auditFirmLabelModHistId to set
+	 */
+	public void setAuditFirmLabelModHistId(Long auditFirmLabelModHistId) {
+		this.auditFirmLabelModHistId = auditFirmLabelModHistId;
+	}
+
+	/**
+	 * @return the auditFirmLabelModJson
+	 */
+	public String getAuditFirmLabelModJson() {
+		return auditFirmLabelModJson;
+	}
+
+	/**
+	 * @param auditFirmLabelModJson the auditFirmLabelModJson to set
+	 */
+	public void setAuditFirmLabelModJson(String auditFirmLabelModJson) {
+		this.auditFirmLabelModJson = auditFirmLabelModJson;
+	}
+
+	/**
+	 * @return the lastModifiedBy
+	 */
+	public UserMaster getLastModifiedBy() {
+		return lastModifiedBy;
+	}
+
+	/**
+	 * @param lastModifiedBy the lastModifiedBy to set
+	 */
+	public void setLastModifiedBy(UserMaster lastModifiedBy) {
+		this.lastModifiedBy = lastModifiedBy;
+	}
+
+	/**
+	 * @return the lastModifiedOn
+	 */
+	public Date getLastModifiedOn() {
+		return lastModifiedOn;
+	}
+
+	/**
+	 * @param lastModifiedOn the lastModifiedOn to set
+	 */
+	public void setLastModifiedOn(Date lastModifiedOn) {
+		this.lastModifiedOn = lastModifiedOn;
+	}
+
+	/**
+	 * @return the auditFirmLabelModId
+	 */
+	public AuditFirmLabelInfo getAuditFirmLabelModId() {
+		return auditFirmLabelModId;
+	}
+
+	/**
+	 * @param auditFirmLabelModId the auditFirmLabelModId to set
+	 */
+	public void setAuditFirmLabelModId(AuditFirmLabelInfo auditFirmLabelModId) {
+		this.auditFirmLabelModId = auditFirmLabelModId;
+	}
+
+}

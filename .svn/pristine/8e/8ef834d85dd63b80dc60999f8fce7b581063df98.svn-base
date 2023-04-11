@@ -1,0 +1,54 @@
+#Folder Path
+#filepath.root=C:/iFileProd
+#filepath.root=/home/IRIS/IFILE_FILES
+filepath.root=/iFile_Files
+#filepath.root=/home/irisdev/iFileShare/iFileProd
+
+filepath.upload.temp = /TEMP
+filePath.system.dest.path = /VALIDATE_META
+filePath.validate.meta.failed.path = /VALIDATE_META_FAILED
+filepath.instance.filetopush = /INSTANCE/FileToPush/
+filepath.instanceZip = /INSTANCE/uploaded/
+filepath.attachement = /INSTANCE/ATTACHEMENTS/
+filepath.xbrl.webform.instance = /iFile_Files/RENDERING/wform/idata
+filepath.xbrl.webform.shard = /RENDERING/wform/shred/
+filepath.pan.upload = /PAN_BULK_FILE_PATH
+filepath.groupMaster.upload = /GROUP_MASTER_BULK_FILE_PATH
+filePath.pan.master.file.path = /PAN_MASTER_FILE
+filePath.group.master.file.path = /GROUP_MASTER_FILE
+filePath.taxonomyPackageXml.fileName = /taxonomyPackage.xml
+returnTemplate.upload.path.zip = /RETURN_TEMPLATE_ZIP
+returnTemplate.upload.path=/RETURN_TEMPLATE
+xbrl.sdmx.template.file.name = Taxonomy.zip
+webform.FileName = /Webform.zip
+excel.to.html.xls.base.path=EBR_SDMX
+excel.to.html.base.path=EBR_SDMX
+submitDataToFusion = true
+fusion.base.path=FUSION_DSD
+filepath.instanceEbr = /INSTANCE/EBR_UPLOADED
+file.ebr.document=/EBRDOCUMENT
+filePath.SDMXFolder = SDMX
+file.ebr.tech.metadata=/TECH_METADATA
+file.ebr.buss.metadata=/BUSS_METADATA
+
+server.ip = 10.2.245.138
+
+REPORTING_PERIOD_DATE_FORMAT_REGEX = ^([0-2][0-9]|(3)[0-1])(((0)[0-9])|((1)[0-2]))\\d{4}$
+
+generalInfoDateFormat.R013 = yyyy|MM|dd
+generalInfoDateFormat.R002 = ddMMyyyy
+generalInfoDateFormat.R088 = ddMMyyyy
+generalInfoDateFormat.R014 = ddMMyyyy
+
+webSockerServerOrigin=http://15.206.198.153
+webSockerBrokerName=notification
+filingInfoLabel = Filing Information
+
+authToken = f0PZ2wsXDMMAaQ4jHtNIkxl9dMFA45fUNDF68ODgtVTGGvYDpwP1/QdYOpY3ovhXCGjBolSc5XCO0jBOZNKH4nnh/yDTrmW43PDi/VjD9qb/zdzC9bo1D9egAGd+RyHZiFIcarVEdwnbJTch3hu9h17Hp1CtkswurAkStFYI69wN+BuOkszW7qxCL9SzJHUNnGXIperLtD+a+sSp6cxwF4PA1MYjgSI7hd+JfYzfa0m8HudJnVJ2a5Fm7inv7RYeWKMiHYCd14JnjDC5EWmJOe119hLkSvk28wvxXqlpKXjUqhHAx3BsQONOcl+xiwX2pBnkF7UWEnZq/Jf8TLeq23qiG6AnrQM/6Aws/D2kgEm5zDbd35/erYchQ/hkd6gFqvXFhHVlx6bWvEXsmojLy5mpGQ6uJxg6Plz4sEQGJocNdh+X1CoPcVIQiBndS64ja+hJAedqs/RoNzJFd6IKXB0qofzp7glx2Bs4ea4wFGf3J4gyNTmXE9KjGvLMDVGKfi1h4bluyp/1OgktVcIjBGGoeDLn7jFNICukzp/kASTjvjwXDmUSIKQUcqj7ksgJ5vYczg6Cn/okkyAMTTLTp2v9sOwQDKfIlwSLwXzx0oDCNt/C9LuYP5FclgHhe92aB9OF6z28hkQB3CZhU385TMcH5HmbUTFG+afYyPqie7w1ztcEfl6go+DfUWUycCmpQFliglfh8bwtZ74UFhyixY5DRFRoT1f5mh6/J6yEFGx/w0COQPtDBgNkjYGJd4Du6Iwh3GMDC8DOuNto2ubUPPNlmAxobnInY0HIU2p301+326ZI9c3hYaWcU9dr01jBNxvA3QYgaSdnGRRxjZAeQoDVzKMszXujyuTm4dKMeZLeVNyX36oo6djn13npjn1gLekhP9fUyosWzt3eQdpFChjLtav4sAbfkV5lkyjE+KY=
+accessToken = 7ebc1c37-a036-4d2a-947f-ebfbad28cb22
+
+#regex properties
+data.template.default.regex.pattern=/[REGX_DECIMAL]/g
+data.template.default.regex.minLength=1
+data.template.default.regex.maxLength=3
+data.template.publish.formula.validation=true

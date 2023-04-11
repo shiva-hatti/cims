@@ -1,0 +1,56 @@
+/**
+ * 
+ */
+package com.iris.sdmx.fusion.bean.validation;
+
+import java.io.Serializable;
+import java.util.List;
+
+import com.google.gson.annotations.SerializedName;
+
+/**
+ * @author sajadhav
+ *
+ */
+public class FusionValReport implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -6035159820336027920L;
+	
+	@SerializedName(value = "Type")
+	private String type;
+	
+	@SerializedName(value = "Errors")
+	private List<FusionValErrors> errors;
+
+	/**
+	 * @return the type
+	 */
+	public String getType() {
+		return type;
+	}
+
+	/**
+	 * @param type the type to set
+	 */
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	/**
+	 * @return the errors
+	 */
+	public List<FusionValErrors> getErrors() {
+		return errors;
+	}
+
+	/**
+	 * @param errors the errors to set
+	 */
+	public void setErrors(List<FusionValErrors> errors) {
+		this.errors = errors;
+	}
+	
+}

@@ -1,0 +1,187 @@
+/**
+ * 
+ */
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+
+/**
+ * @author Siddique
+ *
+ */
+
+@Entity
+@Table(name = "TBL_PAN_MASTER")
+public class PanMaster implements Serializable {
+
+	private static final long serialVersionUID = -9179125889769472395L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "PAN_MASTER_ID")
+	private Long panMasterId;
+
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "PAN_ID_FK")
+	private PanMasterTemp panIdFk;
+
+	@Column(name = "PAN_NUMBER")
+	private String panNumber;
+
+	@Column(name = "BORROWER_NAME")
+	private String borrowerName;
+
+	@Column(name = "BORROWER_ALTERNATE_NAME")
+	private String borrowerAlternateName;
+
+	@Column(name = "BORROWER_TITLE")
+	private String borrowerTitle;
+
+	@Column(name = "BORROWER_MOBILE")
+	private Long borrowerMobile;
+
+	@Column(name = "IS_RBI_GENERATED_PAN")
+	private Boolean rbiGenerated;
+
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "INSTITUTION_TYPE_ID_FK")
+	private InstitutionType institutionType;
+
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "SUPPORTING_DOC_TYPE_ID_FK")
+	private SupportingDocType supportingDocType;
+
+	@Column(name = "SUPPORT_DOC_IDENTITY_NUM")
+	private String supportingDocIdentityNum;
+
+	@Column(name = "BORROWER_DOB")
+	private Date borrowerDob;
+
+	public PanMaster() {
+	}
+
+	public PanMaster(String panNumber, String borrowerName) {
+		this.panNumber = panNumber;
+		this.borrowerName = borrowerName;
+	}
+
+	public Long getPanMasterId() {
+		return panMasterId;
+	}
+
+	public void setPanMasterId(Long panMasterId) {
+		this.panMasterId = panMasterId;
+	}
+
+	public PanMasterTemp getPanIdFk() {
+		return panIdFk;
+	}
+
+	public void setPanIdFk(PanMasterTemp panIdFk) {
+		this.panIdFk = panIdFk;
+	}
+
+	public String getPanNumber() {
+		return panNumber;
+	}
+
+	public void setPanNumber(String panNumber) {
+		this.panNumber = panNumber;
+	}
+
+	public String getBorrowerName() {
+		return borrowerName;
+	}
+
+	public void setBorrowerName(String borrowerName) {
+		this.borrowerName = borrowerName;
+	}
+
+	public String getBorrowerAlternateName() {
+		return borrowerAlternateName;
+	}
+
+	public void setBorrowerAlternateName(String borrowerAlternateName) {
+		this.borrowerAlternateName = borrowerAlternateName;
+	}
+
+	public String getBorrowerTitle() {
+		return borrowerTitle;
+	}
+
+	public void setBorrowerTitle(String borrowerTitle) {
+		this.borrowerTitle = borrowerTitle;
+	}
+
+	public Long getBorrowerMobile() {
+		return borrowerMobile;
+	}
+
+	public void setBorrowerMobile(Long borrowerMobile) {
+		this.borrowerMobile = borrowerMobile;
+	}
+
+	public Boolean getRbiGenerated() {
+		return rbiGenerated;
+	}
+
+	public void setRbiGenerated(Boolean rbiGenerated) {
+		this.rbiGenerated = rbiGenerated;
+	}
+
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	public String getSupportingDocIdentityNum() {
+		return supportingDocIdentityNum;
+	}
+
+	public void setSupportingDocIdentityNum(String supportingDocIdentityNum) {
+		this.supportingDocIdentityNum = supportingDocIdentityNum;
+	}
+
+	public Date getBorrowerDob() {
+		return borrowerDob;
+	}
+
+	public void setBorrowerDob(Date borrowerDob) {
+		this.borrowerDob = borrowerDob;
+	}
+
+	public SupportingDocType getSupportingDocType() {
+		return supportingDocType;
+	}
+
+	public void setSupportingDocType(SupportingDocType supportingDocType) {
+		this.supportingDocType = supportingDocType;
+	}
+
+	public InstitutionType getInstitutionType() {
+		return institutionType;
+	}
+
+	public void setInstitutionType(InstitutionType institutionType) {
+		this.institutionType = institutionType;
+	}
+
+}

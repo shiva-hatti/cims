@@ -1,0 +1,192 @@
+package com.iris.service.impl;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import com.iris.dateutility.util.DateManip;
+import com.iris.exception.ServiceException;
+import com.iris.model.ReturnTemplate;
+import com.iris.repository.ReturnTemplateRepository;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.util.constant.MethodConstants;
+
+@Service
+public class ReturnTemplateService implements GenericService<ReturnTemplate, Long> {
+	final static Logger LOGGER = LogManager.getLogger(ReturnTemplateService.class);
+
+	@Autowired
+	ReturnTemplateRepository taxonomyRepo;
+
+	@Override
+	public ReturnTemplate add(ReturnTemplate entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean update(ReturnTemplate entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public List<ReturnTemplate> getDataByIds(Long[] ids) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ReturnTemplate getDataById(Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return taxonomyRepo.getDataById(id);
+	}
+	
+	
+	
+	
+
+	@Override
+	public List<ReturnTemplate> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+
+		try {
+			List<String> returnIds = null;
+			List<String> returnCodes = null;
+			List<String> returnTypes = null;
+			List<Long> returnTypesIDS = new ArrayList<>();
+			List<String> returnTypesSection = null;
+			List<String> endDate = null;
+			List<String> dateFormat = null;
+			List<String> version = null;
+			Date fromDate = new Date();
+			for (String columnName : columnValueMap.keySet()) {
+				if (columnValueMap.get(columnName) != null && columnValueMap.get(columnName).size() > 0) {
+					if (columnName.equalsIgnoreCase(ColumnConstants.RETURNID.getConstantVal())) {
+						returnIds = columnValueMap.get(columnName);
+					} else if (columnName.equalsIgnoreCase(ColumnConstants.ENDDATE.getConstantVal())) {
+						endDate = columnValueMap.get(columnName);
+					} else if (columnName.equalsIgnoreCase(ColumnConstants.RETURN_CODE.getConstantVal())) {
+						returnCodes = columnValueMap.get(columnName);
+					} else if (columnName.equalsIgnoreCase(ColumnConstants.SESSION_DB_DATE_FORMAT.getConstantVal())) {
+						dateFormat = columnValueMap.get(columnName);
+					} else if (columnName.equalsIgnoreCase(ColumnConstants.RETURN_TYPE.getConstantVal())) {
+						returnTypes = columnValueMap.get(columnName);
+						for (String id : returnTypes) {
+							if (!returnTypesIDS.contains(Long.valueOf(id))) {
+								returnTypesIDS.add(Long.valueOf(id));
+							}
+						}
+					} else if (columnName.equalsIgnoreCase(ColumnConstants.VALID_FROM_DATE.getConstantVal())) {
+						fromDate = DateManip.convertStringToDate(columnValueMap.get(columnName).get(0),
+								GeneralConstants.SESSION_FORMAT.getConstantVal());
+						// fromDate = new Date(Long.parseLong(columnValueMap.get(columnName).get(0)));
+					} else if (columnName.equalsIgnoreCase(ColumnConstants.RETURN_TYPE_SECTION.getConstantVal())) {
+						returnTypesSection = columnValueMap.get(columnName);
+					} else if (columnName.equalsIgnoreCase(ColumnConstants.RET_TEMP_VERSION.getConstantVal())) {
+						version = columnValueMap.get(columnName);
+					}
+				}
+			}
+			if (methodName.equalsIgnoreCase(MethodConstants.GET_TAXONOMY_BY_RETURN_ID_AND_FROM_DATE.getConstantVal())) {
+				// return
+				// taxonomyRepo.findByReturnIdAndValidFromDate(Long.parseLong(returnIds.get(0)),endDate.get(0));
+				if (!CollectionUtils.isEmpty(returnIds) && endDate != null && dateFormat != null
+						&& !dateFormat.isEmpty()) {
+					return taxonomyRepo.findByReturnIdAndValidFromDate(Long.parseLong(returnIds.get(0)),
+							DateManip.convertStringToDate(endDate.get(0), dateFormat.get(0)));
+				}
+			}
+			if (methodName.equalsIgnoreCase(MethodConstants.VALIDATION_FOR_RETURN_TEMPLATE_VERSION.getConstantVal())
+					&& returnTypes != null && !returnTypes.isEmpty() && returnCodes != null && !returnCodes.isEmpty()) {
+				return taxonomyRepo.findByReturnIdAndReturnType(Long.parseLong(returnTypes.get(0)), returnCodes.get(0),
+						Integer.parseInt(returnTypesSection.get(0)));
+			}
+			if (methodName.equalsIgnoreCase(MethodConstants.VALIDATION_FOR_VALID_FROM_DATE.getConstantVal())
+					&& returnTypes != null && !returnTypes.isEmpty() && returnCodes != null && !returnCodes.isEmpty()) {
+				return taxonomyRepo.findFromDateByReturnCodeAndReturnType(Long.parseLong(returnTypes.get(0)),
+						returnCodes.get(0), Integer.parseInt(returnTypesSection.get(0)), fromDate);
+			}
+			if (methodName.equalsIgnoreCase(MethodConstants.GET_ALL_VERSION_UPON_RETRUN_RET_TYPE.getConstantVal())
+					&& returnCodes != null && !returnCodes.isEmpty()) {
+				return taxonomyRepo.findAllVersionUponReturnCodeAndReturnType(returnCodes.get(0), returnTypesIDS);
+			}
+			if (methodName.equalsIgnoreCase(MethodConstants.GET_ALL_RETURN_TEMPLATE_UPON_RETURN.getConstantVal())) {
+				return taxonomyRepo.findAllRetTemplateData(returnCodes);
+			}
+		} catch (Exception e) {
+			throw new ServiceException("Exception : ", e);
+		}
+		return null;
+	}
+
+	public List<ReturnTemplate> findByReturnTypeAndSectionId(Long returnType, int retTypeSectionId)
+			throws ServiceException {
+
+		return taxonomyRepo.findByReturnTypeAndSectionId(returnType, retTypeSectionId);
+	}
+	
+	/**
+	 * @param returnTemplateId
+	 * @return
+	 */
+	public boolean isReturnTemplateExist(Long returnTemplateId) {
+		Boolean isTemplateExist = Boolean.FALSE;
+		int count = taxonomyRepo.isReturnTemplateExist(returnTemplateId);
+		if(count > 0) {
+			isTemplateExist = Boolean.TRUE;
+		}
+		return isTemplateExist;
+	}
+
+	@Override
+	public List<ReturnTemplate> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName)
+			throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<ReturnTemplate> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<ReturnTemplate> getAllDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void deleteData(ReturnTemplate bean) throws ServiceException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public List<ReturnTemplate> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	/**
+	 * @param returnTemplateId
+	 * @return
+	 * @throws ServiceException
+	 */
+	public ReturnTemplate fetchEntityByReturnTemplateId(Long returnTemplateId) throws ServiceException {
+		return taxonomyRepo.fetchEntityByReturnTemplateId(returnTemplateId);
+	}
+
+}

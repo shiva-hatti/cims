@@ -1,0 +1,101 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+
+import com.iris.util.Validations;
+
+public class TaxonomyDTO implements Serializable {
+
+	private static final long serialVersionUID = -2250012394872842380L;
+	private String formName;
+	private String formCode;
+	private Long returnReturnTypeId;
+	private String versionNum;
+	private String versionDesc;
+	private String validFromDate;
+	private String entryPointName;
+	private Long taxId;
+	private int section;
+	private int isActive;
+
+	public Long getReturnReturnTypeId() {
+		return returnReturnTypeId;
+	}
+
+	public void setReturnReturnTypeId(Long returnReturnTypeId) {
+		this.returnReturnTypeId = returnReturnTypeId;
+	}
+
+	public String getVersionNum() {
+		return versionNum;
+	}
+
+	public void setVersionNum(String versionNum) {
+		this.versionNum = Validations.trimInput(versionNum);
+	}
+
+	public String getVersionDesc() {
+		return versionDesc;
+	}
+
+	public void setVersionDesc(String versionDesc) {
+		this.versionDesc = Validations.trimInput(versionDesc);
+	}
+
+	public String getValidFromDate() {
+		return validFromDate;
+	}
+
+	public void setValidFromDate(String validFromDate) {
+		this.validFromDate = Validations.trimInput(validFromDate);
+	}
+
+	public Long getTaxId() {
+		return taxId;
+	}
+
+	public void setTaxId(Long taxId) {
+		this.taxId = taxId;
+	}
+
+	public String getFormName() {
+		return formName;
+	}
+
+	public void setFormName(String formName) {
+		this.formName = Validations.trimInput(formName);
+	}
+
+	public String getFormCode() {
+		return formCode;
+	}
+
+	public void setFormCode(String formCode) {
+		this.formCode = Validations.trimInput(formCode);
+	}
+
+	public String getEntryPointName() {
+		return entryPointName;
+	}
+
+	public void setEntryPointName(String entryPointName) {
+		this.entryPointName = Validations.trimInput(entryPointName);
+	}
+
+	public int getSection() {
+		return section;
+	}
+
+	public void setSection(int section) {
+		this.section = section;
+	}
+
+	public int getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(int isActive) {
+		this.isActive = isActive;
+	}
+
+}

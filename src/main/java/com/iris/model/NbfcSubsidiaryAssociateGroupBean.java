@@ -1,0 +1,54 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "TBL_NBFC_SUBSI_ASSOCIATE")
+public class NbfcSubsidiaryAssociateGroupBean implements Serializable {
+
+	private static final long serialVersionUID = -7488942182991868522L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "NBFC_SUBSI_ASSOCIATE_ID")
+	private Long nbfcSubsidiaryAssociateGroupId;
+
+	@Column(name = "NBFC_SUBSI_ASSOCIATE_NAME")
+	private String nbfcSubsidiaryAssociateGroup;
+
+	@Column(name = "IS_ACTIVE")
+	private boolean isActive;
+
+	public Long getNbfcSubsidiaryAssociateGroupId() {
+		return nbfcSubsidiaryAssociateGroupId;
+	}
+
+	public void setNbfcSubsidiaryAssociateGroupId(Long nbfcSubsidiaryAssociateGroupId) {
+		this.nbfcSubsidiaryAssociateGroupId = nbfcSubsidiaryAssociateGroupId;
+	}
+
+	public String getNbfcSubsidiaryAssociateGroup() {
+		return nbfcSubsidiaryAssociateGroup;
+	}
+
+	public void setNbfcSubsidiaryAssociateGroup(String nbfcSubsidiaryAssociateGroup) {
+		this.nbfcSubsidiaryAssociateGroup = nbfcSubsidiaryAssociateGroup;
+	}
+
+	public boolean isActive() {
+		return isActive;
+	}
+
+	public void setActive(boolean isActive) {
+		this.isActive = isActive;
+	}
+
+}

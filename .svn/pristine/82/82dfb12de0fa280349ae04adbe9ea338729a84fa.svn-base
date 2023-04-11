@@ -1,0 +1,311 @@
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dateutility.util.DateManip;
+import com.iris.dto.EntityMasterDto;
+import com.iris.dto.ReturnApprovalDataDto;
+import com.iris.dto.ReturnDto;
+import com.iris.dto.ReturnGroupMappingDto;
+import com.iris.dto.ReturnGroupMappingRequest;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.dto.UserDto;
+import com.iris.exception.ApplicationException;
+import com.iris.model.EntityBean;
+import com.iris.model.EntityLabelBean;
+import com.iris.model.ReturnApprovalDetail;
+import com.iris.model.ReturnLabel;
+import com.iris.model.ReturnsUploadDetails;
+import com.iris.model.UserRole;
+import com.iris.repository.ReturnApprovalDetailsRepo;
+import com.iris.service.GenericService;
+import com.iris.service.impl.ReturnApprovalDetailsService;
+import com.iris.service.impl.ReturnUploadDetailsService;
+import com.iris.util.UtilMaster;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.MethodConstants;
+
+/**
+ * @author sajadhav
+ */
+@RestController
+@RequestMapping("/service/approvalService")
+public class ApprovalController {
+
+	private static final Logger LOGGER = LogManager.getLogger(ApprovalController.class);
+
+	@Autowired
+	private EntityMasterController entityMasterController;
+
+	@Autowired
+	private ReturnGroupController returnGroupController;
+
+	@Autowired
+	private GenericService<UserRole, Long> userRoleService;
+
+	@Autowired
+	private ReturnApprovalDetailsService returnApprovalDetailService;
+
+	@Autowired
+	private ReturnUploadDetailsService returnUploadDetailService;
+
+	@Autowired
+	private ReturnApprovalDetailsRepo returnApprovalDetailRepo;
+
+	@Autowired
+	private FileDetailsController fileDetailsController;
+	
+	public ServiceResponse getPendingRecords(String jobProcessId, UserDto userDto,
+			List<ReturnGroupMappingDto> inputReturnList, List<EntityBean> inputEntityList) {
+		try {
+			LOGGER.info("Request received for job processing id " + jobProcessId);
+			List<Long> entityIds = new ArrayList<>();
+
+			inputEntityList.forEach(f -> {
+				entityIds.add(f.getEntityId());
+			});
+
+			List<Long> returnIds = new ArrayList<>();
+
+			inputReturnList.forEach(f -> {
+				List<ReturnDto> returnList = f.getReturnList();
+				returnList.forEach(r -> {
+					returnIds.add(r.getReturnId());
+				});
+			});
+
+			return getPendingRecordsInternal(userDto, returnIds, entityIds);
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_CONTROLLER.getConstantVal(), e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0013.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString())).build();
+		}
+	}
+	
+	@PostMapping(value = "/getPendingRecordForApproval")
+	public ServiceResponse getPendingRecords(@RequestHeader(name = "JobProcessingId") String jobProcessId,
+			@RequestBody UserDto userDto) {
+		try {
+			List<Long> entityIds = new ArrayList<>();
+
+			EntityMasterDto entityMasterDto = new EntityMasterDto();
+			entityMasterDto.setUserId(userDto.getUserId());
+			entityMasterDto.setRoleId(userDto.getRoleId());
+			entityMasterDto.setLanguageCode(userDto.getLangCode());
+			entityMasterDto.setIsActive(true);
+
+			ServiceResponse serviceResponse = entityMasterController.getEntityMasterList(UUID.randomUUID().toString(),
+					entityMasterDto);
+
+			if (serviceResponse.isStatus()) {
+				@SuppressWarnings("unchecked")
+				List<EntityBean> entityBeans = (List<EntityBean>) serviceResponse.getResponse();
+				entityBeans.forEach(f -> {
+					entityIds.add(f.getEntityId());
+				});
+			}
+
+			List<Long> returnIds = new ArrayList<>();
+
+			ReturnGroupMappingRequest returnGroupMappingReq = new ReturnGroupMappingRequest();
+			returnGroupMappingReq.setRoleId(userDto.getRoleId());
+			returnGroupMappingReq.setUserId(userDto.getUserId());
+			returnGroupMappingReq.setIsActive(true);
+			returnGroupMappingReq.setLangId(userDto.getLangId());
+
+			ServiceResponse returnGroupServiceResponse = returnGroupController.getReturnGroups(jobProcessId,
+					returnGroupMappingReq);
+
+			if (returnGroupServiceResponse.isStatus()) {
+				@SuppressWarnings("unchecked")
+				List<ReturnGroupMappingDto> returnGroupMappingRtos = (List<ReturnGroupMappingDto>) returnGroupServiceResponse
+						.getResponse();
+				returnGroupMappingRtos.forEach(f -> {
+					List<ReturnDto> returnList = f.getReturnList();
+					returnList.forEach(r -> {
+						returnIds.add(r.getReturnId());
+					});
+				});
+			}
+			
+			return getPendingRecordsInternal(userDto, returnIds, entityIds);
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_CONTROLLER.getConstantVal(), e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0013.toString())
+					.setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString())).build();
+		}
+	}
+
+	
+	private ServiceResponse getPendingRecordsInternal(UserDto userDto, List<Long> returnIds, List<Long> entityIds) {
+		UserRole userRole = userRoleService.getDataById(userDto.getRoleId());
+		List<Long> activityIds = new ArrayList<>();
+		userRole.getUserRoleActivityMapping().forEach(t -> {
+			activityIds.add(t.getWorkFlowActivity().getActivityId());
+		});
+
+		List<ReturnApprovalDataDto> returnApprovalDtos = new ArrayList<>();
+		if (!CollectionUtils.isEmpty(returnIds) && !CollectionUtils.isEmpty(entityIds) && !CollectionUtils.isEmpty(activityIds)) {
+			if (userDto.getIsCount()) {
+				Long filingCount = returnApprovalDetailRepo.getPendingForApprovalDataCount(activityIds, userDto.getUserId(), entityIds, returnIds);
+
+				return new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(filingCount.intValue()).build();
+			} else {
+				Map<String, Object> valueMap = new HashMap<String, Object>();
+				valueMap.put(ColumnConstants.USER_ID.getConstantVal(), userDto.getUserId());
+				valueMap.put(ColumnConstants.ENTITYID.getConstantVal(), entityIds);
+				valueMap.put(ColumnConstants.RETURNID.getConstantVal(), returnIds);
+				valueMap.put(ColumnConstants.ACTIVITY_IDS.getConstantVal(), activityIds);
+
+				List<ReturnApprovalDetail> returnApprovalDetailList = returnApprovalDetailService.getDataByObject(valueMap, MethodConstants.GET_PENDING_FOR_APPROVAL_DATA.getConstantVal());
+				ReturnsUploadDetails returnsUploadDetails = null;
+				for (ReturnApprovalDetail returnApprovalDetail : returnApprovalDetailList) {
+					try {
+						returnsUploadDetails = returnApprovalDetail.getReturnUploadDetails();
+						ReturnApprovalDataDto returnApprovalDto = new ReturnApprovalDataDto();
+						returnApprovalDto.setUploadId(returnsUploadDetails.getUploadId());
+						returnApprovalDto.setReturnApprovalDtlId(returnApprovalDetail.getReturnApprovalDetailId());
+						returnApprovalDto.setReturnId(returnsUploadDetails.getReturnObj().getReturnId());
+						returnApprovalDto.setEntityId(returnsUploadDetails.getEntity().getEntityId());
+						returnApprovalDto.setEntityCode(returnsUploadDetails.getEntity().getEntityCode());
+						returnApprovalDto.setFilingStatusId(returnsUploadDetails.getFilingStatus().getFilingStatusId());
+						returnApprovalDto.setRoleId(returnsUploadDetails.getUploadUsrRole().getUserRoleId());
+						returnApprovalDto.setUploadedUserId(returnsUploadDetails.getUploadedBy().getUserId());
+						returnApprovalDto.setUploadedUserName(returnsUploadDetails.getUploadedBy().getUserName());
+						if(returnsUploadDetails.getFinYrFreqDesc()!= null) {
+							returnApprovalDto.setFrequencyDescId(returnsUploadDetails.getFinYrFreqDesc().getFinYrFreqDescId());
+							returnApprovalDto.setFrequencyDesc(returnsUploadDetails.getFinYrFreqDesc().getFinYrFreqDesc());
+						}
+						returnApprovalDto.setPreviousUploadId(returnsUploadDetails.getPrevUploadId());
+						returnApprovalDto.setWorkflowId(returnsUploadDetails.getWorkFlowMaster().getWorkflowId());
+						returnApprovalDto.setCurrentStep(returnApprovalDetail.getWorkflowStep());
+
+						returnApprovalDto.setUploadChannel(returnApprovalDetail.getReturnUploadDetails().getFileDetailsBean().getUploadChannelIdFk().getUploadChannelDesc());
+						returnApprovalDto.setUploadChannelId(returnApprovalDetail.getReturnUploadDetails().getFileDetailsBean().getUploadChannelIdFk().getUploadChannelId());
+						returnApprovalDto.setFileType(returnApprovalDetail.getReturnUploadDetails().getFileType());
+						returnApprovalDto.setInstanceName(returnApprovalDetail.getReturnUploadDetails().getInstanceFile());
+						returnApprovalDto.setFileName(returnApprovalDetail.getReturnUploadDetails().getFileDetailsBean().getFileName());
+						returnApprovalDto.setSupportiveDocName(returnApprovalDetail.getReturnUploadDetails().getAttachedFile());
+						returnApprovalDto.setOriginalSupportiveDocName(returnApprovalDetail.getReturnUploadDetails().getFileDetailsBean().getSupportiveDocName());
+						returnApprovalDto.setFilingStatus(returnsUploadDetails.getFilingStatus().getStatus());
+						returnApprovalDto.setFrequency(returnApprovalDetail.getReturnUploadDetails().getFrequency().getFrequencyName());
+						returnApprovalDto.setFileStatusId(returnsUploadDetails.getFilingStatus().getFilingStatusId());
+						returnApprovalDto.setEndDateInLong(returnsUploadDetails.getEndDate().getTime());
+						returnApprovalDto.setStartDateInLong(returnsUploadDetails.getStartDate().getTime());
+						returnApprovalDto.setReturnCode(returnsUploadDetails.getReturnObj().getReturnCode());
+						
+						if(returnsUploadDetails.getUnlockingReqId()!= null) {
+							returnApprovalDto.setUnlockRequestId(returnsUploadDetails.getUnlockingReqId().getUnlockingReqId());
+						}
+						
+						if(returnsUploadDetails.getReturnPropertyValue()!= null) {
+							returnApprovalDto.setReturnPropertyVal(returnsUploadDetails.getReturnPropertyValue().getReturnProValue());
+						}
+						
+						ReturnLabel returnLabel = returnsUploadDetails.getReturnObj().getReturnLblSet().stream().filter(f -> f.getLangIdFk().getLanguageId().equals(userDto.getLangId())).findAny().orElse(null);
+						if (returnLabel != null) {
+							returnApprovalDto.setReturnName(returnLabel.getReturnLabel());
+						} else {
+							returnApprovalDto.setReturnName(returnsUploadDetails.getReturnObj().getReturnName());
+						}
+
+						EntityLabelBean entityLabelBean = returnsUploadDetails.getEntity().getEntityLabelSet().stream().filter(f -> f.getLanguageMaster().getLanguageId().equals(userDto.getLangId())).findAny().orElse(null);
+						if (entityLabelBean != null) {
+							returnApprovalDto.setEntityName(entityLabelBean.getEntityNameLabel());
+						} else {
+							returnApprovalDto.setEntityName(returnsUploadDetails.getEntity().getEntityName());
+						}
+
+						try {
+							if (returnsUploadDetails.getFileDetailsBean().getCreationDate() != null) {
+								returnApprovalDto.setUploadedDate(DateManip.formatAppDateTime(returnsUploadDetails.getFileDetailsBean().getCreationDate(), userDto.getDateFormat(), userDto.getCalendarFormat()));
+							}
+						} catch (Exception e) {
+							LOGGER.error("Exception while parsing uploaded date : ", e);
+						}
+
+						if(returnsUploadDetails.getTaxonomyId()!=null) {
+							returnApprovalDto.setTemplateVersionNo(returnsUploadDetails.getTaxonomyId().getVersionNumber());
+						}
+						
+						returnsUploadDetails.getFileDetailsBean().setDateFormat(userDto.getDateFormat());
+						returnsUploadDetails.getFileDetailsBean().setCalendarFormat(userDto.getCalendarFormat());
+						returnApprovalDto.setActivityTrackerJson(fileDetailsController.getActivityTrackerJson(returnsUploadDetails.getFileDetailsBean(), fileDetailsController.prepareActivityMap()));
+						returnApprovalDtos.add(returnApprovalDto);
+					} catch (Exception e) {
+						LOGGER.error("Exception for approval detail Id " + returnApprovalDetail.getReturnApprovalDetailId());
+					}
+				}
+			}
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(returnApprovalDtos).build();
+		} else {
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0832.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0832.toString())).build();
+		}
+	}
+	
+	@PostMapping(value = "/approveRejectRecord")
+	public ServiceResponse approveRejectRecords(@RequestHeader(name = "JobProcessingId") String jobProcessId,
+			@RequestBody ReturnApprovalDataDto returnApprovalDataDto) {
+		try {
+			validateRequestObject(returnApprovalDataDto,jobProcessId);
+			return returnUploadDetailService.appriveRejectFiling(returnApprovalDataDto);
+		}catch(Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_CONTROLLER.getConstantVal(), e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0013.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0013.toString())).build();
+		}
+	}
+	
+	private void validateRequestObject(ReturnApprovalDataDto returnApprovalDataDto, String jobProcessingId) throws ApplicationException {
+			boolean isFailed = false;
+
+			if (UtilMaster.isEmpty(jobProcessingId)) {
+				isFailed = true;
+				LOGGER.error("Request Transaction ID is empty");
+			}
+
+			if (returnApprovalDataDto.getReturnApprovalDtlId() == null) {
+				isFailed = true;
+				LOGGER.error("Return approval details Id is empty");
+			}
+			
+			if (StringUtils.isEmpty(returnApprovalDataDto.getApprovalRoleId())) {
+				isFailed = true;
+				LOGGER.error("Approval Role Id is empty");
+		   }
+			
+			if (StringUtils.isEmpty(returnApprovalDataDto.getApprovalUserId())) {
+				isFailed = true;
+				LOGGER.error("Approval User Id is empty");
+		   }
+			
+			if (StringUtils.isEmpty(returnApprovalDataDto.getIsApproved())) {
+				isFailed = true;
+				LOGGER.error("Is Approved empty");
+		    }
+			
+			if (isFailed) {
+				throw new ApplicationException(ErrorCode.EC0391.toString(),ObjectCache.getErrorCodeKey(ErrorCode.EC0391.toString()));
+			}
+	
+	}
+	
+}

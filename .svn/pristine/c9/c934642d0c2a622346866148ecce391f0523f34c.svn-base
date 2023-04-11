@@ -1,0 +1,81 @@
+package com.iris.ebr.business.technical.metadata.bean;
+
+import java.io.Serializable;
+
+import org.apache.commons.lang3.StringUtils;
+
+
+public class CodeListDimension implements Serializable {
+
+	private static final long serialVersionUID = -6958034941287647006L;
+
+	private String clValueCode;
+	private String clCode;
+	private String dimConceptId;
+	
+	private String clValueCodeLable;
+	private String dimConceptIdLable;
+	
+	/**
+	 * @return the clValueCode
+	 */
+	public String getClValueCode() {
+		return clValueCode;
+	}
+	/**
+	 * @param clValueCode the clValueCode to set
+	 */
+	public void setClValueCode(String clValueCode) {
+		this.clValueCode = StringUtils.trim(clValueCode);
+	}
+	/**
+	 * @return the clCode
+	 */
+	public String getClCode() {
+		return clCode;
+	}
+	/**
+	 * @param clCode the clCode to set
+	 */
+	public void setClCode(String clCode) {
+		this.clCode = StringUtils.trim(clCode);
+	}
+	/**
+	 * @return the dimConceptId
+	 */
+	public String getDimConceptId() {
+		return dimConceptId;
+	}
+	/**
+	 * @param dimConceptId the dimConceptId to set
+	 */
+	public void setDimConceptId(String dimConceptId) {
+		this.dimConceptId = StringUtils.trim(dimConceptId);
+	}
+	/**
+	 * @return the clValueCodeLable
+	 */
+	public String getClValueCodeLable() {
+		return clValueCodeLable;
+	}
+	/**
+	 * @param clValueCodeLable the clValueCodeLable to set
+	 */
+	public void setClValueCodeLable(String clValueCodeLable) {
+		this.clValueCodeLable = StringUtils.trim(clValueCodeLable);
+	}
+	/**
+	 * @return the dimConceptIdLable
+	 */
+	public String getDimConceptIdLable() {
+		return dimConceptIdLable;
+	}
+	/**
+	 * @param dimConceptIdLable the dimConceptIdLable to set
+	 */
+	public void setDimConceptIdLable(String dimConceptIdLable) {
+		this.dimConceptIdLable = StringUtils.trim(dimConceptIdLable);
+	}
+	
+	
+}

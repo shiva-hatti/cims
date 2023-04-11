@@ -1,0 +1,124 @@
+/**
+ * 
+ */
+package com.iris.sdmx.exceltohtml.service;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.iris.exception.ServiceException;
+import com.iris.sdmx.exceltohtml.bean.SdmxReturnModelInfoBean;
+import com.iris.sdmx.exceltohtml.entity.SdmxModelCodesEntity;
+import com.iris.sdmx.exceltohtml.entity.SdmxReturnModelInfoEntity;
+import com.iris.sdmx.exceltohtml.helper.SdmxReturnModelInfoHelper;
+import com.iris.sdmx.exceltohtml.repo.SdmxReturnModelInfoRepo;
+import com.iris.service.GenericService;
+
+/**
+ * @author apagaria
+ *
+ */
+@Service
+@Transactional(readOnly = true)
+public class SdmxReturnModelInfoService implements GenericService<SdmxReturnModelInfoEntity, Long> {
+
+	@Autowired
+	private SdmxReturnModelInfoRepo sdmxReturnModelInfoRepo;
+
+	@Override
+	@Transactional(readOnly = false)
+	public SdmxReturnModelInfoEntity add(SdmxReturnModelInfoEntity entity) throws ServiceException {
+		return sdmxReturnModelInfoRepo.save(entity);
+	}
+
+	@Override
+	public boolean update(SdmxReturnModelInfoEntity entity) throws ServiceException {
+		return false;
+	}
+
+	@Override
+	public List<SdmxReturnModelInfoEntity> getDataByIds(Long[] ids) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public SdmxReturnModelInfoEntity getDataById(Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<SdmxReturnModelInfoEntity> getDataByColumnValue(Map<String, List<String>> columnValueMap,
+			String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<SdmxReturnModelInfoEntity> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap,
+			String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<SdmxReturnModelInfoEntity> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<SdmxReturnModelInfoEntity> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<SdmxReturnModelInfoEntity> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public void deleteData(SdmxReturnModelInfoEntity bean) throws ServiceException {
+
+	}
+
+	/**
+	 * @param sdmxReturnModelInfoBean
+	 * @param userId
+	 */
+	@Transactional(readOnly = false)
+	public void saveEntityByBean(SdmxReturnModelInfoBean sdmxReturnModelInfoBean, Long userId) {
+		SdmxReturnModelInfoEntity sdmxReturnModelInfoEntity = new SdmxReturnModelInfoEntity();
+		SdmxReturnModelInfoHelper.convertBeanToEntity(sdmxReturnModelInfoBean, sdmxReturnModelInfoEntity, userId);
+		add(sdmxReturnModelInfoEntity);
+	}
+
+	/**
+	 * @param modelCodeId
+	 * @return
+	 */
+	public SdmxReturnModelInfoBean getBeanByModelCode(Long modelCodeId) {
+		SdmxReturnModelInfoBean sdmxReturnModelInfoBean = null;
+		SdmxReturnModelInfoEntity sdmxReturnModelInfoEntity = sdmxReturnModelInfoRepo
+				.findByModelCodesFk(new SdmxModelCodesEntity(modelCodeId));
+		if (sdmxReturnModelInfoEntity != null) {
+			sdmxReturnModelInfoBean = new SdmxReturnModelInfoBean();
+			SdmxReturnModelInfoHelper.convertEntityToBean(sdmxReturnModelInfoEntity, sdmxReturnModelInfoBean);
+		}
+		return sdmxReturnModelInfoBean;
+	}
+
+	/**
+	 * @param modelCodesId
+	 */
+	@Transactional(readOnly = false)
+	public void deleteEntityByBean(Long returnSheetInfoId) {
+		SdmxReturnModelInfoEntity sdmxReturnModelInfoEntity = sdmxReturnModelInfoRepo
+				.findByReturnModelInfoId(returnSheetInfoId);
+		sdmxReturnModelInfoEntity.setIsActive(Boolean.FALSE);
+		add(sdmxReturnModelInfoEntity);
+	}
+}

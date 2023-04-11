@@ -1,0 +1,66 @@
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.google.gson.Gson;
+import com.iris.dto.Option;
+import com.iris.dto.Options;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.model.StatusMaster;
+import com.iris.service.impl.StatusMasterService;
+import com.iris.util.constant.GeneralConstants;
+
+/**
+ * @author Siddique H Khan
+ */
+
+@RestController
+@RequestMapping("/service/statusData")
+public class StatusMasterController {
+	static final Logger logger = LogManager.getLogger(StateMasterController.class);
+	
+	@Autowired
+	private StatusMasterService statusMasterService;
+	
+	@GetMapping(value = "/fetchActiveStatusData/{languageCode}")
+	public ServiceResponse fetchActiveStatusList(@PathVariable String languageCode) {
+		logger.info("fetch Status data controller started " + languageCode);
+		ServiceResponse serviceResponse = null;
+		Option option = null;
+		Options options = null;
+		List<Option> optionList = null;
+		List<StatusMaster> listOfActiveStatusMasterData = null;
+		if (languageCode != null) {
+
+			listOfActiveStatusMasterData = new ArrayList<>();
+			optionList = new ArrayList<>();
+			options = new Options();
+			listOfActiveStatusMasterData = statusMasterService.getActiveDataFor(StatusMaster.class, null);
+
+			for (StatusMaster statusMaster : listOfActiveStatusMasterData) {
+				option = new Option();
+				if (languageCode.equals(GeneralConstants.ENG_LANG.getConstantVal())) {
+					option.setKey(statusMaster.getStatusCode());
+					option.setValue(statusMaster.getStatusName().toUpperCase());
+				} else if (languageCode.equals(GeneralConstants.HIN_LANG.getConstantVal())) {
+					option.setKey(statusMaster.getStatusCode());
+					option.setValue(statusMaster.getStatusNameBil().toUpperCase());
+				}
+				optionList.add(option);
+			}
+			options.setOptionList(optionList);
+			return new ServiceResponseBuilder().setStatus(true).setResponse(new Gson().toJson(options)).build();
+		}
+		return serviceResponse;
+	}
+}

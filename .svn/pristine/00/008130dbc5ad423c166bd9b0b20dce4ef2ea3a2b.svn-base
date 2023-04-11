@@ -1,0 +1,75 @@
+package com.iris.model;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.iris.util.Validations;
+
+/**
+ * This bean class for Upload channel
+ * 
+ * @author sajadhav
+ */
+
+@Entity
+@Table(name = "TBL_UPLOAD_CHANNEL")
+public class UploadChannel implements Serializable {
+
+	private static final long serialVersionUID = 2235072512616946603L;
+
+	@Id
+	@Column(name = "UPLOAD_CHANNEL_ID")
+	@JsonInclude(Include.NON_NULL)
+	private Long uploadChannelId;
+
+	@Column(name = "UPLOAD_CHENNEL_DESC")
+	@JsonInclude(Include.NON_NULL)
+	private String uploadChannelDesc;
+
+	@Column(name = "IS_ACTIVE")
+	@JsonInclude(Include.NON_NULL)
+	private boolean active;
+
+	@Column(name = "DISPLAY_ORDER")
+	@JsonInclude(Include.NON_NULL)
+	private Integer displayOrder;
+
+	public Long getUploadChannelId() {
+		return uploadChannelId;
+	}
+
+	public void setUploadChannelId(Long uploadChannelId) {
+		this.uploadChannelId = uploadChannelId;
+	}
+
+	public String getUploadChannelDesc() {
+		return uploadChannelDesc;
+	}
+
+	public void setUploadChannelDesc(String uploadChannelDesc) {
+		this.uploadChannelDesc = Validations.trimInput(uploadChannelDesc);
+	}
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+
+	public Integer getDisplayOrder() {
+		return displayOrder;
+	}
+
+	public void setDisplayOrder(Integer displayOrder) {
+		this.displayOrder = displayOrder;
+	}
+
+}

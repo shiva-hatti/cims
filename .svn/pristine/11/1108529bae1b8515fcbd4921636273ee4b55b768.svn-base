@@ -1,0 +1,155 @@
+package com.iris.sdmx.userMangement;
+
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
+import com.iris.caching.ObjectCache;
+import com.iris.exception.ApplicationException;
+import com.iris.model.UserMaster;
+import com.iris.model.UserRole;
+import com.iris.model.UserRoleMaster;
+import com.iris.repository.RegulatorRepo;
+import com.iris.repository.UserRoleMasterRepo;
+import com.iris.repository.UserRoleRepo;
+import com.iris.sdmx.element.bean.ElementApprovalInputBean;
+import com.iris.service.impl.UserMasterService;
+import com.iris.util.constant.ErrorCode;
+
+
+/**
+ * @author vjadhav
+ *
+ */
+
+@Component
+public class UserManagementValidator {
+
+	private static final Logger LOGGER = LogManager.getLogger(UserManagementValidator.class);
+	
+	@Autowired
+	private UserMasterService userMasterService;
+	
+	@Autowired
+	private UserRoleMasterRepo userRoleMasterRepo;
+	
+	@Autowired
+	private UserRoleRepo userRoleRepo;
+	
+	@Autowired
+	private RegulatorRepo regulatorRepo;
+	
+	
+	
+	public void validateApprovalRequest(ElementApprovalInputBean inputBean, ElementApprovalInputBean validInputBean,
+			String jobProcessId) throws ApplicationException {
+		validateUser(inputBean.getUserId(), validInputBean);
+		
+		validateRoleId(inputBean.getRoleId(),inputBean.getUserId(), validInputBean);
+		
+		validateRoleTypeId(inputBean.getUserId());
+		
+		validateDepartmentCode(inputBean.getDeptCode(), inputBean.getUserId(), validInputBean);
+		
+	}
+	
+	public void validateApproveRejectRequest(ElementApprovalInputBean inputBean, ElementApprovalInputBean validInputBean,
+			String jobProcessId) throws ApplicationException {
+		validateUser(inputBean.getUserId(), validInputBean);
+		
+		UserMaster userMaster = userMasterService.getDataById(validInputBean.getUserId());
+		String deptCode = null;
+		if(userMaster.getDepartmentIdFk() != null) {
+			 deptCode = userMaster.getDepartmentIdFk().getRegulatorCode();
+		}
+		
+		validateRoleId(inputBean.getRoleId(),inputBean.getUserId(), validInputBean);
+		
+		validateRoleTypeId(inputBean.getUserId());
+		
+		validateDepartmentCode(deptCode, inputBean.getUserId(), validInputBean);
+		
+	}
+	
+	private void validateUser(Long userId, ElementApprovalInputBean validInputBean) throws ApplicationException {
+		if (userId == null) {
+			throw new ApplicationException(ErrorCode.E1554.toString(),
+					ObjectCache.getErrorCodeKey(ErrorCode.E1554.toString()));
+		} else if (userMasterService.getDataById(userId) == null) {
+			throw new ApplicationException(ErrorCode.E0638.toString(),
+					ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString()));
+		} else {
+			validInputBean.setUserId(userId);
+		}
+	}
+	
+	
+	private void validateRoleId(Long roleId, Long userId, ElementApprovalInputBean validInputBean) throws ApplicationException {
+		
+		if (roleId == null) {
+			throw new ApplicationException(ErrorCode.E1555.toString(),
+					ObjectCache.getErrorCodeKey(ErrorCode.E1555.toString()));
+		}  
+		UserRoleMaster userRoleMaster = new UserRoleMaster();
+		UserRole userRole = new UserRole();
+		userRole.setUserRoleId(roleId);
+		userRoleMaster.setUserRole(userRole);
+		boolean invalidRoleId = true;
+		List<UserRoleMaster> roleList = userRoleMasterRepo.findByUserMasterUserId(userId);
+		for(UserRoleMaster roleObj : roleList) {
+			if(roleObj.getUserRole().getUserRoleId() == roleId) {
+				invalidRoleId = false;
+			}
+			
+		}
+		if (invalidRoleId) {
+			throw new ApplicationException(ErrorCode.E0481.toString(),
+					ObjectCache.getErrorCodeKey(ErrorCode.E0481.toString()));
+		} else if(!userRoleRepo.findByUserRoleIdAndIsActiveTrue(roleId).getDeptAdmin().equalsIgnoreCase("1")){
+			throw new ApplicationException(ErrorCode.E0613.toString(),
+					ObjectCache.getErrorCodeKey(ErrorCode.E0613.toString()));
+		} else {
+			validInputBean.setRoleId(roleId);
+			validInputBean.setIsDeptAdmin(Boolean.TRUE);
+		}
+		
+	}
+	
+	private void validateRoleTypeId(Long userId) throws ApplicationException {
+		UserMaster userMaster = userMasterService.getDataById(userId);
+		if(userMaster.getRoleType().getRoleTypeId() != 1) {
+			throw new ApplicationException(ErrorCode.E0613.toString(),
+					ObjectCache.getErrorCodeKey(ErrorCode.E0613.toString()));
+		} 
+	}
+	
+	private void validateDepartmentCode(String deptCode,Long userId, ElementApprovalInputBean validInputBean) throws ApplicationException {
+		Long deptId = null;
+		UserMaster userMaster = userMasterService.getDataById(userId);
+		if (StringUtils.isEmpty(deptCode)) {
+			throw new ApplicationException(ErrorCode.E1556.toString(),
+					ObjectCache.getErrorCodeKey(ErrorCode.E1556.toString()));
+		} else if(userMaster.getDepartmentIdFk().getRegulatorId() != null) {
+				 deptId = regulatorRepo.findByRegulatorCode(deptCode, true).getRegulatorId();
+				if(userMaster.getDepartmentIdFk().getRegulatorId() != deptId) {
+					throw new ApplicationException(ErrorCode.E1565.toString(),
+							ObjectCache.getErrorCodeKey(ErrorCode.E1565.toString()));
+				} else {
+					validInputBean.setDeptCode(deptCode);
+					validInputBean.setDeptId(deptId);
+					validInputBean.setIsMainDept(regulatorRepo.findByRegulatorCode(deptCode, true).getIsMaster());
+					
+					
+				}
+		}
+		
+		
+	}
+	
+
+
+}

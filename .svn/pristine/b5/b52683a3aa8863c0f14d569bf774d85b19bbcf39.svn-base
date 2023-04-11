@@ -1,0 +1,26 @@
+/**
+ * 
+ */
+package com.iris.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.iris.model.Regulator;
+
+/**
+ * @author apagaria
+ *
+ */
+public interface RegulatorRepo extends JpaRepository<Regulator, Long> {
+
+	Regulator findByRegulatorIdAndIsActiveTrue(Long id);
+
+	@Query("SELECT r.regulatorName FROM Regulator r WHERE r.regulatorCode=:regulatorCode and r.isActive=:isActive")
+	String findNameByRegulatorCode(String regulatorCode, Boolean isActive);
+	
+	@Query("FROM Regulator r WHERE r.regulatorCode=:regulatorCode and r.isActive=:isActive")
+	Regulator findByRegulatorCode(String regulatorCode, Boolean isActive);
+	
+
+}

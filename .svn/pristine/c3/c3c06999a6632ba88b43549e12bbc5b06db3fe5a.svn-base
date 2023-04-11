@@ -1,0 +1,275 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.iris.model.EntityBean;
+import com.iris.model.Frequency;
+import com.iris.model.SubCategory;
+
+public class ChartBean implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	private String userName;
+	private Long roleId;
+	private Long userId;
+	private Boolean isActive;
+	private String langCode;
+	private Long langId;
+	private String[] selectedDept;
+	private String[] selectedReturn;
+	private String[] selectedEntity;
+	private String[] selectedChanel;
+	private String[] selectedStatus;
+	private String[] selectedTypeOfFiling;
+	private String[] selectedCategory;
+	private String[] selectedSubCategory;
+	private String dateFormat;
+	private String startDate;
+	private String endDate;
+	private List<ReturnDto> returnListOfDrill = new ArrayList<>();
+	private List<DropDownObject> entityListOfDrill  = new ArrayList<>();
+	private List<DropDownObject> filingStatusList = new ArrayList<>();
+	private List<DropDownObject> chanelList = new ArrayList<>();
+	private List<DropDownObject> typeOfFilingList = new ArrayList<>();
+	private List<DropDownObject> deptList = new ArrayList<>();
+	private String order;
+	private String entityNameLike;
+	private Long page;
+	private List<Frequency> freqList;
+	private String notUploaded;
+	private String notSubmitted;
+	private String submitOrPending;
+	private Long frequency;
+	private String filingDate;
+	private String filingStartDate;
+	private String orderStr;
+	private List<EntityBean> categoryList = new ArrayList<>();
+	private List<SubCategory> subCategoryList = new ArrayList<>();
+	
+	public String getUserName() {
+		return userName;
+	}
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+	public Long getRoleId() {
+		return roleId;
+	}
+	public void setRoleId(Long roleId) {
+		this.roleId = roleId;
+	}
+	public Long getUserId() {
+		return userId;
+	}
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+	public Boolean getIsActive() {
+		return isActive;
+	}
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+	public String getLangCode() {
+		return langCode;
+	}
+	public void setLangCode(String langCode) {
+		this.langCode = langCode;
+	}
+	public Long getLangId() {
+		return langId;
+	}
+	public void setLangId(Long langId) {
+		this.langId = langId;
+	}
+	
+	public String getDateFormat() {
+		return dateFormat;
+	}
+	public void setDateFormat(String dateFormat) {
+		this.dateFormat = dateFormat;
+	}
+	public String getStartDate() {
+		return startDate;
+	}
+	public void setStartDate(String startDate) {
+		this.startDate = startDate;
+	}
+	public String getEndDate() {
+		return endDate;
+	}
+	public void setEndDate(String endDate) {
+		this.endDate = endDate;
+	}
+	public List<ReturnDto> getReturnListOfDrill() {
+		return returnListOfDrill;
+	}
+	public void setReturnListOfDrill(List<ReturnDto> returnListOfDrill) {
+		this.returnListOfDrill = returnListOfDrill;
+	}
+	public List<DropDownObject> getEntityListOfDrill() {
+		return entityListOfDrill;
+	}
+	public void setEntityListOfDrill(List<DropDownObject> entityListOfDrill) {
+		this.entityListOfDrill = entityListOfDrill;
+	}
+	public List<DropDownObject> getFilingStatusList() {
+		return filingStatusList;
+	}
+	public void setFilingStatusList(List<DropDownObject> filingStatusList) {
+		this.filingStatusList = filingStatusList;
+	}
+	public List<DropDownObject> getChanelList() {
+		return chanelList;
+	}
+	public void setChanelList(List<DropDownObject> chanelList) {
+		this.chanelList = chanelList;
+	}
+	public List<DropDownObject> getTypeOfFilingList() {
+		return typeOfFilingList;
+	}
+	public void setTypeOfFilingList(List<DropDownObject> typeOfFilingList) {
+		this.typeOfFilingList = typeOfFilingList;
+	}
+	public String[] getSelectedReturn() {
+		return selectedReturn;
+	}
+	public void setSelectedReturn(String[] selectedReturn) {
+		this.selectedReturn = selectedReturn;
+	}
+	public String[] getSelectedEntity() {
+		return selectedEntity;
+	}
+	public void setSelectedEntity(String[] selectedEntity) {
+		this.selectedEntity = selectedEntity;
+	}
+	public String[] getSelectedChanel() {
+		return selectedChanel;
+	}
+	public void setSelectedChanel(String[] selectedChanel) {
+		this.selectedChanel = selectedChanel;
+	}
+	public String[] getSelectedStatus() {
+		return selectedStatus;
+	}
+	public void setSelectedStatus(String[] selectedStatus) {
+		this.selectedStatus = selectedStatus;
+	}
+	public String[] getSelectedTypeOfFiling() {
+		return selectedTypeOfFiling;
+	}
+	public void setSelectedTypeOfFiling(String[] selectedTypeOfFiling) {
+		this.selectedTypeOfFiling = selectedTypeOfFiling;
+	}
+	public String getOrder() {
+		return order;
+	}
+	public void setOrder(String order) {
+		this.order = order;
+	}
+	public List<DropDownObject> getDeptList() {
+		return deptList;
+	}
+	public void setDeptList(List<DropDownObject> deptList) {
+		this.deptList = deptList;
+	}
+	public String[] getSelectedDept() {
+		return selectedDept;
+	}
+	public void setSelectedDept(String[] selectedDept) {
+		this.selectedDept = selectedDept;
+	}
+	public String getEntityNameLike() {
+		return entityNameLike;
+	}
+	public void setEntityNameLike(String entityNameLike) {
+		this.entityNameLike = entityNameLike;
+	}
+	public Long getPage() {
+		return page;
+	}
+	public void setPage(Long page) {
+		this.page = page;
+	}
+	public List<Frequency> getFreqList() {
+		return freqList;
+	}
+	public void setFreqList(List<Frequency> freqList) {
+		this.freqList = freqList;
+	}
+	public String getNotUploaded() {
+		return notUploaded;
+	}
+	public void setNotUploaded(String notUploaded) {
+		this.notUploaded = notUploaded;
+	}
+	public String getNotSubmitted() {
+		return notSubmitted;
+	}
+	public void setNotSubmitted(String notSubmitted) {
+		this.notSubmitted = notSubmitted;
+	}
+	public String getSubmitOrPending() {
+		return submitOrPending;
+	}
+	public void setSubmitOrPending(String submitOrPending) {
+		this.submitOrPending = submitOrPending;
+	}
+	public Long getFrequency() {
+		return frequency;
+	}
+	public void setFrequency(Long frequency) {
+		this.frequency = frequency;
+	}
+	public String getFilingDate() {
+		return filingDate;
+	}
+	public void setFilingDate(String filingDate) {
+		this.filingDate = filingDate;
+	}
+	public String getFilingStartDate() {
+		return filingStartDate;
+	}
+	public void setFilingStartDate(String filingStartDate) {
+		this.filingStartDate = filingStartDate;
+	}
+	
+	public String[] getSelectedCategory() {
+		return selectedCategory;
+	}
+	public void setSelectedCategory(String[] selectedCategory) {
+		this.selectedCategory = selectedCategory;
+	}
+	public String[] getSelectedSubCategory() {
+		return selectedSubCategory;
+	}
+	public void setSelectedSubCategory(String[] selectedSubCategory) {
+		this.selectedSubCategory = selectedSubCategory;
+	}
+	public String getOrderStr() {
+		return orderStr;
+	}
+	public void setOrderStr(String orderStr) {
+		this.orderStr = orderStr;
+	}
+
+	public List<EntityBean> getCategoryList() {
+		return categoryList;
+	}
+	public void setCategoryList(List<EntityBean> categoryList) {
+		this.categoryList = categoryList;
+	}
+	public List<SubCategory> getSubCategoryList() {
+		return subCategoryList;
+	}
+	public void setSubCategoryList(List<SubCategory> subCategoryList) {
+		this.subCategoryList = subCategoryList;
+	}
+	
+}

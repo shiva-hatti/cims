@@ -1,0 +1,232 @@
+/**
+ * 
+ */
+package com.iris.sdmx.exceltohtml.helper;
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.iris.model.UserMaster;
+import com.iris.sdmx.element.bean.SdmxElementBean;
+import com.iris.sdmx.element.entity.SdmxElementEntity;
+import com.iris.sdmx.element.service.SdmxElementService;
+import com.iris.sdmx.exceltohtml.bean.DimensionCodeListValueBean;
+import com.iris.sdmx.exceltohtml.bean.DimensionDetailCategories;
+import com.iris.sdmx.exceltohtml.bean.ModelCodeInputBean;
+import com.iris.sdmx.exceltohtml.bean.SdmxDimensionDetail;
+import com.iris.sdmx.exceltohtml.bean.SdmxModelCodesBean;
+import com.iris.sdmx.exceltohtml.entity.SdmxModelCodesEntity;
+import com.iris.sdmx.exceltohtml.service.SdmxModelCodesService;
+
+/**
+ * @author apagaria
+ *
+ */
+@Component
+public class SdmxModelCodesHelper {
+
+	/**
+	 * 
+	 */
+	@Autowired
+	private SdmxElementService sdmxElementService;
+
+	@Autowired
+	private SdmxModelCodesService modelCodesService;
+
+	private SdmxModelCodesHelper() {
+	}
+
+	/**
+	 * @param sdmxModelCodesEntity
+	 * @param sdmxModelCodesBean
+	 */
+	public static void convertEntityToBean(SdmxModelCodesEntity sdmxModelCodesEntity,
+			SdmxModelCodesBean sdmxModelCodesBean) {
+		BeanUtils.copyProperties(sdmxModelCodesEntity, sdmxModelCodesBean);
+
+		// Return Template
+		if (sdmxModelCodesEntity.getElementIdFk() != null) {
+			SdmxElementEntity sdmxElementEntity = sdmxModelCodesEntity.getElementIdFk();
+			sdmxModelCodesBean.setDsdCode(sdmxElementEntity.getDsdCode());
+			sdmxModelCodesBean.setElementLabel(sdmxElementEntity.getElementLabel());
+			sdmxModelCodesBean.setElementVer(sdmxElementEntity.getElementVer());
+			sdmxModelCodesBean.setElementIdFk(sdmxElementEntity.getElementId());
+		}
+
+		// Created By
+		if (sdmxModelCodesEntity.getCreatedBy() != null) {
+			sdmxModelCodesBean.setCreatedBy(sdmxModelCodesEntity.getCreatedBy().getUserId());
+			sdmxModelCodesBean.setCreatedByName(sdmxModelCodesEntity.getCreatedBy().getUserName());
+		}
+	}
+
+	/**
+	 * @param sdmxModelCodesBean
+	 * @param sdmxModelCodesEntity
+	 * @param userId
+	 */
+	public static void convertBeanToEntity(SdmxModelCodesBean sdmxModelCodesBean,
+			SdmxModelCodesEntity sdmxModelCodesEntity, Long userId) {
+		BeanUtils.copyProperties(sdmxModelCodesBean, sdmxModelCodesEntity);
+
+		// User Master Created By
+		if (userId != null) {
+			UserMaster userMaster = new UserMaster();
+			userMaster.setUserId(userId);
+			sdmxModelCodesEntity.setCreatedBy(userMaster);
+			// Created On
+			sdmxModelCodesEntity.setCreatedOn(new Date());
+		}
+
+		// Element id
+		if (sdmxModelCodesBean.getElementIdFk() != null) {
+			SdmxElementEntity sdmxElementEntity = new SdmxElementEntity();
+			sdmxElementEntity.setElementId(sdmxModelCodesBean.getElementIdFk());
+			sdmxModelCodesEntity.setElementIdFk(sdmxElementEntity);
+		}
+	}
+
+	/**
+	 * @param modelCodeInputBean
+	 * @param userId
+	 * @param sdmxModelCodesBean
+	 */
+	@SuppressWarnings("unchecked")
+	public Long fetchBeanFromRequest(ModelCodeInputBean modelCodeInputBean, Long userId,
+			SdmxModelCodesBean sdmxModelCodesBean) {
+		Long modelCodeId = 0L;
+		BeanUtils.copyProperties(modelCodeInputBean, sdmxModelCodesBean);
+
+		// JSON Model Data
+		Type type = new TypeToken<List<SdmxDimensionDetail>>() {
+		}.getType();
+		List<SdmxDimensionDetail> sdmxDimensionDetailList = (List<SdmxDimensionDetail>) new Gson()
+				.fromJson(new String(Base64.decodeBase64(modelCodeInputBean.getModelDim().getBytes())), type);
+		Long elementIdFk = modelCodeInputBean.getElementIdFk();
+		SdmxElementBean sdmxElementBean = sdmxElementService.findEntityByActiveStatus(elementIdFk, true);
+		DimensionDetailCategories dimensionDetailCategories = new DimensionDetailCategories();
+		dimensionDetailCategories.setDsdId(sdmxElementBean.getDsdCode());
+		dimensionDetailCategories.setElementVersion(sdmxElementBean.getElementVer());
+		List<DimensionCodeListValueBean> closedDim = new ArrayList<>();
+		List<DimensionCodeListValueBean> commonDimension = new ArrayList<>();
+		List<DimensionCodeListValueBean> openDimension = new ArrayList<>();
+		boolean isOnlyOpen = true;
+		for (SdmxDimensionDetail sdmxDimensionDetail : sdmxDimensionDetailList) {
+			if (sdmxDimensionDetail.getIsCommon()) {
+				DimensionCodeListValueBean dimensionCodeListValueBean = new DimensionCodeListValueBean();
+				if (!StringUtils.isBlank(sdmxDimensionDetail.getSelectedCodeListId())) {
+					dimensionCodeListValueBean.setClValueCode(sdmxDimensionDetail.getSelectedCodeListId());
+				}
+				dimensionCodeListValueBean.setDimConceptId(sdmxDimensionDetail.getDimensionCode());
+				commonDimension.add(dimensionCodeListValueBean);
+				isOnlyOpen = false;
+			} else if (sdmxDimensionDetail.getDimensionType().equalsIgnoreCase("OPEN")) {
+				DimensionCodeListValueBean dimensionCodeListValueBean = new DimensionCodeListValueBean();
+				if (!StringUtils.isBlank(sdmxDimensionDetail.getSelectedCodeListId())) {
+					dimensionCodeListValueBean.setClValueCode(sdmxDimensionDetail.getSelectedCodeListId());
+				}
+				dimensionCodeListValueBean.setDimConceptId(sdmxDimensionDetail.getDimensionCode());
+				openDimension.add(dimensionCodeListValueBean);
+			} else {
+				isOnlyOpen = false;
+				DimensionCodeListValueBean dimensionCodeListValueBean = new DimensionCodeListValueBean();
+				if (!StringUtils.isBlank(sdmxDimensionDetail.getSelectedCodeListId())) {
+					dimensionCodeListValueBean.setClValueCode(sdmxDimensionDetail.getSelectedCodeListId());
+				}
+				dimensionCodeListValueBean.setDimConceptId(sdmxDimensionDetail.getDimensionCode());
+				closedDim.add(dimensionCodeListValueBean);
+			}
+
+		}
+		dimensionDetailCategories.setClosedDim(closedDim);
+		dimensionDetailCategories.setCommonDimension(commonDimension);
+		dimensionDetailCategories.setOpenDimension(openDimension);
+		String modelDimJson = new Gson().toJson(dimensionDetailCategories);
+		sdmxModelCodesBean.setModelDim(modelDimJson);
+
+		List<SdmxModelCodesBean> sdmxModelCodesBeanList = modelCodesService.findEntityByModelDimNElementId(modelDimJson,
+				sdmxModelCodesBean.getElementIdFk());
+		SdmxModelCodesBean oldSdmxModelCodesBean = null;
+		boolean isDmExist = false;
+		if (!CollectionUtils.isEmpty(sdmxModelCodesBeanList)) {
+			for (SdmxModelCodesBean sdmxModelCodesBean2 : sdmxModelCodesBeanList) {
+				DimensionDetailCategories dimensionDetailCategories2 = new Gson()
+						.fromJson(sdmxModelCodesBean2.getModelDim(), DimensionDetailCategories.class);
+				if (dimensionDetailCategories2.equals(dimensionDetailCategories)) {
+					isDmExist = true;
+					modelCodeId = sdmxModelCodesBean2.getModelCodesId();
+					oldSdmxModelCodesBean = sdmxModelCodesBean2;
+					break;
+				}
+			}
+		}
+		if (isDmExist && oldSdmxModelCodesBean != null) {
+			sdmxModelCodesBean.setModelCode(oldSdmxModelCodesBean.getModelCode());
+		} else {
+			// DM Generation Logic
+			String maxDMCode = modelCodesService.findMaxModelCodes();
+			if (isOnlyOpen) {
+				sdmxModelCodesBean.setModelCode(generateDMISeq(maxDMCode));
+			} else {
+				sdmxModelCodesBean.setModelCode(generateDMSeq(maxDMCode));
+			}
+		}
+
+		sdmxModelCodesBean.setIsActive(true);
+		return modelCodeId;
+	}
+
+	public String generateDMSeq(String dmVal) {
+		if (StringUtils.isBlank(dmVal)) {
+			return "DM000001";
+		}
+		int dmNum = Integer.parseInt(dmVal.substring(2));
+		dmNum++;
+		String dmNumStr = "" + dmNum;
+		if (dmNumStr.length() == 1) {
+			dmNumStr = "00000" + dmNumStr;
+		} else if (dmNumStr.length() == 2) {
+			dmNumStr = "0000" + dmNumStr;
+		} else if (dmNumStr.length() == 3) {
+			dmNumStr = "000" + dmNumStr;
+		} else if (dmNumStr.length() == 4) {
+			dmNumStr = "00" + dmNumStr;
+		} else if (dmNumStr.length() == 5) {
+			dmNumStr = "0" + dmNumStr;
+		}
+		return "DM" + dmNumStr;
+	}
+
+	public static String generateDMISeq(String dmVal) {
+		if (StringUtils.isBlank(dmVal)) {
+			return "DMI000001";
+		}
+		int dmNum = Integer.parseInt(dmVal.substring(3));
+		dmNum++;
+		String dmNumStr = "" + dmNum;
+		if (dmNumStr.length() == 1) {
+			dmNumStr = "00000" + dmNumStr;
+		} else if (dmNumStr.length() == 2) {
+			dmNumStr = "0000" + dmNumStr;
+		} else if (dmNumStr.length() == 3) {
+			dmNumStr = "000" + dmNumStr;
+		} else if (dmNumStr.length() == 4) {
+			dmNumStr = "00" + dmNumStr;
+		} else if (dmNumStr.length() == 5) {
+			dmNumStr = "0" + dmNumStr;
+		}
+		return "DMI" + dmNumStr;
+	}
+}

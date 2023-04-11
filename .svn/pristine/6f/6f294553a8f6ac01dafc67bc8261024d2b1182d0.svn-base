@@ -1,0 +1,68 @@
+/**
+ * 
+ */
+package com.iris.sdmx.fusion.bean.error;
+
+import java.io.Serializable;
+
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
+/**
+ * @author sajadhav
+ *
+ */
+@XmlRootElement(name = "Error")
+public class Error implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 5329092771911964631L;
+
+	private ErrorMessage errorMessage;
+
+	/**
+	 * @return the errorMessage
+	 */
+	@XmlElement(name = "ErrorMessage", namespace = "http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message")
+	public ErrorMessage getErrorMessage() {
+		return errorMessage;
+	}
+
+	/**
+	 * @param errorMessage the errorMessage to set
+	 */
+	public void setErrorMessage(ErrorMessage errorMessage) {
+		this.errorMessage = errorMessage;
+	}
+	
+	public static void main(String[] args) throws JAXBException {
+		
+//		Error error = new Error();
+		
+//		ErrorMessage errorMessage = new ErrorMessage();
+//		errorMessage.setCode("304");
+//		errorMessage.setText("Either no structures were submitted, or the submitted structures contain no changes from the ones currently stored in the system");
+
+//		error.setErrorMessage(errorMessage);
+		
+//        try {
+//			JAXBContext jaxbContext = JAXBContext.newInstance(Error.class);
+//			Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+//			jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE); // To format XML
+
+			// Print XML String to Console
+//			jaxbMarshaller.marshal(error, new File("Error.xml"));
+			
+//			Unmarshaller jaxbUnMarshaller = jaxbContext.createUnmarshaller();
+//			Error error1 = (Error) jaxbUnMarshaller.unmarshal(new File("Error.xml"));
+//	        System.out.println(error1);
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+	}
+	
+	
+}

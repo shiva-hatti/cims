@@ -1,0 +1,296 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+/**
+ * This is the Return bean class with Hibernate mapping.
+ * 
+ * @author psawant
+ * @date 15/10/2015 version 1.0
+ */
+@Entity
+@Table(name = "TBL_RETURN_TABLE_MAP")
+@JsonInclude(Include.NON_NULL)
+public class ReturnTableMap implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2616816777670064980L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "ID")
+	private Long Id;
+
+	@ManyToOne(cascade = CascadeType.DETACH, fetch = FetchType.LAZY)
+	@JoinColumn(name = "RETURN_ID_FK")
+	private Return returnIdFk;
+
+	@Column(name = "TABLE_CODE")
+	private String tableCode;
+
+	@Column(name = "TABLE_NAME")
+	private String tableName;
+
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	@Column(name = "IS_OPTIONAL")
+	private Boolean isOptional;
+
+	@Column(name = "IS_BUSINESS_RULE_APPLICABLE")
+	private Boolean isBusinessRuleApplication;
+
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+
+	@Column(name = "LAST_MODIFIED_ON")
+	private Date lastModifiedOn;
+
+	/**
+	 * 
+	 */
+	public ReturnTableMap() {
+		super();
+	}
+	
+	/**
+	 * @param id
+	 * @param returnIdFk
+	 * @param tableCode
+	 * @param tableName
+	 * @param isActive
+	 * @param isOptional
+	 * @param isBusinessRuleApplication
+	 * @param createdOn
+	 * @param lastModifiedOn
+	 */
+	public ReturnTableMap(Long id, String tableCode, String tableName, Boolean isActive,
+			Boolean isOptional, Boolean isBusinessRuleApplication, Date createdOn, Date lastModifiedOn) {
+		super();
+		Id = id;
+		this.tableCode = tableCode;
+		this.tableName = tableName;
+		this.isActive = isActive;
+		this.isOptional = isOptional;
+		this.isBusinessRuleApplication = isBusinessRuleApplication;
+		this.createdOn = createdOn;
+		this.lastModifiedOn = lastModifiedOn;
+	}
+
+	/**
+	 * @param id
+	 * @param returnIdFk
+	 * @param tableCode
+	 * @param tableName
+	 * @param isActive
+	 * @param isOptional
+	 * @param isBusinessRuleApplication
+	 * @param createdOn
+	 * @param lastModifiedOn
+	 */
+	public ReturnTableMap(Long id, Return returnIdFk, String tableCode, String tableName, Boolean isActive,
+			Boolean isOptional, Boolean isBusinessRuleApplication, Date createdOn, Date lastModifiedOn) {
+		super();
+		Id = id;
+		this.returnIdFk = returnIdFk;
+		this.tableCode = tableCode;
+		this.tableName = tableName;
+		this.isActive = isActive;
+		this.isOptional = isOptional;
+		this.isBusinessRuleApplication = isBusinessRuleApplication;
+		this.createdOn = createdOn;
+		this.lastModifiedOn = lastModifiedOn;
+	}
+
+	/**
+	 * @return the id
+	 */
+	public Long getId() {
+		return Id;
+	}
+
+	/**
+	 * @param id the id to set
+	 */
+	public void setId(Long id) {
+		Id = id;
+	}
+
+	/**
+	 * @return the returnIdFk
+	 */
+	public Return getReturnIdFk() {
+		return returnIdFk;
+	}
+
+	/**
+	 * @param returnIdFk the returnIdFk to set
+	 */
+	public void setReturnIdFk(Return returnIdFk) {
+		this.returnIdFk = returnIdFk;
+	}
+
+	/**
+	 * @return the tableCode
+	 */
+	public String getTableCode() {
+		return tableCode;
+	}
+
+	/**
+	 * @param tableCode the tableCode to set
+	 */
+	public void setTableCode(String tableCode) {
+		this.tableCode = tableCode;
+	}
+
+	/**
+	 * @return the tableName
+	 */
+	public String getTableName() {
+		return tableName;
+	}
+
+	/**
+	 * @param tableName the tableName to set
+	 */
+	public void setTableName(String tableName) {
+		this.tableName = tableName;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the isOptional
+	 */
+	public Boolean getIsOptional() {
+		return isOptional;
+	}
+
+	/**
+	 * @param isOptional the isOptional to set
+	 */
+	public void setIsOptional(Boolean isOptional) {
+		this.isOptional = isOptional;
+	}
+
+	/**
+	 * @return the isBusinessRuleApplication
+	 */
+	public Boolean getIsBusinessRuleApplication() {
+		return isBusinessRuleApplication;
+	}
+
+	/**
+	 * @param isBusinessRuleApplication the isBusinessRuleApplication to set
+	 */
+	public void setIsBusinessRuleApplication(Boolean isBusinessRuleApplication) {
+		this.isBusinessRuleApplication = isBusinessRuleApplication;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the lastModifiedOn
+	 */
+	public Date getLastModifiedOn() {
+		return lastModifiedOn;
+	}
+
+	/**
+	 * @param lastModifiedOn the lastModifiedOn to set
+	 */
+	public void setLastModifiedOn(Date lastModifiedOn) {
+		this.lastModifiedOn = lastModifiedOn;
+	}
+	
+	
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((returnIdFk == null) ? 0 : returnIdFk.hashCode());
+		result = prime * result + ((tableCode == null) ? 0 : tableCode.hashCode());
+		result = prime * result + ((tableName == null) ? 0 : tableName.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ReturnTableMap other = (ReturnTableMap) obj;
+		if (returnIdFk == null) {
+			if (other.returnIdFk != null)
+				return false;
+		} else if (!returnIdFk.equals(other.returnIdFk)) {
+			return false;
+		}
+		if (tableCode == null) {
+			if (other.tableCode != null)
+				return false;
+		} else if (!tableCode.equals(other.tableCode)) {
+			return false;
+		}
+		if (tableName == null) {
+			if (other.tableName != null)
+				return false;
+		} else if (!tableName.equals(other.tableName)) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "ReturnTableMap [Id=" + Id + ", returnIdFk=" + returnIdFk + ", tableCode=" + tableCode + ", tableName="
+				+ tableName + ", isActive=" + isActive + ", isOptional=" + isOptional + ", isBusinessRuleApplication="
+				+ isBusinessRuleApplication + ", createdOn=" + createdOn + ", lastModifiedOn=" + lastModifiedOn + "]";
+	}
+}

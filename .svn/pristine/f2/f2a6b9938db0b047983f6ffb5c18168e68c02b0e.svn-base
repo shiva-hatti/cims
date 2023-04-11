@@ -1,0 +1,131 @@
+/**
+ * 
+ */
+package com.iris.sdmx.fusion.bean;
+
+import java.io.Serializable;
+import java.util.Date;
+
+/**
+ * @author apagaria
+ *
+ */
+public class SdmxFusionDsdDetailBean implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	private Long fusionDsdDetailId;
+
+	private String dsdFileName;
+
+	private String dsdVer;
+
+	private Boolean isActive;
+
+	private Long createdBy;
+
+	private String userName;
+
+	private Date createdOn;
+
+	/**
+	 * @return the fusionDsdDetailId
+	 */
+	public Long getFusionDsdDetailId() {
+		return fusionDsdDetailId;
+	}
+
+	/**
+	 * @param fusionDsdDetailId the fusionDsdDetailId to set
+	 */
+	public void setFusionDsdDetailId(Long fusionDsdDetailId) {
+		this.fusionDsdDetailId = fusionDsdDetailId;
+	}
+
+	/**
+	 * @return the dsdFileName
+	 */
+	public String getDsdFileName() {
+		return dsdFileName;
+	}
+
+	/**
+	 * @param dsdFileName the dsdFileName to set
+	 */
+	public void setDsdFileName(String dsdFileName) {
+		this.dsdFileName = dsdFileName;
+	}
+
+	/**
+	 * @return the dsdVer
+	 */
+	public String getDsdVer() {
+		return dsdVer;
+	}
+
+	/**
+	 * @param dsdVer the dsdVer to set
+	 */
+	public void setDsdVer(String dsdVer) {
+		this.dsdVer = dsdVer;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public Long getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(Long createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the userName
+	 */
+	public String getUserName() {
+		return userName;
+	}
+
+	/**
+	 * @param userName the userName to set
+	 */
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+}

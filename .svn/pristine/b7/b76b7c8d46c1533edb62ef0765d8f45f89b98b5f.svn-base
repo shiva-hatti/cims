@@ -1,0 +1,117 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+	
+	@Entity
+	@Table(name = "TBL_NBFC_PROFILE_DETAILS_TEMP")
+	public class NbfcProfileDetailsTempBean implements Serializable {
+	
+	private static final long serialVersionUID = 8218624826771521660L;
+	
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@Column(name = "NBFC_PROFILE_DETAIL_TEMP_ID")
+	private Long nbfcProfileDetailTempId;
+	
+	@Column(name = "NBFC_PROFILE_PAGE_JSON")
+	private String profilePageJson;
+	
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name = "NBFC_ENTITY_ID_FK")
+	private EntityBean entityBean;
+
+	
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+	
+	@Column(name = "LAST_UPDATE_ON")
+	private Date lastUpdatedOn;
+	
+	@ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name="LAST_UPDATED_BY")
+	private UserMaster lastUpdatedBy;
+	
+	@Column(name = "PAGE_NUMBER")
+	private Long pageNumber;
+	
+	@Column(name = "IS_SUBMITTED")
+	private Boolean isSubmitted;
+
+	
+	public String getProfilePageJson() {
+		return profilePageJson;
+	}
+
+	public void setProfilePageJson(String profilePageJson) {
+		this.profilePageJson = profilePageJson;
+	}
+
+	public EntityBean getEntityBean() {
+		return entityBean;
+	}
+
+	public void setEntityBean(EntityBean entityBean) {
+		this.entityBean = entityBean;
+	}
+
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+
+	public Long getNbfcProfileDetailTempId() {
+		return nbfcProfileDetailTempId;
+	}
+
+	public void setNbfcProfileDetailTempId(Long nbfcProfileDetailTempId) {
+		this.nbfcProfileDetailTempId = nbfcProfileDetailTempId;
+	}
+
+	public Date getLastUpdatedOn() {
+		return lastUpdatedOn;
+	}
+
+	public void setLastUpdatedOn(Date lastUpdatedOn) {
+		this.lastUpdatedOn = lastUpdatedOn;
+	}
+
+	public UserMaster getLastUpdatedBy() {
+		return lastUpdatedBy;
+	}
+
+	public void setLastUpdatedBy(UserMaster lastUpdatedBy) {
+		this.lastUpdatedBy = lastUpdatedBy;
+	}
+
+	public Long getPageNumber() {
+		return pageNumber;
+	}
+
+	public void setPageNumber(Long pageNumber) {
+		this.pageNumber = pageNumber;
+	}
+
+	public Boolean getIsSubmitted() {
+		return isSubmitted;
+	}
+
+	public void setIsSubmitted(Boolean isSubmitted) {
+		this.isSubmitted = isSubmitted;
+	}
+}

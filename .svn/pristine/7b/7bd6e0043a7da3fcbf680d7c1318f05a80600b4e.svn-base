@@ -1,0 +1,210 @@
+/**
+ * 
+ */
+package com.iris.controller;
+
+import java.io.File;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.iris.dto.TableElementMetaInfo;
+import com.iris.dto.XmlElementsDto;
+
+/**
+ * @author Siddique
+ *
+ */
+public class XMLBuilderFromJson {
+	
+	static final Logger logger = LogManager.getLogger(XMLBuilderFromJson.class);
+
+	public static void main(String[] args) {
+
+//		String json = "{\"R165-T008\":{\"dateCheck\":[{\"errType\":\"error\",\"errCode\":\"R000T00004\",\"formula\":\"0\",\"formulaType\":\"dateCheck\",\"tableCode\":\"R165-T008\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false}],\"regex\":[{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"0\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T008\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"0\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T008\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"0\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T008\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"0\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T008\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"0\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T008\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"0\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T008\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false}],\"lengthChk\":[{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"0\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T008\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"0\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T008\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"0\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T008\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"0\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T008\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"0\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T008\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"0\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T008\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false}],\"summation\":[{\"errType\":\"error\",\"errCode\":\"ER165T06001352\",\"formula\":\"0\",\"formulaType\":\"summation\",\"tableCode\":\"R165-T008\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"ER165T06001353\",\"formula\":\"0\",\"formulaType\":\"summation\",\"tableCode\":\"R165-T008\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false}]},\"R165-T006\":{\"dateCheck\":[{\"errType\":\"error\",\"errCode\":\"R000T00004\",\"formula\":\"2\",\"formulaType\":\"dateCheck\",\"tableCode\":\"R165-T006\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false}],\"regex\":[{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"3\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T006\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"7\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T006\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"4\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T006\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"6\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T006\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"9\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T006\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"8\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T006\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false}],\"lengthChk\":[{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"3\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T006\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"7\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T006\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"4\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T006\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"6\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T006\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"9\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T006\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"8\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T006\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false}],\"summation\":[{\"errType\":\"error\",\"errCode\":\"ER165T06001350\",\"formula\":\" 9 \\u003d\\u003d 7 - 8\",\"formulaType\":\"summation\",\"tableCode\":\"R165-T006\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"ER165T06001351\",\"formula\":\" 9 \\u003d\\u003d 7 - 8\",\"formulaType\":\"summation\",\"tableCode\":\"R165-T006\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false}]},\"R165-T005\":{\"dateCheck\":[{\"errType\":\"error\",\"errCode\":\"R000T00004\",\"formula\":\"2\",\"formulaType\":\"dateCheck\",\"tableCode\":\"R165-T005\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false}],\"regex\":[{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"4\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T005\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"8\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T005\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"7\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T005\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"6\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T005\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"3\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T005\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"9\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T005\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false}],\"lengthChk\":[{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"4\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T005\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"8\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T005\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"7\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T005\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"6\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T005\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"3\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T005\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"9\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T005\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false}],\"summation\":[{\"errType\":\"error\",\"errCode\":\"ER165T060013356\",\"formula\":\" 9 \\u003d\\u003d 7 - 8\",\"formulaType\":\"summation\",\"tableCode\":\"R165-T005\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"ER165T060013334\",\"formula\":\" 9 \\u003d\\u003d 7 - 8\",\"formulaType\":\"summation\",\"tableCode\":\"R165-T005\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false}]},\"R165-T004\":{\"regex\":[{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"2\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T004\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"1\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T004\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false}],\"lengthChk\":[{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"2\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T004\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"1\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T004\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false}]},\"R165-T003\":{\"regex\":[{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"9\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T003\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"6\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T003\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"3\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T003\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"4\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T003\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"7\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T003\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"8\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T003\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"2\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T003\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"5\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T003\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"10\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T003\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false}],\"lengthChk\":[{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"9\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T003\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"6\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T003\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"3\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T003\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"4\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T003\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"7\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T003\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"8\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T003\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"2\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T003\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"5\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T003\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"10\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T003\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false}],\"summation\":[{\"errType\":\"error\",\"errCode\":\"ER165T06001333\",\"formula\":\" 8 \\u003d\\u003d 3 + 4 + 5 + 6 + 7\",\"formulaType\":\"summation\",\"tableCode\":\"R165-T003\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"ER165T06001334\",\"formula\":\" 8 \\u003d\\u003d 3 + 4 + 5 + 6 + 7\",\"formulaType\":\"summation\",\"tableCode\":\"R165-T003\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"ER165T06001335\",\"formula\":\" 8 \\u003d\\u003d 3 + 4 + 5 + 6 + 7\",\"formulaType\":\"summation\",\"tableCode\":\"R165-T003\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"ER165T06001336\",\"formula\":\" 8 \\u003d\\u003d 3 + 4 + 5 + 6 + 7\",\"formulaType\":\"summation\",\"tableCode\":\"R165-T003\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"ER165T06001337\",\"formula\":\" 8 \\u003d\\u003d 3 + 4 + 5 + 6 + 7\",\"formulaType\":\"summation\",\"tableCode\":\"R165-T003\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"ER165T06001339\",\"formula\":\" 10 \\u003d\\u003d 8 + 9\",\"formulaType\":\"summation\",\"tableCode\":\"R165-T003\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"ER165T060013340\",\"formula\":\" 10 \\u003d\\u003d 8 + 9\",\"formulaType\":\"summation\",\"tableCode\":\"R165-T003\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false}]},\"R165-T002\":{\"dateCheck\":[{\"errType\":\"error\",\"errCode\":\"R000T00004\",\"formula\":\"2\",\"formulaType\":\"dateCheck\",\"tableCode\":\"R165-T002\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false}],\"regex\":[{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"4\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T002\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"3\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T002\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00001\",\"formula\":\"1\",\"condition\":\"/[^0-9]/g\",\"formulaType\":\"regex\",\"tableCode\":\"R165-T002\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false}],\"lengthChk\":[{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"4\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T002\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"3\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T002\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false},{\"errType\":\"error\",\"errCode\":\"R000T00002\",\"formula\":\"1\",\"formulaType\":\"lengthChk\",\"tableCode\":\"R165-T002\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false}],\"summation\":[{\"errType\":\"error\",\"errCode\":\"ER165T06001354\",\"formula\":\" 1 \\u003d\\u003d 3 *10\",\"formulaType\":\"summation\",\"tableCode\":\"R165-T002\",\"isTotalRowCountAvailable\":false,\"isGrandTotalAvailable\":false}]}}";
+//		Type listToken = new TypeToken<Map<String, Map<String, List<XmlElementsDto>>>>() {
+//
+//		}.getType();
+//		Map<String, Map<String, List<XmlElementsDto>>> dataMap = new Gson().fromJson(json, listToken);
+//		String path = "E:/Sidd/Projects/Docs/RBI/business_Validation_Local/" + "/" + "R165" + "/" + "CSV_FILE" + "/"
+//				+ "1.0.0" + "/formulaXml.xml";
+//
+//		buildXmlFile(dataMap, path);
+	}
+
+	public static void buildXmlFile(Map<String, Map<String, List<XmlElementsDto>>> dataMap, String path) {
+
+		logger.info("request received to build xml");
+		try {
+			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+			Document doc = dBuilder.newDocument();
+
+			// root element
+			Element parentRootElement = doc.createElement("fieldValidateRule");
+			doc.appendChild(parentRootElement);
+
+			int id = 0;
+			Attr attr = null;
+			Transformer transformer = null;
+			DOMSource source = null;
+			for (Map.Entry<String, Map<String, List<XmlElementsDto>>> outerMap : dataMap.entrySet()) {
+
+				for (Map.Entry<String, List<XmlElementsDto>> innerMap : outerMap.getValue().entrySet()) {
+					Element rootElement = doc.createElement("validationFormula");
+					parentRootElement.appendChild(rootElement);
+
+					id++;
+					for (XmlElementsDto XmlElementsDto : innerMap.getValue()) {
+
+						attr = doc.createAttribute("id");
+						attr.setValue(String.valueOf(id));
+						rootElement.setAttributeNode(attr);
+
+						attr = doc.createAttribute("formulaType");
+						attr.setValue(XmlElementsDto.getFormulaType());
+						rootElement.setAttributeNode(attr);
+
+						attr = doc.createAttribute("tableCode");
+						attr.setValue(XmlElementsDto.getTableCode());
+						rootElement.setAttributeNode(attr);
+						
+						if(XmlElementsDto.isGrandTotalAvailable()) {
+							attr = doc.createAttribute("grandTotalAvailable");
+							attr.setValue("true");
+							rootElement.setAttributeNode(attr);
+						}
+						
+						if(XmlElementsDto.isTotalRowCountAvailable()) {
+							attr = doc.createAttribute("totalRowCountAvailable");
+							attr.setValue("true");
+							rootElement.setAttributeNode(attr);
+						}
+						
+						
+						Element childEleName = doc.createElement("element");
+							attr = doc.createAttribute("errType");
+							attr.setValue(XmlElementsDto.getErrType());
+							childEleName.setAttributeNode(attr);
+						
+							attr = doc.createAttribute("formula");
+							attr.setValue(XmlElementsDto.getFormula());
+							childEleName.setAttributeNode(attr);
+							
+							attr = doc.createAttribute("errCode");
+							attr.setValue(XmlElementsDto.getErrCode());
+							childEleName.setAttributeNode(attr);
+						
+						if(StringUtils.isNotBlank(XmlElementsDto.getCondition())) {
+							attr = doc.createAttribute("condition");
+							attr.setValue(XmlElementsDto.getCondition());
+							childEleName.setAttributeNode(attr);
+						}
+						
+						if(StringUtils.isNotBlank(XmlElementsDto.getConditionTag())) {
+							attr = doc.createAttribute("conditionTag");
+							attr.setValue(XmlElementsDto.getConditionTag());
+							childEleName.setAttributeNode(attr);
+						}
+
+						if(StringUtils.isNotBlank(XmlElementsDto.getFormulaTag())) {
+							attr = doc.createAttribute("formulaTag");
+							attr.setValue(XmlElementsDto.getFormulaTag());
+							childEleName.setAttributeNode(attr);
+						}
+						
+						if(XmlElementsDto.getFormulaType().equals("lengthChk") || XmlElementsDto.getMinLength() > 0 || XmlElementsDto.getMaxLength() > 0) {
+							attr = doc.createAttribute("minLength");
+							attr.setValue(String.valueOf(XmlElementsDto.getMinLength()));
+							childEleName.setAttributeNode(attr);
+							
+							attr = doc.createAttribute("maxLength");
+							attr.setValue(String.valueOf(XmlElementsDto.getMaxLength()));
+							childEleName.setAttributeNode(attr);
+							
+							}
+						
+						if(XmlElementsDto.getFormulaType().equals("valueChk")) {
+							attr = doc.createAttribute("methodURI");
+							attr.setValue(XmlElementsDto.getMethodURI());
+							childEleName.setAttributeNode(attr);
+							
+							attr = doc.createAttribute("methodType");
+							attr.setValue(XmlElementsDto.getMethodType());
+							childEleName.setAttributeNode(attr);
+							
+//							attr = doc.createAttribute("isNullAllow");
+//							attr.setValue("true");
+//							childEleName.setAttributeNode(attr);
+							
+							}
+						
+						if(StringUtils.isNotBlank(XmlElementsDto.getIsRowPositionCheck()) && StringUtils.isNotBlank(XmlElementsDto.getIsValidationOnParticularRow())) {
+							attr = doc.createAttribute("isRowPositionCheck");
+							attr.setValue("true");
+							childEleName.setAttributeNode(attr);
+							
+							attr = doc.createAttribute("isValidationOnParticularRow");
+							attr.setValue("true");
+							childEleName.setAttributeNode(attr);
+							
+							attr = doc.createAttribute("isNullAllow");
+							attr.setValue("true");
+							childEleName.setAttributeNode(attr);
+							
+							}
+						if(StringUtils.isNotBlank(XmlElementsDto.getIsNullAllow())) {
+							attr = doc.createAttribute("isNullAllow");
+							attr.setValue(XmlElementsDto.getIsNullAllow());
+							childEleName.setAttributeNode(attr);
+						}
+						
+						attr = doc.createAttribute("formulaRounding");
+						attr.setValue("2");
+						
+						
+						childEleName.setAttributeNode(attr);
+						rootElement.appendChild(childEleName);
+
+					}
+				}
+
+			}
+
+			logger.info("File creation completed");
+			// write the content into xml file
+
+			TransformerFactory transformerFactory = TransformerFactory.newInstance();
+			transformer = transformerFactory.newTransformer();
+			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+			source = new DOMSource(doc);
+			StreamResult result = new StreamResult(new File(path));
+			transformer.transform(source, result);
+
+			// Output to console for testing
+			StreamResult consoleResult = new StreamResult(System.out);
+			transformer.transform(source, consoleResult);
+		} catch (Exception e) {
+			logger.error("Exception occoured while building xml file", e);
+		}
+	}
+
+}

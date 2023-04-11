@@ -1,0 +1,89 @@
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.google.gson.Gson;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.model.CityMaster;
+import com.iris.model.PincodeMaster;
+import com.iris.service.impl.CityMasterService;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.MethodConstants;
+
+/**
+ * @author Pradnya Mhatre
+ *
+ */ 
+
+@RestController
+@RequestMapping("/service/allCityData")
+public class CityMasterController {
+	static final Logger logger = LogManager.getLogger(CityMasterController.class);
+	
+	@Autowired
+	CityMasterService cityMasterService;
+	
+	@GetMapping(value = "/fetchActiveCityData/{languageCode}")
+	public ServiceResponse fetchActiveCityList(@PathVariable String languageCode) {
+		logger.info("fetch city data controller started " + languageCode);
+		ServiceResponse serviceResponse = null;
+		List<CityMaster> listOfActiveCityData = null;
+
+		if (languageCode != null) {
+			listOfActiveCityData = cityMasterService.getActiveDataFor(CityMaster.class, null);
+			
+			if(!CollectionUtils.isEmpty(listOfActiveCityData)) {
+				List<CityMaster> finalCityObject = prepareCityObject(listOfActiveCityData);
+				return new ServiceResponseBuilder().setStatus(true).setResponse(new Gson().toJson(finalCityObject)).build();
+			}
+		}
+		return serviceResponse;
+	}
+	
+	@GetMapping("/fetchActiveCityListByState/{stateCode}/{languageCode}")
+	public ServiceResponse fetchActiveCityListByState(@PathVariable("stateCode") String stateCode,@PathVariable String languageCode) {
+		
+			Map<String, List<String>> columnValueMap = new HashMap<>();
+			List<String> stateList = new ArrayList<>();
+			stateList.add(stateCode);
+			columnValueMap.put(ColumnConstants.STATE_CODE.getConstantVal(), stateList);
+			List<CityMaster> listOfActiveCityData  = cityMasterService.getDataByColumnValue(columnValueMap, MethodConstants.GET_CITY_LIST_BY_STATE_CODE.getConstantVal());
+			if(!CollectionUtils.isEmpty(listOfActiveCityData)) {
+				List<CityMaster> finalCityObject = prepareCityObject(listOfActiveCityData);
+				return new ServiceResponseBuilder().setStatus(true).setResponse(new Gson().toJson(finalCityObject)).build();
+			}
+			return new ServiceResponseBuilder().setStatus(true).setResponse(listOfActiveCityData).build();
+	}
+
+	private List<CityMaster> prepareCityObject(List<CityMaster> listOfActiveCityData) {
+		List<CityMaster> cityMasterListNew = new ArrayList();
+		for(CityMaster cityMaster:listOfActiveCityData) {
+			List<PincodeMaster> listOfPincodeDataNew = new ArrayList<>();
+			List<PincodeMaster> listOfPincodeDataTemp = cityMaster.getPincode();
+			for(PincodeMaster pincodeMaster:listOfPincodeDataTemp) {
+				PincodeMaster pincodeMasterTemp=new PincodeMaster();
+				pincodeMasterTemp.setId(pincodeMaster.getId());
+				pincodeMasterTemp.setPincode(pincodeMaster.getPincode());
+				pincodeMasterTemp.setIsActive(pincodeMaster.getIsActive());
+				listOfPincodeDataNew.add(pincodeMasterTemp);
+			}
+			cityMaster.setPincode(listOfPincodeDataNew);
+			cityMasterListNew.add(cityMaster);
+		}
+		return cityMasterListNew;
+	}
+	
+}

@@ -1,0 +1,52 @@
+package com.iris.dto;
+
+
+import java.io.Serializable;
+import java.util.List;
+
+
+/**
+ * This is the ReturnRegulatorMappingDto bean class with Hibernate mapping.
+ * 
+ * @author pmohite
+ */
+
+public class ReturnFileFormatMapDto implements Serializable {
+
+	private static final long serialVersionUID = 8262415709009662785L;
+
+	private Long returnIdFk;
+	private String fileFormatIdString;
+	private List<String> fileFormatDataString;
+
+	/**
+	 * @return the returnIdFk
+	 */
+	public Long getReturnIdFk() {
+		return returnIdFk;
+	}
+	/**
+	 * @param returnIdFk the returnIdFk to set
+	 */
+	public void setReturnIdFk(Long returnIdFk) {
+		this.returnIdFk = returnIdFk;
+	}
+	/**
+	 * @return the fileFormatIdString
+	 */
+	public String getFileFormatIdString() {
+		return fileFormatIdString;
+	}
+	/**
+	 * @param fileFormatIdString the fileFormatIdString to set
+	 */
+	public void setFileFormatIdString(String fileFormatIdString) {
+		this.fileFormatIdString = fileFormatIdString;
+	}
+	public List<String> getFileFormatDataString() {
+		return fileFormatDataString;
+	}
+	public void setFileFormatDataString(List<String> fileFormatDataString) {
+		this.fileFormatDataString = fileFormatDataString;
+	}
+}

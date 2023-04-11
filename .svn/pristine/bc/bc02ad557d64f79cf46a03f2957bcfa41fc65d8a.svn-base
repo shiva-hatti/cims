@@ -1,0 +1,199 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+import java.util.List;
+
+import com.iris.util.Validations;
+
+/**
+ * @author nsasane
+ * @date 08/12/17
+ */
+public class TableBean implements Serializable {
+
+	private static final long serialVersionUID = -6035397415474883408L;
+	private List<LanguageBean> langList;
+	private List<ColumnBean> columnList;
+	private List<ElementBean> elementList;
+	private DataInfoBean dataInfo;
+	private String tableLabel;
+	private int tableId;
+	private boolean langAxis;
+	private boolean isRepeatable;
+	private boolean isTranspose = false;
+	private boolean isCheckApplied;
+	private boolean isMultipleColumn;
+	private int headerId;
+	private boolean isTransposeInCSVLayout;
+
+	/**
+	 * @return the isTransposeInCSVLayout
+	 */
+	public boolean isTransposeInCSVLayout() {
+		return isTransposeInCSVLayout;
+	}
+
+	/**
+	 * @param isTransposeInCSVLayout the isTransposeInCSVLayout to set
+	 */
+	public void setTransposeInCSVLayout(boolean isTransposeInCSVLayout) {
+		this.isTransposeInCSVLayout = isTransposeInCSVLayout;
+	}
+
+	/**
+	 * @return the langList
+	 */
+	public List<LanguageBean> getLangList() {
+		return langList;
+	}
+
+	/**
+	 * @param langList the langList to set
+	 */
+	public void setLangList(List<LanguageBean> langList) {
+		this.langList = langList;
+	}
+
+	/**
+	 * @return the columnList
+	 */
+	public List<ColumnBean> getColumnList() {
+		return columnList;
+	}
+
+	/**
+	 * @param columnList the columnList to set
+	 */
+	public void setColumnList(List<ColumnBean> columnList) {
+		this.columnList = columnList;
+	}
+
+	/**
+	 * @return the elementList
+	 */
+	public List<ElementBean> getElementList() {
+		return elementList;
+	}
+
+	/**
+	 * @param elementList the elementList to set
+	 */
+	public void setElementList(List<ElementBean> elementList) {
+		this.elementList = elementList;
+	}
+
+	/**
+	 * @return the tableLabel
+	 */
+	public String getTableLabel() {
+		return tableLabel;
+	}
+
+	/**
+	 * @param tableLabel the tableLabel to set
+	 */
+	public void setTableLabel(String tableLabel) {
+		this.tableLabel = Validations.trimInput(tableLabel);
+	}
+
+	/**
+	 * @return the tableId
+	 */
+	public int getTableId() {
+		return tableId;
+	}
+
+	/**
+	 * @param tableId the tableId to set
+	 */
+	public void setTableId(int tableId) {
+		this.tableId = tableId;
+	}
+
+	/**
+	 * @return the langAxis
+	 */
+	public boolean isLangAxis() {
+		return langAxis;
+	}
+
+	/**
+	 * @param langAxis the langAxis to set
+	 */
+	public void setLangAxis(boolean langAxis) {
+		this.langAxis = langAxis;
+	}
+
+	/**
+	 * @return the isRepeatable
+	 */
+	public boolean isRepeatable() {
+		return isRepeatable;
+	}
+
+	/**
+	 * @param isRepeatable the isRepeatable to set
+	 */
+	public void setRepeatable(boolean isRepeatable) {
+		this.isRepeatable = isRepeatable;
+	}
+
+	/**
+	 * @return the isTranspose
+	 */
+	public boolean isTranspose() {
+		return isTranspose;
+	}
+
+	/**
+	 * @param isTranspose the isTranspose to set
+	 */
+	public void setTranspose(boolean isTranspose) {
+		this.isTranspose = isTranspose;
+	}
+
+	/**
+	 * @return the dataInfo
+	 */
+	public DataInfoBean getDataInfo() {
+		return dataInfo;
+	}
+
+	/**
+	 * @param dataInfo the dataInfo to set
+	 */
+	public void setDataInfo(DataInfoBean dataInfo) {
+		this.dataInfo = dataInfo;
+	}
+
+	/**
+	 * @return the isCheckApplied
+	 */
+	public boolean isCheckApplied() {
+		return isCheckApplied;
+	}
+
+	/**
+	 * @param isCheckApplied the isCheckApplied to set
+	 */
+	public void setCheckApplied(boolean isCheckApplied) {
+		this.isCheckApplied = isCheckApplied;
+	}
+
+	public boolean isMultipleColumn() {
+		return isMultipleColumn;
+	}
+
+	public void setMultipleColumn(boolean isMultipleColumn) {
+		this.isMultipleColumn = isMultipleColumn;
+	}
+
+	public int getHeaderId() {
+		return headerId;
+	}
+
+	public void setHeaderId(int headerId) {
+		this.headerId = headerId;
+	}
+
+}

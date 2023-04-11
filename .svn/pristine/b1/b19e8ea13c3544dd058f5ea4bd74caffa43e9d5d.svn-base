@@ -1,0 +1,184 @@
+/**
+ * 
+ */
+package com.iris.sdmx.element.bean;
+
+import java.util.Date;
+
+/**
+ * @author apagaria
+ *
+ */
+public class SdmxElementTempBean {
+
+	private Long elementTempId;
+
+	private String dsdCode;
+
+	private SdmxElementBeanForTemp sdmxElementEntity;
+
+	private String elementVer;
+
+	private Date lastUpdateOn;
+
+	private Long createdBy;
+
+	private Date createdOn;
+
+	private Long modifyBy;
+
+	private Date modifyOn;
+
+	private Long statusId;
+
+	/**
+	 * @return the elementTempId
+	 */
+	public Long getElementTempId() {
+		return elementTempId;
+	}
+
+	/**
+	 * @param elementTempId the elementTempId to set
+	 */
+	public void setElementTempId(Long elementTempId) {
+		this.elementTempId = elementTempId;
+	}
+
+	/**
+	 * @return the dsdCode
+	 */
+	public String getDsdCode() {
+		return dsdCode;
+	}
+
+	/**
+	 * @param dsdCode the dsdCode to set
+	 */
+	public void setDsdCode(String dsdCode) {
+		this.dsdCode = dsdCode;
+	}
+
+	/**
+	 * @return the sdmxElementEntity
+	 */
+	public SdmxElementBeanForTemp getSdmxElementEntity() {
+		return sdmxElementEntity;
+	}
+
+	/**
+	 * @param sdmxElementEntity the sdmxElementEntity to set
+	 */
+	public void setSdmxElementEntity(SdmxElementBeanForTemp sdmxElementEntity) {
+		this.sdmxElementEntity = sdmxElementEntity;
+	}
+
+	/**
+	 * @return the elementVer
+	 */
+	public String getElementVer() {
+		return elementVer;
+	}
+
+	/**
+	 * @param elementVer the elementVer to set
+	 */
+	public void setElementVer(String elementVer) {
+		this.elementVer = elementVer;
+	}
+
+	/**
+	 * @return the lastUpdateOn
+	 */
+	public Date getLastUpdateOn() {
+		return lastUpdateOn;
+	}
+
+	/**
+	 * @param lastUpdateOn the lastUpdateOn to set
+	 */
+	public void setLastUpdateOn(Date lastUpdateOn) {
+		this.lastUpdateOn = lastUpdateOn;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public Long getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(Long createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the modifyBy
+	 */
+	public Long getModifyBy() {
+		return modifyBy;
+	}
+
+	/**
+	 * @param modifyBy the modifyBy to set
+	 */
+	public void setModifyBy(Long modifyBy) {
+		this.modifyBy = modifyBy;
+	}
+
+	/**
+	 * @return the modifyOn
+	 */
+	public Date getModifyOn() {
+		return modifyOn;
+	}
+
+	/**
+	 * @param modifyOn the modifyOn to set
+	 */
+	public void setModifyOn(Date modifyOn) {
+		this.modifyOn = modifyOn;
+	}
+
+	/**
+	 * @return the statusId
+	 */
+	public Long getStatusId() {
+		return statusId;
+	}
+
+	/**
+	 * @param statusId the statusId to set
+	 */
+	public void setStatusId(Long statusId) {
+		this.statusId = statusId;
+	}
+
+	/**
+	 *
+	 */
+	@Override
+	public String toString() {
+		return "SdmxElementTempEntity [elementTempId=" + elementTempId + ", dsdCode=" + dsdCode + ", sdmxElementEntity="
+				+ sdmxElementEntity + ", lastUpdateOn=" + lastUpdateOn + ", createdBy=" + createdBy + ", createdOn="
+				+ createdOn + ", modifyBy=" + modifyBy + ", modifyOn=" + modifyOn + "]";
+	}
+
+}

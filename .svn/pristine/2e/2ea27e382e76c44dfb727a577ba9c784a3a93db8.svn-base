@@ -1,0 +1,536 @@
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.validation.Validation;
+
+import org.apache.poi.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.google.gson.Gson;
+import com.iris.caching.ObjectCache;
+import com.iris.dateutility.enums.DateConstants;
+import com.iris.dateutility.util.DateManip;
+import com.iris.dto.DataListDto;
+import com.iris.dto.EntityDto;
+import com.iris.dto.EntityMasterDto;
+import com.iris.dto.RequestApprovalBean;
+import com.iris.dto.ReturnEntityMapDto;
+import com.iris.dto.ReturnEntityOutputDto;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.model.Category;
+import com.iris.model.CategoryLabel;
+import com.iris.model.EntityBean;
+import com.iris.model.EntityLabelBean;
+import com.iris.model.FrequencyDescription;
+import com.iris.model.Return;
+import com.iris.model.ReturnLabel;
+import com.iris.model.ReturnPropertyValue;
+import com.iris.model.SubCategory;
+import com.iris.model.SubCategoryLabel;
+import com.iris.model.UnlockingRequest;
+import com.iris.model.UserMaster;
+import com.iris.repository.UnlockRequestRepository;
+import com.iris.service.GenericService;
+import com.iris.service.impl.EntityServiceV2;
+import com.iris.service.impl.UnlockRequestServiceV2;
+import com.iris.util.Validations;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorCode;
+import com.iris.util.constant.MethodConstants;
+
+/**
+ * @author svishwakarma
+ */
+@RestController
+@RequestMapping("/service/unlockrequest/V2")
+public class UnlockRequestControllerV2 {
+
+	private static final Logger logger = LoggerFactory.getLogger(UnlockRequestControllerV2.class);
+
+	@Autowired
+	private GenericService<UserMaster, Long> userMasterService;
+	@Autowired
+	private EntityServiceV2 entityServiceV2;
+	@Autowired
+	UnlockRequestServiceV2 unlockRequestServiceV2;
+	@Autowired
+	EntityMasterControllerV2 entityMasterControllerV2;
+	@Autowired
+	private UnlockRequestRepository unlockingRequestRepo;
+
+	@SuppressWarnings("unused")
+	@PostMapping(value = "/viewUnlockRequest")
+	public ServiceResponse viewUnlockRequest(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody DataListDto dataListDto) {
+		ServiceResponse response = null;
+		List<Long> selectedEntityList = null;
+		List<String> selectedEntityCodeList = new ArrayList<>();
+		Long regulatorId = null;
+		logger.info("request received to get unlock request list for job processigid : " + jobProcessId);
+		try {
+
+			if (dataListDto == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0391.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0391.toString())).build();
+			}
+			List<Long> returnIdList = new ArrayList<>();
+			Map<String, Object> columnValueMap = new HashMap<>();
+			if (org.apache.commons.collections4.CollectionUtils.isEmpty(dataListDto.getReturnIdList())) {
+				String processingId = UUID.randomUUID().toString();
+
+				ReturnEntityMapDto returnEntityMapDto = new ReturnEntityMapDto();
+				returnEntityMapDto.setIsActive(true);
+				returnEntityMapDto.setUserId(dataListDto.getUserId());
+				returnEntityMapDto.setLangCode(dataListDto.getLangCode());
+				if (dataListDto.getRoleId() != null) {
+					returnEntityMapDto.setRoleId(dataListDto.getRoleId());
+				}
+
+				logger.info("******getFilingDataForRevisionReq: starting to fetch Return list: Start Time: " + DateManip.getCurrentDateTime(DateConstants.DD_MM_YYYY.getDateConstants(), "HH:mm:ss:SSS"), jobProcessId);
+				ServiceResponse serviceResponse = entityMasterControllerV2.getEntityReturnChannelMapp(jobProcessId, returnEntityMapDto);
+				logger.info("******getFilingDataForRevisionReq: starting to fetch Return list: End Time: " + DateManip.getCurrentDateTime(DateConstants.DD_MM_YYYY.getDateConstants(), "HH:mm:ss:SSS"), jobProcessId);
+				List<ReturnEntityOutputDto> returnEntityOutputDtoList = (List<ReturnEntityOutputDto>) serviceResponse.getResponse();
+				if (org.apache.commons.collections4.CollectionUtils.isEmpty(returnEntityOutputDtoList)) {
+					return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0727.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0727.toString())).build();
+				}
+				for (ReturnEntityOutputDto returnEntityOutputDto : returnEntityOutputDtoList) {
+					returnIdList.add(returnEntityOutputDto.getReturnId());
+				}
+				/*
+				@SuppressWarnings("unchecked")
+				List<ReturnGroupMappingDto> returnGroupMappingDtoList = (List<ReturnGroupMappingDto>) serviceResponse.getResponse();
+				logger.info("Getting mapped return list for role id for job processigid : " + jobProcessId);
+				if (org.apache.commons.collections4.CollectionUtils.isEmpty(returnGroupMappingDtoList)) {
+					return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0727.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0727.toString())).build();
+				}
+				
+				returnGroupMappingDtoList.forEach(f -> {
+					List<ReturnDto> returnList = f.getReturnList();
+					returnList.forEach(r -> {
+						returnIdList.add(r.getReturnId());
+					});
+				});*/
+				if (org.apache.commons.collections4.CollectionUtils.isNotEmpty(returnIdList)) {
+					columnValueMap.put(ColumnConstants.RETURN_ID_LIST.getConstantVal(), returnIdList);
+				}
+
+			} else {
+				columnValueMap.put(ColumnConstants.RETURN_ID_LIST.getConstantVal(), dataListDto.getReturnIdList());
+			}
+			UserMaster userMaster = userMasterService.getDataById(dataListDto.getUserId());
+			if (userMaster == null || userMaster.getRoleType() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+			}
+
+			if (userMaster.getRoleType().getRoleTypeId() == 1 && userMaster.getDepartmentIdFk() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0801.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0801.toString())).build();
+			} else if (userMaster.getRoleType().getRoleTypeId() == 1 && userMaster.getDepartmentIdFk() != null) {
+				regulatorId = userMaster.getDepartmentIdFk().getRegulatorId();
+			}
+			if (!dataListDto.getEntityCode().isEmpty()) {
+				selectedEntityCodeList.add(dataListDto.getEntityCode());
+			}
+
+			columnValueMap.put(ColumnConstants.LANG_CODE.getConstantVal(), dataListDto.getLangCode());
+			columnValueMap.put(ColumnConstants.USER_ID.getConstantVal(), dataListDto.getUserId());
+
+			if (dataListDto.getStartDate() != null) {
+				columnValueMap.put(ColumnConstants.STARTDATE.getConstantVal(), dataListDto.getStartDate());
+			}
+			if (dataListDto.getEndDate() != null) {
+				columnValueMap.put(ColumnConstants.ENDDATE.getConstantVal(), dataListDto.getEndDate());
+			}
+			if (org.apache.commons.collections4.CollectionUtils.isNotEmpty(dataListDto.getStatusIdList())) {
+				columnValueMap.put(ColumnConstants.UNLOCK_STATUS_ID_LIST.getConstantVal(), dataListDto.getStatusIdList());
+			}
+
+			if (regulatorId != null) {
+				columnValueMap.put(ColumnConstants.REGULATORID.getConstantVal(), regulatorId);
+			}
+
+			//columnValueMap.put(ColumnConstants.CATEGORY_ID.getConstantVal(), dataListDto.getCateId());
+			if (org.apache.commons.collections4.CollectionUtils.isNotEmpty(dataListDto.getCatCodeList())) {
+				columnValueMap.put(ColumnConstants.CATEGORY_CODE_LIST.getConstantVal(), dataListDto.getCatCodeList());
+			}
+			if (dataListDto.getSubCatIdList() != null) {
+				columnValueMap.put(ColumnConstants.SUB_CATEGORY_CODE_LIST.getConstantVal(), dataListDto.getSubCatIdList());
+			}
+			//List<Long> userEntityList = new ArrayList<>();
+			if (org.apache.commons.collections4.CollectionUtils.isEmpty(selectedEntityCodeList)) {
+				EntityMasterDto entityMasterDto = new EntityMasterDto();
+				entityMasterDto.setActive(true);
+				if (dataListDto.getRoleId() != null) {
+					entityMasterDto.setRoleId(dataListDto.getRoleId());
+				}
+				entityMasterDto.setUserId(dataListDto.getUserId());
+
+				entityMasterDto.setLanguageCode(dataListDto.getLangCode());
+				//	List<EntityBean> entityList = (List<EntityBean>) entityMasterController.getEntityMasterList(jobProcessId, entityMasterDto).getResponse();
+				List<EntityDto> entityDtos = entityServiceV2.getFlatEntityList(entityMasterDto);
+				if (entityDtos != null && !entityDtos.isEmpty()) {
+					for (EntityDto entityDto : entityDtos) {
+						if (selectedEntityCodeList.contains(entityDto.getEntityCode())) {
+							continue;
+						}
+						selectedEntityCodeList.add(entityDto.getEntityCode());
+					}
+				}
+			}
+
+			logger.info("Getting mapped enity list for user id for job processigid : " + jobProcessId);
+			if (org.apache.commons.collections4.CollectionUtils.isEmpty(selectedEntityCodeList)) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0727.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0639.toString())).build();
+			}
+
+			//columnValueMap.put(ColumnConstants.ENTITY_ID_LIST.getConstantVal(), selectedEntityList);
+			columnValueMap.put(ColumnConstants.ENTITY_CODE_LIST.getConstantVal(), selectedEntityCodeList);
+
+			List<UnlockingRequest> unlockRequestList = unlockRequestServiceV2.getDataByObject(columnValueMap, MethodConstants.GET_UNLOCK_REQUEST_DATA.getConstantVal());
+			logger.info("getting unlock request data by role id For jobprocessing id" + jobProcessId);
+
+			if (org.apache.commons.collections4.CollectionUtils.isEmpty(unlockRequestList)) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0660.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0660.toString())).build();
+			}
+
+			List<UnlockingRequest> unlockRequestLists = new ArrayList<>();
+
+			UnlockingRequest unlockRequest = null;
+			EntityBean entityBean = null;
+			Return returns = null;
+			UserMaster userMasterBean = null;
+			ReturnPropertyValue returnPropertyValue = null;
+			FrequencyDescription frequencyDescription = null;
+			for (UnlockingRequest unlockRequests : unlockRequestList) {
+				entityBean = new EntityBean();
+				returns = new Return();
+				userMasterBean = new UserMaster();
+				unlockRequest = new UnlockingRequest();
+				frequencyDescription = new FrequencyDescription();
+
+				unlockRequest.setUnlockingReqId(unlockRequests.getUnlockingReqId());
+				unlockRequest.setActionIdFk(unlockRequests.getActionIdFk());
+				unlockRequest.setAdminStatusIdFk(unlockRequests.getAdminStatusIdFk());
+
+				if (unlockRequests.getReturnPropertyVal() != null && unlockRequests.getReturnPropertyVal().getReturnProprtyIdFK() != null) {
+					returnPropertyValue = new ReturnPropertyValue();
+					returnPropertyValue.setReturnProprtyIdFK(unlockRequests.getReturnPropertyVal().getReturnProprtyIdFK());
+					returnPropertyValue.setReturnProValue(unlockRequests.getReturnPropertyVal().getReturnProValue());
+					unlockRequest.setReturnPropertyVal(returnPropertyValue);
+				}
+
+				EntityLabelBean entityLabelBean = unlockRequests.getEntity().getEntityLabelSet().stream().filter(f -> f.getLanguageMaster().getLanguageCode().equals(dataListDto.getLangCode())).findAny().orElse(null);
+				if (entityLabelBean != null) {
+					entityBean.setEntityName(entityLabelBean.getEntityNameLabel());
+				} else {
+					entityBean.setEntityName(unlockRequests.getEntity().getEntityName());
+				}
+				entityBean.setEntityCode(unlockRequests.getEntity().getEntityCode().trim());
+				entityBean.setEntityId(unlockRequests.getEntity().getEntityId());
+
+				//----getting data of category and sub category
+				Category categoryDto = new Category();
+				CategoryLabel cagtegoryLabel = unlockRequests.getEntity().getCategory().getCatLblSet().stream().filter(f -> f.getLangIdFk().getLanguageCode().equalsIgnoreCase(dataListDto.getLangCode())).findAny().orElse(null);
+				if (cagtegoryLabel != null) {
+					categoryDto.setCategoryName(cagtegoryLabel.getCategoryLabel());
+				} else {
+					categoryDto.setCategoryName(unlockRequests.getEntity().getCategory().getCategoryName());
+				}
+				categoryDto.setCategoryCode(unlockRequests.getEntity().getCategory().getCategoryCode());
+				entityBean.setCategory(categoryDto);
+
+				SubCategory subCatDto = new SubCategory();
+				SubCategoryLabel subLabel = unlockRequests.getEntity().getSubCategory().getSubCatLblSet().stream().filter(f -> f.getLangIdFk().getLanguageCode().equalsIgnoreCase(dataListDto.getLangCode())).findAny().orElse(null);
+				if (subLabel != null) {
+					subCatDto.setSubCategoryName(subLabel.getSubCategoryLabel());
+				} else {
+					subCatDto.setSubCategoryName(unlockRequests.getEntity().getSubCategory().getSubCategoryName());
+				}
+				subCatDto.setSubCategoryCode(unlockRequests.getEntity().getSubCategory().getSubCategoryCode());
+				entityBean.setSubCategory(subCatDto);
+				//----
+
+				unlockRequest.setEntity(entityBean);
+
+				ReturnLabel returnLabel = unlockRequests.getReturns().getReturnLblSet().stream().filter(x -> x.getLangIdFk().getLanguageCode().equals(dataListDto.getLangCode())).findAny().orElse(null);
+				if (returnLabel != null) {
+					returns.setReturnName(returnLabel.getReturnLabel());
+				} else {
+					returns.setReturnName(unlockRequests.getRetName());
+				}
+				returns.setReturnId(unlockRequests.getReturns().getReturnId());
+				returns.setReturnCode(unlockRequests.getReturns().getReturnCode());
+				unlockRequest.setReturns(returns);
+
+				userMasterBean.setUserId(unlockRequests.getCreatedBy().getUserId());
+				userMasterBean.setUserName(unlockRequests.getCreatedBy().getUserName());
+				unlockRequest.setCreatedBy(userMasterBean);
+				unlockRequest.setCreatedOn(unlockRequests.getCreatedOn());
+
+				frequencyDescription.setFinYrFrquencyDesc(unlockRequests.getFrequencyDesc().getFinYrFrquencyDesc());
+				frequencyDescription.setFinYrFrquencyDescId(unlockRequests.getFrequencyDesc().getFinYrFrquencyDescId());
+				unlockRequest.setFrequencyDesc(frequencyDescription);
+				unlockRequest.setYear(unlockRequests.getYear());
+				unlockRequest.setReportingDate(unlockRequests.getReportingDate());
+				unlockRequest.setReasonForUnlocking(unlockRequests.getReasonForUnlocking());
+				unlockRequest.setReasonForRejection(unlockRequests.getReasonForRejection());
+				unlockRequest.setStartDate(unlockRequests.getStartDate());
+				unlockRequest.setEndDate(unlockRequests.getEndDate());
+				if (unlockRequests.getAdminStatusIdFk() != 1) {
+					userMasterBean = new UserMaster();
+					userMasterBean.setUserId(unlockRequests.getApprovedBy().getUserId());
+					userMasterBean.setUserName(unlockRequests.getApprovedBy().getUserName());
+					unlockRequest.setApprovedBy(userMasterBean);
+					unlockRequest.setApprovedOn(unlockRequests.getApprovedOn());
+				}
+				if (unlockRequests.getAdminStatusIdFk() == 2) {
+					unlockRequest.setMaxUnlockReqDate(unlockRequests.getMaxUnlockReqDate());
+				}
+				unlockRequestLists.add(unlockRequest);
+				logger.info("Unlock request bean added in the list" + unlockRequests.getUnlockingReqId() + "For jobprocessing id" + jobProcessId);
+			}
+			response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+			response.setResponse(unlockRequestLists);
+
+		} catch (Exception e) {
+			logger.error("Exception while fetching unlock request list ", e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+		logger.info("request compeleted for For jobprocessing id" + jobProcessId);
+
+		return response;
+
+	}
+
+	@PostMapping(value = "/getPendingUnlockRequest")
+	public ServiceResponse getPendingUnlockRequest(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody RequestApprovalBean unlockRequestApprovalBean) {
+
+		logger.info("request received to get pending unlock request for job processingid, UnlockRequestController.java _" + jobProcessId);
+		List<UnlockingRequest> unlockRequestLists;
+		ServiceResponse response = null;
+		List<String> selectedEntityCodeList = new ArrayList<>();
+		try {
+			UserMaster userMaster = userMasterService.getDataById(unlockRequestApprovalBean.getUserId());
+			if (userMaster == null || userMaster.getRoleType() == null || userMaster.getRoleType().getRoleTypeId() == 2) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0638.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0638.toString())).build();
+
+			}
+
+			if (userMaster.getDepartmentIdFk() == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0801.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0801.toString())).build();
+			}
+
+			List<Long> returnIdList = new ArrayList<>();
+			Map<String, Object> columnValueMap = new HashMap<>();
+			if (org.apache.commons.collections4.CollectionUtils.isEmpty(unlockRequestApprovalBean.getReturnIdList())) {
+				String processingId = UUID.randomUUID().toString();
+
+				ReturnEntityMapDto returnEntityMapDto = new ReturnEntityMapDto();
+				returnEntityMapDto.setIsActive(true);
+				returnEntityMapDto.setUserId(unlockRequestApprovalBean.getUserId());
+				returnEntityMapDto.setLangCode(unlockRequestApprovalBean.getLangCode());
+				if (unlockRequestApprovalBean.getRoleId() != null) {
+					returnEntityMapDto.setRoleId(unlockRequestApprovalBean.getRoleId());
+				}
+
+				logger.info("******Start getFilingDataForUnlockReq: starting to fetch Return list: Start Time: " + DateManip.getCurrentDateTime(DateConstants.DD_MM_YYYY.getDateConstants(), "HH:mm:ss:SSS"), jobProcessId);
+				ServiceResponse serviceResponse = entityMasterControllerV2.getEntityReturnChannelMapp(jobProcessId, returnEntityMapDto);
+				logger.info("******End getFilingDataForUnlockReq: starting to fetch Return list: End Time: " + DateManip.getCurrentDateTime(DateConstants.DD_MM_YYYY.getDateConstants(), "HH:mm:ss:SSS"), jobProcessId);
+				List<ReturnEntityOutputDto> returnEntityOutputDtoList = (List<ReturnEntityOutputDto>) serviceResponse.getResponse();
+				if (org.apache.commons.collections4.CollectionUtils.isEmpty(returnEntityOutputDtoList)) {
+					return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0727.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0727.toString())).build();
+				}
+				for (ReturnEntityOutputDto returnEntityOutputDto : returnEntityOutputDtoList) {
+					returnIdList.add(returnEntityOutputDto.getReturnId());
+				}
+				if (org.apache.commons.collections4.CollectionUtils.isNotEmpty(returnIdList)) {
+					columnValueMap.put(ColumnConstants.RETURN_ID_LIST.getConstantVal(), returnIdList);
+				}
+
+			} else {
+				columnValueMap.put(ColumnConstants.RETURN_ID_LIST.getConstantVal(), unlockRequestApprovalBean.getReturnIdList());
+			}
+			columnValueMap.put(ColumnConstants.LANG_ID.getConstantVal(), unlockRequestApprovalBean.getLangId());
+			columnValueMap.put(ColumnConstants.USER_ID.getConstantVal(), unlockRequestApprovalBean.getUserId());
+
+			if (unlockRequestApprovalBean.getStartDate() != null) {
+				columnValueMap.put(ColumnConstants.STARTDATE.getConstantVal(), unlockRequestApprovalBean.getStartDate());
+			}
+			if (unlockRequestApprovalBean.getEndDate() != null) {
+				columnValueMap.put(ColumnConstants.ENDDATE.getConstantVal(), unlockRequestApprovalBean.getEndDate());
+			}
+			columnValueMap.put(ColumnConstants.REGULATORID.getConstantVal(), userMaster.getDepartmentIdFk().getRegulatorId());
+			/*
+			 * if (regulatorId != null) {
+			 * columnValueMap.put(ColumnConstants.REGULATORID.getConstantVal(),
+			 * regulatorId); }
+			 */
+
+			//columnValueMap.put(ColumnConstants.CATEGORY_ID.getConstantVal(), dataListDto.getCateId());
+			if (!Validations.isEmpty(unlockRequestApprovalBean.getEntityCode())) {
+				selectedEntityCodeList.add(unlockRequestApprovalBean.getEntityCode());
+			}
+
+			if (org.apache.commons.collections4.CollectionUtils.isNotEmpty(unlockRequestApprovalBean.getCatCodeList())) {
+				columnValueMap.put(ColumnConstants.CATEGORY_CODE_LIST.getConstantVal(), unlockRequestApprovalBean.getCatCodeList());
+			}
+			if (unlockRequestApprovalBean.getSubCatCodeList() != null) {
+				columnValueMap.put(ColumnConstants.SUB_CATEGORY_CODE_LIST.getConstantVal(), unlockRequestApprovalBean.getSubCatCodeList());
+			}
+			//List<Long> userEntityList = new ArrayList<>();
+			if (org.apache.commons.collections4.CollectionUtils.isEmpty(selectedEntityCodeList)) {
+				EntityMasterDto entityMasterDto = new EntityMasterDto();
+				entityMasterDto.setActive(true);
+				if (unlockRequestApprovalBean.getRoleId() != null) {
+					entityMasterDto.setRoleId(unlockRequestApprovalBean.getRoleId());
+				}
+				entityMasterDto.setUserId(unlockRequestApprovalBean.getUserId());
+
+				entityMasterDto.setLanguageCode(unlockRequestApprovalBean.getLangCode());
+				//	List<EntityBean> entityList = (List<EntityBean>) entityMasterController.getEntityMasterList(jobProcessId, entityMasterDto).getResponse();
+				List<EntityDto> entityDtos = entityServiceV2.getFlatEntityList(entityMasterDto);
+				if (entityDtos != null && !entityDtos.isEmpty()) {
+					for (EntityDto entityDto : entityDtos) {
+						if (selectedEntityCodeList.contains(entityDto.getEntityCode())) {
+							continue;
+						}
+						selectedEntityCodeList.add(entityDto.getEntityCode());
+					}
+				}
+			}
+
+			logger.info("Getting mapped enity list for user id for job processigid : " + jobProcessId);
+			if (org.apache.commons.collections4.CollectionUtils.isEmpty(selectedEntityCodeList)) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.E0727.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.E0639.toString())).build();
+			} else {
+				columnValueMap.put(ColumnConstants.ENTITY_CODE_LIST.getConstantVal(), selectedEntityCodeList);
+			}
+
+			if (Boolean.TRUE.equals(unlockRequestApprovalBean.getIsCount())) {
+
+				Long unlockReqCount = unlockingRequestRepo.getDataByLangIdAndRegIdCountWithEntCode(unlockRequestApprovalBean.getLangId(), userMaster.getDepartmentIdFk().getRegulatorId(), userMaster.getUserId(), returnIdList, selectedEntityCodeList);
+
+				response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+				response.setResponse(unlockReqCount.intValue());
+			} else {
+				String startDate = DateManip.formatAppDateTime(new Date(unlockRequestApprovalBean.getStartDateLong()), "yyyy-MM-dd", "en");
+				String endDate = DateManip.formatAppDateTime(new Date(unlockRequestApprovalBean.getEndDateLong()), "yyyy-MM-dd", "en");
+				columnValueMap.put(ColumnConstants.STARTDATE.getConstantVal(), startDate);
+				columnValueMap.put(ColumnConstants.ENDDATE.getConstantVal(), endDate);
+
+				List<UnlockingRequest> unlockRequestList = unlockRequestServiceV2.getDataByObject(columnValueMap, MethodConstants.GET_PENDING_UNLOCK_REQUEST_FOR_APPROVAL.getConstantVal());
+
+				if (CollectionUtils.isEmpty(unlockRequestList)) {
+					return new ServiceResponseBuilder().setStatus(true).setStatusCode(ErrorCode.EC0035.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0035.toString())).build();
+				}
+				unlockRequestLists = new ArrayList<>();
+
+				UnlockingRequest unlockRequest = null;
+				EntityBean entityBean = null;
+				Return returns = null;
+				UserMaster userMasterBean = null;
+				ReturnPropertyValue returnPropertyValue = null;
+				//FrequencyDescription frequencyDescription = null;
+				for (UnlockingRequest unlockRequests : unlockRequestList) {
+					entityBean = new EntityBean();
+					returns = new Return();
+					userMasterBean = new UserMaster();
+					unlockRequest = new UnlockingRequest();
+					//frequencyDescription = new FrequencyDescription();
+
+					unlockRequest.setUnlockingReqId(unlockRequests.getUnlockingReqId());
+					unlockRequest.setActionIdFk(unlockRequests.getActionIdFk());
+					unlockRequest.setAdminStatusIdFk(unlockRequests.getAdminStatusIdFk());
+
+					if (unlockRequests.getReturnPropertyVal() != null && unlockRequests.getReturnPropertyVal().getReturnProprtyIdFK() != null) {
+						returnPropertyValue = new ReturnPropertyValue();
+						returnPropertyValue.setReturnProprtyIdFK(unlockRequests.getReturnPropertyVal().getReturnProprtyIdFK());
+						returnPropertyValue.setReturnProValue(unlockRequests.getReturnPropertyVal().getReturnProValue());
+						unlockRequest.setReturnPropertyVal(returnPropertyValue);
+					}
+
+					EntityLabelBean entityLabelBean = unlockRequests.getEntity().getEntityLabelSet().stream().filter(f -> f.getLanguageMaster().getLanguageId().equals(unlockRequestApprovalBean.getLangId())).findAny().orElse(null);
+					if (entityLabelBean != null) {
+						entityBean.setEntityName(entityLabelBean.getEntityNameLabel());
+					} else {
+						entityBean.setEntityName(unlockRequests.getEntity().getEntityName());
+					}
+					entityBean.setEntityCode(unlockRequests.getEntity().getEntityCode().trim());
+					entityBean.setEntityId(unlockRequests.getEntity().getEntityId());
+
+					//----getting data of category and sub category
+					Category categoryDto = new Category();
+					CategoryLabel cagtegoryLabel = unlockRequests.getEntity().getCategory().getCatLblSet().stream().filter(f -> f.getLangIdFk().getLanguageCode().equalsIgnoreCase(unlockRequestApprovalBean.getLangCode())).findAny().orElse(null);
+					if (cagtegoryLabel != null) {
+						categoryDto.setCategoryName(cagtegoryLabel.getCategoryLabel());
+					} else {
+						categoryDto.setCategoryName(unlockRequests.getEntity().getCategory().getCategoryName());
+					}
+					categoryDto.setCategoryCode(unlockRequests.getEntity().getCategory().getCategoryCode());
+					entityBean.setCategory(categoryDto);
+
+					SubCategory subCatDto = new SubCategory();
+					SubCategoryLabel subLabel = unlockRequests.getEntity().getSubCategory().getSubCatLblSet().stream().filter(f -> f.getLangIdFk().getLanguageCode().equalsIgnoreCase(unlockRequestApprovalBean.getLangCode())).findAny().orElse(null);
+					if (subLabel != null) {
+						subCatDto.setSubCategoryName(subLabel.getSubCategoryLabel());
+					} else {
+						subCatDto.setSubCategoryName(unlockRequests.getEntity().getSubCategory().getSubCategoryName());
+					}
+					subCatDto.setSubCategoryCode(unlockRequests.getEntity().getSubCategory().getSubCategoryCode());
+					entityBean.setSubCategory(subCatDto);
+					//----
+
+					unlockRequest.setEntity(entityBean);
+
+					ReturnLabel returnLabel = unlockRequests.getReturns().getReturnLblSet().stream().filter(x -> x.getLangIdFk().getLanguageId().equals(unlockRequestApprovalBean.getLangId())).findAny().orElse(null);
+
+					if (returnLabel != null) {
+						returns.setReturnName(returnLabel.getReturnLabel());
+					} else {
+						returns.setReturnName(unlockRequests.getRetName());
+					}
+					returns.setReturnId(unlockRequests.getReturns().getReturnId());
+					returns.setReturnCode(unlockRequests.getReturns().getReturnCode());
+					unlockRequest.setReturns(returns);
+
+					userMasterBean.setUserId(unlockRequests.getCreatedBy().getUserId());
+					userMasterBean.setUserName(unlockRequests.getCreatedBy().getUserName());
+					unlockRequest.setCreatedBy(userMasterBean);
+					unlockRequest.setCreatedOn(unlockRequests.getCreatedOn());
+
+//					frequencyDescription.setFinYrFrquencyDesc(unlockRequests.getFrequencyDesc().getFinYrFrquencyDesc());
+//					frequencyDescription.setFinYrFrquencyDescId(unlockRequests.getFrequencyDesc().getFinYrFrquencyDescId());
+//					unlockRequest.setFrequencyDesc(frequencyDescription);
+					unlockRequest.setYear(unlockRequests.getYear());
+					unlockRequest.setReportingDate(unlockRequests.getReportingDate());
+					unlockRequest.setReasonForUnlocking(unlockRequests.getReasonForUnlocking());
+					unlockRequest.setReasonForRejection(unlockRequests.getReasonForRejection());
+					unlockRequest.setStartDate(unlockRequests.getStartDate());
+					unlockRequest.setEndDate(unlockRequests.getEndDate());
+
+					unlockRequestLists.add(unlockRequest);
+				}
+				response = new ServiceResponse.ServiceResponseBuilder().setStatus(true).build();
+				response.setResponse(unlockRequestLists);
+			}
+
+		} catch (Exception e) {
+			logger.error("Exception while fetching return list info for job processingid " + jobProcessId, e);
+			return new ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorCode.EC0033.toString()).setStatusMessage(ObjectCache.getErrorCodeKey(ErrorCode.EC0033.toString())).build();
+		}
+		logger.info("request completed to get return list for job processingid,UnlockRequestController.java _" + jobProcessId);
+		return response;
+	}
+}

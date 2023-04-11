@@ -1,0 +1,32 @@
+package com.iris.sdmx.fusion.bean;
+
+import java.io.Serializable;
+import java.util.List;
+
+/**
+ * @author sajadhav
+ *
+ */
+public class DataStructureWrapper implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 5741329095374777268L;
+
+	private List<DataStructure> DataStructure;
+
+	/**
+	 * @return the dataStructure
+	 */
+	public List<DataStructure> getDataStructure() {
+		return DataStructure;
+	}
+
+	/**
+	 * @param dataStructure the dataStructure to set
+	 */
+	public void setDataStructure(List<DataStructure> dataStructure) {
+		DataStructure = dataStructure;
+	}
+}

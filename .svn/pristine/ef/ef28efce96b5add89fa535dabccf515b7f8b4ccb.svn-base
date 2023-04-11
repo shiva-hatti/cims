@@ -1,0 +1,20 @@
+/**
+ * 
+ */
+package com.iris.sdmx.codelist.repo;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.iris.sdmx.codelist.entity.CodeListValues;
+
+/**
+ * @author sajadhav
+ *
+ */
+public interface CodeListValueRepo extends JpaRepository<CodeListValues, Long>{
+
+	List<CodeListValues> findByIsActiveTrueAndParentCodeListValuesClValueIdOrderByClValueCodeAsc(String clValueId);
+	
+}

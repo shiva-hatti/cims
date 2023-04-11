@@ -1,0 +1,165 @@
+package com.iris.sdmx.upload.bean;
+
+import java.io.Serializable;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+/**
+ * @author apagaria
+ *
+ */
+@JsonInclude(Include.NON_NULL)
+public class ElementAuditBean implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	private Long elementAuditId;
+
+	private String elementCode;
+
+	private String elementVersion;
+
+	private String convertedFileName;
+
+	private List<String> endDateList;
+
+	private int rowCount;
+
+	private String status;
+
+	private String fileName;
+
+	private String failJsonStr;
+
+	/**
+	 * @return the elementAuditId
+	 */
+	public Long getElementAuditId() {
+		return elementAuditId;
+	}
+
+	/**
+	 * @param elementAuditId the elementAuditId to set
+	 */
+	public void setElementAuditId(Long elementAuditId) {
+		this.elementAuditId = elementAuditId;
+	}
+
+	/**
+	 * @return the elementCode
+	 */
+	public String getElementCode() {
+		return elementCode;
+	}
+
+	/**
+	 * @param elementCode the elementCode to set
+	 */
+	public void setElementCode(String elementCode) {
+		this.elementCode = elementCode;
+	}
+
+	/**
+	 * @return the elementVersion
+	 */
+	public String getElementVersion() {
+		return elementVersion;
+	}
+
+	/**
+	 * @param elementVersion the elementVersion to set
+	 */
+	public void setElementVersion(String elementVersion) {
+		this.elementVersion = elementVersion;
+	}
+
+	/**
+	 * @return the convertedFileName
+	 */
+	public String getConvertedFileName() {
+		return convertedFileName;
+	}
+
+	/**
+	 * @param convertedFileName the convertedFileName to set
+	 */
+	public void setConvertedFileName(String convertedFileName) {
+		this.convertedFileName = convertedFileName;
+	}
+
+	/**
+	 * @return the endDateList
+	 */
+	public List<String> getEndDateList() {
+		return endDateList;
+	}
+
+	/**
+	 * @param endDateList the endDateList to set
+	 */
+	public void setEndDateList(List<String> endDateList) {
+		this.endDateList = endDateList;
+	}
+
+	/**
+	 * @return the rowCount
+	 */
+	public int getRowCount() {
+		return rowCount;
+	}
+
+	/**
+	 * @param rowCount the rowCount to set
+	 */
+	public void setRowCount(int rowCount) {
+		this.rowCount = rowCount;
+	}
+
+	/**
+	 * @return the status
+	 */
+	public String getStatus() {
+		return status;
+	}
+
+	/**
+	 * @param status the status to set
+	 */
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	/**
+	 * @return the fileName
+	 */
+	public String getFileName() {
+		return fileName;
+	}
+
+	/**
+	 * @param fileName the fileName to set
+	 */
+	public void setFileName(String fileName) {
+		this.fileName = fileName;
+	}
+
+	/**
+	 * @return the failJsonStr
+	 */
+	public String getFailJsonStr() {
+		return failJsonStr;
+	}
+
+	/**
+	 * @param failJsonStr the failJsonStr to set
+	 */
+	public void setFailJsonStr(String failJsonStr) {
+		this.failJsonStr = failJsonStr;
+	}
+
+}

@@ -1,0 +1,414 @@
+package com.iris.repository;
+
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.iris.model.EntityBean;
+
+public interface EntityRepo extends JpaRepository<EntityBean, Long> {
+
+//	 @Query(value = "select * from TBL_ENTITY where IS_ACTIVE = '1' "
+//	 		+ "and CATEGORY_ID_FK =:categoryId and SUB_CATEGORY_ID_FK =:subcategoryId order by ENTITY_NAME ASC", nativeQuery = true)
+	@Query(value = "FROM EntityBean where isActive = '1' "
+			+ "and category.categoryId  in :categoryId and subCategory.subCategoryId in :subcategoryId "
+			+ "order by entityName ASC")
+	List<EntityBean> fetchAllActiveEntityDataByCategoryAndSubCategoryId(@Param("categoryId") List<Long> categoryIds,
+			@Param("subcategoryId") List<Long> subcategoryIds);
+
+//	 @Query(value = "select * from TBL_ENTITY where ENTITY_ID =:entityId", nativeQuery = true)
+	@Query("FROM EntityBean where entityId in :entityId and isActive = '1'")
+	List<EntityBean> fetchDataByEntityIds(@Param("entityId") Long[] entityIds);
+
+	List<EntityBean> getDataByEntityCodeInIgnoreCaseAndIsActiveTrue(List<String> entCodeList);
+
+	List<EntityBean> getDataByIfscCodeInIgnoreCaseAndIsActiveTrue(List<String> ifscCodeList);
+
+//	  List<EntityBean> getDataByIfscCodeStartingWithAndIsActiveTrue(String ifscCode);
+	List<EntityBean> getDataByEntityCodeStartingWithAndIsActiveTrue(String entityCode);
+
+	@Query("FROM EntityBean where isActive = '1'")
+	List<EntityBean> fetchAllActiveEntityData();
+
+	@Query("FROM EntityBean where isActive = '1' and isNBFCEntity = '0'")
+	List<EntityBean> fetchAllNonNBFCEntityData();
+
+	
+	
+	@Query("SELECT distinct new com.iris.model.EntityBean(ent.entityId, label.entityNameLabel, ent.entityCode, ent.entitySymbolCode, ent.ifscCode) "
+			+ " FROM UserRoleReturnMapping a," + " ReturnEntityMappingNew b," + " EntityBean ent,"
+			+ " EntityLabelBean label," + " LanguageMaster lang" + " where "
+			+ " a.returnIdFk.returnId = b.returnObj.returnId" + " and a.roleIdFk.userRoleId =:roleId"
+			+ " and a.isActive =:isActive " + " and b.isActive =:isActive " + " and ent.entityId = b.entity.entityId"
+			+ " and ent.isActive =:isActive" + " and ent.entityId = label.entityBean.entityId"
+			+ " and label.languageMaster.languageId = lang.languageId"
+			+ " and lang.languageCode =:langCode and ent.category.categoryCode =:categoryCode")
+	List<EntityBean> getDataByRoleId(@Param("roleId") Long roleId, @Param("isActive") Boolean isActive,
+			@Param("langCode") String langCode, @Param("categoryCode") String categoryCode);
+
+//	@Query(" select distinct new com.iris.model.EntityBean(ent.entityId, lbl.entityNameLabel, ent.entityCode, ent.entitySymbolCode, ent.ifscCode) from UserRoleEntityMapping urem, EntityBean ent, EntityLabelBean lbl, LanguageMaster lang  "
+//			+ " where (upper(lbl.entityNameLabel) like %:likeString% or upper(ent.entityCode) like %:likeString%) and urem.entity.entityId = ent.entityId " + " and ent.entityId = lbl.entityBean.entityId "
+//			+ " and lbl.languageMaster.languageId = lang.languageId " + " and urem.userRole.userRoleId =:roleId "
+//			+ " and lang.languageCode =:langCode" + " and urem.isActive =:isActive " + " and ent.isActive =:isActive "
+//			+ " and ent.category.categoryCode =:categoryCode  order by lbl.entityNameLabel asc")
+	
+	@Query(" select distinct new com.iris.model.EntityBean(ent.entityId, lbl.entityNameLabel, ent.entityCode, ent.entitySymbolCode, ent.ifscCode) "
+			+ "from DeptUserEntityMapping duem, EntityBean ent, EntityLabelBean lbl, LanguageMaster lang  "
+			+ " where (upper(lbl.entityNameLabel) like %:likeString% or upper(ent.entityCode) like %:likeString%) and duem.entity.entityId = ent.entityId " + " and ent.entityId = lbl.entityBean.entityId "
+			+ " and lbl.languageMaster.languageId = lang.languageId " + " and duem.userIdFk.userId =:userId "
+			+ " and lang.languageCode =:langCode" 
+			+ " and duem.isActive =:isActive " + " and ent.isActive =:isActive "
+			+ " and ent.category.categoryCode =:categoryCode  order by lbl.entityNameLabel asc")
+	List<EntityBean> getDataByUserIdAndLangCodeAndCategoryCode(@Param("userId") Long userId,
+			@Param("isActive") Boolean isActive, @Param("langCode") String langCode,
+			@Param("categoryCode") String categoryCode, @Param("likeString") String likeString);
+
+//	@Query(" SELECT new com.iris.model.EntityBean(b.entityId, a.entityNameLabel, b.entityCode, b.entitySymbolCode, b.ifscCode)  "
+//			+ "FROM EntityLabelBean a, EntityBean b, LanguageMaster c"
+//			+ " where (upper(a.entityNameLabel) like %:likeString% or upper(b.entityCode) like %:likeString%) "
+//			+ "and  a.entityBean.entityId = b.entityId and c.languageId = a.languageMaster.languageId "
+//			+ "and c.isActive =1 and b.isActive =:isActive and c.languageCode IN :langCode "
+//			+ "and b.category.categoryCode =:categoryCode order by a.entityNameLabel asc")
+	
+	@Query(" SELECT new com.iris.model.EntityBean(b.entityId, a.entityNameLabel, b.entityCode, b.entitySymbolCode, b.ifscCode)  "
+			+ " FROM DeptUserEntityMapping duem, EntityLabelBean a, EntityBean b, LanguageMaster c"
+			+ " where (upper(a.entityNameLabel) like %:likeString% or upper(b.entityCode) like %:likeString%) "
+			+ " and duem.entity.entityId = b.entityId  and  a.entityBean.entityId = b.entityId and c.languageId = a.languageMaster.languageId "
+			+ " and duem.userIdFk.userId =:userId "
+			+ " and c.isActive =1 and b.isActive =:isActive and c.languageCode IN :langCode "
+			+ " and duem.isActive =:isActive "
+			+ " and b.category.categoryCode =:categoryCode order by a.entityNameLabel asc")
+	List<EntityBean> getDataByLangCodeUserIdAndIsActiveAndCategoryCode(@Param("langCode") String langCode,
+			@Param("isActive") Boolean isActive, @Param("categoryCode") String categoryCode, @Param("likeString") String likeString, @Param("userId") Long userId);
+
+	@Query(" SELECT new com.iris.model.EntityBean(b.entityId, a.entityNameLabel, b.entityCode, b.entitySymbolCode, b.ifscCode) FROM UserEntityRole u, UserRoleMaster ub, EntityLabelBean a, EntityBean b, LanguageMaster c where u.userRoleMaster.userRoleMasterId = ub.userRoleMasterId and ub.userMaster.isActive =1 and u.entityBean.entityId = b.entityId and a.entityBean.entityId = b.entityId and c.languageId = a.languageMaster.languageId and c.isActive = 1 and b.isActive =:isActive and c.languageCode =:langCode and b.category.categoryCode =:categoryCode and b.subCategory.subCategoryCode =:subCategoryCode and ub.userMaster.userId =:userId")
+	List<EntityBean> getEntityDataWithSubCategory(@Param("userId") Long userId,
+			@Param("categoryCode") String categoryCode, @Param("langCode") String langCode,
+			@Param("subCategoryCode") String subCategoryCode, @Param("isActive") Boolean isActive);
+
+	@Query(value = "SELECT new com.iris.model.EntityBean(b.entityId, a.entityNameLabel, b.entityCode, b.entitySymbolCode, b.ifscCode) FROM UserEntityRole u, UserRoleMaster ub, EntityLabelBean a, EntityBean b, LanguageMaster c where u.userRoleMaster.userRoleMasterId = ub.userRoleMasterId and ub.userMaster.isActive =1 and u.entityBean.entityId = b.entityId and a.entityBean.entityId = b.entityId and c.languageId = a.languageMaster.languageId and c.isActive = 1 and b.isActive =:isActive and  c.languageCode =:langCode and b.category.categoryCode =:categoryCode and ub.userMaster.userId =:userId")
+	List<EntityBean> getEntityData(@Param("userId") Long userId, @Param("categoryCode") String categoryCode,
+			@Param("langCode") String langCode, @Param("isActive") Boolean isActive);
+
+	@Query(" SELECT new com.iris.model.EntityBean(b.entityId, a.entityNameLabel, b.entityCode, b.entitySymbolCode, b.ifscCode)  "
+			+ " FROM DeptUserEntityMapping duem, EntityLabelBean a, EntityBean b, LanguageMaster c where (upper(a.entityNameLabel) like %:likeString% or upper(b.entityCode) like %:likeString%) "
+			+ " and duem.entity.entityId = b.entityId and a.entityBean.entityId = b.entityId and c.languageId = a.languageMaster.languageId "
+			+ " and duem.userIdFk.userId =:userId "
+			+ " and duem.isActive =:isActive " 
+			+ " and c.isActive =1 and b.isActive =:isActive and c.languageCode IN :langCode and b.category.categoryCode =:categoryCode "
+			+ " and b.subCategory.subCategoryCode IN :subCateCodeList order by a.entityNameLabel asc ")
+	List<EntityBean> getDataByLangCodeUserIdAndIsActiveAndSubCateCodeAndCateCode(@Param("langCode") String langCode,
+			@Param("isActive") Boolean isActive, @Param("categoryCode") String categoryCode,
+			@Param("subCateCodeList") List<String> subCateCodeList, @Param("likeString") String likeString, @Param("userId") Long userId);
+
+//	@Query(" select distinct new com.iris.model.EntityBean(ent.entityId, lbl.entityNameLabel, ent.entityCode, ent.entitySymbolCode, ent.ifscCode) from UserRoleEntityMapping urem, EntityBean ent, EntityLabelBean lbl, LanguageMaster lang  "
+//			+ " where (upper(lbl.entityNameLabel) like %:likeString% or upper(ent.entityCode) like %:likeString%) and urem.entity.entityId = ent.entityId " + " and ent.entityId = lbl.entityBean.entityId "
+//			+ " and lbl.languageMaster.languageId = lang.languageId " + " and urem.userRole.userRoleId =:roleId "
+//			+ " and lang.languageCode =:langCode" + " and urem.isActive =:isActive " + " and ent.isActive =:isActive "
+//			+ " and ent.category.categoryCode =:categoryCode and ent.subCategory.subCategoryCode IN :subCateCodeList order by lbl.entityNameLabel asc ")
+	
+	
+	@Query(" select distinct new com.iris.model.EntityBean(ent.entityId, lbl.entityNameLabel, ent.entityCode, ent.entitySymbolCode, ent.ifscCode) "
+			+ " from DeptUserEntityMapping duem, EntityBean ent, EntityLabelBean lbl, LanguageMaster lang  "
+			+ " where (upper(lbl.entityNameLabel) like %:likeString% or upper(ent.entityCode) like %:likeString%) and duem.entity.entityId = ent.entityId " 
+			+ " and ent.entityId = lbl.entityBean.entityId "
+			+ " and lbl.languageMaster.languageId = lang.languageId " 
+			+ " and duem.userIdFk.userId =:userId "
+			+ " and lang.languageCode =:langCode" 
+			+ " and duem.isActive =:isActive " 
+			+ " and ent.isActive =:isActive "
+			+ " and ent.category.categoryCode =:categoryCode and ent.subCategory.subCategoryCode IN :subCateCodeList order by lbl.entityNameLabel asc ")
+	List<EntityBean> getDataByUserIdAndLangCodeAndCatCodeAndSubCateCode(@Param("userId") Long userId,
+			@Param("isActive") Boolean isActive, @Param("langCode") String langCode,
+			@Param("categoryCode") String categoryCode, @Param("subCateCodeList") List<String> subCateCodeList, @Param("likeString") String likeString);
+
+	
+	
+	@Query("SELECT distinct new com.iris.model.EntityBean(ent.entityId, label.entityNameLabel, ent.entityCode, ent.entitySymbolCode, ent.ifscCode) "
+			+ " FROM UserRoleReturnMapping a," + " ReturnEntityMappingNew b," + " EntityBean ent,"
+			+ " EntityLabelBean label," + " LanguageMaster lang" + " where "
+			+ " (upper(label.entityNameLabel) like %:likeString% or upper(ent.entityCode) like %:likeString%) and a.returnIdFk.returnId = b.returnObj.returnId" + " and a.roleIdFk.userRoleId =:roleId"
+			+ " and a.isActive =:isActive " + " and b.isActive =:isActive " + " and ent.entityId = b.entity.entityId"
+			+ " and ent.isActive =:isActive" + " and ent.entityId = label.entityBean.entityId"
+			+ " and label.languageMaster.languageId = lang.languageId"
+			+ " and lang.languageCode =:langCode and ent.category.categoryCode =:categoryCode and ent.subCategory.subCategoryCode IN :subCateCodeList order by label.entityNameLabel asc ")
+	List<EntityBean> getDataByRoleIdAndSubCateCodeAndCatCode(@Param("roleId") Long roleId, @Param("isActive") Boolean isActive,
+			@Param("langCode") String langCode, @Param("categoryCode") String categoryCode, @Param("subCateCodeList") List<String> subCateCodeList, @Param("likeString") String likeString);
+
+//	@Query(" SELECT new com.iris.model.EntityBean(b.entityId, a.entityNameLabel, b.entityCode, b.entitySymbolCode,"
+//			+ " b.ifscCode, b.category.categoryId, b.category.categoryCode, catLabel.categoryLabel, "
+//			+ " b.subCategory.subCategoryId, b.subCategory.subCategoryCode, subCatLable.subCategoryLabel)  "
+//			+ " FROM EntityLabelBean a, EntityBean b, LanguageMaster c, CategoryLabel catLabel, SubCategoryLabel subCatLable"
+//			+ " where (upper(a.entityNameLabel) like %:likeString% or upper(b.entityCode) like %:likeString% ) and a.entityBean.entityId = b.entityId and c.languageId = a.languageMaster.languageId "
+//			+ " and c.languageId = catLabel.langIdFk.languageId and c.languageId = subCatLable.langIdFk.languageId "
+//			+ " and b.category.categoryId = catLabel.categoryIdFk.categoryId "
+//			+ " and b.subCategory.subCategoryId = subCatLable.subCatIdFk.subCategoryId "
+//			+ " and c.isActive =:isActive and b.isActive =:isActive and c.languageCode IN :langCode "
+//			+ " order by a.entityNameLabel asc")
+	
+	@Query(" SELECT new com.iris.model.EntityBean(b.entityId, a.entityNameLabel, b.entityCode, b.entitySymbolCode,"
+			+ " b.ifscCode, b.category.categoryId, b.category.categoryCode, catLabel.categoryLabel, "
+			+ " b.subCategory.subCategoryId, b.subCategory.subCategoryCode, subCatLable.subCategoryLabel)  "
+			+ " FROM DeptUserEntityMapping duem, EntityLabelBean a, EntityBean b, LanguageMaster c, CategoryLabel catLabel, SubCategoryLabel subCatLable"
+			+ " where (upper(a.entityNameLabel) like %:likeString% or upper(b.entityCode) like %:likeString% ) and duem.entity.entityId = b.entityId and  a.entityBean.entityId = b.entityId and c.languageId = a.languageMaster.languageId "
+			+ " and c.languageId = catLabel.langIdFk.languageId and c.languageId = subCatLable.langIdFk.languageId "
+			+ " and duem.userIdFk.userId =:userId "
+			+ " and b.category.categoryId = catLabel.categoryIdFk.categoryId "
+			+ " and b.subCategory.subCategoryId = subCatLable.subCatIdFk.subCategoryId "
+			+ " and c.isActive =:isActive and b.isActive =:isActive and c.languageCode IN :langCode "
+			+ " and duem.isActive =:isActive " 
+			+ " order by a.entityNameLabel asc")
+	List<EntityBean> getDataByLangCodeUserIdAndIsActive(@Param("langCode") String langCode,
+			@Param("isActive") Boolean isActive, @Param("likeString") String likeString, @Param("userId") Long userId);
+
+//	@Query(" SELECT new com.iris.model.EntityBean(b.entityId, a.entityNameLabel, b.entityCode, b.entitySymbolCode, b.ifscCode)  "
+//			+ " FROM EntityLabelBean a, EntityBean b, LanguageMaster c where (upper(a.entityNameLabel) like %:likeString% or upper(b.entityCode) like %:likeString%) "
+//			+ "and a.entityBean.entityId = b.entityId and c.languageId = a.languageMaster.languageId and c.isActive =1 "
+//			+ "and b.isActive =:isActive and c.languageCode IN :langCode "
+//			+ "and b.subCategory.subCategoryCode IN :subCateCodeList order by a.entityNameLabel asc")
+	
+	
+	@Query(" SELECT new com.iris.model.EntityBean(b.entityId, a.entityNameLabel, b.entityCode, b.entitySymbolCode, b.ifscCode)  "
+			+ " FROM DeptUserEntityMapping duem, EntityLabelBean a, EntityBean b, LanguageMaster c where (upper(a.entityNameLabel) like %:likeString% or upper(b.entityCode) like %:likeString%) "
+			+ " and duem.entity.entityId = b.entityId and a.entityBean.entityId = b.entityId and c.languageId = a.languageMaster.languageId and c.isActive =1 "
+			+ " and b.isActive =:isActive and c.languageCode IN :langCode "
+			+ " and duem.userIdFk.userId =:userId "
+			+ " and duem.isActive =:isActive " 
+			+ " and b.subCategory.subCategoryCode IN :subCateCodeList order by a.entityNameLabel asc")
+	List<EntityBean> getDataByLangCodeUserIdAndIsActiveAndSubCateCode(@Param("langCode") String langCode,
+			@Param("isActive") Boolean isActive, @Param("subCateCodeList") List<String> subCateCodeList,  @Param("likeString") String likeString, @Param("userId") Long userId);
+
+//	@Query(" select distinct new com.iris.model.EntityBean(ent.entityId, lbl.entityNameLabel, ent.entityCode, ent.entitySymbolCode, ent.ifscCode,"
+//			+ " ent.category.categoryId, ent.category.categoryCode, catLabel.categoryLabel, "
+//			+ " ent.subCategory.subCategoryId, ent.subCategory.subCategoryCode, subCatLable.subCategoryLabel)"
+//			+ " from UserRoleEntityMapping urem, EntityBean ent, EntityLabelBean lbl, LanguageMaster lang, CategoryLabel catLabel, SubCategoryLabel subCatLable   "
+//			+ " where (upper(lbl.entityNameLabel) like %:likeString% or upper(ent.entityCode) like %:likeString%) and urem.entity.entityId = ent.entityId " + " and ent.entityId = lbl.entityBean.entityId "
+//			+ " and lbl.languageMaster.languageId = lang.languageId " + " and urem.userRole.userRoleId =:roleId "
+//			+ " and lang.languageId = catLabel.langIdFk.languageId and lang.languageId = subCatLable.langIdFk.languageId "
+//			+ " and ent.category.categoryId = catLabel.categoryIdFk.categoryId "
+//			+ " and ent.subCategory.subCategoryId = subCatLable.subCatIdFk.subCategoryId "
+//			+ " and lang.languageCode =:langCode" + " and urem.isActive =:isActive " + " and ent.isActive =:isActive "
+//			+ " order by lbl.entityNameLabel asc ")
+	
+	@Query(" select distinct new com.iris.model.EntityBean(ent.entityId, lbl.entityNameLabel, ent.entityCode, ent.entitySymbolCode, ent.ifscCode,"
+			+ " ent.category.categoryId, ent.category.categoryCode, catLabel.categoryLabel, "
+			+ " ent.subCategory.subCategoryId, ent.subCategory.subCategoryCode, subCatLable.subCategoryLabel)"
+			+ " from DeptUserEntityMapping duem, EntityBean ent, EntityLabelBean lbl, LanguageMaster lang, CategoryLabel catLabel, SubCategoryLabel subCatLable   "
+			+ " where (upper(lbl.entityNameLabel) like %:likeString% or upper(ent.entityCode) like %:likeString%) and duem.entity.entityId = ent.entityId " 
+			+ " and ent.entityId = lbl.entityBean.entityId "
+			+ " and lbl.languageMaster.languageId = lang.languageId " 
+			+ " and duem.userIdFk.userId =:userId "
+			+ " and lang.languageId = catLabel.langIdFk.languageId and lang.languageId = subCatLable.langIdFk.languageId "
+			+ " and ent.category.categoryId = catLabel.categoryIdFk.categoryId "
+			+ " and ent.subCategory.subCategoryId = subCatLable.subCatIdFk.subCategoryId "
+			+ " and lang.languageCode =:langCode" 
+			+ " and duem.isActive =:isActive " 
+			+ " and ent.isActive =:isActive "
+			+ " order by lbl.entityNameLabel asc ")
+	List<EntityBean> getDataByUserIdAndLangCode(@Param("userId") Long userId, @Param("isActive") Boolean isActive,
+			@Param("langCode") String langCode, @Param("likeString") String likeString);
+
+//	@Query(" select distinct new com.iris.model.EntityBean(ent.entityId, lbl.entityNameLabel, ent.entityCode, ent.entitySymbolCode, ent.ifscCode) from UserRoleEntityMapping urem, EntityBean ent, EntityLabelBean lbl, LanguageMaster lang  "
+//			+ " where (upper(lbl.entityNameLabel) like %:likeString% or upper(ent.entityCode) like %:likeString%) and urem.entity.entityId = ent.entityId " + " and ent.entityId = lbl.entityBean.entityId "
+//			+ " and lbl.languageMaster.languageId = lang.languageId " + " and urem.userRole.userRoleId =:roleId "
+//			+ " and lang.languageCode =:langCode" + " and urem.isActive =:isActive " + " and ent.isActive =:isActive "
+//			+ " and ent.subCategory.subCategoryCode IN :subCateCodeList order by lbl.entityNameLabel asc ")
+	
+	@Query(" select distinct new com.iris.model.EntityBean(ent.entityId, lbl.entityNameLabel, ent.entityCode, ent.entitySymbolCode, ent.ifscCode)"
+			+ " from DeptUserEntityMapping duem, EntityBean ent, EntityLabelBean lbl, LanguageMaster lang  "
+			+ " where (upper(lbl.entityNameLabel) like %:likeString% or upper(ent.entityCode) like %:likeString%) and duem.entity.entityId = ent.entityId " + " and ent.entityId = lbl.entityBean.entityId "
+			+ " and lbl.languageMaster.languageId = lang.languageId " + " and duem.userIdFk.userId =:userId "
+			+ " and lang.languageCode =:langCode" + " and duem.isActive =:isActive " + " and ent.isActive =:isActive "
+			+ " and ent.subCategory.subCategoryCode IN :subCateCodeList order by lbl.entityNameLabel asc ")
+	List<EntityBean> getDataByUserIdAndLangCodeAndSubCateCode(@Param("userId") Long userId,
+			@Param("isActive") Boolean isActive, @Param("langCode") String langCode,
+			@Param("subCateCodeList") List<String> subCateCodeList, @Param("likeString") String likeString);
+
+	@Query("SELECT distinct new com.iris.model.EntityBean(ent.entityId, label.entityNameLabel, ent.entityCode, ent.entitySymbolCode, ent.ifscCode, "
+			+ " ent.category.categoryId, ent.category.categoryCode, catLabel.categoryLabel, "
+			+ " ent.subCategory.subCategoryId, ent.subCategory.subCategoryCode, subCatLable.subCategoryLabel)"
+			+ " FROM UserRoleReturnMapping a, ReturnEntityMappingNew b, EntityBean ent,"
+			+ " EntityLabelBean label, LanguageMaster lang, CategoryLabel catLabel, SubCategoryLabel subCatLable where "
+			+ " (upper(label.entityNameLabel) like %:likeString% or upper(ent.entityCode) like %:likeString%) and a.returnIdFk.returnId = b.returnObj.returnId" + " and a.roleIdFk.userRoleId =:roleId"
+			+ " and a.isActive =:isActive " + " and b.isActive =:isActive " + " and ent.entityId = b.entity.entityId"
+			+ " and ent.isActive =:isActive" + " and ent.entityId = label.entityBean.entityId"
+			+ " and lang.languageId = catLabel.langIdFk.languageId and lang.languageId = subCatLable.langIdFk.languageId "
+			+ " and ent.category.categoryId = catLabel.categoryIdFk.categoryId "
+			+ " and ent.subCategory.subCategoryId = subCatLable.subCatIdFk.subCategoryId "
+			+ " and label.languageMaster.languageId = lang.languageId"
+			+ " and lang.languageCode =:langCode  order by label.entityNameLabel asc ")
+	List<EntityBean> getDataByRoleIdAndLangCodeAndIsActive(@Param("roleId") Long roleId,
+			@Param("isActive") Boolean isActive, @Param("langCode") String langCode, @Param("likeString") String likeString);
+
+	@Query("SELECT distinct new com.iris.model.EntityBean(ent.entityId, label.entityNameLabel, ent.entityCode, ent.entitySymbolCode, ent.ifscCode) "
+			+ " FROM UserRoleReturnMapping a," + " ReturnEntityMappingNew b," + " EntityBean ent,"
+			+ " EntityLabelBean label," + " LanguageMaster lang" + " where "
+			+ " (upper(label.entityNameLabel) like %:likeString% or upper(ent.entityCode) like %:likeString%) and a.returnIdFk.returnId = b.returnObj.returnId" + " and a.roleIdFk.userRoleId =:roleId"
+			+ " and a.isActive =:isActive " + " and b.isActive =:isActive " + " and ent.entityId = b.entity.entityId"
+			+ " and ent.isActive =:isActive" + " and ent.entityId = label.entityBean.entityId"
+			+ " and label.languageMaster.languageId = lang.languageId"
+			+ " and lang.languageCode =:langCode and ent.category.categoryCode =:categoryCode  order by label.entityNameLabel asc ")
+	List<EntityBean> getDataByRoleIdAndCatCodes(@Param("roleId") Long roleId, @Param("isActive") Boolean isActive,
+			@Param("langCode") String langCode, @Param("categoryCode") String categoryCode, @Param("likeString") String likeString);
+	
+	
+	@Query("SELECT distinct new com.iris.model.EntityBean(ent.entityId, label.entityNameLabel, ent.entityCode, ent.entitySymbolCode, ent.ifscCode) "
+			+ " FROM UserRoleReturnMapping a," + " ReturnEntityMappingNew b," + " EntityBean ent,"
+			+ " EntityLabelBean label," + " LanguageMaster lang" + " where "
+			+ " a.returnIdFk.returnId = b.returnObj.returnId" + " and a.roleIdFk.userRoleId =:roleId"
+			+ " and a.isActive =:isActive " + " and b.isActive =:isActive " + " and ent.entityId = b.entity.entityId"
+			+ " and ent.isActive =:isActive" + " and ent.entityId = label.entityBean.entityId"
+			+ " and label.languageMaster.languageId = lang.languageId"
+			+ " and lang.languageCode =:langCode and ent.category.categoryCode =:categoryCode and label.entityNameLabel like %:like% order by ent.entityName asc ")
+	List<EntityBean> getDataByRoleIdAndCatCodess(@Param("roleId") Long roleId, @Param("isActive") Boolean isActive,
+			@Param("langCode") String langCode, @Param("categoryCode") String categoryCode, @Param("like") String like);
+
+
+	@Query("SELECT distinct new com.iris.model.EntityBean(ent.entityId, label.entityNameLabel, ent.entityCode, ent.entitySymbolCode, ent.ifscCode) "
+			+ " FROM UserRoleReturnMapping a," + " ReturnEntityMappingNew b," + " EntityBean ent,"
+			+ " EntityLabelBean label," + " LanguageMaster lang" + " where "
+			+ " (upper(label.entityNameLabel) like %:likeString% or upper(ent.entityCode) like %:likeString%) and a.returnIdFk.returnId = b.returnObj.returnId" + " and a.roleIdFk.userRoleId =:roleId"
+			+ " and a.isActive =:isActive " + " and b.isActive =:isActive " + " and ent.entityId = b.entity.entityId"
+			+ " and ent.isActive =:isActive" + " and ent.entityId = label.entityBean.entityId"
+			+ " and label.languageMaster.languageId = lang.languageId"
+			+ " and lang.languageCode =:langCode and ent.subCategory.subCategoryCode IN :subCateCodeList order by label.entityNameLabel asc")
+	List<EntityBean> getDataByRoleIdAndLangCodesAndSubCateCodes(@Param("roleId") Long roleId, @Param("isActive")Boolean isActive, @Param("langCode")String langCode,
+			@Param("subCateCodeList") List<String> subCateCodeList, @Param("likeString") String likeString);
+	
+	@Query("SELECT ent from EntityBean ent, UserMaster um, UserEntityRole uer, UserRoleMaster urm "
+			+ " where um.userId = urm.userMaster.userId and uer.userRoleMaster.userRoleMasterId = urm.userRoleMasterId and ent.entityId = uer.entityBean.entityId "
+			+ " and um.userName =:username ")
+	List<EntityBean> getEntityDataByUserName(@Param("username") String username);
+	
+	@Query(" SELECT new com.iris.model.EntityBean(b.entityId, a.entityNameLabel, b.entityCode, b.entitySymbolCode, b.ifscCode)  FROM EntityLabelBean a, EntityBean b, "
+			+ " LanguageMaster c where a.entityBean.entityId = b.entityId "
+			+ " and c.languageId = a.languageMaster.languageId and c.isActive =:isActive "
+			+ " and b.isActive =:isActive and c.languageCode IN :langCode "
+			+ " and upper(b.ifscCode) IN :ifscCodeList ")
+	List<EntityBean> getDataByLangCodeAndIsActiveAndIfscCode(@Param("langCode") String langCode,
+			@Param("isActive") Boolean isActive, @Param("ifscCodeList") List<String> ifscCodeList);
+	
+	EntityBean findByEntityCode(String entityCode);
+	
+	EntityBean findByEntityId(Long entityId);
+
+	@Query("FROM EntityBean ent where ent.entityId IN :entityBeanList and ent.isActive =:entityActive and ent.category.isActive =:categoryActive and ent.subCategory.isActive =:subCategoryActive")
+	List<EntityBean> getActiveEntityList(@Param("entityBeanList") List<Long> entityBeanList, @Param("entityActive") boolean entityActive,@Param("categoryActive") boolean categoryActive,@Param("subCategoryActive") boolean subCategoryActive);
+
+//	@Query(" SELECT new com.iris.model.EntityBean(b.entityId, a.entityNameLabel, b.entityCode, b.entitySymbolCode,"
+//			+ " b.ifscCode, b.category.categoryId, b.category.categoryCode, catLabel.categoryLabel, "
+//			+ " b.subCategory.subCategoryId, b.subCategory.subCategoryCode, subCatLable.subCategoryLabel)  "
+//			+ " FROM EntityLabelBean a, EntityBean b, LanguageMaster c, CategoryLabel catLabel, SubCategoryLabel subCatLable"
+//			+ " where (upper(a.entityNameLabel) like %:likeString% or upper(b.entityCode) like %:likeString% ) and a.entityBean.entityId = b.entityId and c.languageId = a.languageMaster.languageId "
+//			+ " and c.languageId = catLabel.langIdFk.languageId and c.languageId = subCatLable.langIdFk.languageId "
+//			+ " and b.category.categoryId = catLabel.categoryIdFk.categoryId "
+//			+ " and b.subCategory.subCategoryId = subCatLable.subCatIdFk.subCategoryId "
+//			+ " and c.isActive =:isActive and b.isActive =:isActive and c.languageCode IN :langCode "
+//			+ " order by a.entityNameLabel asc")
+	
+	@Query(" SELECT new com.iris.model.EntityBean(b.entityId, a.entityNameLabel, b.entityCode, b.entitySymbolCode,"
+			+ " b.ifscCode, b.category.categoryId, b.category.categoryCode, catLabel.categoryLabel, "
+			+ " b.subCategory.subCategoryId, b.subCategory.subCategoryCode, subCatLable.subCategoryLabel)  "
+			+ " FROM DeptUserEntityMapping duem,EntityLabelBean a, EntityBean b, LanguageMaster c, CategoryLabel catLabel, SubCategoryLabel subCatLable"
+			+ " where (upper(a.entityNameLabel) like %:likeString% or upper(b.entityCode) like %:likeString% ) and duem.entity.entityId = b.entityId and a.entityBean.entityId = b.entityId and c.languageId = a.languageMaster.languageId "
+			+ " and c.languageId = catLabel.langIdFk.languageId and c.languageId = subCatLable.langIdFk.languageId "
+			+ " and duem.userIdFk.userId =:userId "
+			+ " and b.category.categoryId = catLabel.categoryIdFk.categoryId "
+			+ " and b.subCategory.subCategoryId = subCatLable.subCatIdFk.subCategoryId "
+			+ " and c.isActive =:isActive and b.isActive =:isActive and duem.isActive =:isActive and c.languageCode IN :langCode "
+			+ " order by a.entityNameLabel asc")
+	Page<EntityBean> getDataByLangCodeUserIdAndIsActive(@Param("langCode") String langCode,
+			@Param("isActive") Boolean isActive, @Param("likeString") String likeString,Pageable pageable, @Param("userId") Long userId);
+	
+//	@Query(" select distinct new com.iris.model.EntityBean(ent.entityId, lbl.entityNameLabel, ent.entityCode, ent.entitySymbolCode, ent.ifscCode,"
+//			+ " ent.category.categoryId, ent.category.categoryCode, catLabel.categoryLabel, "
+//			+ " ent.subCategory.subCategoryId, ent.subCategory.subCategoryCode, subCatLable.subCategoryLabel)"
+//			+ " from UserRoleEntityMapping urem, EntityBean ent, EntityLabelBean lbl, LanguageMaster lang, CategoryLabel catLabel, SubCategoryLabel subCatLable   "
+//			+ " where (upper(lbl.entityNameLabel) like %:likeString% or upper(ent.entityCode) like %:likeString%) and urem.entity.entityId = ent.entityId " + " and ent.entityId = lbl.entityBean.entityId "
+//			+ " and lbl.languageMaster.languageId = lang.languageId " + " and urem.userRole.userRoleId =:roleId "
+//			+ " and lang.languageId = catLabel.langIdFk.languageId and lang.languageId = subCatLable.langIdFk.languageId "
+//			+ " and ent.category.categoryId = catLabel.categoryIdFk.categoryId "
+//			+ " and ent.subCategory.subCategoryId = subCatLable.subCatIdFk.subCategoryId "
+//			+ " and lang.languageCode =:langCode" + " and urem.isActive =:isActive " + " and ent.isActive =:isActive "
+//			+ " order by lbl.entityNameLabel asc ")
+	
+	@Query(" select distinct new com.iris.model.EntityBean(ent.entityId, lbl.entityNameLabel, ent.entityCode, ent.entitySymbolCode, ent.ifscCode,"
+			+ " ent.category.categoryId, ent.category.categoryCode, catLabel.categoryLabel, "
+			+ " ent.subCategory.subCategoryId, ent.subCategory.subCategoryCode, subCatLable.subCategoryLabel)"
+			+ " from DeptUserEntityMapping duem, EntityBean ent, EntityLabelBean lbl, LanguageMaster lang, CategoryLabel catLabel, SubCategoryLabel subCatLable   "
+			+ " where (upper(lbl.entityNameLabel) like %:likeString% or upper(ent.entityCode) like %:likeString%) and duem.entity.entityId = ent.entityId " + " and ent.entityId = lbl.entityBean.entityId "
+			+ " and lbl.languageMaster.languageId = lang.languageId " 
+			+ " and duem.userIdFk.userId =:userId "
+			+ " and lang.languageId = catLabel.langIdFk.languageId and lang.languageId = subCatLable.langIdFk.languageId "
+			+ " and ent.category.categoryId = catLabel.categoryIdFk.categoryId "
+			+ " and ent.subCategory.subCategoryId = subCatLable.subCatIdFk.subCategoryId "
+			+ " and lang.languageCode =:langCode" + " and duem.isActive =:isActive " + " and ent.isActive =:isActive "
+			+ " order by lbl.entityNameLabel asc ")
+	Page<EntityBean> getDataByUserIdAndLangCode(@Param("userId") Long userId, @Param("isActive") Boolean isActive,
+			@Param("langCode") String langCode, @Param("likeString") String likeString,Pageable pageable);
+	@Query("SELECT distinct new com.iris.model.EntityBean(ent.entityId, label.entityNameLabel, ent.entityCode, ent.entitySymbolCode, ent.ifscCode, "
+			+ " ent.category.categoryId, ent.category.categoryCode, catLabel.categoryLabel, "
+			+ " ent.subCategory.subCategoryId, ent.subCategory.subCategoryCode, subCatLable.subCategoryLabel)"
+			+ " FROM UserRoleReturnMapping a, ReturnEntityMappingNew b, EntityBean ent,"
+			+ " EntityLabelBean label, LanguageMaster lang, CategoryLabel catLabel, SubCategoryLabel subCatLable where "
+			+ " (upper(label.entityNameLabel) like %:likeString% or upper(ent.entityCode) like %:likeString%) and a.returnIdFk.returnId = b.returnObj.returnId" + " and a.roleIdFk.userRoleId =:roleId"
+			+ " and a.isActive =:isActive " + " and b.isActive =:isActive " + " and ent.entityId = b.entity.entityId"
+			+ " and ent.isActive =:isActive" + " and ent.entityId = label.entityBean.entityId"
+			+ " and lang.languageId = catLabel.langIdFk.languageId and lang.languageId = subCatLable.langIdFk.languageId "
+			+ " and ent.category.categoryId = catLabel.categoryIdFk.categoryId "
+			+ " and ent.subCategory.subCategoryId = subCatLable.subCatIdFk.subCategoryId "
+			+ " and label.languageMaster.languageId = lang.languageId"
+			+ " and lang.languageCode =:langCode  order by label.entityNameLabel asc ")
+	Page<EntityBean> getDataByRoleIdAndLangCodeAndIsActive(@Param("roleId") Long roleId,
+			@Param("isActive") Boolean isActive, @Param("langCode") String langCode, @Param("likeString") String likeString,Pageable pageable);
+
+//	@Query("FROM EntityBean eb where eb.isActive = 1 and upper(eb.entityName) =:entityNameSet%")
+//	List<EntityBean> getDataByEntityName(@Param("entityNameSet") Set<String> entityNameSet);
+	
+	@Query("FROM EntityBean eb where eb.isActive = 1 and upper(eb.entityName) like upper(concat('%', :entityName,'%'))")
+	List<EntityBean> getDataByEntityName(@Param("entityName") String entityName);
+
+	
+	@Query(" SELECT new com.iris.model.EntityBean(b.entityId, a.entityNameLabel, b.entityCode, b.entitySymbolCode, b.ifscCode)  FROM EntityLabelBean a, EntityBean b, "
+			+ " LanguageMaster c where a.entityBean.entityId = b.entityId "
+			+ " and c.languageId = a.languageMaster.languageId and c.isActive =:isActive "
+			+ " and b.isActive =:isActive and c.languageCode IN :langCode "
+			+ " and b.entityCode IN :entityCodeList ")
+	List<EntityBean> getDataByLangCodeAndIsActiveAndIfscCodeByEntityCode(@Param("langCode") String langCode, @Param("isActive") Boolean isActive,
+			@Param("entityCodeList") List<String> entityCodeList);
+
+	@Query(" SELECT new com.iris.model.EntityBean(b.entityId, a.entityNameLabel, b.entityCode, b.entitySymbolCode,"
+			+ " b.ifscCode, b.category.categoryId, b.category.categoryCode, catLabel.categoryLabel, "
+			+ " b.subCategory.subCategoryId, b.subCategory.subCategoryCode, subCatLable.subCategoryLabel)  "
+			+ " FROM EntityLabelBean a, EntityBean b, LanguageMaster c, CategoryLabel catLabel, SubCategoryLabel subCatLable, ReturnEntityMappingNew returnEntity "
+			+ " where (upper(a.entityNameLabel) like %:likeString% or upper(b.entityCode) like %:likeString% ) and a.entityBean.entityId = b.entityId and c.languageId = a.languageMaster.languageId "
+			+ " and c.languageId = catLabel.langIdFk.languageId and c.languageId = subCatLable.langIdFk.languageId "
+			+ " and b.category.categoryId = catLabel.categoryIdFk.categoryId "
+			+ " and b.subCategory.subCategoryId = subCatLable.subCatIdFk.subCategoryId "
+			+ " and c.isActive =:isActive and b.isActive =:isActive and c.languageCode IN :langCode "
+			+" and returnEntity.entity.entityId = b.entityId  and returnEntity.returnObj.returnCode = :returnCode and returnEntity.isActive = 1"
+			+ " order by a.entityNameLabel asc")
+	List<EntityBean> getDataByLangCodeAndIsActiveAndByReturn(@Param("langCode") String langCode,
+			@Param("isActive") Boolean isActive, @Param("likeString") String likeString, @Param("returnCode")String returnCode);
+	
+	@Query(" SELECT new com.iris.model.EntityBean(b.entityId, a.entityNameLabel, b.entityCode, b.entitySymbolCode, b.ifscCode)  FROM EntityLabelBean a, EntityBean b, "
+			+ " LanguageMaster c where a.entityBean.entityId = b.entityId "
+			+ " and c.languageId = a.languageMaster.languageId and c.isActive =:isActive "
+			+ " and b.isActive =:isActive and c.languageCode IN :langCode "
+			+ " and upper(b.entityCode) =:entityCode ")
+	EntityBean getDataByLangCodeAndIsActiveAndEntityCode(@Param("langCode") String langCode,
+			@Param("isActive") Boolean isActive, @Param("entityCode") String entityCode);
+
+	@Query("FROM EntityBean where ifscCode=:ifscCode")
+	EntityBean getEntityByIfscCode(@Param("ifscCode")String ifscCode);
+	
+	@Query("FROM EntityBean where UPPER(entityCode)=:entityCode")
+	EntityBean getEntityByEntityCode(@Param("entityCode")String entityCode);
+	
+	@Query("FROM EntityBean order by lastUpdatedOn desc")
+	List<EntityBean> getEntityDetailsList();
+}

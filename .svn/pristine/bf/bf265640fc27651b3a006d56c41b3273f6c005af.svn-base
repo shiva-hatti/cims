@@ -1,0 +1,408 @@
+{
+	"R011": {
+		"457": [{
+			"firstColumnLabel": "Serial Number",
+			"firstColumnTag": "Sno",
+			"secondColumnLable": "State Name",
+			"secondColumnTag": "stateName",
+			"isTotalRowCountPresent": false,
+			"totalRowCountLabel": "Total Row Count",
+			"isSerialNumberPresent": false,
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		}]
+		},	
+		"R139": {
+		"693":[ {
+			"firstColumnLabel": "Sr No",
+			"firstColumnTag": "Sno",
+			"secondColumnLable": "State Name",
+			"secondColumnTag": "stateName",
+			"isSerialNumberPresent": false,
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		}]
+		},	
+		"R007": {
+		"324": [{
+			"secondColumnLable": "State/Union Territory",
+			"secondColumnTag": "stateName",
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		}],
+		"8111": [{
+			"secondColumnLable": "State/Union Territory",
+			"secondColumnTag": "stateName",
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		}],
+		"8112": [{
+			"secondColumnLable": "State/Union Territory",
+			"secondColumnTag": "stateName",
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		}],
+		"8113": [{
+			"secondColumnLable": "State/Union Territory",
+			"secondColumnTag": "stateName",
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		}],
+		"8114": [{
+			"secondColumnLable": "State/Union Territory",
+			"secondColumnTag": "stateName",
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		}],
+		"8115": [{
+			"secondColumnLable": "State/Union Territory",
+			"secondColumnTag": "stateName",
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		}],
+		"8116": [{
+			"secondColumnLable": "State/Union Territory",
+			"secondColumnTag": "stateName",
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		}],
+		"8117": [{
+			"secondColumnLable": "State/Union Territory",
+			"secondColumnTag": "stateName",
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		}]
+		},
+	"R145": {
+		"582": [{
+			"firstColumnLabel": "Serial Number",
+			"firstColumnTag": "Sno",
+			"secondColumnLable": "State Name",
+			"secondColumnTag": "stateName",
+			"isSerialNumberPresent": false,
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		}]
+		},
+	"R144": {
+		"596": [{
+			"firstColumnLabel": "Serial Number",
+			"firstColumnTag": "Sno",
+			"secondColumnLable": "State Name",
+			"secondColumnTag": "stateName",
+			"isSerialNumberPresent": false,
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		}]
+		},
+	"R138": {
+		"830": [{
+			"firstColumnLabel": "Serial Number",
+			"firstColumnTag": "Sno",
+			"secondColumnLable": "State Name",
+			"secondColumnTag": "stateName",
+			"isSerialNumberPresent": false,
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		}],
+		"831": [{
+			"firstColumnLabel": "Serial Number",
+			"firstColumnTag": "Sno",
+			"secondColumnLable": "State Name",
+			"secondColumnTag": "stateName",
+			"isSerialNumberPresent": false,
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		}],
+		"832": [{
+			"firstColumnLabel": "Serial Number",
+			"firstColumnTag": "Sno",
+			"secondColumnLable": "State Name",
+			"secondColumnTag": "stateName",
+			"isSerialNumberPresent": false,
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		}],
+		"833": [{
+			"firstColumnLabel": "Serial Number",
+			"firstColumnTag": "Sno",
+			"secondColumnLable": "State Name",
+			"secondColumnTag": "stateName",
+			"isSerialNumberPresent": false,
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		}],
+		"834": [{
+			"firstColumnLabel": "Serial Number",
+			"firstColumnTag": "Sno",
+			"secondColumnLable": "State Name",
+			"secondColumnTag": "stateName",
+			"isSerialNumberPresent": false,
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		}],
+		"835": [{
+			"firstColumnLabel": "Serial Number",
+			"firstColumnTag": "Sno",
+			"secondColumnLable": "State Name",
+			"secondColumnTag": "stateName",
+			"isSerialNumberPresent": false,
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		}],
+		"836": [{
+			"firstColumnLabel": "Serial Number",
+			"firstColumnTag": "Sno",
+			"secondColumnLable": "State Name",
+			"secondColumnTag": "stateName",
+			"isSerialNumberPresent": false,
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		}],
+		"837": [{
+			"firstColumnLabel": "Serial Number",
+			"firstColumnTag": "Sno",
+			"secondColumnLable": "State Name",
+			"secondColumnTag": "stateName",
+			"isSerialNumberPresent": false,
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		}],
+		"838": [{
+			"firstColumnLabel": "Serial Number",
+			"firstColumnTag": "Sno",
+			"secondColumnLable": "State Name",
+			"secondColumnTag": "stateName",
+			"isSerialNumberPresent": false,
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		}],
+		"839": [{
+			"firstColumnLabel": "Serial Number",
+			"firstColumnTag": "Sno",
+			"secondColumnLable": "State Name",
+			"secondColumnTag": "stateName",
+			"isSerialNumberPresent": false,
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		}]
+		},
+	"R143": {
+		"422": [{
+			"firstColumnLabel": "Serial Number",
+			"firstColumnTag": "Sno",
+			"secondColumnLable": "District Name",
+			"secondColumnTag": "distName",
+			"isSerialNumberPresent": false,
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true,
+			"checkIfSerialNumberRequired": false
+		}],
+		"387": [{
+			"firstColumnLabel": "Serial Number",
+			"firstColumnTag": "Sno",
+			"secondColumnLable": "State Name",
+			"secondColumnTag": "stateName",
+			"isSerialNumberPresent": false,
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		}]
+		},
+	"R258": {
+		"8074": [{
+			"panEleTag": "PANoftheCompanyCorporate1",
+			"panFormula": "2~3",
+			"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/panMaster/getPanInfoForNonXBRLReturns",
+			"panErrorCode": "ER258T02001",
+			"methodType": "POST",
+			"formulaType": "valueChkReqBody"
+		}],
+		"8075": [{
+			"panEleTag": "PANoftheCompanyCorporate1",
+			"panFormula": "2~3",
+			"panUrl": "http://3.6.186.133:8081/CIMSCustomizationService/service/panMaster/getPanInfoForNonXBRLReturns",
+			"panErrorCode": "ER258T02001",
+			"methodType": "POST",
+			"formulaType": "valueChkReqBody"
+		}]
+	},
+	"R219": {
+		"8151": [{
+			"addParticulars" : true,
+			"defEleTag": "TotalDuewithin6months",
+			"defEleFormula": "1_2 == $R219-T002_!_4",
+			"defEleErrorCode": "ER219T03009",
+			"conditionTag" : "$R219-T002_!_4",
+			"formulaTag" : "R219-T002",
+			"isRowPositionCheck" : true,
+			"isValidationOnParticularRow" : true
+		},
+		{
+			"addParticulars" : true,
+			"defEleTag": "TotalBetween6monthsand1year",
+			"defEleFormula": "1_3 == $R219-T002_!_5",
+			"defEleErrorCode": "ER219T03010",
+			"conditionTag" : "$R219-T002_!_5",
+			"formulaTag" : "R219-T002",
+			"isRowPositionCheck" : true,
+			"isValidationOnParticularRow" : true
+		},
+			{
+			"addParticulars" : true,
+			"defEleTag": "TotalBetween1yearand5years",
+			"defEleFormula": "1_4 == $R219-T002_!_6",
+			"defEleErrorCode": "ER219T03011",
+			"conditionTag" : "$R219-T002_!_6",
+			"formulaTag" : "R219-T002",
+			"isRowPositionCheck" : true,
+			"isValidationOnParticularRow" : true
+		},
+			{
+			"addParticulars" : true,
+			"defEleTag": "TotalDueover5years",
+			"defEleFormula": "1_5 == $R219-T002_!_7",
+			"defEleErrorCode": "ER219T03012",
+			"conditionTag" : "$R219-T002_!_7",
+			"formulaTag" : "R219-T002",
+			"isRowPositionCheck" : true,
+			"isValidationOnParticularRow" : true
+		},
+			{
+			"addParticulars" : true,
+			"defEleTag": "Total12",
+			"defEleFormula": "1_6 == $R219-T002_!_8",
+			"defEleErrorCode": "ER219T03013",
+			"conditionTag" : "$R219-T002_!_8",
+			"formulaTag" : "R219-T002",
+			"isRowPositionCheck" : true,
+			"isValidationOnParticularRow" : true
+		}],
+		"81": [{
+			"panEleTag": "CountryRiskClassification",
+			"panFormula": "2~3",
+			"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/geDropDownWithClassificationInkey/R018_R034_R054_R055_R053_R056_R033_R064-COUNTRY-NAME/NULL",
+			"panErrorCode": "ER219T02008",
+			"methodType": "POST",
+			"formulaType": "valueChk"
+		},
+		{
+			"panEleTag": "CountryName",
+			"panFormula": "2",
+			"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/countryData/fetchActiveCountryData/en",
+			"panErrorCode": "ER219T02001",
+			"methodType": "GET",
+			"formulaType": "valueChk"
+		}],
+		"8152": [{
+			"addParticulars" : true,
+			"defEleTag": "TotalDuewithin6months",
+			"defEleFormula": "1_2 == $R219-T004_!_4",
+			"defEleErrorCode": "ER219T05009",
+			"conditionTag" : "$R219-T004_!_4",
+			"formulaTag" : "R219-T004",
+			"isRowPositionCheck" : true,
+			"isValidationOnParticularRow" : true
+		},
+		{
+			"addParticulars" : true,
+			"defEleTag": "TotalBetween6monthsand1year",
+			"defEleFormula": "1_3 == $R219-T004_!_5",
+			"defEleErrorCode": "ER219T05010",
+			"conditionTag" : "$R219-T004_!_5",
+			"formulaTag" : "R219-T004",
+			"isRowPositionCheck" : true,
+			"isValidationOnParticularRow" : true
+		},
+			{
+			"addParticulars" : true,
+			"defEleTag": "TotalBetween1yearand5years",
+			"defEleFormula": "1_4 == $R219-T004_!_6",
+			"defEleErrorCode": "ER219T05011",
+			"conditionTag" : "$R219-T004_!_6",
+			"formulaTag" : "R219-T004",
+			"isRowPositionCheck" : true,
+			"isValidationOnParticularRow" : true
+		},
+			{
+			"addParticulars" : true,
+			"defEleTag": "TotalDueover5years",
+			"defEleFormula": "1_5 == $R219-T004_!_7",
+			"defEleErrorCode": "ER219T05012",
+			"conditionTag" : "$R219-T004_!_7",
+			"formulaTag" : "R219-T004",
+			"isRowPositionCheck" : true,
+			"isValidationOnParticularRow" : true
+		},
+			{
+			"addParticulars" : true,
+			"defEleTag": "Total12",
+			"defEleFormula": "1_6 == $R219-T004_!_8",
+			"defEleErrorCode": "ER219T05013",
+			"conditionTag" : "$R219-T004_!_8",
+			"formulaTag" : "R219-T004",
+			"isRowPositionCheck" : true,
+			"isValidationOnParticularRow" : true
+		}],
+		"811": [{
+			"panEleTag": "CountryRiskClassification",
+			"panFormula": "2~3",
+			"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/geDropDownWithClassificationInkey/R018_R034_R054_R055_R053_R056_R033_R064-COUNTRY-NAME/NULL",
+			"panErrorCode": "ER219T04010",
+			"methodType": "POST",
+			"formulaType": "valueChk"
+		},
+		{
+			"panEleTag": "CountryName",
+			"panFormula": "2",
+			"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/countryData/fetchActiveCountryData/en",
+			"panErrorCode": "ER219T04009",
+			"methodType": "GET",
+			"formulaType": "valueChk"
+		}],
+		"8140": [{
+			"addParticulars" : true,
+			"defEleTag": "TotalFundedLimitsSanctioned",
+			"defEleFormula": "1_2 == $R219-T006_!_3",
+			"defEleErrorCode": "ER219T07009",
+			"conditionTag" : "$R219-T006_!_3",
+			"formulaTag" : "R219-T006",
+			"isRowPositionCheck" : true,
+			"isValidationOnParticularRow" : true
+		},
+		{
+			"addParticulars" : true,
+			"defEleTag": "TotalNonFundeLimitsSanctioned",
+			"defEleFormula": "1_3 == $R219-T006_!_4",
+			"defEleErrorCode": "ER219T07010",
+			"conditionTag" : "$R219-T006_!_4",
+			"formulaTag" : "R219-T006",
+			"isRowPositionCheck" : true,
+			"isValidationOnParticularRow" : true
+		},
+			{
+			"addParticulars" : true,
+			"defEleTag": "TotalofSecurityValue",
+			"defEleFormula": "1_4 == $R219-T006_!_5",
+			"defEleErrorCode": "ER219T03011",
+			"conditionTag" : "$R219-T006_!_5",
+			"formulaTag" : "R219-T006",
+			"isRowPositionCheck" : true,
+			"isValidationOnParticularRow" : true
+		},
+			{
+			"addParticulars" : true,
+			"defEleTag": "TotalofAmountOutStanding",
+			"defEleFormula": "1_5 == $R219-T006_!_6",
+			"defEleErrorCode": "ER219T07012",
+			"conditionTag" : "$R219-T006_!_6",
+			"formulaTag" : "R219-T006",
+			"isRowPositionCheck" : true,
+			"isValidationOnParticularRow" : true
+		}],
+		"88": [{
+			"defEleTag": "BorrowerName",
+			"rowCountValidation" : true,
+			"defEleErrorCode": "ER219T06007"
+		}]
+	}		
+}

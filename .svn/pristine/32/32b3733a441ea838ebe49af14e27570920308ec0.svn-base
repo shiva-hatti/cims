@@ -1,0 +1,114 @@
+package com.iris.webservices.client;
+
+/**
+ * 
+ */
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.google.gson.Gson;
+import com.iris.dto.SdmxWebserviceUrlDto;
+import com.iris.util.Validations;
+import com.iris.util.constant.GeneralConstants;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
+
+
+/**
+ * @author sajadhav
+ *
+ */
+public class FusionRestWebserviceClient {
+
+
+	private static final Logger LOGGER = LogManager.getLogger(FusionRestWebserviceClient.class);
+
+	public static final String HTTP_METHOD_TYPE_POST = "POST";
+	public static final String HTTP_METHOD_TYPE_PUT = "PUT";
+	private static Client client;
+	public static final String HTTP_METHOD_TYPE_DELETE = "DELETE";
+	public String callRestWebService(SdmxWebserviceUrlDto webServiceComponent) throws Exception {
+		return callRestWebService(webServiceComponent, null, null, null);
+	}
+
+	public String callRestWebService(SdmxWebserviceUrlDto webServiceComponent, Object webServiceParam)
+			throws Exception {
+		return callRestWebService(webServiceComponent, webServiceParam, null, null);
+	}
+
+	public String callRestWebService(SdmxWebserviceUrlDto webServiceComponent, Object webServiceParam,
+			Map<String, String> headerMap, List<String> pathParamList) throws Exception {
+		if (webServiceComponent == null) {
+			LOGGER.error("Web service component URL null received");
+			return null;
+		}
+		if (client == null) {
+			client = Client.create();
+		}
+
+		boolean flag = true;
+		if (!(webServiceParam instanceof String)) {
+			if (webServiceParam == null) {
+				flag = false;
+			}
+			webServiceParam = new Gson().toJson(webServiceParam);
+		}
+
+		StringBuilder url = new StringBuilder();
+		url.append(webServiceComponent.getComponentUrlPath());
+		if (!Validations.isEmpty(pathParamList)) {
+			for (String pathParam : pathParamList) {
+				url.append("/").append(pathParam);
+			}
+		}
+
+		LOGGER.info("Webservice URL: {0}", url.toString());
+
+		WebResource webResource = client.resource(url.toString());
+		ClientResponse response;
+		
+		WebResource.Builder builder = webResource.accept("application/xml");
+		builder.type("application/json");
+		builder.accept("application/xml");
+
+		builder.header(GeneralConstants.FUSION_AUTHORIZATION_KEY.getConstantVal(), GeneralConstants.FUSION_AUTHORIZATION_VALUE.getConstantVal());
+
+		if (!Validations.isEmpty(headerMap)) {
+			for (Map.Entry<String, String> map : headerMap.entrySet()) {
+				builder.header(map.getKey(), map.getValue());
+			}
+		}
+
+		if (HTTP_METHOD_TYPE_POST.equalsIgnoreCase(webServiceComponent.getUrlHttpMethodType())) {
+			if (webServiceParam != null && flag) {
+				response = builder.post(ClientResponse.class, webServiceParam);
+			} else {
+				response = builder.post(ClientResponse.class);
+			}
+		}else if (HTTP_METHOD_TYPE_PUT.equalsIgnoreCase(webServiceComponent.getUrlHttpMethodType())) {
+			if (webServiceParam != null && flag) {
+				response = builder.put(ClientResponse.class, webServiceParam);
+			} else {
+				response = builder.put(ClientResponse.class);
+			}
+		} else if (HTTP_METHOD_TYPE_DELETE.equalsIgnoreCase(webServiceComponent.getUrlHttpMethodType())) {
+			if (webServiceParam != null && flag) {
+				response = builder.delete(ClientResponse.class, webServiceParam);
+			} else {
+				response = builder.delete(ClientResponse.class);
+			}
+		} else {
+			response = builder.get(ClientResponse.class);
+		}
+//		if (response.getStatus() != 200) {
+//			LOGGER.error("Failed: HTTP error code: {0}", response.getStatus());
+//			return null;
+//		}
+		return response.getEntity(String.class);
+	}
+}

@@ -1,0 +1,51 @@
+package com.iris.model;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "TBL_AUDITOR_FIRM")
+public class AuditorFirm implements Serializable {
+
+	private static final long serialVersionUID = -1567683102338709712L;
+
+	@Id
+	@Column(name = "AUDIT_FIRM_ID")
+	private Long auditFirmId;
+	
+	@Column(name = "IS_ACTIVE")
+	private Boolean isActive;
+
+	/**
+	 * @return the auditFirmId
+	 */
+	public Long getAuditFirmId() {
+		return auditFirmId;
+	}
+
+	/**
+	 * @param auditFirmId the auditFirmId to set
+	 */
+	public void setAuditFirmId(Long auditFirmId) {
+		this.auditFirmId = auditFirmId;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+	
+}

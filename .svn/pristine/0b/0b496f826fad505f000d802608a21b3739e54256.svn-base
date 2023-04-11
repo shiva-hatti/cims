@@ -1,0 +1,76 @@
+{
+	"R011": {
+		"457": {
+			"firstColumnLabel": "Serial Number",
+			"firstColumnTag": "Sno",
+			"secondColumnLable": "State Name",
+			"secondColumnTag": "stateName",
+			"isTotalRowCountPresent": true,
+			"totalRowCountLabel": "Total Row Count",
+			"isSerialNumberPresent": true,
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		}
+		},	
+		"R139": {
+		"693": {
+			"firstColumnLabel": "Sr No",
+			"firstColumnTag": "Sno",
+			"secondColumnLable": "State Name",
+			"secondColumnTag": "stateName",
+			"isSerialNumberPresent": true,
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		}
+		},	
+		"R007": {
+		"324": {
+			"secondColumnLable": "State/Union Territory",
+			"secondColumnTag": "stateName",
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		},
+		"8111": {
+			"secondColumnLable": "State/Union Territory",
+			"secondColumnTag": "stateName",
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		},
+		"8112": {
+			"secondColumnLable": "State/Union Territory",
+			"secondColumnTag": "stateName",
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		},
+		"8113": {
+			"secondColumnLable": "State/Union Territory",
+			"secondColumnTag": "stateName",
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		},
+		"8114": {
+			"secondColumnLable": "State/Union Territory",
+			"secondColumnTag": "stateName",
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		},
+		"8115": {
+			"secondColumnLable": "State/Union Territory",
+			"secondColumnTag": "stateName",
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		},
+		"8116": {
+			"secondColumnLable": "State/Union Territory",
+			"secondColumnTag": "stateName",
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		},
+		"8117": {
+			"secondColumnLable": "State/Union Territory",
+			"secondColumnTag": "stateName",
+			"isSecondColumnRequired": true,
+			"isGrandTotalAvailable": true
+		}
+		}
+}

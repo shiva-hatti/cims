@@ -1,0 +1,245 @@
+package com.iris.sdmx.upload.service;
+
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.crypto.dsig.XMLValidateContext;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+/**
+ * @author vjadhav
+ *
+ */
+
+import com.iris.caching.ObjectCache;
+import com.iris.constant.GeneralConstants;
+import com.iris.dateutility.enums.DateConstants;
+import com.iris.dateutility.util.DateManip;
+import com.iris.exception.ApplicationException;
+import com.iris.exception.ServiceException;
+import com.iris.model.EntityBean;
+import com.iris.model.FilingStatus;
+import com.iris.model.UploadChannel;
+import com.iris.model.UserMaster;
+import com.iris.repository.EntityRepo;
+import com.iris.sdmx.upload.bean.DataSet;
+import com.iris.sdmx.upload.bean.EbrFileAuditBean;
+import com.iris.sdmx.upload.bean.RepDateReturnDataPointMap;
+import com.iris.sdmx.upload.bean.SDMXDocument;
+import com.iris.sdmx.upload.entity.EbrFileAudit;
+import com.iris.sdmx.upload.entity.ElementAudit;
+import com.iris.sdmx.upload.repo.EbrFileAuditRepo;
+import com.iris.sdmx.util.SDMXMLDocumentReaderUtilityService;
+import com.iris.service.GenericService;
+import com.iris.util.FileCheckSumUtility;
+import com.iris.util.FileManager;
+import com.iris.util.FileMimeType;
+import com.iris.util.JsonUtility;
+import com.iris.util.ResourceUtil;
+import com.iris.util.XmlValidate;
+import com.iris.util.constant.ErrorCode;
+@Service
+public class EbrFileAuditService implements GenericService<EbrFileAudit,Long>{
+	
+	static final Logger LOGGER = LogManager.getLogger(EbrFileAuditService.class);
+	
+	@Autowired
+	private EbrFileAuditRepo ebrFileAuditRepo;
+	
+	@Autowired
+	private EntityRepo entityRepo;
+	
+	@Autowired
+	private SDMXMLDocumentReaderUtilityService sDMXMLDocumentReaderUtilityService;
+	
+	
+	@Override
+	public EbrFileAudit add(EbrFileAudit entity) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public boolean update(EbrFileAudit entity) throws ServiceException {
+		return false;
+	}
+
+	@Override
+	public List<EbrFileAudit> getDataByIds(Long[] ids) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public EbrFileAudit getDataById(Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<EbrFileAudit> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<EbrFileAudit> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName)
+			throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<EbrFileAudit> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<EbrFileAudit> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<EbrFileAudit> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public void deleteData(EbrFileAudit bean) throws ServiceException {
+		
+	}
+
+	@org.springframework.transaction.annotation.Transactional(rollbackFor =  Exception.class)
+	public void addXmlUploadData(EbrFileAuditBean ebrFileAuditInputBean) throws ApplicationException {
+		try {
+			XmlValidate xmlValidate = new XmlValidate();
+			
+			if(xmlValidate.isValidXmlDocument(ebrFileAuditInputBean.getFilePath())) {
+				if(xmlValidate.checkXMLDocumentType(ebrFileAuditInputBean.getFilePath()).equalsIgnoreCase(com.iris.util.constant.GeneralConstants.SDMX.getConstantVal())) {
+					Date date = new Date();
+					EbrFileAudit ebrFileAudit = new EbrFileAudit();
+					SDMXDocument sdmxDocument = sDMXMLDocumentReaderUtilityService.readSDMXDocument(ebrFileAuditInputBean.getFilePath());
+					
+					Map<String, List<RepDateReturnDataPointMap>> elementAndDateWiseJson = sDMXMLDocumentReaderUtilityService.generateDateWiseJsonModified(sdmxDocument);
+					
+					UserMaster uploadedBy = new UserMaster();
+					uploadedBy.setUserId(ebrFileAuditInputBean.getUserIdFk());
+					
+					UploadChannel uploadChannel = new UploadChannel();
+					uploadChannel.setUploadChannelId(ebrFileAuditInputBean.getUploadChannelIdFk());
+					
+					EntityBean entity = entityRepo.findByEntityCode(ebrFileAuditInputBean.getEntityCode());
+					ebrFileAuditInputBean.setEntityIdFk(entity.getEntityId());
+					
+					List<DataSet> dataSetList= sdmxDocument.getDataSets();
+					
+					ebrFileAudit.setElementCount(dataSetList.size());
+					ebrFileAudit.setEntityIdFk(entity);
+					ebrFileAudit.setUserIdFk(uploadedBy);
+					ebrFileAudit.setUploadChannelIdFk(uploadChannel);
+					
+					FilingStatus filingStatus = new FilingStatus();
+					filingStatus.setFilingStatusId(1);
+					ebrFileAudit.setStatus(filingStatus);
+					
+					ebrFileAudit.setFileChecksum(FileCheckSumUtility.calculateFileChecksum(ebrFileAuditInputBean.getFilePath()));
+					ebrFileAudit.setFileMimeType(ebrFileAuditInputBean.getFileMimeType());
+					ebrFileAudit.setFileType(ebrFileAuditInputBean.getFileType());
+					ebrFileAudit.setFileName(getModifiedFileName(entity.getEntityId(), entity.getEntityCode(), ebrFileAuditInputBean.getUserIdFk(),date) + "." + ebrFileAuditInputBean.getFileType());
+					ebrFileAudit.setSize(new File(ebrFileAuditInputBean.getFilePath()).length());
+					ebrFileAudit.setUploadDate(new Date());
+					ebrFileAudit.setUserEmailId(ebrFileAuditInputBean.getUserEmailId());
+					ebrFileAudit.setJsonFileName(getModifiedFileName(entity.getEntityId(), entity.getEntityCode(), ebrFileAuditInputBean.getUserIdFk(),date) + "." + com.iris.util.constant.GeneralConstants.JSON.getConstantVal());
+					
+					List<ElementAudit> elementAuditList = new ArrayList<>();
+					
+					for(DataSet dataSetObj : dataSetList) {
+						ElementAudit elementAudit = new ElementAudit();
+						
+						elementAudit.setRowCount(dataSetObj.getData().size());
+						elementAudit.setElementCode(dataSetObj.getStructureRef().getCode());
+						elementAudit.setElementVersion(dataSetObj.getStructureRef().getVersion());
+						elementAudit.setConvertedFileName(null);
+						elementAudit.setIsRevised("0");
+						if(elementAndDateWiseJson!= null && elementAndDateWiseJson.get(dataSetObj.getStructureRef().getCode())!= null) {
+							elementAudit.setEleReturnRef(JsonUtility.getGsonObject().toJson(elementAndDateWiseJson.get(dataSetObj.getStructureRef().getCode())));
+						}
+						elementAudit.setIsPushedToLnd("0");
+						elementAudit.setValResult(null);
+						elementAudit.setValStatus(0);
+						elementAudit.setEbrFileAuditIdFk(ebrFileAudit);
+						elementAuditList.add(elementAudit);
+					}
+					ebrFileAudit.setElementAuditList(elementAuditList);
+					
+					ebrFileAuditRepo.save(ebrFileAudit);
+					pushSDMXFileToServer(ebrFileAuditInputBean, date);
+					createJsonFileToServer(sdmxDocument, getModifiedFilePathOfSDMXDocument(entity.getEntityId(), entity.getEntityCode(), ebrFileAuditInputBean.getUserIdFk(), "json", date));
+				}else {
+					throw new ApplicationException(ErrorCode.E1546.toString(),ObjectCache.getErrorCodeKey(ErrorCode.E1546.toString()));
+				}
+			}else {
+				throw new ApplicationException(ErrorCode.E0796.toString(),ObjectCache.getErrorCodeKey(ErrorCode.E0796.toString()));
+			}
+		}catch(Exception e) {
+			LOGGER.error("Exception:", e );
+			throw new ApplicationException(ErrorCode.E1544.toString(),ObjectCache.getErrorCodeKey(ErrorCode.E1544.toString()));
+		}
+	}
+	
+	private boolean createJsonFileToServer(SDMXDocument sdmxDocument, String jsonFilePath) throws ApplicationException {
+		
+		try {
+			File file = new File(jsonFilePath);
+			File parentDir = file.getParentFile();
+			if(!parentDir.exists()) {
+				parentDir.mkdirs();
+			}
+			String jsonString = JsonUtility.getGsonObject().toJson(sdmxDocument.getDataSets());
+			Files.write(Paths.get(jsonFilePath), jsonString.getBytes());
+			return true;
+		}catch(Exception e) {
+			LOGGER.error("Exception occured while creating json file");
+			throw new ApplicationException("E0001", e.getMessage());
+		}
+	}
+	
+	private String getModifiedFilePathOfSDMXDocument(Long entityId, String entityCode, Long userId, String fileType, Date createdDate) {
+		String currentDate = DateManip.convertDateToString(createdDate, DateConstants.DD_MM_YYYY.getDateConstants());
+
+		String modifiedInstanceFilePath = ResourceUtil.getKeyValue("filepath.root") + ResourceUtil.getKeyValue("filepath.instanceEbr") + File.separator +  entityCode.trim() + File.separator + currentDate ;
+		
+		String modifiedInstanceFileName = getModifiedFileName(entityId, entityCode, userId, createdDate);
+		
+		return  modifiedInstanceFilePath + File.separator + modifiedInstanceFileName + File.separator +  modifiedInstanceFileName + "." + fileType; 
+	}
+	
+	private String getModifiedFileName(Long entityId, String entityCode, Long userId,Date createdDate){
+		
+		String date = DateManip.convertDateToString(createdDate, DateConstants.DD_MM_YYYY.getDateConstants() +" "+ "HH:mm:ss:SSS");
+		date = date.replaceAll("[:]", "-");
+		date = date.replaceAll("[ ]", "_");
+		
+		return  entityId + "_" + entityCode.trim() + "_" + userId + "_" + date.trim();
+		
+	}
+
+	public boolean pushSDMXFileToServer(EbrFileAuditBean ebrFileAuditInputBean, Date createdDate) throws ApplicationException{
+			String finalPath = getModifiedFilePathOfSDMXDocument(ebrFileAuditInputBean.getEntityIdFk(), ebrFileAuditInputBean.getEntityCode().trim(), ebrFileAuditInputBean.getUserIdFk(), ebrFileAuditInputBean.getFileType(), createdDate);
+			if (new File(ebrFileAuditInputBean.getFilePath()).isFile()) {
+				FileManager fileManageObj = new FileManager();
+				if (!fileManageObj.copyFile(new File(ebrFileAuditInputBean.getFilePath()),new File(finalPath))) {
+					throw new ApplicationException("E0001", "XML File Not Moved");
+				}
+			}
+			return true;
+	}
+	
+	
+
+}

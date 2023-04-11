@@ -1,0 +1,223 @@
+package com.iris.rbrToEbr.service;
+
+import java.text.DateFormat;
+import java.text.Format;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.transaction.Transactional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.caching.ObjectCache;
+import com.iris.exception.ApplicationException;
+import com.iris.exception.ServiceException;
+import com.iris.model.EntityBean;
+import com.iris.model.Return;
+import com.iris.model.ReturnPropertyValue;
+import com.iris.model.UserMaster;
+import com.iris.rbrToEbr.bean.EbrDataConversionLogBean;
+import com.iris.rbrToEbr.entity.EbrDataConversionLog;
+import com.iris.rbrToEbr.repo.EbrDataConversionLogRepo;
+import com.iris.repository.EntityRepo;
+import com.iris.service.GenericService;
+import com.iris.util.constant.ErrorCode;
+
+@Service
+public class EbrDataConversionService implements GenericService<EbrDataConversionLog, Long>{
+
+	
+	@Autowired
+	private EbrDataConversionLogRepo ebrDataConversionLogRepo;
+	
+	@Autowired
+	private EntityRepo entityRepo;
+	@Override
+	public EbrDataConversionLog add(EbrDataConversionLog entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean update(EbrDataConversionLog entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public List<EbrDataConversionLog> getDataByIds(Long[] ids) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public EbrDataConversionLog getDataById(Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<EbrDataConversionLog> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<EbrDataConversionLog> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap,
+			String methodName) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<EbrDataConversionLog> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<EbrDataConversionLog> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<EbrDataConversionLog> getAllDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void deleteData(EbrDataConversionLog bean) throws ServiceException {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	@Transactional(rollbackOn = Exception.class)
+	public boolean AddLog(EbrDataConversionLogBean ebrDataConversionLogInputBean, Long userId) throws ApplicationException {
+		
+		EbrDataConversionLog ebrDataConversionLogEntity = new EbrDataConversionLog();
+		
+		String entityCode=ebrDataConversionLogInputBean.getEntityCode();
+		EntityBean entityBean = entityRepo.findByEntityCode(entityCode);
+		ebrDataConversionLogInputBean.setEntityIdFk(entityBean.getEntityId());
+		boolean statusFlag=checkStatusToInsert(ebrDataConversionLogInputBean);
+		if(statusFlag==false) {
+			
+			//throw new ApplicationException("ERROR", "Process request already present!!!");
+			throw new ApplicationException(ErrorCode.E1497.toString(),
+					ObjectCache.getErrorCodeKey(ErrorCode.E1497.toString()));
+		}
+		Date createdOn = new Date();
+		UserMaster createdBy = new UserMaster();
+		createdBy.setUserId(userId);
+		ebrDataConversionLogEntity.setCreatedOn(createdOn);
+		ebrDataConversionLogEntity.setCreatedBy(createdBy);
+		
+		Return returnIdFk = new Return();
+		returnIdFk.setReturnId(ebrDataConversionLogInputBean.getReturnIdFk());
+		ebrDataConversionLogEntity.setReturnIdFk(returnIdFk);
+		
+		EntityBean entityIdFk = new EntityBean();
+		
+		entityIdFk.setEntityId(entityBean.getEntityId());
+		ebrDataConversionLogEntity.setEntityIdFk(entityIdFk);
+		
+		/*
+		 * ReturnPropertyValue returnPropertyValueFk = new ReturnPropertyValue();
+		 * returnPropertyValueFk.setReturnProprtyValId(ebrDataConversionLogInputBean.
+		 * getReturnPropertyValIdFk());
+		 * ebrDataConversionLogEntity.setReturnPropertyValIdFk(returnPropertyValueFk);
+		 */
+		
+		ebrDataConversionLogEntity.setEndDate(ebrDataConversionLogInputBean.getEndDate());
+		ebrDataConversionLogEntity.setStatus(1L);
+		
+		ebrDataConversionLogRepo.save(ebrDataConversionLogEntity);
+		
+		return true;
+	}
+
+	public List<EbrDataConversionLog> getAllEbrConversionLog(){
+		List<EbrDataConversionLog> ebrLogList = new ArrayList<>();
+		ebrLogList=ebrDataConversionLogRepo.getAllData();
+		return ebrLogList;
+	}
+	
+	public List<EbrDataConversionLogBean> prepareEbrLogsList(List<EbrDataConversionLog> ebrLogList) {
+		Map<Long, String> statusList1=prepareEbrProcessMap();
+		List<EbrDataConversionLogBean> ebrlogBeanList = new ArrayList<>();
+		for(EbrDataConversionLog entityObj : ebrLogList) {
+			EbrDataConversionLogBean beanObj = new EbrDataConversionLogBean();
+			beanObj.setReturnIdFk(entityObj.getReturnIdFk().getReturnId());
+			beanObj.setReturnCode(entityObj.getReturnIdFk().getReturnCode());
+			beanObj.setReturnName(entityObj.getReturnIdFk().getReturnName());
+			beanObj.setEntityIdFk(entityObj.getEntityIdFk().getEntityId());
+			beanObj.setEntityCode(entityObj.getEntityIdFk().getEntityCode());
+			beanObj.setEntityName(entityObj.getEntityIdFk().getEntityName());
+			beanObj.setUserId(entityObj.getCreatedBy().getUserId());
+			beanObj.setUserName(entityObj.getCreatedBy().getUserName());
+			beanObj.setEndDate(entityObj.getEndDate());
+			beanObj.setEndDateLong(entityObj.getEndDate().getTime());
+			beanObj.setCreatedOn(entityObj.getCreatedOn());
+			beanObj.setCreatedOnLong(entityObj.getCreatedOn().getTime());
+			beanObj.setStatus(entityObj.getStatus());
+			beanObj.setStatusName(statusList1.get(entityObj.getStatus()));
+			ebrlogBeanList.add(beanObj);
+		}
+		return ebrlogBeanList;
+	}
+	
+	public boolean checkStatusToInsert(EbrDataConversionLogBean ebrDataConversionLogInputBean) {
+		Map<Long, String> statusList  = prepareEbrProcessMap();
+		
+		Long returnId=ebrDataConversionLogInputBean.getReturnIdFk();
+		Long entityId=ebrDataConversionLogInputBean.getEntityIdFk();
+		Date endDate=ebrDataConversionLogInputBean.getEndDate();
+		Format formatter = new SimpleDateFormat("yyyy-MM-dd");  
+		String strEndDate = formatter.format(endDate);  
+	
+		
+		EbrDataConversionLog obj=ebrDataConversionLogRepo.checkRecordExist(returnId,entityId,strEndDate);
+		
+		if(obj!=null) {
+			Long statusId=obj.getStatus();
+			if(statusId==1L || statusId==2L || statusId==4L || statusId==6L) {
+				return false;
+			}else {
+				
+				return true;
+			}
+			
+		}else if(obj==null){
+			return true;
+			
+		}
+		
+		
+return true;
+
+	}
+	
+	private Map<Long, String> prepareEbrProcessMap() {
+		Map<Long, String> statusList  = new HashMap<Long, String>();
+		statusList.put(1L, "RBR TO EBR");
+		statusList.put(2L, "FINAL RBR TO STAGE RBR");
+		statusList.put(3L, "FINAL RBR TO STAGE RBR FAILED");
+		statusList.put(4L, "DATA LOADED IN EBR");
+		statusList.put(5L, "DATA LOADED IN EBR FAILED");
+		statusList.put(6L, "DATA LOADED IN STAGING RBR");
+		statusList.put(7L, " DATA LOADED IN STAGING RBR FAILED");
+		statusList.put(8L, "DATA LOADED IN RBR FINAL");
+		statusList.put(9L, "DATA LOADED IN RBR FINAL FAILED");
+		
+		return statusList;
+	}
+}

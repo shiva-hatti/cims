@@ -1,0 +1,60 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+
+import com.iris.util.Validations;
+
+/**
+ * @author nsasane
+ * @date 08/12/17
+ */
+public class LanguageBean implements Serializable {
+
+	private static final long serialVersionUID = -3235862554009954014L;
+	private Long id;
+	private String code;
+	private String label;
+
+	/**
+	 * @return the id
+	 */
+	public Long getId() {
+		return id;
+	}
+
+	/**
+	 * @param id the id to set
+	 */
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	/**
+	 * @return the code
+	 */
+	public String getCode() {
+		return code;
+	}
+
+	/**
+	 * @param code the code to set
+	 */
+	public void setCode(String code) {
+		this.code = Validations.trimInput(code);
+	}
+
+	/**
+	 * @return the label
+	 */
+	public String getLabel() {
+		return label;
+	}
+
+	/**
+	 * @param label the label to set
+	 */
+	public void setLabel(String label) {
+		this.label = Validations.trimInput(label);
+	}
+
+}

@@ -1,0 +1,177 @@
+package com.iris.nbfc.model;
+
+import java.io.Serializable;
+
+public class NbfcRegistrationBean implements Serializable {
+	private static final long serialVersionUID = 5717195175755935034L;
+	private boolean isActive;
+
+	private Long nbfcId;
+
+	private String panNumber;
+
+	private String borrowerName;
+
+	private String borrowerEmail;
+
+	private String borrowerPhone;
+
+	private String otp;
+
+	private Boolean isVerified;
+
+	private Long createdOn;
+
+	private Long registerOn;
+
+	private Long useridFk;
+
+	public boolean isActive() {
+		return isActive;
+	}
+
+	public void setActive(boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the nbfcId
+	 */
+	public Long getNbfcId() {
+		return nbfcId;
+	}
+
+	/**
+	 * @param nbfcId the nbfcId to set
+	 */
+	public void setNbfcId(Long nbfcId) {
+		this.nbfcId = nbfcId;
+	}
+
+	/**
+	 * @return the panNumber
+	 */
+	public String getPanNumber() {
+		return panNumber;
+	}
+
+	/**
+	 * @param panNumber the panNumber to set
+	 */
+	public void setPanNumber(String panNumber) {
+		this.panNumber = panNumber;
+	}
+
+	/**
+	 * @return the borrowerName
+	 */
+	public String getBorrowerName() {
+		return borrowerName;
+	}
+
+	/**
+	 * @param borrowerName the borrowerName to set
+	 */
+	public void setBorrowerName(String borrowerName) {
+		this.borrowerName = borrowerName;
+	}
+
+	/**
+	 * @return the borrowerEmail
+	 */
+	public String getBorrowerEmail() {
+		return borrowerEmail;
+	}
+
+	/**
+	 * @param borrowerEmail the borrowerEmail to set
+	 */
+	public void setBorrowerEmail(String borrowerEmail) {
+		this.borrowerEmail = borrowerEmail;
+	}
+
+	/**
+	 * @return the borrowerPhone
+	 */
+	public String getBorrowerPhone() {
+		return borrowerPhone;
+	}
+
+	/**
+	 * @param borrowerPhone the borrowerPhone to set
+	 */
+	public void setBorrowerPhone(String borrowerPhone) {
+		this.borrowerPhone = borrowerPhone;
+	}
+
+	/**
+	 * @return the otp
+	 */
+	public String getOtp() {
+		return otp;
+	}
+
+	/**
+	 * @param otp the otp to set
+	 */
+	public void setOtp(String otp) {
+		this.otp = otp;
+	}
+
+	/**
+	 * @return the isVerified
+	 */
+	public Boolean getIsVerified() {
+		return isVerified;
+	}
+
+	/**
+	 * @param isVerified the isVerified to set
+	 */
+	public void setIsVerified(Boolean isVerified) {
+		this.isVerified = isVerified;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Long getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Long createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the registerOn
+	 */
+	public Long getRegisterOn() {
+		return registerOn;
+	}
+
+	/**
+	 * @param registerOn the registerOn to set
+	 */
+	public void setRegisterOn(Long registerOn) {
+		this.registerOn = registerOn;
+	}
+
+	/**
+	 * @return the useridFk
+	 */
+	public Long getUseridFk() {
+		return useridFk;
+	}
+
+	/**
+	 * @param useridFk the useridFk to set
+	 */
+	public void setUseridFk(Long useridFk) {
+		this.useridFk = useridFk;
+	}
+
+}

@@ -1,0 +1,10 @@
+package com.iris.repository;
+
+import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
+import com.iris.controller.DashboardChartSettingBean;
+
+
+public interface DashboardChartSettingRepo extends JpaRepository<DashboardChartSettingBean, Long> {
+	List<DashboardChartSettingBean> findByIsActiveTrue();
+}

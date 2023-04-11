@@ -1,0 +1,15 @@
+package com.iris.rbrToEbr.repo;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.iris.rbrToEbr.entity.CtlEbrElementEntity;
+
+/**
+ * @author vjadhav
+ *
+ */
+@Repository
+public interface CtlEbrElementRepo extends JpaRepository<CtlEbrElementEntity, Long> {
+
+}

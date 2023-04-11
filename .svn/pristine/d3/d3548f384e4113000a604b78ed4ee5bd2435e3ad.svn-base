@@ -1,0 +1,47 @@
+package com.iris.model;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+/**
+ * this class is bean of ProcessTypeMaster
+ * @author sajadhav
+ * @date 25/01/2020
+ */
+@Entity
+@Table(name="TBL_PROCESS_TYPE_MASTER")
+@JsonInclude(Include.NON_NULL)
+public class ProcessTypeMaster implements Serializable {
+
+	private static final long serialVersionUID = 6360297871320003830L;
+
+	@Id
+	@Column(name="PROCESS_TYPR_ID")
+	private Long processTypeId;
+	
+	@Column(name="PROCESS_NAME")
+	private String processName;
+
+	public Long getProcessTypeId() {
+		return processTypeId;
+	}
+
+	public void setProcessTypeId(Long processTypeId) {
+		this.processTypeId = processTypeId;
+	}
+
+	public String getProcessName() {
+		return processName;
+	}
+
+	public void setProcessName(String processName) {
+		this.processName = processName;
+	}
+}

@@ -1,0 +1,131 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Set;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
+import javax.persistence.Table;
+
+import com.iris.util.Validations;
+
+/**
+ * This is the Grid Form Key bean class with Hibernate mapping.
+ * @author pippar
+ * @date 16/06/2015
+ *
+ */
+@Entity
+@Table(name="TBL_GRID_FORM_KEY")
+public class GridFormKey implements Serializable {
+
+	private static final long serialVersionUID = 5040004699452344537L;
+
+	@Id
+	@Column(name="GRID_FORM_ID")
+	private Long gridFormId;
+	
+	@Column(name="GRID_FORM_ID_KEY")
+	private String gridFormIdKey;
+	
+	@Column(name="TYPE")
+	private String type;
+
+	@Column(name="DEFAULT_NAME")
+	private String defaultName;
+	
+	@OneToMany(mappedBy = "gridFormIdFk")
+	@OrderBy("languageIdFk")
+	private Set<GridFormKeyLabel> gridFormKeyLblSet;
+	
+	@Column(name="ERROR_COMMON_CODE")
+	private String errorCode;
+	
+	/**
+	 * @return the errorCode
+	 */
+	public String getErrorCode() {
+		return errorCode;
+	}
+
+	/**
+	 * @param errorCode the errorCode to set
+	 */
+	public void setErrorCode(String errorCode) {
+		this.errorCode = errorCode;
+	}
+
+	/**
+	 * @return the gridFormId
+	 */
+	public Long getGridFormId() {
+		return gridFormId;
+	}
+
+	/**
+	 * @param gridFormId the gridFormId to set
+	 */
+	public void setGridFormId(Long gridFormId) {
+		this.gridFormId = gridFormId;
+	}
+
+	/**
+	 * @return the gridFormIdKey
+	 */
+	public String getGridFormIdKey() {
+		return gridFormIdKey;
+	}
+
+	/**
+	 * @param gridFormIdKey the gridFormIdKey to set
+	 */
+	public void setGridFormIdKey(String gridFormIdKey) {
+		this.gridFormIdKey = Validations.trimInput(gridFormIdKey);
+	}
+	
+	/**
+	 * @return the type
+	 */
+	public String getType() {
+		return type;
+	}
+
+	/**
+	 * @param type the type to set
+	 */
+	public void setType(String type) {
+		this.type = Validations.trimInput(type);
+	}
+
+	/**
+	 * @return the defaultName
+	 */
+	public String getDefaultName() {
+		return defaultName;
+	}
+
+	/**
+	 * @param defaultName the defaultName to set
+	 */
+	public void setDefaultName(String defaultName) {
+		this.defaultName = Validations.trimInput(defaultName);
+	}
+
+	/**
+	 * @return the gridFormKeyLblSet
+	 */
+	public Set<GridFormKeyLabel> getGridFormKeyLblSet() {
+		return gridFormKeyLblSet;
+	}
+
+	/**
+	 * @param gridFormKeyLblSet the gridFormKeyLblSet to set
+	 */
+	public void setGridFormKeyLblSet(Set<GridFormKeyLabel> gridFormKeyLblSet) {
+		this.gridFormKeyLblSet = gridFormKeyLblSet;
+	}
+	
+}

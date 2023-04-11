@@ -1,0 +1,138 @@
+package com.iris.service;
+
+import java.text.ParseException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.hibernate.service.spi.ServiceException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+//import com.iris.bean.EntityBean;
+//import com.iris.bean.FilingCalendar;
+//import com.iris.bean.FillingEndDatesBean;
+//import com.iris.bean.FinYearFreqDates;
+//import com.iris.bean.FinYearFreqDesc;
+//import com.iris.bean.Holiday;
+//import com.iris.bean.Return;
+//import com.iris.constants.RevisionRequestConstants;
+//import com.iris.constants.ServiceConstants;
+import com.iris.controller.DateValidationsController;
+import com.iris.dateutility.enums.DateConstants;
+import com.iris.dateutility.util.DateManip;
+import com.iris.dto.FillingEndDatesBean;
+import com.iris.model.EntityBean;
+import com.iris.model.FilingCalendar;
+import com.iris.model.Holiday;
+import com.iris.model.Return;
+//import com.iris.repository.FilingCalendarRepository;
+//import com.iris.repository.FinYearFreqDatesRepository;
+//import com.iris.repository.HolidayRepository;
+import com.iris.repository.FilingCalendarRepository;
+import com.iris.repository.HolidayRepository;
+import com.iris.util.constant.RevisionRequestConstants;
+
+/**
+ * This file handles the filling calendar Database Operations for modified table
+ * of filling calendar .
+ * 
+ * @author	Amruta Kadam
+ * @since	24-05-2018
+ * @version	1.0
+ */
+@Service
+public class FilingCalendarModifiedService {
+
+
+	@Autowired
+	private FilingCalendarRepository filingCalendarRepository;
+	
+	@Autowired
+	private HolidayRepository holidayRepository;
+	
+	@Autowired
+	private DateValidationsController dateValidationsControlObj;
+	
+	public Map<Long, Map<Long, FillingEndDatesBean>> fetchFormFillingEndDatesDates(Return returnObj, EntityBean entityObj, String reportingDate, Integer returnPropertyValId) throws ServiceException, ParseException {
+		
+		// Set weekend List
+		List<Integer> weekenedList = Arrays.asList(DateConstants.SATURDAY.getDateConstantInt(),DateConstants.SUNDAY.getDateConstantInt());
+		DateManip.setWEEKEND_LIST(weekenedList);
+					
+		Long formFreqId = returnObj.getFrequency().getFrequencyId();
+		Long formId = returnObj.getReturnId();
+		Long finYearId = entityObj.getFinYrFormat().getFinYrFormatId();
+
+		FilingCalendar fillingCalendar = new FilingCalendar();
+		fillingCalendar.setReturnFrequencyId(formFreqId);
+		fillingCalendar.setReturnId(formId);
+		fillingCalendar.setFinYearId(finYearId);
+		if (formFreqId == 9) {
+			fillingCalendar.setCalDate(DateManip.convertStringToDate(reportingDate, DateConstants.DD_MM_YYYY.getDateConstants()));
+		}
+		
+		FilingCalendar fillingCalendarObj = null;
+		if(StringUtils.isEmpty(returnPropertyValId)) {
+			fillingCalendarObj = filingCalendarRepository.findFilingCalendarByReturnIdAndFinYearId(fillingCalendar.getReturnId(), fillingCalendar.getFinYearId());
+		}else {
+			fillingCalendarObj = filingCalendarRepository.findFilingCalendarByReturnIdAndFinYearIdAndRetProValId(fillingCalendar.getReturnId(), fillingCalendar.getFinYearId(), returnPropertyValId);
+		}
+		if (fillingCalendarObj != null) {
+			if(fillingCalendarObj.getIsApplicable()!= null && fillingCalendarObj.getIsApplicable().equals(Boolean.TRUE)) {
+				List<Holiday> holidayList = holidayRepository.findActiveHoliday();
+				boolean isIncludeHoliday = fillingCalendarObj.getIncludeHoliday();
+				boolean isIncludeWeekend = fillingCalendarObj.getIncludeWeekend();
+				
+				if (formFreqId.equals(RevisionRequestConstants.FREQ_ID_FIRST_HALF_MONTHLY_EXCLUDE_HOLIDAY.getConstantLongVal())
+						|| formFreqId.equals(RevisionRequestConstants.FREQ_ID_FORTNIGHTLY.getConstantLongVal())
+						|| formFreqId.equals(RevisionRequestConstants.FREQ_ID_WEEKLY.getConstantLongVal())
+						|| formFreqId.equals(RevisionRequestConstants.FREQ_ID_DAILY.getConstantLongVal())
+						|| formFreqId.equals(RevisionRequestConstants.FREQ_ID_FORTNIGHTLY_15_DAYS.getConstantLongVal())
+						|| formFreqId.equals(RevisionRequestConstants.FREQ_ID_QUARTERLY_WITH_LAST_FORTNIGHT_OF_QUARTER.getConstantLongVal())
+						|| formFreqId.equals(RevisionRequestConstants.FREQ_ID_MONTHLY_WITH_LAST_FORTNIGHT_OF_QUARTER.getConstantLongVal())
+						|| formFreqId.equals(RevisionRequestConstants.FREQ_ID_CUSTOMIZED_MONTHLY_WITH_LAST_FORTNIGHT_OF_QUARTER.getConstantLongVal())
+						|| formFreqId.equals(RevisionRequestConstants.FREQ_ID_CUSTOMIZED_QUARTERLY_WITH_LAST_FORTNIGHT_OF_QUARTER.getConstantLongVal())
+						|| formFreqId.equals(RevisionRequestConstants.FREQ_ID_CUSTOMIZED_MONTHLY_WITH_LAST_FRIDAY_OF_QUARTER.getConstantLongVal())
+						|| formFreqId.equals(RevisionRequestConstants.FREQ_ID_HALF_MONTHLY.getConstantLongVal())
+					    || formFreqId.equals(RevisionRequestConstants.FREQ_ID_ANNUALLY.getConstantLongVal())
+					    || formFreqId.equals(RevisionRequestConstants.FREQ_ID_HALF_YEARLY.getConstantLongVal())
+					    || formFreqId.equals(RevisionRequestConstants.FREQ_ID_QUARTERLY.getConstantLongVal()) 
+						|| formFreqId.equals(RevisionRequestConstants.FREQ_ID_ANNUAL_QUATER.getConstantLongVal())
+						|| formFreqId.equals(RevisionRequestConstants.FREQ_ID_CUSTOMIZED_ANNUALLY.getConstantLongVal())
+						|| formFreqId.equals(RevisionRequestConstants.FREQ_ID_MONTHLY.getConstantLongVal())
+						|| formFreqId.equals(RevisionRequestConstants.FREQ_ID_CUSTOMIZED_ANNUALY_WITH_LAST_FRIDAY_OF_FINYEAR.getConstantLongVal())
+						|| formFreqId.equals(RevisionRequestConstants.CUSTOMIZED_ANNUALY_WITH_LAST_FRIDAY_OF_JUNE.getConstantLongVal())) {
+					return dateValidationsControlObj.getFillingWindow(formFreqId,fillingCalendarObj.getFilingWindowExtensionStart(),reportingDate, holidayList, isIncludeHoliday, isIncludeWeekend, fillingCalendarObj.getGraceDays());
+				}	
+			}else {
+				String todaysDate = DateManip.getCurrentDate(DateConstants.DD_MM_YYYY.getDateConstants());
+				
+				FillingEndDatesBean fillingEndDatesObj = null;
+				if (dateValidationsControlObj.getDayDiff(todaysDate, reportingDate,
+						DateConstants.DD_MM_YYYY.getDateConstants()) >= 0) { // If reporting date is greater than or equal to todays date
+					fillingEndDatesObj = new FillingEndDatesBean();
+					fillingEndDatesObj.setStartDate(reportingDate);
+					fillingEndDatesObj.setEndDate(reportingDate);
+					fillingEndDatesObj.setGraceDaysDate(reportingDate);
+				}else{
+					fillingEndDatesObj = new FillingEndDatesBean();
+					fillingEndDatesObj.setStartDate(todaysDate);
+					fillingEndDatesObj.setEndDate(todaysDate);
+					fillingEndDatesObj.setGraceDaysDate(todaysDate);
+				}
+				
+				Map<Long, Map<Long, FillingEndDatesBean>> formFillingWindowMap = new HashMap<>();
+				Map<Long, FillingEndDatesBean> fillingWindowEndDatesMap = new HashMap<>();
+				fillingWindowEndDatesMap.put(0L, fillingEndDatesObj);
+				formFillingWindowMap.put(formFreqId, fillingWindowEndDatesMap);
+				return formFillingWindowMap;
+			}
+		}
+		return null;
+	}
+
+
+}

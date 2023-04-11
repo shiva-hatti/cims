@@ -1,0 +1,172 @@
+/**
+ * 
+ */
+package com.iris.sdmx.elementdimensionmapping.bean;
+
+import java.io.Serializable;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.iris.sdmx.dimesnsion.bean.DimensionMasterBean;
+
+/**
+ * @author sajadhav
+ *
+ */
+@JsonInclude(Include.NON_DEFAULT)
+public class ElementDimensionBean implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 5518926194797487056L;
+
+	
+	private Long elementId;
+	
+	private String dsdCode;
+	
+	private String elementVersion;
+	
+	private String elementLabel;
+	
+	private Long userId;
+	
+	private Long roleId;
+	
+	private String langCode;
+	
+	private List<DimensionMasterBean> dimensionmasterBeans;
+	
+	private Boolean isActive;
+	
+	
+	/**
+	 * @return the isActive
+	 */
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the userId
+	 */
+	public Long getUserId() {
+		return userId;
+	}
+
+	/**
+	 * @param userId the userId to set
+	 */
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	/**
+	 * @return the roleId
+	 */
+	public Long getRoleId() {
+		return roleId;
+	}
+
+	/**
+	 * @param roleId the roleId to set
+	 */
+	public void setRoleId(Long roleId) {
+		this.roleId = roleId;
+	}
+
+	/**
+	 * @return the langCode
+	 */
+	public String getLangCode() {
+		return langCode;
+	}
+
+	/**
+	 * @param langCode the langCode to set
+	 */
+	public void setLangCode(String langCode) {
+		this.langCode = langCode;
+	}
+
+	/**
+	 * @return the elementLabel
+	 */
+	public String getElementLabel() {
+		return elementLabel;
+	}
+
+	/**
+	 * @param elementLabel the elementLabel to set
+	 */
+	public void setElementLabel(String elementLabel) {
+		this.elementLabel = elementLabel;
+	}
+
+	/**
+	 * @return the elementId
+	 */
+	public Long getElementId() {
+		return elementId;
+	}
+
+	/**
+	 * @param elementId the elementId to set
+	 */
+	public void setElementId(Long elementId) {
+		this.elementId = elementId;
+	}
+	
+
+	/**
+	 * @return the dsdCode
+	 */
+	public String getDsdCode() {
+		return dsdCode;
+	}
+
+	/**
+	 * @param dsdCode the dsdCode to set
+	 */
+	public void setDsdCode(String dsdCode) {
+		this.dsdCode = dsdCode;
+	}
+
+	/**
+	 * @return the elementVersion
+	 */
+	public String getElementVersion() {
+		return elementVersion;
+	}
+
+	/**
+	 * @param elementVersion the elementVersion to set
+	 */
+	public void setElementVersion(String elementVersion) {
+		this.elementVersion = elementVersion;
+	}
+
+	/**
+	 * @return the dimensionmasterBeans
+	 */
+	public List<DimensionMasterBean> getDimensionmasterBeans() {
+		return dimensionmasterBeans;
+	}
+
+	/**
+	 * @param dimensionmasterBeans the dimensionmasterBeans to set
+	 */
+	public void setDimensionmasterBeans(List<DimensionMasterBean> dimensionmasterBeans) {
+		this.dimensionmasterBeans = dimensionmasterBeans;
+	}
+	
+}

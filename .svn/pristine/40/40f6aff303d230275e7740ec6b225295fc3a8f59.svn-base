@@ -1,0 +1,26 @@
+/**
+ * 
+ */
+package com.iris.util.constant;
+
+/**
+ * @author sajadhav
+ *
+ */
+public enum FilingStatusConstants {
+
+	CSV_TO_XML_JSON_TO_XML_ID(20),
+	EBR_ETL_SUCCESS_ID(15),
+	FILE_STATUS_META_DATA_FAILED_ID(19);
+	
+	private Integer filingStatusId;
+
+	private FilingStatusConstants(Integer filingStatusId) {
+		this.filingStatusId = filingStatusId;
+	}
+
+	public Integer getConstantIntVal() {
+		return filingStatusId;
+	}
+	
+}

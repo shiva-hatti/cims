@@ -1,0 +1,445 @@
+/**
+ * 
+ */
+package com.iris.sdmx.element.service;
+
+import java.lang.reflect.Type;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+
+import javax.sql.DataSource;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.reflect.TypeToken;
+import com.iris.exception.ServiceException;
+import com.iris.model.Return;
+import com.iris.model.ReturnTemplate;
+import com.iris.repository.ReturnRepo;
+import com.iris.repository.ReturnTemplateRepository;
+import com.iris.sdmx.dimesnsion.bean.DimensionBean;
+import com.iris.sdmx.dimesnsion.entity.DimensionMaster;
+import com.iris.sdmx.dimesnsion.repo.DimensionRepo;
+import com.iris.sdmx.element.bean.SdmxElementBean;
+import com.iris.sdmx.element.bean.SdmxElementExistBean;
+import com.iris.sdmx.element.bean.SdmxElementMappingDetailBean;
+import com.iris.sdmx.element.bean.SdmxElementRequestMappingBean;
+import com.iris.sdmx.element.entity.SdmxElementEntity;
+import com.iris.sdmx.element.helper.SdmxElementHelper;
+import com.iris.sdmx.element.repo.SdmxElementRepo;
+import com.iris.sdmx.elementdimensionmapping.bean.DimCombination;
+import com.iris.sdmx.elementdimensionmapping.entity.ElementDimension;
+import com.iris.sdmx.elementdimensionmapping.repo.ElementDimensionRepo;
+import com.iris.sdmx.exceltohtml.bean.ModelMappingBean;
+import com.iris.sdmx.exceltohtml.bean.ModelOutputBean;
+import com.iris.sdmx.exceltohtml.entity.SdmxModelCodesEntity;
+import com.iris.sdmx.exceltohtml.entity.SdmxReturnModelInfoEntity;
+import com.iris.sdmx.exceltohtml.entity.SdmxReturnSheetInfoEntity;
+import com.iris.sdmx.exceltohtml.repo.SdmxModelCodesRepo;
+import com.iris.sdmx.exceltohtml.repo.SdmxReturnModelInfoRepo;
+import com.iris.sdmx.exceltohtml.repo.SdmxReturnSheetInfoRepo;
+import com.iris.service.GenericService;
+import com.iris.util.JsonUtility;
+
+/**
+ * @author apagaria
+ *
+ */
+@Service
+@Transactional(readOnly = true)
+public class SdmxElementService implements GenericService<SdmxElementEntity, Long> {
+
+	@Autowired
+	private SdmxElementRepo sdmxElementRepo;
+	
+	@Autowired
+	private ElementDimensionRepo elementDimensionRepo;
+	
+	@Autowired
+	private SdmxModelCodesRepo sdmxModelCodesRepo;
+
+	@Autowired
+	private SdmxReturnModelInfoRepo sdmxReturnModelInfoRepo;
+	
+	@Autowired
+	private SdmxReturnSheetInfoRepo sdmxReturnSheetInfoRepo;
+	
+	@Autowired
+	private ReturnTemplateRepository returnTemplateRepository;
+	
+	@Autowired
+	private ReturnRepo returnRepo;
+	
+	@Autowired
+	private DataSource dataSource;
+	
+	@Autowired
+	private DimensionRepo dimensionRepo;
+
+
+	@Override
+	public SdmxElementEntity add(SdmxElementEntity entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean update(SdmxElementEntity entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public List<SdmxElementEntity> getDataByIds(Long[] ids) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public SdmxElementEntity getDataById(Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<SdmxElementEntity> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<SdmxElementEntity> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName)
+			throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<SdmxElementEntity> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<SdmxElementEntity> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public List<SdmxElementEntity> getAllDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void deleteData(SdmxElementEntity bean) throws ServiceException {
+		// TODO Auto-generated method stub
+
+	}
+
+	/**
+	 * @param sdmxElementBean
+	 */
+	@Transactional(readOnly = false)
+	public void addEntityByBean(SdmxElementBean sdmxElementBean) {
+		SdmxElementEntity sdmxElementEntity = new SdmxElementEntity();
+		SdmxElementHelper.convertBeanToEntity(sdmxElementBean, sdmxElementEntity, false);
+		sdmxElementRepo.save(sdmxElementEntity);
+	}
+
+	/**
+	 * @param sdmxElementBean
+	 */
+	@Transactional(readOnly = false)
+	public void editEntityByBean(SdmxElementBean sdmxElementBean, Long elementId) {
+		SdmxElementEntity sdmxElementEntity = sdmxElementRepo.findEntityByActiveStatus(elementId, Boolean.TRUE);
+		SdmxElementHelper.convertBeanToEntity(sdmxElementBean, sdmxElementEntity, true);
+		sdmxElementRepo.save(sdmxElementEntity);
+	}
+
+	public void deleteEntityById(Long elementId) {
+		SdmxElementEntity sdmxElementEntity = sdmxElementRepo.findEntityByActiveStatus(elementId, Boolean.TRUE);
+		sdmxElementEntity.setIsActive(Boolean.FALSE);
+		sdmxElementRepo.save(sdmxElementEntity);
+	}
+
+	/**
+	 * @param elementId
+	 * @param isActive
+	 * @return
+	 */
+	public Boolean findByElementIdAndActiveStatus(Long elementId, Boolean isActive) {
+		Boolean isElementExist = false;
+		if (sdmxElementRepo.findByElementIdAndActiveStatus(elementId, isActive) > 0) {
+			isElementExist = true;
+		}
+		return isElementExist;
+	}
+
+	/**
+	 * @param dsdCode
+	 * @param elementVer
+	 * @param isActive
+	 * @return
+	 */
+	public Long findByDsdCodeAndVerAndIsActive(String dsdCode, String elementVer, Boolean isActive) {
+
+		return sdmxElementRepo.findByDsdCodeAndVerAndIsActive(dsdCode, elementVer, isActive);
+
+	}
+
+	/**
+	 * @param dsdCode
+	 * @param isActive
+	 * @return
+	 */
+	public List<String> findVersionByDsdCode(String dsdCode, Boolean isActive) {
+		List<String> elementVer = null;
+		elementVer = sdmxElementRepo.findVersionsByDsdCode(dsdCode, isActive);
+		return elementVer;
+	}
+
+	/**
+	 * @param isActive
+	 * @return
+	 */
+	public List<SdmxElementBean> findEntitiesByActiveStatus(Boolean isActive) {
+		List<SdmxElementBean> sdmxElementBeans = null;
+		List<SdmxElementEntity> sdmxElementEntities = sdmxElementRepo.findEntitiesByActiveStatus(isActive);
+		if (!CollectionUtils.isEmpty(sdmxElementEntities)) {
+			sdmxElementBeans = new ArrayList<>();
+			SdmxElementHelper.convertEntityListToBeanList(sdmxElementEntities, sdmxElementBeans);
+		}
+		return sdmxElementBeans;
+	}
+
+	/**
+	 * @param isActive
+	 * @return
+	 */
+	public SdmxElementBean findEntityByActiveStatus(Long elementId, Boolean isActive) {
+		SdmxElementBean sdmxElementBean = null;
+		SdmxElementEntity sdmxElementEntity = sdmxElementRepo.findEntityByActiveStatus(elementId, isActive);
+		if (sdmxElementEntity != null) {
+			sdmxElementBean = new SdmxElementBean();
+			SdmxElementHelper.convertEntityToBean(sdmxElementEntity, sdmxElementBean);
+		}
+		return sdmxElementBean;
+	}
+	
+	public void delinkParentFromChild(Long elementId) {
+		SdmxElementEntity sdmxElement=sdmxElementRepo.findEntityByActiveStatus(elementId,Boolean.TRUE);
+		List<SdmxElementEntity> sdmxElementEntity = sdmxElementRepo.findByIsActiveAndParentElementIdFkElementId(Boolean.TRUE,elementId);
+		if(sdmxElementEntity != null && sdmxElementEntity.size() > 0) {
+			for(SdmxElementEntity elementEntity:sdmxElementEntity) {
+				elementEntity.setParentElementIdFk(sdmxElement.getParentElementIdFk());
+				sdmxElementRepo.save(elementEntity);
+			}
+			
+		}
+		
+	}
+	
+	public List<SdmxElementMappingDetailBean> getMappingDetail(List<SdmxElementRequestMappingBean> requestBeanList) {
+		List<DimCombination> dimCombinations = null;
+		List<SdmxElementMappingDetailBean> mappingDetailOutput = new ArrayList<>();
+		List<DimensionBean> dimensionBean;
+		List<ModelMappingBean> modelMappingBeanList;
+		if(!CollectionUtils.isEmpty(requestBeanList)) {
+			
+			for(SdmxElementRequestMappingBean requestBeanObj : requestBeanList) {
+				
+				SdmxElementMappingDetailBean mappingDetailOutputObject = new SdmxElementMappingDetailBean();
+				dimensionBean=new ArrayList<>();
+				modelMappingBeanList=new ArrayList<>();
+				SdmxElementEntity elObject=sdmxElementRepo.findEntityByActiveStatus(requestBeanObj.getElementId(),true);
+				mappingDetailOutputObject.setElementId(requestBeanObj.getElementId());
+				mappingDetailOutputObject.setElementCode(requestBeanObj.getElementCode());
+				mappingDetailOutputObject.setElementVersion(requestBeanObj.getElementVersion());
+				mappingDetailOutputObject.setElementLabel(elObject.getElementLabel());
+				mappingDetailOutputObject.setElementDesc(elObject.getElementDesc());
+				
+				Long elementId = requestBeanObj.getElementId();
+				ElementDimension elementDimension=elementDimensionRepo.findByIsActiveAndElementElementId(true,elementId);
+				if(elementDimension!=null){
+					String dimensionString = JsonUtility.extractResponseValueFromServiceResponseString(elementDimension.getElementDimensionJson(), "dimCombination");
+					
+					if(dimensionString!= null) {
+						Type listToken = new TypeToken<List<DimCombination>>() {}.getType();
+						dimCombinations = JsonUtility.getGsonObject().fromJson(dimensionString, listToken);
+						
+						for (DimCombination dimCombination : dimCombinations) {
+							DimensionBean dimObject = new DimensionBean();
+							dimObject.setDimConceptId(dimCombination.getDimConceptId());
+							dimObject.setAttachmentType(dimCombination.getAttachmentType());
+							DimensionMaster dimObj=dimensionRepo.findByDimensionCodeIgnoreCaseAndIsActive(dimCombination.getDimConceptId(),true);
+							if(dimObj != null) {
+								dimObject.setDimensionDesc(dimObj.getDimDesc());
+								dimObject.setDimensionLabel(dimObj.getDimensionName());
+							}
+							dimensionBean.add(dimObject);
+						}
+						
+					}
+					
+				}
+					
+				mappingDetailOutputObject.setDimensionBean(dimensionBean);
+				Map<String, List<Integer>> returnCellMap  = new HashMap<String, List<Integer>>();
+				List<ModelOutputBean> modelOutputBeanList=new ArrayList<>();
+				modelOutputBeanList=sdmxModelCodesRepo.fetchSDMXElementModelMappingData(elementId);
+				
+				Collections.sort(modelOutputBeanList, Comparator.comparing(ModelOutputBean::getReturnName).thenComparing(ModelOutputBean::getSectionName));
+				
+				Map<String, Integer> returnMap  = new HashMap<String, Integer>();
+				Map<Integer,String> tableMap  = new HashMap<Integer,String>();
+				ModelMappingBean modelMappingBean;
+				int flag=1;
+				int countflag=-1;
+				int tableChangeFlag=0;
+				List<String> tableEntryList=new ArrayList<>();
+				
+				/*for(Integer i=0;i<modelOutputBeanList.size();i++) {
+					if(returnMap.containsKey(modelOutputBeanList.get(i).getReturnCode())) {
+						String code=modelOutputBeanList.get(i).getReturnCode();
+						if(tableMap.get(returnMap.get(code)).equalsIgnoreCase(modelOutputBeanList.get(i).getSectionName()) || tableChangeFlag==1 && tableEntryList.contains(modelOutputBeanList.get(i).getSectionName())) {
+							modelMappingBean=new ModelMappingBean();
+							Integer index=returnMap.get(code);							
+							List<Integer> cell=new ArrayList<>();
+							cell=modelMappingBeanList.get(countflag).getCellNo();
+							cell.add(modelOutputBeanList.get(i).getReturnCellRef());
+							modelMappingBeanList.get(countflag).setCellNo(cell);
+							flag=0;
+						}else {
+							
+							modelMappingBean=new ModelMappingBean();
+							modelMappingBean.setReturnCode(modelOutputBeanList.get(i).getReturnCode());
+							modelMappingBean.setReturnName(modelOutputBeanList.get(i).getReturnName());
+							modelMappingBean.setSheetName(modelOutputBeanList.get(i).getSheetName());
+							modelMappingBean.setSectionName(modelOutputBeanList.get(i).getSectionName());
+							List<Integer> cellArray=new ArrayList<>();
+							cellArray.add(modelOutputBeanList.get(i).getReturnCellRef());
+							modelMappingBean.setCellNo(cellArray);
+							String code1=modelOutputBeanList.get(i).getReturnCode();
+							returnMap.replace(code1, i);
+							tableMap.put(i,modelOutputBeanList.get(i).getSectionName());
+							flag=1;
+							tableChangeFlag=1;
+							
+							
+							
+						}
+						
+					}else {
+						tableEntryList.clear();
+						returnMap.clear();
+						tableMap.clear();
+						modelMappingBean=new ModelMappingBean();
+						modelMappingBean.setReturnCode(modelOutputBeanList.get(i).getReturnCode());
+						modelMappingBean.setReturnName(modelOutputBeanList.get(i).getReturnName());
+						modelMappingBean.setSheetName(modelOutputBeanList.get(i).getSheetName());
+						modelMappingBean.setSectionName(modelOutputBeanList.get(i).getSectionName());
+						List<Integer> cellArray=new ArrayList<>();
+						cellArray.add(modelOutputBeanList.get(i).getReturnCellRef());
+						modelMappingBean.setCellNo(cellArray);
+						returnMap.put(modelOutputBeanList.get(i).getReturnCode(), i);
+						tableMap.put(i,modelOutputBeanList.get(i).getSectionName());
+						flag=1;
+						tableEntryList.add(modelOutputBeanList.get(i).getSectionName());
+					}
+					
+					if(flag==1) {
+						modelMappingBeanList.add(modelMappingBean);
+						countflag++;
+					}
+					
+				}*/
+				/* updated code */
+				Map<String, List<Integer>> returnSectionCellMap  = new HashMap<String, List<Integer>>();
+				String mapKey;
+				for(ModelOutputBean obj : modelOutputBeanList) {
+					mapKey = obj.getReturnCode() + "~" + obj.getSheetName() + "~" + obj.getSectionName();
+					
+					if(returnSectionCellMap.containsKey(mapKey)) {
+						ModelMappingBean searchBean=new ModelMappingBean();
+						searchBean.setReturnCode(obj.getReturnCode());
+						searchBean.setReturnName(obj.getReturnName());
+						searchBean.setSheetName(obj.getSheetName());
+						searchBean.setSectionName(obj.getSectionName());
+						for(ModelMappingBean existObj : modelMappingBeanList) {
+							if(existObj.getReturnCode().equalsIgnoreCase(obj.getReturnCode()) &&
+								existObj.getSheetName().equalsIgnoreCase(obj.getSheetName()) &&
+								existObj.getSectionName().equalsIgnoreCase(obj.getSectionName())) {
+								
+								 List<Integer> cellArrayMod=new ArrayList<>();
+								 cellArrayMod = existObj.getCellNo();
+								 cellArrayMod.add(obj.getReturnCellRef());
+								 existObj.setCellNo(cellArrayMod);
+							}
+						}
+						
+					} else {
+						modelMappingBean=new ModelMappingBean();
+						modelMappingBean.setReturnCode(obj.getReturnCode());
+						modelMappingBean.setReturnName(obj.getReturnName());
+						modelMappingBean.setSheetName(obj.getSheetName());
+						modelMappingBean.setSectionName(obj.getSectionName());
+						List<Integer> cellArray=new ArrayList<>();
+						cellArray.add(obj.getReturnCellRef());
+						modelMappingBean.setCellNo(cellArray);
+						
+						modelMappingBeanList.add(modelMappingBean);
+						
+						returnSectionCellMap.put(mapKey, cellArray);
+					}
+					
+				}
+				
+				/* updated code */
+				
+				
+				mappingDetailOutputObject.setModelMappingBean(modelMappingBeanList);
+				mappingDetailOutput.add(mappingDetailOutputObject);
+			}
+			
+		}
+		
+		return mappingDetailOutput;
+	}
+	
+	public SdmxElementExistBean chkElementExist(String dsdCode, String elementVer, boolean isActive){
+		
+		SdmxElementEntity sdmxElementEntity = sdmxElementRepo.findByDsdCodeVersionIsActive(dsdCode, elementVer, isActive);
+		
+		SdmxElementExistBean sdmxElementExistBean = new SdmxElementExistBean();
+		
+		if(sdmxElementEntity != null) {
+			sdmxElementExistBean.setElementId(sdmxElementEntity.getElementId());
+			sdmxElementExistBean.setIsActive(sdmxElementEntity.getIsActive());
+			sdmxElementExistBean.setIsPending(sdmxElementEntity.getIsPending());
+			
+			return sdmxElementExistBean;
+		} else {
+			sdmxElementExistBean.setIsActive(Boolean.FALSE);
+		}
+		
+		return sdmxElementExistBean;
+		
+	}
+}

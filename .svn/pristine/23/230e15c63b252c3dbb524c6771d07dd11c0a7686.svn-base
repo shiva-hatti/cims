@@ -1,0 +1,349 @@
+package com.iris.sdmx.upload.history.service;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.persistence.Tuple;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.iris.controller.ErrorCodeLabelMappingController;
+import com.iris.dateutility.enums.DateConstants;
+import com.iris.dateutility.util.DateManip;
+import com.iris.dto.FileDetailsBean;
+import com.iris.ebr.rbr.error.bean.CtlEbrRbrErrorMasterBean;
+import com.iris.exception.ServiceException;
+import com.iris.model.FileDetails;
+import com.iris.model.RoleType;
+import com.iris.sdmx.status.entity.SdmxFileActivityLog;
+import com.iris.sdmx.status.repo.SdmxFileActivityLogRepo;
+import com.iris.sdmx.status.service.SdmxFileActivityLogService;
+import com.iris.sdmx.upload.bean.ElementAuditBean;
+import com.iris.sdmx.upload.entity.ElementAudit;
+import com.iris.sdmx.upload.history.dto.SdmxFilingHitoryRequestBean;
+import com.iris.sdmx.upload.repo.ElementAuditRepo;
+import com.iris.service.GenericService;
+import com.iris.util.AESV2;
+import com.iris.util.ResourceUtil;
+import com.iris.util.constant.GeneralConstants;
+
+
+@Service
+public class SdmxFilingHistoryService implements  GenericService<FileDetails, Long> {
+	
+	@Autowired
+	EntityManager em;
+	
+	@Autowired 
+	ElementAuditRepo elementAuditRepo;
+	
+	@Autowired
+	private SdmxFileActivityLogRepo sdmxActivityDetailLogRepo;
+	
+	private static final Logger LOGGER = LogManager.getLogger(SdmxFilingHistoryService.class);
+
+
+	@Override
+	public FileDetails add(FileDetails entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+
+	@Override
+	public boolean update(FileDetails entity) throws ServiceException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+
+
+	@Override
+	public List<FileDetails> getDataByIds(Long[] ids) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+
+	@Override
+	public FileDetails getDataById(Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+
+	@Override
+	public List<FileDetails> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName)
+			throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+
+	@Override
+	public List<FileDetails> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName)
+			throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+
+	@Override
+	public List<FileDetails> getDataByObject(Map<String, Object> columnValueMap, String methodName)
+			throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+
+	@Override
+	public List<FileDetails> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+
+	@Override
+	public List<FileDetails> getAllDataFor(Class bean, Long id) throws ServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+
+	@Override
+	public void deleteData(FileDetails bean) throws ServiceException {
+		// TODO Auto-generated method stub
+		
+	}
+	
+    public List<FileDetailsBean> getAllSdmxFilingdata(SdmxFilingHitoryRequestBean sdmxFilingHis,RoleType roleType)throws Exception{
+    	LOGGER.info("Get All SDMX Filing Upload History Start With Incoming Object " + sdmxFilingHis);
+		if(sdmxFilingHis != null ) {
+		
+			String query = 
+					" SELECT TFS.STATUS ,"+
+					" TUM.USER_NAME ,"+
+					" TFD.CREATION_DATE , "+
+					" TE.ENTITY_NAME ,"+
+					" TFD.ID ,"+
+					" TFD.IFSC_CODE ,"+
+					" TFD.ENTITY_CODE ,"+
+					" TFD.SYSTEM_MODIFIED_FILE_NAME ,"+
+					" TFD.FILE_NAME ,"+
+					" TFD.UPLOAD_CHANNEL_ID_FK ,"+
+					" TUC.UPLOAD_CHENNEL_DESC ,"+
+					" TSFA.OTHER_DETAILS ,"+
+					" TFD.REASON_OF_NOT_PROCESSED ,"+
+					" TFD.FILING_STATUS_ID_FK "+
+					
+					" FROM TBL_FILE_DETAILS TFD "+
+					" LEFT JOIN TBL_ENTITY TE ON TE.ENTITY_CODE = TFD.ENTITY_CODE "+
+					" LEFT JOIN TBL_FILING_STATUS TFS ON TFS.FILING_STATUS_ID =  TFD.FILING_STATUS_ID_FK "+
+					" LEFT JOIN TBL_USER_MASTER TUM ON TUM.USER_ID = TFD.USER_ID_FK "+
+					" LEFT JOIN TBL_UPLOAD_CHANNEL TUC ON TUC.UPLOAD_CHANNEL_ID = TFD.UPLOAD_CHANNEL_ID_FK "+
+					" LEFT JOIN TBL_SDMX_FILE_ACTIVITY_LOG TSFA ON TSFA.FILE_DETAILS_ID_FK = TFD.ID ";
+					
+			
+			query= query + " WHERE TFD.IS_ACTIVE = '1' AND TFD.IS_EBR_FILING = '1'  ";
+			
+			if(sdmxFilingHis.getEntityIdList() != null && sdmxFilingHis.getEntityIdList() != "" ) {
+				String [] arr  = sdmxFilingHis.getEntityIdList().split(",");
+				List<String> ifscCodeList = new ArrayList<>();
+				ifscCodeList = Arrays.asList(arr);
+				query= query + " AND UPPER(TFD.IFSC_CODE) in ('"+String.join("','", ifscCodeList)+"')";
+			}
+			
+			if(GeneralConstants.ENTITY_ROLE_TYPE_ID.getConstantLongVal().equals(roleType.getRoleTypeId())) {
+				query= query + " AND TFD.ENTITY_CODE  = '"+sdmxFilingHis.getEntitycode()+"' ";
+			}
+			
+			if(sdmxFilingHis.getFilingStatusId()  != 0 ) {
+				query= query + " AND TFS.FILING_STATUS_ID = "+sdmxFilingHis.getFilingStatusId()+" ";
+			}
+			
+			if(sdmxFilingHis.getUploadChannelId() != 0  && sdmxFilingHis.getUploadChannelId() != -1) {
+				query= query + " AND TFD.UPLOAD_CHANNEL_ID_FK = "+sdmxFilingHis.getUploadChannelId()+" ";
+			}
+
+		    SimpleDateFormat format1 = new SimpleDateFormat("dd-MM-yyyy");
+		   
+			if(StringUtils.isNotBlank(sdmxFilingHis.getFromDate()) && StringUtils.isNotBlank(sdmxFilingHis.getToDate())) {	
+				  
+				  query= query + " AND DATE(TFD.CREATION_DATE) BETWEEN DATE('"+DateManip.convertDateToString(new Date(sdmxFilingHis.getFromDateLong()), 
+						  DateConstants.YYYY_MM_DD.getDateConstants())+"')" ;
+				  query= query + " AND DATE('"+DateManip.convertDateToString(new Date(sdmxFilingHis.getToDateLong()), 
+						  DateConstants.YYYY_MM_DD.getDateConstants())+"')";
+		    }
+			
+			query= query + "  ORDER BY TFD.ID  DESC  ";
+			Query finalQuery =  em.createNativeQuery(query.toString(),Tuple.class);
+			
+			LOGGER.info("Final Query  " + finalQuery);
+			
+			String dirPath = ResourceUtil.getKeyValue("filepath.root") 
+					+ ResourceUtil.getKeyValue("filepath.instanceEbr")+"/" ;
+		
+			List<Tuple> result = finalQuery.getResultList();
+			List<FileDetailsBean> fileDetailsBeans = new ArrayList<>();
+			FileDetailsBean fileDetailsBean   = null;
+			String modifiedFolder = null;
+			
+			for(Tuple item : result) {
+				String modifiedFileName = (String) item.get("SYSTEM_MODIFIED_FILE_NAME");
+				if(!StringUtils.isBlank(modifiedFileName)) {
+					 modifiedFolder = modifiedFileName.split("\\.")[0];
+				}
+				
+				Integer ID = (Integer) item.get("ID");
+				fileDetailsBean = new FileDetailsBean();
+				Long idCast = new Long(ID) ;
+				fileDetailsBean.setId(idCast);
+				fileDetailsBean.setReportStatus((String) item.get("STATUS"));
+				String userNameStr = (String) item.get("USER_NAME");
+				fileDetailsBean.setUserName(AESV2.getInstance().decrypt(userNameStr));
+				fileDetailsBean.setEntityName((String) item.get("ENTITY_NAME"));
+				Date creationDate = (Date) item.get("CREATION_DATE");
+				fileDetailsBean.setCreationDateLong(creationDate.getTime());
+				fileDetailsBean.setIfscCode((String) item.get("IFSC_CODE"));
+				fileDetailsBean.setEntityCode((String) item.get("ENTITY_CODE"));
+				String dateString = format1.format( creationDate  );
+				String fileName = modifiedFolder+"/"+modifiedFileName;
+				fileDetailsBean.setUserSelectedFileName((String) item.get("FILE_NAME"));
+				fileDetailsBean.setFileName(fileName);
+				fileDetailsBean.setUploadChannelStr((String) item.get("UPLOAD_CHENNEL_DESC"));
+				fileDetailsBean.setFailedJsonStr((String) item.get("REASON_OF_NOT_PROCESSED"));
+				fileDetailsBean.setSupportiveDocFilePath(dirPath);
+				fileDetailsBean.setFolderDate(dateString);
+				Integer satusID = (Integer) item.get("FILING_STATUS_ID_FK");
+				fileDetailsBean.setFilingStatusId(satusID);
+				
+				fileDetailsBeans.add(fileDetailsBean);
+			}
+			
+			return fileDetailsBeans;
+		}
+		return null;
+		
+	}
+    
+    public List<ElementAuditBean> getElementAuditData(SdmxFilingHitoryRequestBean sdmxFilingHitoryRequestBean){
+    	LOGGER.info("Get element Info Using SDMX Filing Id   " + sdmxFilingHitoryRequestBean.getFileDetailsId());
+    	 List<ElementAudit> elementAudit = null;
+    	 List<ElementAuditBean> elementAuditBeans = null;
+    	 
+    	 try {
+    		 elementAudit = new ArrayList<>();
+    		 elementAudit=  elementAuditRepo.fetchElementAuditRecordsUsingFileDetailsID(sdmxFilingHitoryRequestBean.getFileDetailsId());
+    		 SdmxFileActivityLog sdmxFileActivityLog = sdmxActivityDetailLogRepo.fetchSdmxFileActivity(sdmxFilingHitoryRequestBean.getFileDetailsId());
+    		 elementAuditBeans = new ArrayList<ElementAuditBean>();
+    		 elementAuditBeans = prepareElementAuditData(elementAudit,sdmxFileActivityLog);
+    	 }catch (Exception e) {
+			// TODO: handle exception
+		}
+    	
+		return elementAuditBeans;
+    }
+    
+    
+    public List<ElementAuditBean> prepareElementAuditData(List<ElementAudit> elementAudits,SdmxFileActivityLog sdmxFileActivityLog){
+    	List<ElementAuditBean> elementAuditBeans = null;
+    	if(!CollectionUtils.isEmpty(elementAudits)) {
+    		LOGGER.info("Element Details   " + elementAudits.size());
+    		elementAuditBeans = new ArrayList<>();
+    		for(ElementAudit elementAudit : elementAudits) {
+    			ElementAuditBean elementAuditBean = new ElementAuditBean();
+    			elementAuditBean.setElementAuditId(elementAudit.getElementAuditId());
+    			elementAuditBean.setElementCode(elementAudit.getElementCode());
+    			elementAuditBean.setElementVersion(elementAudit.getElementVersion());
+    			elementAuditBean.setRowCount(elementAudit.getRowCount());
+    			elementAuditBean.setStatus(elementAudit.getStatus().getStatus());
+    			if(sdmxFileActivityLog != null && sdmxFileActivityLog.getOtherDetails() != null && sdmxFileActivityLog.getOtherDetails() != "" ) {
+    				elementAuditBean.setFailJsonStr(sdmxFileActivityLog.getOtherDetails());
+    			}else {
+    				elementAuditBean.setFailJsonStr("");
+    			}
+    			elementAuditBeans.add(elementAuditBean);
+    		}
+    	}
+    	
+    	return elementAuditBeans;	
+    }
+    
+    public List<CtlEbrRbrErrorMasterBean> getErrorCodeAndMsg(Long uploadId)throws Exception{
+		LOGGER.info("Display Error Code And Msg Start Service With Filing ID " + uploadId);
+		
+		if(uploadId == null) {
+			LOGGER.info("Process Fail With Upload ID is   " + uploadId);
+			return null;
+		}
+
+    	List<CtlEbrRbrErrorMasterBean> beans = null;
+    	StringBuilder stringBuffer = null;
+    	List<Integer> controlIdList = null;
+    	
+    	String query = " SELECT CONTROL_PK  FROM TBL_CTL_EBR_RBR_FLOW where UPLOAD_ID = "+uploadId+" AND STATUS = '3' ";
+    	Query finalQuery =  em.createNativeQuery(query.toString(),Tuple.class);
+    	
+    	List<Tuple> result = finalQuery.getResultList();
+    	
+    	if(!CollectionUtils.isEmpty(result)) {
+    		LOGGER.info("Control Table Query result  " + result);
+    		controlIdList = new ArrayList<>();
+    		for(Tuple item : result) {
+    			if(item.get("CONTROL_PK") != null ) {
+    				Integer controlID = (Integer) item.get("CONTROL_PK") ;
+            		controlIdList.add(controlID);
+    			}	
+        	}
+    	}else {
+    		return beans;
+    	}
+    	
+    	if(!CollectionUtils.isEmpty(controlIdList)) {
+    		LOGGER.info("Control Table Id With Status Fail  " + controlIdList.size());
+    		stringBuffer = new StringBuilder();
+    		stringBuffer.append(" SELECT ERROR_CODE , ERROR_MESSAGE FROM TBL_CTL_EBR_RBR_FLOW_ERROR WHERE  CONTROL_FK  IN ("+controlIdList.stream().map(Object::toString).collect(Collectors.joining(","))+") AND IS_ACTIVE = 1 ");
+        	Query errorFlowQuery =  em.createNativeQuery(stringBuffer.toString(),Tuple.class);
+        	List<Tuple> errorFlowResult = errorFlowQuery.getResultList();
+        	
+        	if(!CollectionUtils.isEmpty(errorFlowResult)) {
+        		LOGGER.info("Error Flow  Table Query result  " + errorFlowResult);
+        		beans = new ArrayList<>();
+        		for(Tuple item : errorFlowResult) {
+        			CtlEbrRbrErrorMasterBean clBean = new CtlEbrRbrErrorMasterBean();
+        			clBean.setErrorCode(item.get("ERROR_CODE") != null ? (String) item.get("ERROR_CODE")  : "");
+        			clBean.setErrorMsg(item.get("ERROR_MESSAGE") != null ? (String) item.get("ERROR_MESSAGE")  : "");
+        			beans.add(clBean);	
+            	}
+        	}else {
+        		return beans;
+        	}
+    	}else {
+    		return beans;
+    	}
+    	
+    	return beans;
+    }
+
+
+}

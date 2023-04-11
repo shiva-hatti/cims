@@ -1,0 +1,130 @@
+package com.iris.sdmx.exceltohtml.bean;
+
+import java.io.Serializable;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+@JsonInclude(Include.NON_NULL)
+public class ReturnFormulaBean implements Serializable {
+
+	private static final long serialVersionUID = -1708514774284020991L;
+
+	private String formulaType;
+	
+	private String LHS;
+	
+	private String RHS;
+	
+	private String EXP;
+	
+	private List<String> dependentList;
+	
+	private String roundingUpTo;
+	
+	private String errorCode;
+	
+	private String errorType;
+	
+	/**
+	 * @return the formulaType
+	 */
+	public String getFormulaType() {
+		return formulaType;
+	}
+	/**
+	 * @param formulaType the formulaType to set
+	 */
+	public void setFormulaType(String formulaType) {
+		this.formulaType = StringUtils.trim(formulaType);
+	}
+	/**
+	 * @return the lHS
+	 */
+	public String getLHS() {
+		return LHS;
+	}
+	/**
+	 * @param lHS the lHS to set
+	 */
+	public void setLHS(String lHS) {
+		LHS = StringUtils.trim(lHS);
+	}
+	/**
+	 * @return the rHS
+	 */
+	public String getRHS() {
+		return RHS;
+	}
+	/**
+	 * @param rHS the rHS to set
+	 */
+	public void setRHS(String rHS) {
+		RHS = StringUtils.trim(rHS);
+	}
+	/**
+	 * @return the eXP
+	 */
+	public String getEXP() {
+		return EXP;
+	}
+	/**
+	 * @param eXP the eXP to set
+	 */
+	public void setEXP(String eXP) {
+		EXP = StringUtils.trim(eXP);
+	}
+	
+	/**
+	 * @return the dependeptList
+	 */
+	public List<String> getDependentList() {
+		return dependentList;
+	}
+	/**
+	 * @param dependeptList the dependeptList to set
+	 */
+	public void setDependentList(List<String> dependentList) {
+		this.dependentList = dependentList;
+	}
+	/**
+	 * @return the roundingUpTo
+	 */
+	public String getRoundingUpTo() {
+		return roundingUpTo;
+	}
+	/**
+	 * @param roundingUpTo the roundingUpTo to set
+	 */
+	public void setRoundingUpTo(String roundingUpTo) {
+		this.roundingUpTo = StringUtils.trim(roundingUpTo);
+	}
+	/**
+	 * @return the errorCode
+	 */
+	public String getErrorCode() {
+		return errorCode;
+	}
+	/**
+	 * @param errorCode the errorCode to set
+	 */
+	public void setErrorCode(String errorCode) {
+		this.errorCode = StringUtils.trim(errorCode);
+	}
+	/**
+	 * @return the errorType
+	 */
+	public String getErrorType() {
+		return errorType;
+	}
+	/**
+	 * @param errorType the errorType to set
+	 */
+	public void setErrorType(String errorType) {
+		this.errorType = StringUtils.trim(errorType);
+	}
+	
+}

@@ -1,0 +1,7 @@
+package com.iris.formula.gen;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface FormulaGenRepo extends JpaRepository<FormulaGen, Long> {
+
+}

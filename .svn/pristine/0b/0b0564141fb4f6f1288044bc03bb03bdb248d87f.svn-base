@@ -1,0 +1,33 @@
+/**
+ * 
+ */
+package com.iris.nbfc.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.iris.nbfc.model.NbfcEntityBean;
+
+/**
+ * @author pmohite
+ */
+@Repository
+public interface NbfcEntityRepo extends JpaRepository<NbfcEntityBean, Long>{
+	
+	@Query(value = " FROM NbfcEntityBean where compPan = :panNumber and isActive = '1'")
+	List<NbfcEntityBean> getNbfcEntityByPanNumber(@Param("panNumber") String panNumber);
+
+	@Transactional
+	@Modifying
+	@Query(value = "Update NbfcEntityBean SET isActive = '0'  where compPan = :panNumber")
+	void updateNbfcEntityByCompPan(@Param("panNumber") String panNumber);
+	
+	@Query(value = " FROM NbfcEntityBean where user.userId = :userId and isActive = '1'")
+	List<NbfcEntityBean> getNbfcEntityByUserId(@Param("userId") Long userId);
+}

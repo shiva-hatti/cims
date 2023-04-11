@@ -1,0 +1,190 @@
+package com.iris.dto;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public class XbrlWebFormDto {
+
+	private String guid;
+	private String returnCode;
+	private String returnName;
+	private String bankCode;
+	private String bankName;
+	private String frequencyCode;
+	private String frequencyName;
+	private String startDate;
+	private String endDate;
+	private String taxonomyVersion;
+	private String returnProperty;
+	private String jwtToken;
+	private String userName;
+	private String platformName;
+	private String levelOfRounding;
+	private String currencyCode;
+	private String currencyName;
+	private String taxonomyXsd;
+	private String filingStatus;
+	private String roleId;
+	@JsonProperty
+	private boolean isXbrl;
+	private String jsDateFormat;
+	private String sessionDateFormat;
+	private String sessionTimeOut;
+	private Long userId;
+	private String levelOfRoundingCode;
+	public String getGuid() {
+		return guid;
+	}
+	public void setGuid(String guid) {
+		this.guid = guid;
+	}
+	public String getReturnCode() {
+		return returnCode;
+	}
+	public void setReturnCode(String returnCode) {
+		this.returnCode = returnCode;
+	}
+	public String getReturnName() {
+		return returnName;
+	}
+	public void setReturnName(String returnName) {
+		this.returnName = returnName;
+	}
+	public String getBankCode() {
+		return bankCode;
+	}
+	public void setBankCode(String bankCode) {
+		this.bankCode = bankCode;
+	}
+	public String getFrequencyCode() {
+		return frequencyCode;
+	}
+	public void setFrequencyCode(String frequencyCode) {
+		this.frequencyCode = frequencyCode;
+	}
+	public String getFrequencyName() {
+		return frequencyName;
+	}
+	public void setFrequencyName(String frequencyName) {
+		this.frequencyName = frequencyName;
+	}
+	public String getStartDate() {
+		return startDate;
+	}
+	public void setStartDate(String startDate) {
+		this.startDate = startDate;
+	}
+	public String getEndDate() {
+		return endDate;
+	}
+	public void setEndDate(String endDate) {
+		this.endDate = endDate;
+	}
+	public String getTaxonomyVersion() {
+		return taxonomyVersion;
+	}
+	public void setTaxonomyVersion(String taxonomyVersion) {
+		this.taxonomyVersion = taxonomyVersion;
+	}
+	public String getReturnProperty() {
+		return returnProperty;
+	}
+	public void setReturnProperty(String returnProperty) {
+		this.returnProperty = returnProperty;
+	}
+	public String getJwtToken() {
+		return jwtToken;
+	}
+	public void setJwtToken(String jwtToken) {
+		this.jwtToken = jwtToken;
+	}
+	public String getUserName() {
+		return userName;
+	}
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+	public String getPlatformName() {
+		return platformName;
+	}
+	public void setPlatformName(String platformName) {
+		this.platformName = platformName;
+	}
+	public String getLevelOfRounding() {
+		return levelOfRounding;
+	}
+	public void setLevelOfRounding(String levelOfRounding) {
+		this.levelOfRounding = levelOfRounding;
+	}
+	public String getCurrencyCode() {
+		return currencyCode;
+	}
+	public void setCurrencyCode(String currencyCode) {
+		this.currencyCode = currencyCode;
+	}
+	public String getCurrencyName() {
+		return currencyName;
+	}
+	public void setCurrencyName(String currencyName) {
+		this.currencyName = currencyName;
+	}
+	public String getTaxonomyXsd() {
+		return taxonomyXsd;
+	}
+	public void setTaxonomyXsd(String taxonomyXsd) {
+		this.taxonomyXsd = taxonomyXsd;
+	}
+	public String getFilingStatus() {
+		return filingStatus;
+	}
+	public void setFilingStatus(String filingStatus) {
+		this.filingStatus = filingStatus;
+	}
+	public String getBankName() {
+		return bankName;
+	}
+	public void setBankName(String bankName) {
+		this.bankName = bankName;
+	}
+	public String getRoleId() {
+		return roleId;
+	}
+	public void setRoleId(String roleId) {
+		this.roleId = roleId;
+	}
+	public boolean isXbrl() {
+		return isXbrl;
+	}
+	public void setXbrl(boolean isXbrl) {
+		this.isXbrl = isXbrl;
+	}
+	public String getJsDateFormat() {
+		return jsDateFormat;
+	}
+	public void setJsDateFormat(String jsDateFormat) {
+		this.jsDateFormat = jsDateFormat;
+	}
+	public String getSessionDateFormat() {
+		return sessionDateFormat;
+	}
+	public void setSessionDateFormat(String sessionDateFormat) {
+		this.sessionDateFormat = sessionDateFormat;
+	}
+	public String getSessionTimeOut() {
+		return sessionTimeOut;
+	}
+	public void setSessionTimeOut(String sessionTimeOut) {
+		this.sessionTimeOut = sessionTimeOut;
+	}
+	public Long getUserId() {
+		return userId;
+	}
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+	public String getLevelOfRoundingCode() {
+		return levelOfRoundingCode;
+	}
+	public void setLevelOfRoundingCode(String levelOfRoundingCode) {
+		this.levelOfRoundingCode = levelOfRoundingCode;
+	}
+}

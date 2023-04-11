@@ -1,0 +1,174 @@
+/**
+ * 
+ */
+package com.iris.sdmx.fusion.bean;
+
+import java.io.Serializable;
+import java.util.List;
+
+/**
+ * @author sajadhav
+ *
+ */
+public class DataStructure implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 4132957603449612788L;
+
+	private String id;
+
+	private String urn;
+
+	private List<FusionDecription> names;
+
+	private List<FusionDecription> descriptions;
+
+	private String agencyId;
+
+	private String version;
+
+	private Boolean isFinal;
+
+	private PrimaryMeasure primaryMeasure;
+
+	private DimensionWrapper dimensionList;
+
+	private AttributeWrapper attributeList;
+
+	public List<FusionDecription> getDescriptions() {
+		return descriptions;
+	}
+
+	public void setDescriptions(List<FusionDecription> descriptions) {
+		this.descriptions = descriptions;
+	}
+
+	/**
+	 * @return the primaryMeasure
+	 */
+	public PrimaryMeasure getPrimaryMeasure() {
+		return primaryMeasure;
+	}
+
+	/**
+	 * @param primaryMeasure the primaryMeasure to set
+	 */
+	public void setPrimaryMeasure(PrimaryMeasure primaryMeasure) {
+		this.primaryMeasure = primaryMeasure;
+	}
+
+	/**
+	 * @return the dimensionList
+	 */
+	public DimensionWrapper getDimensionList() {
+		return dimensionList;
+	}
+
+	/**
+	 * @param dimensionList the dimensionList to set
+	 */
+	public void setDimensionList(DimensionWrapper dimensionList) {
+		this.dimensionList = dimensionList;
+	}
+
+	/**
+	 * @return the attributeList
+	 */
+	public AttributeWrapper getAttributeList() {
+		return attributeList;
+	}
+
+	/**
+	 * @param attributeList the attributeList to set
+	 */
+	public void setAttributeList(AttributeWrapper attributeList) {
+		this.attributeList = attributeList;
+	}
+
+	/**
+	 * @return the id
+	 */
+	public String getId() {
+		return id;
+	}
+
+	/**
+	 * @param id the id to set
+	 */
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	/**
+	 * @return the urn
+	 */
+	public String getUrn() {
+		return urn;
+	}
+
+	/**
+	 * @param urn the urn to set
+	 */
+	public void setUrn(String urn) {
+		this.urn = urn;
+	}
+
+	/**
+	 * @return the names
+	 */
+	public List<FusionDecription> getNames() {
+		return names;
+	}
+
+	/**
+	 * @param names the names to set
+	 */
+	public void setNames(List<FusionDecription> names) {
+		this.names = names;
+	}
+
+	/**
+	 * @return the agencyId
+	 */
+	public String getAgencyId() {
+		return agencyId;
+	}
+
+	/**
+	 * @param agencyId the agencyId to set
+	 */
+	public void setAgencyId(String agencyId) {
+		this.agencyId = agencyId;
+	}
+
+	/**
+	 * @return the version
+	 */
+	public String getVersion() {
+		return version;
+	}
+
+	/**
+	 * @param version the version to set
+	 */
+	public void setVersion(String version) {
+		this.version = version;
+	}
+
+	/**
+	 * @return the isFinal
+	 */
+	public Boolean getIsFinal() {
+		return isFinal;
+	}
+
+	/**
+	 * @param isFinal the isFinal to set
+	 */
+	public void setIsFinal(Boolean isFinal) {
+		this.isFinal = isFinal;
+	}
+
+}

@@ -1,0 +1,220 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+/**
+ * @author Nitin Sonawane Date: 17/04/2018
+ */
+@Entity
+@Table(name = "TBL_RETURN_GROUP_LBL_MOD")
+public class ReturnGroupLblMod implements Serializable {
+
+	private static final long serialVersionUID = 8150801831605670759L;
+
+	@Id
+	//	@SequenceGenerator(name = "RETURN_GROUP_LBL_MOD_ID_GENERATOR", sequenceName = "TBL_RETURN_GROUP_LBL_MOD_SEQ", allocationSize = 1)
+	//	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="RETURN_GROUP_LBL_MOD_ID_GENERATOR")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "RETURN_GROUP_LBL_MOD_ID")
+	private Long returngroupLblModId;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "RETURN_GROUP_LBL_FK")
+	private ReturnGroupLabelMapping rtnGroupLabel;
+
+	@Column(name = "RETURN_GROUP_LBL_NAME")
+	private String rtnGroupLabelName;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "LANG_ID_FK")
+	private LanguageMaster langIdFk;
+
+	@Column(name = "REJECT_COMMENT")
+	private String rejectComment;
+
+	@Column(name = "ADMIN_STATUS_ID_FK")
+	private Integer adminStatusId_FK;
+
+	@Column(name = "ACTION_ID_FK")
+	private Integer actionId_FK;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "MODIFIED_BY_FK")
+	private UserMaster userModify;
+
+	@Column(name = "MODIFIED_ON")
+	private Date modifiedOn;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "APPROVED_BY_FK")
+	private UserMaster approvedBy;
+
+	@Column(name = "APPROVED_ON")
+	private Date approvedOn;
+
+	/**
+	 * @return the returngroupLblModId
+	 */
+	public Long getReturngroupLblModId() {
+		return returngroupLblModId;
+	}
+
+	/**
+	 * @param returngroupLblModId the returngroupLblModId to set
+	 */
+	public void setReturngroupLblModId(Long returngroupLblModId) {
+		this.returngroupLblModId = returngroupLblModId;
+	}
+
+	/**
+	 * @return the rtnGroupLabel
+	 */
+	public ReturnGroupLabelMapping getRtnGroupLabel() {
+		return rtnGroupLabel;
+	}
+
+	/**
+	 * @param rtnGroupLabel the rtnGroupLabel to set
+	 */
+	public void setRtnGroupLabel(ReturnGroupLabelMapping rtnGroupLabel) {
+		this.rtnGroupLabel = rtnGroupLabel;
+	}
+
+	/**
+	 * @return the rtnGroupLabelName
+	 */
+	public String getRtnGroupLabelName() {
+		return rtnGroupLabelName;
+	}
+
+	/**
+	 * @param rtnGroupLabelName the rtnGroupLabelName to set
+	 */
+	public void setRtnGroupLabelName(String rtnGroupLabelName) {
+		this.rtnGroupLabelName = rtnGroupLabelName;
+	}
+
+	/**
+	 * @return the langIdFk
+	 */
+	public LanguageMaster getLangIdFk() {
+		return langIdFk;
+	}
+
+	/**
+	 * @param langIdFk the langIdFk to set
+	 */
+	public void setLangIdFk(LanguageMaster langIdFk) {
+		this.langIdFk = langIdFk;
+	}
+
+	/**
+	 * @return the rejectComment
+	 */
+	public String getRejectComment() {
+		return rejectComment;
+	}
+
+	/**
+	 * @param rejectComment the rejectComment to set
+	 */
+	public void setRejectComment(String rejectComment) {
+		this.rejectComment = rejectComment;
+	}
+
+	/**
+	 * @return the adminStatusId_FK
+	 */
+	public Integer getAdminStatusId_FK() {
+		return adminStatusId_FK;
+	}
+
+	/**
+	 * @param adminStatusId_FK the adminStatusId_FK to set
+	 */
+	public void setAdminStatusId_FK(Integer adminStatusId_FK) {
+		this.adminStatusId_FK = adminStatusId_FK;
+	}
+
+	/**
+	 * @return the actionId_FK
+	 */
+	public Integer getActionId_FK() {
+		return actionId_FK;
+	}
+
+	/**
+	 * @param actionId_FK the actionId_FK to set
+	 */
+	public void setActionId_FK(Integer actionId_FK) {
+		this.actionId_FK = actionId_FK;
+	}
+
+	/**
+	 * @return the userModify
+	 */
+	public UserMaster getUserModify() {
+		return userModify;
+	}
+
+	/**
+	 * @param userModify the userModify to set
+	 */
+	public void setUserModify(UserMaster userModify) {
+		this.userModify = userModify;
+	}
+
+	/**
+	 * @return the modifiedOn
+	 */
+	public Date getModifiedOn() {
+		return modifiedOn;
+	}
+
+	/**
+	 * @param modifiedOn the modifiedOn to set
+	 */
+	public void setModifiedOn(Date modifiedOn) {
+		this.modifiedOn = modifiedOn;
+	}
+
+	/**
+	 * @return the approvedBy
+	 */
+	public UserMaster getApprovedBy() {
+		return approvedBy;
+	}
+
+	/**
+	 * @param approvedBy the approvedBy to set
+	 */
+	public void setApprovedBy(UserMaster approvedBy) {
+		this.approvedBy = approvedBy;
+	}
+
+	/**
+	 * @return the approvedOn
+	 */
+	public Date getApprovedOn() {
+		return approvedOn;
+	}
+
+	/**
+	 * @param approvedOn the approvedOn to set
+	 */
+	public void setApprovedOn(Date approvedOn) {
+		this.approvedOn = approvedOn;
+	}
+
+}

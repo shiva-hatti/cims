@@ -1,0 +1,427 @@
+package com.iris.service.impl;
+
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.sql.DataSource;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import com.iris.dto.ReturnByRoleInputDto;
+import com.iris.dto.ReturnByRoleOutputDto;
+import com.iris.dto.ReturnEntityMapDto;
+import com.iris.dto.ReturnEntityQueryOutputDto;
+import com.iris.exception.ServiceException;
+import com.iris.model.EntityBean;
+import com.iris.model.Return;
+import com.iris.model.ReturnEntityMappingNew;
+import com.iris.repository.ReturnEntityMapRepoNew;
+import com.iris.repository.ReturnRepo;
+import com.iris.service.GenericService;
+import com.iris.util.Validations;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.GeneralConstants;
+import com.iris.util.constant.MethodConstants;
+
+@Service
+public class ReturnEntityMapServiceNew implements GenericService<ReturnEntityMappingNew, Long> {
+
+	@Autowired
+	ReturnEntityMapRepoNew returnEntityMapRepoNew;
+
+	@Autowired
+	DataSource datasource;
+
+	@Autowired
+	private EntityManager entityManager;
+
+	@Autowired
+	private ReturnRepo returnRepo;
+
+	@Override
+	public ReturnEntityMappingNew add(ReturnEntityMappingNew entity) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public boolean update(ReturnEntityMappingNew entity) throws ServiceException {
+		return false;
+	}
+
+	@Override
+	public List<ReturnEntityMappingNew> getDataByIds(Long[] ids) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<ReturnEntityMappingNew> getDataByColumnValue(Map<String, List<String>> columnValueMap, String methodName) throws ServiceException {
+
+		return null;
+	}
+
+	@Override
+	public List<ReturnEntityMappingNew> getDataByColumnLongValue(Map<String, List<Long>> columnValueMap, String methodName) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<ReturnEntityMappingNew> getActiveDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<ReturnEntityMappingNew> getAllDataFor(Class bean, Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public void deleteData(ReturnEntityMappingNew bean) throws ServiceException {
+
+	}
+
+	@Override
+	public ReturnEntityMappingNew getDataById(Long id) throws ServiceException {
+		return null;
+	}
+
+	@Override
+	public List<ReturnEntityMappingNew> getDataByObject(Map<String, Object> columnValueMap, String methodName) throws ServiceException {
+		try {
+			Long roleId = null;
+			Long frequencyId = null;
+			Long categoryId = null;
+			Long subCategoryId = null;
+			Boolean isActive = false;
+			String langCode = null;
+			List<String> entCodeList = null;
+			Long entityId = null;
+			Long returnId = null;
+			Boolean isChanelToConsider = (Boolean) columnValueMap.get(ColumnConstants.IS_CHANNEL_TO_CONSIDER.getConstantVal());
+			Boolean uploadChannel = false;
+			Boolean webChannel = false;
+			Boolean emailChannel = false;
+			Boolean apiChannel = false;
+			Boolean stsChannel = false;
+			String entityCode = null;
+			String returnCode = null;
+			List<Long> entIdList = null;
+			List<Long> retIdList = null;
+			List<Long> subRetIdList = null;
+			List<Date> endDateList = new ArrayList<Date>();
+			List<Long> subCatIdList = new ArrayList<>();
+			List<Long> catIdList = new ArrayList<>();
+			for (String columnName : columnValueMap.keySet()) {
+				if (columnName.equalsIgnoreCase(ColumnConstants.ROLEID.getConstantVal())) {
+					roleId = (Long) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.CATEGORY_ID.getConstantVal())) {
+					categoryId = (Long) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.SUB_CATEGORY_ID.getConstantVal())) {
+					subCategoryId = (Long) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.IS_ACTIVE.getConstantVal())) {
+					isActive = (Boolean) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.LANG_CODE.getConstantVal())) {
+					langCode = (String) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.ENT_CODE_LIST.getConstantVal())) {
+					entCodeList = (List<String>) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.ENTITYID.getConstantVal())) {
+					entityId = (Long) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.RETURNID.getConstantVal())) {
+					returnId = (Long) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.UPLOAD_CHANNEL.getConstantVal())) {
+					uploadChannel = (Boolean) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.API_CHANNEL.getConstantVal())) {
+					apiChannel = (Boolean) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.WEB_CHANNEL.getConstantVal())) {
+					webChannel = (Boolean) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.STS_CAHNNEL.getConstantVal())) {
+					stsChannel = (Boolean) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.EMAIL_CHANNEL.getConstantVal())) {
+					emailChannel = (Boolean) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.ENT_CODE.getConstantVal())) {
+					entityCode = (String) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.RETURN_CODE.getConstantVal())) {
+					returnCode = (String) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.ENTITY_ID_LIST.getConstantVal())) {
+					entIdList = (List<Long>) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.RETURN_ID_LIST.getConstantVal())) {
+					retIdList = (List<Long>) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.FREQUENCY_ID.getConstantVal())) {
+					frequencyId = (Long) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.SUB_RET_ID_LIST.getConstantVal())) {
+					subRetIdList = (List<Long>) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.SUB_CATEGORY_ID_LIST.getConstantVal())) {
+					subCatIdList = (List<Long>) columnValueMap.get(columnName);
+				} else if (columnName.equalsIgnoreCase(ColumnConstants.CATEGORY_ID_LIST.getConstantVal())) {
+					catIdList = (List<Long>) columnValueMap.get(columnName);
+				}
+			}
+
+			if (methodName.equalsIgnoreCase(MethodConstants.GET_RET_ENT_MAP_BY_ROLE_CAT_SUBCAT_ID.getConstantVal())) {
+				return returnEntityMapRepoNew.getDataByRoleIdCategoryIdSubCategoryId(roleId, catIdList, subCatIdList, isActive, langCode);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_RET_ENT_MAP_BY_ROLE_ID_ENT_CODE.getConstantVal()) && (isChanelToConsider != null && isChanelToConsider)) {
+				return returnEntityMapRepoNew.getDataByRoleIdEntCodeAndChannel(roleId, entCodeList, isActive, langCode, uploadChannel, webChannel, emailChannel, apiChannel, stsChannel);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_RET_ENT_MAP_BY_ROLE_ID_ENT_CODE.getConstantVal())) {
+				return returnEntityMapRepoNew.getDataByRoleIdEntCode(roleId, entCodeList, isActive, langCode);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_DATA_BY_ENTITY_ID_AND_RETURN_ID.getConstantVal())) {
+				return returnEntityMapRepoNew.getDataByEntityIdAndReturnId(entityId, returnId);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_ACTIVE_MAPPING_BY_ENTITY_ID.getConstantVal())) {
+				return returnEntityMapRepoNew.getDataByEntityIdAndIsActiveTrue(entityId);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_DATA_BY_ENTITY_CODE_AND_RETURN_CODE.getConstantVal())) {
+				return returnEntityMapRepoNew.getDataByEntityCodeAndReturnCode(entityCode, returnCode);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_RET_ENT_MAP_BY_ENT_RET_CAT.getConstantVal())) {
+				return returnEntityMapRepoNew.getDataByMapEntRetCat(entIdList, retIdList, subCatIdList);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_RET_ENT_MAP_BY_ENT_RET.getConstantVal())) {
+				return returnEntityMapRepoNew.getDataByMapEntRet(entIdList, retIdList);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_RET_ENT_MAP_BY_ENT_RET_WITH_SUBRET.getConstantVal())) {
+				return returnEntityMapRepoNew.getDataByMapEntRetWithSubRet(entIdList, retIdList, subRetIdList);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_RET_ENT_MAP_BY_ENT_RET_FREQ_WITH_SUBRET.getConstantVal())) {
+				return returnEntityMapRepoNew.getDataByMapEntRetFreqWithSubRet(entIdList, retIdList, frequencyId, subRetIdList);
+			} else if (methodName.equalsIgnoreCase(MethodConstants.GET_RET_ENT_MAP_BY_ENT_RET_FREQ_ALL.getConstantVal())) {
+				return returnEntityMapRepoNew.getDataByMapEntRetFreqWithSubRetAll(entIdList, retIdList, frequencyId);
+			}
+			return null;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	public boolean addUpdateReturnEntityMap(Long userId, String[] returnCodeArray, Long[] entityArray, String moduleName) throws SQLException {
+
+		try {
+			String returnArrayString = null;
+			String entitynArrayString = null;
+
+			if (entityArray != null) {
+				entitynArrayString = Validations.convertArrayToString(entityArray);
+			}
+
+			List<String> returnCodeList = Arrays.asList(returnCodeArray);
+
+			List<Long> returnIds = returnRepo.findByReturnCodeIn(returnCodeList);
+
+			if (!CollectionUtils.isEmpty(returnIds)) {
+				returnArrayString = StringUtils.join(returnIds, ',');
+				returnEntityMapRepoNew.insertReturnEntityMapping(userId, returnArrayString, entitynArrayString, moduleName);
+				return true;
+			}
+			return false;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	public boolean addUpdateReturnEntityChannel(Long userId, Long entityId, String[] array) throws SQLException {
+		try (Connection con = datasource.getConnection(); CallableStatement stmt = con.prepareCall(GeneralConstants.SP_RETURN_ENTITY_CHANNEL_MAP.getConstantVal());) {
+
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < array.length; i++) {
+				sb.append(array[i]);
+			}
+			String str = Arrays.toString(array).replace("[", "").replace("]", "");
+
+			stmt.setLong(1, entityId);
+			stmt.setString(2, str);
+			stmt.setLong(3, userId);
+			stmt.registerOutParameter(4, Types.INTEGER);
+
+			stmt.executeQuery();
+			int number = stmt.getInt(4);
+			if (number > 0) {
+				return false;
+			}
+			return true;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	public boolean addUpdateReturnEntityChannelWithCategoryCode(Long cateId, Long subCatId, String[] array, Long userId) throws SQLException {
+
+		try (Connection con = datasource.getConnection(); CallableStatement stmt = con.prepareCall(GeneralConstants.SP_CATEGORY_RETURN_CHANNEL_MAP.getConstantVal());) {
+
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < array.length; i++) {
+				sb.append(array[i]);
+			}
+			String str = Arrays.toString(array).replace("[", "").replace("]", "");
+
+			stmt.setLong(1, cateId);
+			stmt.setLong(2, subCatId);
+			stmt.setString(3, str);
+			stmt.setLong(4, userId);
+			stmt.registerOutParameter(5, Types.INTEGER);
+
+			stmt.executeQuery();
+			int number = stmt.getInt(5);
+			if (number > 0) {
+				return false;
+			}
+			return true;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	public List<ReturnEntityMappingNew> getNotSubmittedEntityList(List<Long> entityBeanList, Long returnId) {
+		return returnEntityMapRepoNew.findByIsActiveAndReturnObjReturnIdAndEntityEntityIdNotIn(true, returnId, entityBeanList);
+	}
+
+	public List<ReturnEntityMappingNew> getAllNotSubmittedEntityList(Long returnId) {
+		return returnEntityMapRepoNew.findByIsActiveAndReturnObjReturnId(true, returnId);
+	}
+
+	public Map<Long, List<EntityBean>> getEntityListByReturnId(List<Long> returnIds) {
+		try {
+			Map<Long, List<EntityBean>> returnEntityMap = new HashMap<>();
+			List<ReturnEntityMappingNew> returnEntityMapNewList = returnEntityMapRepoNew.getDataByReturnId(returnIds);
+
+			if (!CollectionUtils.isEmpty(returnEntityMapNewList)) {
+
+				returnEntityMapNewList.forEach(f -> {
+					if (returnEntityMap.get(f.getReturnObj().getReturnId()) != null) {
+						returnEntityMap.get(f.getReturnObj().getReturnId()).add(f.getEntity());
+					} else {
+						List<EntityBean> entityList = new ArrayList<>();
+						entityList.add(f.getEntity());
+						returnEntityMap.put(f.getReturnObj().getReturnId(), entityList);
+					}
+				});
+			}
+			return returnEntityMap;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	public Map<Long, List<Return>> getReturnListByReturnId(List<Long> entityIds) {
+		try {
+			Map<Long, List<Return>> returnEntityMap = new HashMap<>();
+
+			List<ReturnEntityMappingNew> returnEntityMapNewList = returnEntityMapRepoNew.getDataByEntityId(entityIds);
+
+			if (!CollectionUtils.isEmpty(returnEntityMapNewList)) {
+				returnEntityMapNewList.forEach(f -> {
+					if (returnEntityMap.get(f.getEntity().getEntityId()) != null) {
+						returnEntityMap.get(f.getEntity().getEntityId()).add(f.getReturnObj());
+					} else {
+						List<Return> returnList = new ArrayList<>();
+						returnList.add(f.getReturnObj());
+						returnEntityMap.put(f.getEntity().getEntityId(), returnList);
+					}
+				});
+			}
+			return returnEntityMap;
+		} catch (Exception e) {
+			throw new ServiceException(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+		}
+	}
+
+	/**
+	 * @param entityId
+	 * @return
+	 */
+	public List<ReturnEntityQueryOutputDto> fetchReturnByEntityCode(Long entityId, ReturnEntityMapDto returnChannelMapReqDto) {
+		String returnQuerySql = "SELECT new com.iris.dto.ReturnEntityQueryOutputDto(remn.returnObj.returnId,remn.returnObj.returnCode, " + "returnLabel.returnIdFk.returnName, " + "remn.entity.entityCode, remn.entity.entityName, " + "remn.returnObj.frequency.frequencyCode, remn.returnObj.frequency.frequencyName, fieldKeyLabel.fieldKeyLable, " + "remn.returnObj.returnGroupMapIdFk.returnGroupMapId,rglm.groupLabel, " + "remn.entity.category.categoryCode, remn.entity.category.categoryName," + "remn.entity.subCategory.subCategoryCode, remn.entity.subCategory.subCategoryName, remn.uploadChannel, remn.webChannel, remn.emailChannel, remn.apiChannel, remn.stsChannel, returnRegMapping.regulatorIdFk.regulatorId, returnRegMapping.regulatorIdFk.regulatorCode, returnRegMapping.regulatorIdFk.regulatorName) " + "FROM ReturnEntityMappingNew remn, ReturnLabel returnLabel, ReturnRegulatorMapping returnRegMapping, " + "ReturnGroupLabelMapping rglm, FieldKey fieldKey, FieldKeyLabel fieldKeyLabel " + "WHERE remn.entity.entityId=:entityId " + "and remn.returnObj.returnId=returnLabel.returnIdFk.returnId " + "and returnLabel.langIdFk.languageCode=:langCode " + "and remn.isActive=:isActive " + "and remn.returnObj.isActive=:isActive " + "and remn.returnObj.returnGroupMapIdFk.isActive=:isActive " + "and remn.returnObj.frequency.isActive=:isActive " + "and remn.returnObj.returnGroupMapIdFk.returnGroupMapId=rglm.returnGroupMapIdFk.returnGroupMapId " + "and rglm.langIdFk.languageCode=:langCode and returnRegMapping.returnIdFk.returnId = remn.returnObj.returnId " + " and returnRegMapping.isActive =:isActive and returnRegMapping.regulatorIdFk.isActive =:isActive ";
+		returnQuerySql = returnQuerySql + " and remn.returnObj.frequency.frequencyName = fieldKey.fieldKey " + " and fieldKey.fieldId = fieldKeyLabel.fieldIdFk.fieldId " + " and fieldKeyLabel.languageIdFk.languageCode=:langCode ";
+
+		if (returnChannelMapReqDto.getIsChanelToConsider() != null && returnChannelMapReqDto.getIsChanelToConsider()) {
+
+			// Upload Channel
+			if (returnChannelMapReqDto.getUploadChannel() != null && returnChannelMapReqDto.getUploadChannel()) {
+				returnQuerySql = returnQuerySql + " and remn.uploadChannel=true ";
+			}
+
+			// Web Channel
+			if (returnChannelMapReqDto.getWebChannel() != null && returnChannelMapReqDto.getWebChannel()) {
+				returnQuerySql = returnQuerySql + " and remn.webChannel=true ";
+			}
+
+			// Email Channel
+			if (returnChannelMapReqDto.getEmailChannel() != null && returnChannelMapReqDto.getEmailChannel()) {
+				returnQuerySql = returnQuerySql + " and remn.emailChannel=true ";
+			}
+
+			// Api Channel
+			if (returnChannelMapReqDto.getApiChannel() != null && returnChannelMapReqDto.getApiChannel()) {
+				returnQuerySql = returnQuerySql + " and remn.apiChannel=true ";
+			}
+
+			// Sts Channel
+			if (returnChannelMapReqDto.getStsChannel() != null && returnChannelMapReqDto.getStsChannel()) {
+				returnQuerySql = returnQuerySql + " and remn.stsChannel=true ";
+			}
+		}
+		returnQuerySql = returnQuerySql + " ORDER BY returnLabel.returnIdFk.returnName ASC ";
+		Query query = entityManager.createQuery(returnQuerySql, ReturnEntityQueryOutputDto.class);
+		query.setParameter("entityId", entityId);
+		query.setParameter("isActive", returnChannelMapReqDto.getIsActive());
+		query.setParameter("langCode", returnChannelMapReqDto.getLangCode());
+		return query.getResultList();
+	}
+
+	public List<ReturnEntityQueryOutputDto> fetchReturnByEntityIds(List<String> entityCodeList, ReturnEntityMapDto returnChannelMapReqDto) {
+		String returnQuerySql = "SELECT new com.iris.dto.ReturnEntityQueryOutputDto(remn.returnObj.returnId,remn.returnObj.returnCode, " + "remn.returnObj.returnName, " + "remn.entity.entityCode, remn.entity.entityName," + "remn.returnObj.frequency.frequencyCode, remn.returnObj.frequency.frequencyName, " + "remn.returnObj.returnGroupMapIdFk.returnGroupMapId,rglm.groupLabel, " + "remn.entity.subCategory.subCategoryCode, remn.entity.subCategory.subCategoryName, " + "remn.uploadChannel, remn.webChannel, remn.emailChannel, remn.apiChannel, remn.stsChannel) " + "FROM ReturnEntityMappingNew remn, ReturnLabel returnLabel, " + "ReturnGroupLabelMapping rglm " + "where remn.entity.entityCode IN(:entityCodeList)" + "and remn.returnObj.returnId=returnLabel.returnIdFk.returnId " + "and returnLabel.langIdFk.languageCode=:langCode " + "and remn.isActive=:isActive " + "and remn.returnObj.isActive=:isActive " + "and remn.returnObj.returnGroupMapIdFk.isActive=:isActive " + "and remn.returnObj.frequency.isActive=:isActive " + "and remn.returnObj.returnGroupMapIdFk.returnGroupMapId=rglm.returnGroupMapIdFk.returnGroupMapId " + "and rglm.langIdFk.languageCode=:langCode ";
+
+		if (returnChannelMapReqDto.getIsChanelToConsider() != null && returnChannelMapReqDto.getIsChanelToConsider()) {
+
+			// Upload Channel
+			if (returnChannelMapReqDto.getUploadChannel() != null && returnChannelMapReqDto.getUploadChannel()) {
+				returnQuerySql = returnQuerySql + " and remn.uploadChannel=true ";
+			}
+
+			// Web Channel
+			if (returnChannelMapReqDto.getWebChannel() != null && returnChannelMapReqDto.getWebChannel()) {
+				returnQuerySql = returnQuerySql + " and remn.webChannel=true ";
+			}
+
+			// Email Channel
+			if (returnChannelMapReqDto.getEmailChannel() != null && returnChannelMapReqDto.getEmailChannel()) {
+				returnQuerySql = returnQuerySql + " and remn.emailChannel=true ";
+			}
+
+			// Api Channel
+			if (returnChannelMapReqDto.getApiChannel() != null && returnChannelMapReqDto.getApiChannel()) {
+				returnQuerySql = returnQuerySql + " and remn.apiChannel=true ";
+			}
+
+			// Sts Channel
+			if (returnChannelMapReqDto.getStsChannel() != null && returnChannelMapReqDto.getStsChannel()) {
+				returnQuerySql = returnQuerySql + " and remn.stsChannel=true ";
+			}
+		}
+
+		returnQuerySql = returnQuerySql + " ORDER BY remn.returnObj.returnName ASC";
+
+		Query query = entityManager.createQuery(returnQuerySql, ReturnEntityQueryOutputDto.class);
+		query.setParameter("entityCodeList", entityCodeList);
+		query.setParameter("isActive", returnChannelMapReqDto.getIsActive());
+		query.setParameter("langCode", returnChannelMapReqDto.getLangCode());
+		return query.getResultList();
+	}
+
+	public List<ReturnByRoleOutputDto> fetchReturnListByEntityCode(ReturnByRoleInputDto returnByRoleInputDto, List<String> entityCodeList) {
+		String returnQuerySql = "SELECT DISTINCT new com.iris.dto.ReturnByRoleOutputDto(remn.returnObj.returnCode, " + "returnLabel.returnLabel, " + "remn.returnObj.frequency.frequencyCode, remn.returnObj.frequency.frequencyName, fieldKeyLabel.fieldKeyLable, " + "rglm.returnGroupLabelMapId, rglm.groupLabel, " + "returnRegMapping.regulatorIdFk.regulatorCode, returnRegMapping.regulatorIdFk.regulatorName) " + "FROM ReturnEntityMappingNew remn, ReturnLabel returnLabel, " + "ReturnGroupLabelMapping rglm , ReturnRegulatorMapping returnRegMapping, " + " FieldKey fieldKey, FieldKeyLabel fieldKeyLabel " + "WHERE remn.entity.entityCode IN(:entityCodeList) " + " and remn.isActive=:isActive " + " and remn.returnObj.isActive=:isActive " + " and remn.returnObj.returnId = returnLabel.returnIdFk.returnId " + " and remn.returnObj.isActive=:isActive " + " and remn.returnObj.returnId = returnLabel.returnIdFk.returnId " + " and returnLabel.langIdFk.languageCode=:langCode " + " and remn.returnObj.frequency.isActive=:isActive " + " and remn.returnObj.returnGroupMapIdFk.returnGroupMapId=rglm.returnGroupMapIdFk.returnGroupMapId " + " and rglm.langIdFk.languageCode=:langCode " + " and rglm.returnGroupMapIdFk.isActive=:isActive " + " and returnRegMapping.returnIdFk.returnId = remn.returnObj.returnId " + " and returnRegMapping.isActive =:isActive " + " and returnRegMapping.regulatorIdFk.isActive =:isActive " + " and remn.returnObj.frequency.frequencyName = fieldKey.fieldKey " + " and fieldKey.fieldId = fieldKeyLabel.fieldIdFk.fieldId " + " and fieldKeyLabel.languageIdFk.languageCode=:langCode ";
+
+		returnQuerySql = returnQuerySql + " ORDER BY returnLabel.returnLabel ";
+		Query query = entityManager.createQuery(returnQuerySql, ReturnByRoleOutputDto.class);
+		query.setParameter("entityCodeList", entityCodeList);
+		query.setParameter("isActive", returnByRoleInputDto.getIsActive());
+		query.setParameter("langCode", returnByRoleInputDto.getLangCode());
+		return query.getResultList();
+	}
+}

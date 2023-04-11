@@ -1,0 +1,337 @@
+package com.iris.dto;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import com.iris.model.Platform;
+import com.iris.model.UserMaster;
+
+/**
+ * 
+ * @author sanjayv
+ */
+public class UserRoleModDetailsDto implements Serializable {
+
+	private static final long serialVersionUID = 8813042586892944078L;
+
+	private Long userRoleModDetailsId;
+
+	private Long roleTypeId;
+
+	private Long portalId;
+
+	private String portalName;
+
+	private String rejectComment;
+
+	private String roleName;
+
+	private String roleTypeName;
+
+	private String langCode;
+
+	//private List<RoleNameDto> roleNameDto = new ArrayList<RoleNameDto>();
+
+	private String roleDesc;
+
+	private String createdByUserName;
+
+	private Date createdByOn;
+
+	private Boolean approvalFlag;
+
+	private UserMaster approvedByFk;
+
+	private Date approvedOn;
+
+	private Boolean isDeptAdmin;
+
+	private Integer adminStatusIdFk;
+
+	private Integer actionIdFk;
+
+	private String[] selectedReturn;
+
+	private String[] selectedMenu;
+
+	private String[] selectedEntity;
+
+	private String[] selectedActivity;
+
+	private List<Platform> portalInputList = new ArrayList<>();
+
+	private String deptAdmin;
+
+	private Boolean isActive;
+
+	private String modifiedByUserName;
+
+	private Date modifiedByOn;
+
+	private String selectedReturnText;
+
+	private String selectedMenuText;
+
+	private String selectedEntityText;
+
+	private String selectedActivityText;
+
+	private String otherPortalJSON;
+
+	public Long getRoleTypeId() {
+		return roleTypeId;
+	}
+
+	public void setRoleTypeId(Long roleTypeId) {
+		this.roleTypeId = roleTypeId;
+	}
+
+	public Long getPortalId() {
+		return portalId;
+	}
+
+	public void setPortalId(Long portalId) {
+		this.portalId = portalId;
+	}
+
+	public String getLangCode() {
+		return langCode;
+	}
+
+	public void setLangCode(String langCode) {
+		this.langCode = langCode;
+	}
+
+	public String getRoleDesc() {
+		return roleDesc;
+	}
+
+	public void setRoleDesc(String roleDesc) {
+		this.roleDesc = roleDesc;
+	}
+
+	public Boolean getIsDeptAdmin() {
+		return isDeptAdmin;
+	}
+
+	public void setIsDeptAdmin(Boolean isDeptAdmin) {
+		this.isDeptAdmin = isDeptAdmin;
+	}
+	/*
+	 * public List<RoleNameDto> getRoleNameDto() { return roleNameDto; }
+	 * 
+	 * public void setRoleNameDto(List<RoleNameDto> roleNameDto) { this.roleNameDto
+	 * = roleNameDto; }
+	 */
+
+	public String[] getSelectedReturn() {
+		return selectedReturn;
+	}
+
+	public void setSelectedReturn(String[] selectedReturn) {
+		this.selectedReturn = selectedReturn;
+	}
+
+	public String[] getSelectedMenu() {
+		return selectedMenu;
+	}
+
+	public void setSelectedMenu(String[] selectedMenu) {
+		this.selectedMenu = selectedMenu;
+	}
+
+	public String[] getSelectedEntity() {
+		return selectedEntity;
+	}
+
+	public void setSelectedEntity(String[] selectedEntity) {
+		this.selectedEntity = selectedEntity;
+	}
+
+	public String[] getSelectedActivity() {
+		return selectedActivity;
+	}
+
+	public void setSelectedActivity(String[] selectedActivity) {
+		this.selectedActivity = selectedActivity;
+	}
+
+	public Long getUserRoleModDetailsId() {
+		return userRoleModDetailsId;
+	}
+
+	public void setUserRoleModDetailsId(Long userRoleModDetailsId) {
+		this.userRoleModDetailsId = userRoleModDetailsId;
+	}
+
+	public List<Platform> getPortalInputList() {
+		return portalInputList;
+	}
+
+	public void setPortalInputList(List<Platform> portalInputList) {
+		this.portalInputList = portalInputList;
+	}
+
+	public String getPortalName() {
+		return portalName;
+	}
+
+	public void setPortalName(String portalName) {
+		this.portalName = portalName;
+	}
+
+	public String getCreatedByUserName() {
+		return createdByUserName;
+	}
+
+	public void setCreatedByUserName(String createdByUserName) {
+		this.createdByUserName = createdByUserName;
+	}
+
+	public Date getCreatedByOn() {
+		return createdByOn;
+	}
+
+	public void setCreatedByOn(Date createdByOn) {
+		this.createdByOn = createdByOn;
+	}
+
+	public UserMaster getApprovedByFk() {
+		return approvedByFk;
+	}
+
+	public void setApprovedByFk(UserMaster approvedByFk) {
+		this.approvedByFk = approvedByFk;
+	}
+
+	public Date getApprovedOn() {
+		return approvedOn;
+	}
+
+	public void setApprovedOn(Date approvedOn) {
+		this.approvedOn = approvedOn;
+	}
+
+	public Integer getAdminStatusIdFk() {
+		return adminStatusIdFk;
+	}
+
+	public String getRejectComment() {
+		return rejectComment;
+	}
+
+	public void setRejectComment(String rejectComment) {
+		this.rejectComment = rejectComment;
+	}
+
+	public void setAdminStatusIdFk(Integer adminStatusIdFk) {
+		this.adminStatusIdFk = adminStatusIdFk;
+	}
+
+	public Integer getActionIdFk() {
+		return actionIdFk;
+	}
+
+	public void setActionIdFk(Integer actionIdFk) {
+		this.actionIdFk = actionIdFk;
+	}
+
+	public Boolean getApprovalFlag() {
+		return approvalFlag;
+	}
+
+	public void setApprovalFlag(Boolean approvalFlag) {
+		this.approvalFlag = approvalFlag;
+	}
+
+	public String getDeptAdmin() {
+		return deptAdmin;
+	}
+
+	public void setDeptAdmin(String deptAdmin) {
+		this.deptAdmin = deptAdmin;
+	}
+
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	public String getRoleTypeName() {
+		return roleTypeName;
+	}
+
+	public void setRoleTypeName(String roleTypeName) {
+		this.roleTypeName = roleTypeName;
+	}
+
+	public String getModifiedByUserName() {
+		return modifiedByUserName;
+	}
+
+	public void setModifiedByUserName(String modifiedByUserName) {
+		this.modifiedByUserName = modifiedByUserName;
+	}
+
+	public Date getModifiedByOn() {
+		return modifiedByOn;
+	}
+
+	public void setModifiedByOn(Date modifiedByOn) {
+		this.modifiedByOn = modifiedByOn;
+	}
+
+	public String getSelectedReturnText() {
+		return selectedReturnText;
+	}
+
+	public void setSelectedReturnText(String selectedReturnText) {
+		this.selectedReturnText = selectedReturnText;
+	}
+
+	public String getSelectedMenuText() {
+		return selectedMenuText;
+	}
+
+	public void setSelectedMenuText(String selectedMenuText) {
+		this.selectedMenuText = selectedMenuText;
+	}
+
+	public String getSelectedEntityText() {
+		return selectedEntityText;
+	}
+
+	public void setSelectedEntityText(String selectedEntityText) {
+		this.selectedEntityText = selectedEntityText;
+	}
+
+	public String getSelectedActivityText() {
+		return selectedActivityText;
+	}
+
+	public void setSelectedActivityText(String selectedActivityText) {
+		this.selectedActivityText = selectedActivityText;
+	}
+
+	public String getRoleName() {
+		return roleName;
+	}
+
+	public void setRoleName(String roleName) {
+		this.roleName = roleName;
+	}
+
+	public String getOtherPortalJSON() {
+		return otherPortalJSON;
+	}
+
+	public void setOtherPortalJSON(String otherPortalJSON) {
+		this.otherPortalJSON = otherPortalJSON;
+	}
+
+}

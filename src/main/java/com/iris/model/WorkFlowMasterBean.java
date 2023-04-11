@@ -1,0 +1,144 @@
+package com.iris.model;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import com.iris.dto.WorkflowJsonBean;
+
+@Entity
+@Table(name = "TBL_WORKFLOW_MASTER")
+public class WorkFlowMasterBean implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2726734243364862188L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "WORKFLOW_MASTER_ID")
+	private Long workflowId;
+
+	@Column(name = "WORKFLOW_JSON")
+	private String workFlowJson;
+
+	@Column(name = "IS_ACTIVE")
+	private boolean isActive;
+
+	@Column(name = "DESCRIPTION")
+	private String desc;
+
+	@Column(name = "WORKFLOW_NAME")
+	private String workFlowName;
+
+	@Transient
+	private int stepNo;
+
+	@Transient
+	private WorkflowJsonBean workflowJsonBean;
+
+	/**
+	 * @return the workflowJsonBean
+	 */
+	public WorkflowJsonBean getWorkflowJsonBean() {
+		return workflowJsonBean;
+	}
+
+	/**
+	 * @param workflowJsonBean the workflowJsonBean to set
+	 */
+	public void setWorkflowJsonBean(WorkflowJsonBean workflowJsonBean) {
+		this.workflowJsonBean = workflowJsonBean;
+	}
+
+	/**
+	 * @return the stepNo
+	 */
+	public int getStepNo() {
+		return stepNo;
+	}
+
+	/**
+	 * @param stepNo the stepNo to set
+	 */
+	public void setStepNo(int stepNo) {
+		this.stepNo = stepNo;
+	}
+
+	/**
+	 * @return the workflowId
+	 */
+	public Long getWorkflowId() {
+		return workflowId;
+	}
+
+	/**
+	 * @param workflowId the workflowId to set
+	 */
+	public void setWorkflowId(Long workflowId) {
+		this.workflowId = workflowId;
+	}
+
+	/**
+	 * @return the workFlowJson
+	 */
+	public String getWorkFlowJson() {
+		return workFlowJson;
+	}
+
+	/**
+	 * @param workFlowJson the workFlowJson to set
+	 */
+	public void setWorkFlowJson(String workFlowJson) {
+		this.workFlowJson = workFlowJson;
+	}
+
+	/**
+	 * @return the isActive
+	 */
+	public boolean isActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setActive(boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	/**
+	 * @return the desc
+	 */
+	public String getDesc() {
+		return desc;
+	}
+
+	/**
+	 * @param desc the desc to set
+	 */
+	public void setDesc(String desc) {
+		this.desc = desc;
+	}
+
+	/**
+	 * @return the workFlowName
+	 */
+	public String getWorkFlowName() {
+		return workFlowName;
+	}
+
+	/**
+	 * @param workFlowName the workFlowName to set
+	 */
+	public void setWorkFlowName(String workFlowName) {
+		this.workFlowName = workFlowName;
+	}
+
+}

@@ -1,0 +1,1916 @@
+{
+	"R258": {
+		"8074": [
+			{
+				"panEleTag": "PANoftheCompanyCorporate1",
+				"panFormula": "2~3",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/panMaster/getPanInfoForNonXBRLReturns",
+				"panErrorCode": "ER258T02001",
+				"methodType": "POST",
+				"formulaType": "valueChkReqBody"
+			}
+		],
+		"8075": [
+			{
+				"panEleTag": "PANoftheCompanyCorporate1",
+				"panFormula": "2~3",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/panMaster/getPanInfoForNonXBRLReturns",
+				"panErrorCode": "ER258T02001",
+				"methodType": "POST",
+				"formulaType": "valueChkReqBody"
+			}
+		]
+	},
+	"R219": {
+		"81": [
+			{
+				"panEleTag": "CountryRiskClassification",
+				"panFormula": "2~3",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/geDropDownWithClassification/R018_R034_R054_R055_R053_R056_R033_R064-COUNTRY-NAME/NULL",
+				"panErrorCode": "ER219T02008",
+				"methodType": "POST",
+				"formulaType": "valueChk"
+			},
+			{
+				"panEleTag": "CountryName",
+				"panFormula": "2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/countryData/fetchActiveCountryData/en",
+				"panErrorCode": "ER219T02001",
+				"methodType": "GET",
+				"formulaType": "valueChk"
+			},
+			{
+				"defEleTag": "Duewithin6months",
+				"defEleFormula": "4 == R219-T003_1_2",
+				"defEleErrorCode": "ER219T02009",
+				"isGrandTotalAvailable": false,
+				"formulaType": "childTotal"
+			},
+			{
+				"defEleTag": "Between6monthsand1year",
+				"defEleFormula": "5 == R219-T003_1_3",
+				"defEleErrorCode": "ER219T02010",
+				"isGrandTotalAvailable": false,
+				"formulaType": "childTotal"
+			},
+			{
+				"defEleTag": "Between1yearand5years",
+				"defEleFormula": "6 == R219-T003_1_4",
+				"defEleErrorCode": "ER219T02011",
+				"isGrandTotalAvailable": false,
+				"formulaType": "childTotal"
+			},
+			{
+				"defEleTag": "Dueover5years",
+				"defEleFormula": "7 == R219-T003_1_5",
+				"defEleErrorCode": "ER219T02012",
+				"isGrandTotalAvailable": false,
+				"formulaType": "childTotal"
+			},
+			{
+				"defEleTag": "Total2",
+				"defEleFormula": "8 == R219-T003_1_6",
+				"defEleErrorCode": "ER219T02013",
+				"isGrandTotalAvailable": false,
+				"formulaType": "childTotal"
+			}
+		],
+		"811": [
+			{
+				"panEleTag": "CountryRiskClassification",
+				"panFormula": "2~3",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/geDropDownWithClassification/R018_R034_R054_R055_R053_R056_R033_R064-COUNTRY-NAME/NULL",
+				"panErrorCode": "ER219T04010",
+				"methodType": "POST",
+				"formulaType": "valueChk"
+			},
+			{
+				"panEleTag": "CountryName",
+				"panFormula": "2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/countryData/fetchActiveCountryData/en",
+				"panErrorCode": "ER219T04009",
+				"methodType": "GET",
+				"formulaType": "valueChk"
+			},
+			{
+				"defEleTag": "Duewithin6months",
+				"defEleFormula": "4 == R219-T005_1_2",
+				"defEleErrorCode": "ER219T04011",
+				"isGrandTotalAvailable": false,
+				"formulaType": "childTotal"
+			},
+			{
+				"defEleTag": "Between6monthsand1year",
+				"defEleFormula": "5 == R219-T005_1_3",
+				"defEleErrorCode": "ER219T04012",
+				"isGrandTotalAvailable": false,
+				"formulaType": "childTotal"
+			},
+			{
+				"defEleTag": "Between1yearand5years",
+				"defEleFormula": "6 == R219-T005_1_4",
+				"defEleErrorCode": "ER219T04013",
+				"isGrandTotalAvailable": false,
+				"formulaType": "childTotal"
+			},
+			{
+				"defEleTag": "Dueover5years",
+				"defEleFormula": "7 == R219-T005_1_5",
+				"defEleErrorCode": "ER219T04014",
+				"isGrandTotalAvailable": false,
+				"formulaType": "childTotal"
+			},
+			{
+				"defEleTag": "TotalGrossincludingLoancommitment",
+				"defEleFormula": "8 == R219-T005_1_6",
+				"defEleErrorCode": "ER219T04015",
+				"isGrandTotalAvailable": false,
+				"formulaType": "childTotal"
+			}
+		],
+		"88": [
+			{
+				"defEleTag": "BorrowerName",
+				"rowCountValidation": true,
+				"defEleErrorCode": "ER219T06007",
+				"maxRowCount": "20"
+			},
+			{
+				"defEleTag": "FundedLimitsSanctioned",
+				"defEleFormula": "3 == R219-T007_1_2",
+				"defEleErrorCode": "ER219T06008",
+				"isGrandTotalAvailable": false,
+				"formulaType": "childTotal"
+			},
+			{
+				"defEleTag": "NonFundedLimitsSanctioned",
+				"defEleFormula": "4 == R219-T007_1_3",
+				"defEleErrorCode": "ER219T06009",
+				"isGrandTotalAvailable": false,
+				"formulaType": "childTotal"
+			},
+			{
+				"defEleTag": "TotalLimitsSanctioned",
+				"defEleFormula": "5 == R219-T007_1_4",
+				"defEleErrorCode": "ER219T06010",
+				"isGrandTotalAvailable": false,
+				"formulaType": "childTotal"
+			},
+			{
+				"defEleTag": "Amounoutstanding",
+				"defEleFormula": "6 == R219-T007_1_5",
+				"defEleErrorCode": "ER219T06011",
+				"isGrandTotalAvailable": false,
+				"formulaType": "childTotal"
+			}
+		],
+		"812": [
+			{
+				"defEleTag": "GroupName",
+				"rowCountValidation": true,
+				"defEleErrorCode": "ER219T08001",
+				"maxRowCount": "20"
+			},
+			{
+				"defEleTag": "FundedLimitsSanctioned",
+				"defEleFormula": "3 == R219-T009_1_2",
+				"defEleErrorCode": "ER219T09009",
+				"isGrandTotalAvailable": false,
+				"formulaType": "childTotal"
+			},
+			{
+				"defEleTag": "NonFundedLimitsSanctioned",
+				"defEleFormula": "4 == R219-T009_1_3",
+				"defEleErrorCode": "ER219T09010",
+				"isGrandTotalAvailable": false,
+				"formulaType": "childTotal"
+			},
+			{
+				"defEleTag": "TotalLimits",
+				"defEleFormula": "5 == R219-T009_1_4",
+				"defEleErrorCode": "ER219T09011",
+				"isGrandTotalAvailable": false,
+				"formulaType": "childTotal"
+			},
+			{
+				"defEleTag": "Amountouts",
+				"defEleFormula": "6 == R219-T009_1_5",
+				"defEleErrorCode": "ER219T09012",
+				"isGrandTotalAvailable": false,
+				"formulaType": "childTotal"
+			}
+		],
+		"817": [
+			{
+				"defEleTag": "FundedCreditt4",
+				"rowCountValidation": true,
+				"defEleErrorCode": "ER219T14018",
+				"maxRowCount": "20"
+			},
+			{
+				"defEleTag": "FundedCreditt4",
+				"defEleFormula": "2 == R219-T015_1_2",
+				"defEleErrorCode": "ER219T14019",
+				"isGrandTotalAvailable": false,
+				"formulaType": "childTotal"
+			},
+			{
+				"defEleTag": "NonFunded7",
+				"defEleFormula": "3 == R219-T015_1_3",
+				"defEleErrorCode": "ER219T14020",
+				"isGrandTotalAvailable": false,
+				"formulaType": "childTotal"
+			},
+			{
+				"defEleTag": "TotalCredit7y",
+				"defEleFormula": "4 == R219-T015_1_4",
+				"defEleErrorCode": "ER219T14021",
+				"isGrandTotalAvailable": false,
+				"formulaType": "childTotal"
+			}
+		]
+	},
+	"R144": {
+		"8242": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER144T02000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State",
+				"panFormula": "1",
+				"panErrorCode": "ER144T02077",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		]
+	},
+	"R139": {
+		"8240": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER139T02000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "StateUTAS22",
+				"panFormula": "1",
+				"panErrorCode": "ER139T02055",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		]
+	},
+	"R011": {
+		"8238": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER011T02000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "states1",
+				"panFormula": "1",
+				"panErrorCode": "ER011T03004",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		]
+	},
+	"R145": {
+		"582": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER145T02000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "StateUTAS22",
+				"panFormula": "1",
+				"panErrorCode": "ER145T02032",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		]
+	},
+	"R143": {
+		"8243": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/getStateDistrictUponReturnCode/R143",
+				"panErrorCode": "ER143T02000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"panEleTag": "DistCode34",
+				"panFormula": "3~4",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/getStateDistrictUponReturnCode/R143",
+				"panErrorCode": "ER143T01999",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isNullAllow": false
+			},
+			{
+				"panEleTag": "District78",
+				"panFormula": "1~3",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/getMappedStateDistrictUponReturnCode/R143",
+				"panErrorCode": "ER143T01998",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "District78",
+				"panFormula": "3",
+				"panErrorCode": "ER143T02005",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8244": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER143T02000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State",
+				"panFormula": "1",
+				"panErrorCode": "ER143T02006",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		]
+	},
+	"R007": {
+		"8261": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER007T02000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "statesunionterritory11",
+				"panFormula": "1",
+				"panErrorCode": "ER007T34565",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8263": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER007T02000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "statesunionterritory11",
+				"panFormula": "1",
+				"panErrorCode": "ER007T34565",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8264": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER007T02000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "statesunionterritory11",
+				"panFormula": "1",
+				"panErrorCode": "ER007T34565",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8265": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER007T02000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "statesunionterritory11",
+				"panFormula": "1",
+				"panErrorCode": "ER007T34565",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8266": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER007T02000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "statesunionterritory11",
+				"panFormula": "1",
+				"panErrorCode": "ER007T34565",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8267": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER007T02000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "statesunionterritory11",
+				"panFormula": "1",
+				"panErrorCode": "ER007T34565",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8268": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER007T02000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "statesunionterritory11",
+				"panFormula": "1",
+				"panErrorCode": "ER007T34565",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8269": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER007T02000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "statesunionterritory11",
+				"panFormula": "1",
+				"panErrorCode": "ER007T34565",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		]
+	},
+	"R141": {
+		"8274": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8284": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8288": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8290": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8292": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8294": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8296": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8300": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8308": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8311": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8313": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8316": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8326": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8328": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8330": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8332": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8334": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8336": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8338": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8340": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8342": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8344": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8346": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8348": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8350": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8352": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8354": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8356": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8358": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8360": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8362": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8364": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8366": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8368": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8370": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8372": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8374": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8376": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8378": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8380": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8382": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8384": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8386": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8388": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8390": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8392": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8395": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8396": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8398": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8400": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8402": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8404": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8406": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8408": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8410": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8412": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8414": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8416": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8422": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8424": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8426": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8428": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8430": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8432": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8434": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8436": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8438": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8440": [
+			{
+				"panEleTag": "stateCode34",
+				"panFormula": "1~2",
+				"panUrl": "http://3.6.186.133:8088/CIMSCustomizationService/service/stateData/fetchActiveStateDataWithLangCodeWithStateCode/en",
+				"panErrorCode": "ER141T00000",
+				"methodType": "GET",
+				"formulaType": "valueChk",
+				"isKeyFetch": true,
+				"isNullAllow": false
+			},
+			{
+				"uniqueValueCheckTag": "State12",
+				"panFormula": "1",
+				"panErrorCode": "ER141T97266",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		]
+	},
+	"R138": {
+		"8271": [
+			{
+				"uniqueValueCheckTag": "Statews",
+				"panFormula": "1",
+				"panErrorCode": "ER138T34683",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8298": [
+			{
+				"uniqueValueCheckTag": "Statews",
+				"panFormula": "1",
+				"panErrorCode": "ER138T34683",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8301": [
+			{
+				"uniqueValueCheckTag": "Statews",
+				"panFormula": "1",
+				"panErrorCode": "ER138T34683",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8304": [
+			{
+				"uniqueValueCheckTag": "Statews",
+				"panFormula": "1",
+				"panErrorCode": "ER138T34683",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8306": [
+			{
+				"uniqueValueCheckTag": "Statews",
+				"panFormula": "1",
+				"panErrorCode": "ER138T34683",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8310": [
+			{
+				"uniqueValueCheckTag": "Statews",
+				"panFormula": "1",
+				"panErrorCode": "ER138T34683",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8318": [
+			{
+				"uniqueValueCheckTag": "Statews",
+				"panFormula": "1",
+				"panErrorCode": "ER138T34683",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8320": [
+			{
+				"uniqueValueCheckTag": "Statews",
+				"panFormula": "1",
+				"panErrorCode": "ER138T34683",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8322": [
+			{
+				"uniqueValueCheckTag": "Statews",
+				"panFormula": "1",
+				"panErrorCode": "ER138T34683",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		],
+		"8324": [
+			{
+				"uniqueValueCheckTag": "Statews",
+				"panFormula": "1",
+				"panErrorCode": "ER138T34683",
+				"isUniqueValueCheck": true,
+				"isNullAllow": false
+			}
+		]
+	}
+}

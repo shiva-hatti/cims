@@ -1,0 +1,71 @@
+package com.iris.model;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author psheke
+ * @date 26/04/2021
+ */
+public class ViewEntityAuditorMapDto {
+	private List<Long> returnIdList;
+	private List<Long> entityIdList;
+	private String langCode;
+	private List<EntityAuditorMapping> entityAuditorMapList = new ArrayList<>();
+
+	/**
+	 * @return the returnIdList
+	 */
+	public List<Long> getReturnIdList() {
+		return returnIdList;
+	}
+
+	/**
+	 * @param returnIdList the returnIdList to set
+	 */
+	public void setReturnIdList(List<Long> returnIdList) {
+		this.returnIdList = returnIdList;
+	}
+
+	/**
+	 * @return the entityIdList
+	 */
+	public List<Long> getEntityIdList() {
+		return entityIdList;
+	}
+
+	/**
+	 * @param entityIdList the entityIdList to set
+	 */
+	public void setEntityIdList(List<Long> entityIdList) {
+		this.entityIdList = entityIdList;
+	}
+
+	/**
+	 * @return the entityAuditorMapList
+	 */
+	public List<EntityAuditorMapping> getEntityAuditorMapList() {
+		return entityAuditorMapList;
+	}
+
+	/**
+	 * @param entityAuditorMapList the entityAuditorMapList to set
+	 */
+	public void setEntityAuditorMapList(List<EntityAuditorMapping> entityAuditorMapList) {
+		this.entityAuditorMapList = entityAuditorMapList;
+	}
+
+	/**
+	 * @return the langCode
+	 */
+	public String getLangCode() {
+		return langCode;
+	}
+
+	/**
+	 * @param langCode the langCode to set
+	 */
+	public void setLangCode(String langCode) {
+		this.langCode = langCode;
+	}
+}

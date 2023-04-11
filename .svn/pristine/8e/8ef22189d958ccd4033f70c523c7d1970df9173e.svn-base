@@ -1,0 +1,316 @@
+package com.iris.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import com.iris.util.Validations;
+
+/**
+ * This is the ErrorKeyLabel bean class with Hibernate mapping.
+ * 
+ * @author pippar
+ * @date 11/06/2015
+ */
+@Entity
+@Table(name = "TBL_ERROR_KEY_LABEL")
+
+public class ErrorKeyLabel implements Serializable {
+
+	private static final long serialVersionUID = 7456493107798434622L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "ERROR_KEY_LABEL_ID")
+	private Long errorKeyLabelId;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "ERROR_ID_FK")
+	private ErrorKey errorIdFk;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "LANGUAGE_ID_FK")
+	private LanguageMaster languageIdFk;
+
+	@Column(name = "ERROR_KEY_LABEL")
+	private String errorKeyLable;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "CREATED_BY_FK")
+	private UserMaster createdBy;
+
+	@Column(name = "CREATED_ON")
+	private Date createdOn;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "MODIFIED_BY_FK")
+	private UserMaster userModify;
+
+	@Column(name = "MODIFIED_ON")
+	private Date lastModifiedOn;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "LAST_APPROVED_BY_FK")
+	private UserMaster lastApprovedBy;
+
+	@Column(name = "LAST_APPROVED_ON")
+	private Date lastApprovedOn;
+
+	@Column(name = "LAST_UPDATE_ON")
+	private Date lastUpdatedOn;
+
+	@Column(name = "IS_BULK_UPLOAD")
+	private Boolean isBulkUpload;
+
+	@Transient
+	private Long roleIdKey;
+
+	@Transient
+	private String errorKey;
+
+	@Transient
+	private String languageCode;
+
+	@Transient
+	private String errorCode;
+
+	public ErrorKeyLabel() {
+		super();
+	}
+
+	public ErrorKeyLabel(String errorKey, String errorKeyLabel, String languaCode, String errorCode) {
+		this.errorKey = errorKey;
+		this.errorKeyLable = errorKeyLabel;
+		this.languageCode = languaCode;
+		this.errorCode = errorCode;
+	}
+
+	public ErrorKeyLabel(String errorKey, String errorKeyLabel, String languaCode) {
+		this.errorKey = errorKey;
+		this.errorKeyLable = errorKeyLabel;
+		this.languageCode = languaCode;
+	}
+
+	public ErrorKey getErrorIdFk() {
+		return errorIdFk;
+	}
+
+	public void setErrorIdFk(ErrorKey errorIdFk) {
+		this.errorIdFk = errorIdFk;
+	}
+
+	public LanguageMaster getLanguageIdFk() {
+		return languageIdFk;
+	}
+
+	public void setLanguageIdFk(LanguageMaster languageIdFk) {
+		this.languageIdFk = languageIdFk;
+	}
+
+	/**
+	 * @return the errorKeyLable
+	 */
+	public String getErrorKeyLable() {
+		return errorKeyLable;
+	}
+
+	/**
+	 * @param errorKeyLable the errorKeyLable to set
+	 */
+	public void setErrorKeyLable(String errorKeyLable) {
+		this.errorKeyLable = errorKeyLable;
+	}
+
+	/**
+	 * @return the errorKeyLabelId
+	 */
+	public Long getErrorKeyLabelId() {
+		return errorKeyLabelId;
+	}
+
+	/**
+	 * @param errorKeyLabelId the errorKeyLabelId to set
+	 */
+	public void setErrorKeyLabelId(Long errorKeyLabelId) {
+		this.errorKeyLabelId = errorKeyLabelId;
+	}
+
+	/**
+	 * @return the userModify
+	 */
+	public UserMaster getUserModify() {
+		return userModify;
+	}
+
+	/**
+	 * @param userModify the userModify to set
+	 */
+	public void setUserModify(UserMaster userModify) {
+		this.userModify = userModify;
+	}
+
+	/**
+	 * @return the lastModifiedOn
+	 */
+	public Date getLastModifiedOn() {
+		return lastModifiedOn;
+	}
+
+	/**
+	 * @param lastModifiedOn the lastModifiedOn to set
+	 */
+	public void setLastModifiedOn(Date lastModifiedOn) {
+		this.lastModifiedOn = lastModifiedOn;
+	}
+
+	/**
+	 * @return the lastApprovedBy
+	 */
+	public UserMaster getLastApprovedBy() {
+		return lastApprovedBy;
+	}
+
+	/**
+	 * @param lastApprovedBy the lastApprovedBy to set
+	 */
+	public void setLastApprovedBy(UserMaster lastApprovedBy) {
+		this.lastApprovedBy = lastApprovedBy;
+	}
+
+	/**
+	 * @return the lastApprovedOn
+	 */
+	public Date getLastApprovedOn() {
+		return lastApprovedOn;
+	}
+
+	/**
+	 * @param lastApprovedOn the lastApprovedOn to set
+	 */
+	public void setLastApprovedOn(Date lastApprovedOn) {
+		this.lastApprovedOn = lastApprovedOn;
+	}
+
+	/**
+	 * @return the createdBy
+	 */
+	public UserMaster getCreatedBy() {
+		return createdBy;
+	}
+
+	/**
+	 * @param createdBy the createdBy to set
+	 */
+	public void setCreatedBy(UserMaster createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/**
+	 * @return the createdOn
+	 */
+	public Date getCreatedOn() {
+		return createdOn;
+	}
+
+	/**
+	 * @param createdOn the createdOn to set
+	 */
+	public void setCreatedOn(Date createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	/**
+	 * @return the lastUpdatedOn
+	 */
+	public Date getLastUpdatedOn() {
+		return lastUpdatedOn;
+	}
+
+	/**
+	 * @param lastUpdatedOn the lastUpdatedOn to set
+	 */
+	public void setLastUpdatedOn(Date lastUpdatedOn) {
+		this.lastUpdatedOn = lastUpdatedOn;
+	}
+
+	/**
+	 * @return the roleIdKey
+	 */
+	public Long getRoleIdKey() {
+		return roleIdKey;
+	}
+
+	/**
+	 * @param roleIdKey the roleIdKey to set
+	 */
+	public void setRoleIdKey(Long roleIdKey) {
+		this.roleIdKey = roleIdKey;
+	}
+
+	/**
+	 * @return the isBulkUpload
+	 */
+	public Boolean getIsBulkUpload() {
+		return isBulkUpload;
+	}
+
+	/**
+	 * @param isBulkUpload the isBulkUpload to set
+	 */
+	public void setIsBulkUpload(Boolean isBulkUpload) {
+		this.isBulkUpload = isBulkUpload;
+	}
+
+	/**
+	 * @return the errorKey
+	 */
+	public String getErrorKey() {
+		return errorKey;
+	}
+
+	/**
+	 * @param errorKey the errorKey to set
+	 */
+	public void setErrorKey(String errorKey) {
+		this.errorKey = errorKey;
+	}
+
+	/**
+	 * @return the languageCode
+	 */
+	public String getLanguageCode() {
+		return languageCode;
+	}
+
+	/**
+	 * @param languageCode the languageCode to set
+	 */
+	public void setLanguageCode(String languageCode) {
+		this.languageCode = languageCode;
+	}
+
+	/**
+	 * @return the errorCode
+	 */
+	public String getErrorCode() {
+		return errorCode;
+	}
+
+	/**
+	 * @param errorCode the errorCode to set
+	 */
+	public void setErrorCode(String errorCode) {
+		this.errorCode = errorCode;
+	}
+
+}

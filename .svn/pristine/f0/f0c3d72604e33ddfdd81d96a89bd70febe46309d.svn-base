@@ -1,0 +1,221 @@
+package com.iris.controller;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.iris.caching.ObjectCache;
+import com.iris.dateutility.util.DateManip;
+import com.iris.dto.SdmxWebserviceUrlDto;
+import com.iris.dto.ServiceResponse;
+import com.iris.dto.ServiceResponse.ServiceResponseBuilder;
+import com.iris.dto.WebServiceComponentUrlDto;
+import com.iris.model.SdmxWebserviceUrl;
+import com.iris.model.WebServiceComponentUrl;
+import com.iris.service.GenericService;
+import com.iris.service.impl.SdmxWebService;
+import com.iris.util.Validations;
+import com.iris.util.constant.ColumnConstants;
+import com.iris.util.constant.ErrorConstants;
+import com.iris.util.constant.MethodConstants;
+
+@RestController
+@RequestMapping("/service/webServiceComponentController")
+public class WebServiceController {
+
+	static final Logger LOGGER = LogManager.getLogger(WebServiceController.class);
+
+	@Autowired
+	GenericService<WebServiceComponentUrl, Long> webServiceComponentService;
+
+	@Autowired
+	SdmxWebService sdmxWebService;
+
+	@GetMapping(value = "/reInitializeWebServiceComponentCache")
+	public ServiceResponse reInitializeWebServiceComponentCache() {
+		try {
+			List<WebServiceComponentUrl> webServiceComponentUrlList = webServiceComponentService.getAllDataFor(null, null);
+			List<WebServiceComponentUrl> responseList = new ArrayList<WebServiceComponentUrl>();
+			for (WebServiceComponentUrl webServiceComponentUrl : webServiceComponentUrlList) {
+				webServiceComponentUrl.setModifiedBy(null);
+				ObjectCache.getCacheMap().put(webServiceComponentUrl.getComponentType() + "~" + webServiceComponentUrl.getUrlHttpMethodType(), webServiceComponentUrl);
+				responseList.add(webServiceComponentUrl);
+			}
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(responseList).setStatusMessage("Loaded succesfully").build();
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorConstants.DEFAULT_ERROR.getConstantVal()).setStatusMessage(ErrorConstants.DEFAULT_MSG.getConstantVal()).build();
+		}
+	}
+
+	@PostMapping(value = "/getWebServiceComponentList")
+	public ServiceResponse getWebServiceComponentList(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody List<WebServiceComponentUrl> webServiceComponentUrlList) {
+		LOGGER.info("request received to getting the web service component url for processing id", jobProcessId);
+		Map<String, String> labelKeyMap = null;
+		// ServiceResponse serviceResponse = new
+		// ServiceResponse(serviceResponseBuilder);
+		List<String> componentTypeList = null;
+		List<String> urlHttpMethodTypeList = null;
+		boolean flag = false;
+		List<WebServiceComponentUrl> webServiceCompUrlList = new ArrayList<>();
+		Map<String, Object> ValueDataMap = new HashMap<>();
+		if (CollectionUtils.isEmpty(webServiceComponentUrlList)) {
+			return new ServiceResponseBuilder().setStatus(false).setStatusMessage("Input bean is null").build();
+		}
+		labelKeyMap = new HashMap<String, String>();
+		Map<String, List<String>> valueMap = new HashMap<>();
+
+		for (WebServiceComponentUrl webServiceComponentUrl : webServiceComponentUrlList) {
+			try {
+				componentTypeList = new ArrayList<String>();
+				urlHttpMethodTypeList = new ArrayList<String>();
+				componentTypeList.add(webServiceComponentUrl.getComponentType());
+				urlHttpMethodTypeList.add(webServiceComponentUrl.getUrlHttpMethodType());
+
+				valueMap.put(ColumnConstants.COMPONENTTYPE.getConstantVal(), componentTypeList);
+				valueMap.put(ColumnConstants.METHODTYPE.getConstantVal(), urlHttpMethodTypeList);
+
+				List<WebServiceComponentUrl> getWebServiceComponentUrlList = webServiceComponentService.getDataByColumnValue(valueMap, MethodConstants.GET_WEBSERVICE_COMPONENT_DATA.getConstantVal());
+
+				if (!CollectionUtils.isEmpty(getWebServiceComponentUrlList)) {
+					for (WebServiceComponentUrl webServiceComponentUrlData : getWebServiceComponentUrlList) {
+						// webServiceCompUrlList.add(webServiceComponentUrlData);
+						ValueDataMap.put(webServiceComponentUrl.getComponentType(), webServiceComponentUrlData);
+
+					}
+				} else {
+					ValueDataMap.put(webServiceComponentUrl.getComponentType(), null);
+					flag = true;
+				}
+
+			} catch (Exception e) {
+				LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "for processing id" + jobProcessId, e);
+				return new ServiceResponse.ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorConstants.DEFAULT_ERROR.getConstantVal()).setStatusMessage(ErrorConstants.DEFAULT_MSG.getConstantVal()).build();
+			}
+		}
+		LOGGER.info("request completed to getting the web service component url for processing id", jobProcessId);
+		if (!flag) {
+			return new ServiceResponseBuilder().setStatus(true).setResponse(ValueDataMap).build();
+		} else {
+			return new ServiceResponseBuilder().setStatus(false).setResponse(ValueDataMap).build();
+		}
+	}
+
+	/*
+	* Get Active Records from SDMXServiceUrl 
+	*/
+	@GetMapping(value = "/getAllSdmxServiceUrlList")
+	public ServiceResponse getAllSdmxServiceUrlList() {
+		try {
+
+			List<SdmxWebserviceUrl> sdmxWebserviceUrlList = sdmxWebService.getAllDataFor(null, null);
+			List<SdmxWebserviceUrlDto> responseList = null;
+
+			if (!Validations.isEmpty(sdmxWebserviceUrlList)) {
+				responseList = new ArrayList<>();
+				for (SdmxWebserviceUrl sdmxWebserviceUrl : sdmxWebserviceUrlList) {
+					SdmxWebserviceUrlDto sdmxWebserviceUrlDto = new SdmxWebserviceUrlDto();
+					sdmxWebserviceUrlDto.setSdmxWebserviceUrlID(sdmxWebserviceUrl.getSdmxWebserviceUrlID());
+					sdmxWebserviceUrlDto.setAuthTokenVal(sdmxWebserviceUrl.getAuthTokenVal());
+					sdmxWebserviceUrlDto.setComponentType(sdmxWebserviceUrl.getCallType());
+					sdmxWebserviceUrlDto.setComponentUrlPath(sdmxWebserviceUrl.getCallUrlPath());
+					sdmxWebserviceUrlDto.setUrlHttpMethodType(sdmxWebserviceUrl.getHttpMethodType());
+					sdmxWebserviceUrlDto.setProduceType(sdmxWebserviceUrl.getProduceType());
+					sdmxWebserviceUrlDto.setAcceptType(sdmxWebserviceUrl.getAcceptType());
+					ObjectCache.getSdmxServiceMap().put(sdmxWebserviceUrlDto.getComponentType() + "~" + sdmxWebserviceUrlDto.getUrlHttpMethodType(), sdmxWebserviceUrlDto);
+					responseList.add(sdmxWebserviceUrlDto);
+				}
+			}
+
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(responseList).build();
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorConstants.DEFAULT_ERROR.getConstantVal()).setStatusMessage(ErrorConstants.DEFAULT_MSG.getConstantVal()).build();
+		}
+	}
+
+	@GetMapping(value = "/fetchWebserviceComponentUrlData")
+	public ServiceResponse fetchWebserviceComponentUrlData(@RequestHeader(name = "JobProcessingId") String jobProcessId) {
+		LOGGER.info("Start--request to getting the web service component url for processing id", jobProcessId);
+		try {
+			List<WebServiceComponentUrlDto> webServiceComponentUrlDtoList = new ArrayList<>();
+			List<WebServiceComponentUrl> getWebServiceComponentUrlList = webServiceComponentService.getAllDataFor(null, null);
+			WebServiceComponentUrlDto webServiceComponentUrlDto = null;
+			if (!CollectionUtils.isEmpty(getWebServiceComponentUrlList)) {
+				for (WebServiceComponentUrl webServiceComponentUrl : getWebServiceComponentUrlList) {
+					webServiceComponentUrlDto = new WebServiceComponentUrlDto();
+					webServiceComponentUrlDto.setAppIdKey(webServiceComponentUrl.getAppIdKey());
+					webServiceComponentUrlDto.setComponentType(webServiceComponentUrl.getComponentType());
+					webServiceComponentUrlDto.setComponentUrlId(webServiceComponentUrl.getComponentUrlId());
+					if (webServiceComponentUrl.getIsActive()) {
+						webServiceComponentUrlDto.setIsActive("true");
+					} else {
+						webServiceComponentUrlDto.setIsActive("false");
+					}
+					webServiceComponentUrlDto.setUrlAcceptType(webServiceComponentUrl.getUrlAcceptType());
+					webServiceComponentUrlDto.setUrlHttpMethodType(webServiceComponentUrl.getUrlHttpMethodType());
+					webServiceComponentUrlDto.setComponentUrlPath(webServiceComponentUrl.getComponentUrlPath());
+					webServiceComponentUrlDto.setUrlProduceType(webServiceComponentUrl.getUrlProduceType());
+					if (webServiceComponentUrl.getModifiedBy() != null) {
+						webServiceComponentUrlDto.setModifiedBy(webServiceComponentUrl.getModifiedBy().getUserName());
+					} else {
+						webServiceComponentUrlDto.setModifiedBy("null");
+					}
+					if (webServiceComponentUrl.getLastModifiedOn() != null) {
+						webServiceComponentUrlDto.setLastModifiedOn(DateManip.convertDateToString(webServiceComponentUrl.getLastModifiedOn(), ObjectCache.getDateFormat()));
+					} else {
+						webServiceComponentUrlDto.setLastModifiedOn("null");
+					}
+					webServiceComponentUrlDtoList.add(webServiceComponentUrlDto);
+				}
+			}
+			LOGGER.info("End--request to getting the web service component url for processing id", jobProcessId);
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(webServiceComponentUrlDtoList).build();
+		} catch (Exception e) {
+			LOGGER.error("Error in fetchWebserviceComponentUrlData" + ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorConstants.DEFAULT_ERROR.getConstantVal()).setStatusMessage(ErrorConstants.DEFAULT_MSG.getConstantVal()).build();
+		}
+	}
+
+	@PostMapping(value = "/updateWebserviceComponentUrlData")
+	public ServiceResponse updateWebserviceComponentUrlData(@RequestHeader(name = "JobProcessingId") String jobProcessId, @RequestBody WebServiceComponentUrl webServiceComponentUrlObj) {
+		LOGGER.info("Start--request to update the web service component url for processing id", jobProcessId);
+		try {
+			if (webServiceComponentUrlObj == null) {
+				return new ServiceResponseBuilder().setStatus(false).setStatusMessage("Input bean is null").build();
+			}
+			WebServiceComponentUrl webServiceComponentUrl = webServiceComponentService.getDataById(webServiceComponentUrlObj.getComponentUrlId());
+			if (webServiceComponentUrl == null) {
+				return new ServiceResponse.ServiceResponseBuilder().setStatus(false).setResponse(null).build();
+			} else {
+				webServiceComponentUrl.setAppIdKey(webServiceComponentUrlObj.getAppIdKey());
+				webServiceComponentUrl.setComponentType(webServiceComponentUrlObj.getComponentType());
+				webServiceComponentUrl.setComponentUrlPath(webServiceComponentUrlObj.getComponentUrlPath());
+				webServiceComponentUrl.setIsActive(webServiceComponentUrlObj.getIsActive());
+				webServiceComponentUrl.setUrlAcceptType(webServiceComponentUrlObj.getUrlAcceptType());
+				webServiceComponentUrl.setUrlHttpMethodType(webServiceComponentUrlObj.getUrlHttpMethodType());
+				webServiceComponentUrl.setUrlProduceType(webServiceComponentUrlObj.getUrlProduceType());
+				webServiceComponentUrl.setModifiedBy(webServiceComponentUrlObj.getModifiedBy());
+				webServiceComponentUrl.setLastModifiedOn(DateManip.getCurrentDateTime());
+				webServiceComponentService.update(webServiceComponentUrl);
+			}
+			LOGGER.info("End--request to update the web service component url for processing id", jobProcessId);
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(true).setResponse(null).build();
+		} catch (Exception e) {
+			LOGGER.error("Error in updateWebserviceComponentUrlData" + ErrorConstants.ERROR_MSG_SERVICE.getConstantVal(), e);
+			return new ServiceResponse.ServiceResponseBuilder().setStatus(false).setStatusCode(ErrorConstants.DEFAULT_ERROR.getConstantVal()).setStatusMessage(ErrorConstants.DEFAULT_MSG.getConstantVal()).build();
+		}
+	}
+}

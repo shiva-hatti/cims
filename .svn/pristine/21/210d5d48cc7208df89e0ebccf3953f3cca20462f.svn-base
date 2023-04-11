@@ -1,0 +1,214 @@
+package com.iris.service.impl;
+
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.persistence.Tuple;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.google.gson.Gson;
+import com.iris.dto.EntityFilingPendingBean;
+import com.iris.dto.EntityFilingPendingData;
+import com.iris.util.AESV2;
+import com.iris.util.constant.ErrorConstants;
+
+/**
+ * @author pradnyam
+ */
+
+@Service
+public class MISPendingEmailData {
+
+	@Autowired
+	private EntityManager em;
+	
+	static final Logger LOGGER = LogManager.getLogger(MISPendingEmailData.class);
+
+	public EntityFilingPendingBean getRequiredDataForEmailSending(EntityFilingPendingBean pendingFilingEntities, String jobProcessId) {
+
+		List<EntityFilingPendingData> entityFilingPendingDataList = pendingFilingEntities.getEntityFilingPendingDataList();
+		List<String> entityCodeList = entityFilingPendingDataList.stream().map(EntityFilingPendingData::getEntityCode).collect(Collectors.toList());
+		List<String> returnCodeList = entityFilingPendingDataList.stream().map(EntityFilingPendingData::getReturnCode).collect(Collectors.toList());
+
+		//Getting To Email List
+		List<Tuple> result = getToEmailList(pendingFilingEntities,entityCodeList,returnCodeList);
+		
+		//Getting CC Email List
+		Map<String,Set<String>> returnCodeAndCCEmailIds = getCCEmailList(pendingFilingEntities, returnCodeList);
+
+		List<EntityFilingPendingData> newEntityFilingPendingDataList = new ArrayList<>();
+
+
+		for(Tuple item : result) {
+			String entityCodeDB = item.get(0)!=null?item.get(0).toString():"";
+			String returnCodeDB = item.get(1)!=null?item.get(1).toString():"";
+			String companyEmailDB = item.get(2)!=null?item.get(2).toString():"";
+			String returnProperty = item.get(3)!=null?item.get(3).toString():"";
+
+			//Decrypting email address if encrypted else setting the same
+			String tempEmail = "";
+			try {
+				tempEmail = AESV2.getInstance().decrypt(companyEmailDB);
+				companyEmailDB = tempEmail;
+			} catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException
+					| InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException e) {
+				//***** Important Note : If Exception Occures then mail Id is not in the Encrypted format so just keeping the same mail Id as getting
+			}
+			
+			List<EntityFilingPendingData> entityFilingPendingDataListFiltered = entityFilingPendingDataList.stream().filter(e -> e.getEntityCode().equals(entityCodeDB) && e.getReturnCode().equals(returnCodeDB)).collect(Collectors.toList());
+
+			for(EntityFilingPendingData entityFilingPendingData:entityFilingPendingDataListFiltered) {
+				if(entityFilingPendingData.getEntityCode().equals(entityCodeDB) 
+						&& entityFilingPendingData.getReturnCode().equals(returnCodeDB)) {
+					if(entityFilingPendingData.getToEmailIdList()==null || entityFilingPendingData.getToEmailIdList().isEmpty()) {
+						List<String> toMailList = new ArrayList<>();
+						toMailList.add(companyEmailDB);
+						entityFilingPendingData.setToEmailIdList(toMailList);
+					} else {
+						entityFilingPendingData.getToEmailIdList().add(companyEmailDB);
+					}
+					
+					entityFilingPendingData.setReturnProperty(returnProperty);
+
+					EntityFilingPendingData existedData = newEntityFilingPendingDataList.stream()
+							.filter(entityData -> entityData.getEntityCode().equals(entityCodeDB) && entityData.getReturnCode().equals(returnCodeDB))
+							.findAny()
+							.orElse(null);
+
+					if(existedData!=null) {
+						newEntityFilingPendingDataList.remove(existedData);
+
+						//Merging to list if found same entity code and return code
+						List<String> toListFromNewList = existedData.getToEmailIdList();
+						for(String toEmail:toListFromNewList) {
+							if(!entityFilingPendingData.getToEmailIdList().contains(toEmail)){
+								entityFilingPendingData.getToEmailIdList().add(toEmail);
+							}
+						}
+					}
+
+					newEntityFilingPendingDataList.add(entityFilingPendingData);
+				}
+
+				//Setting CC List if not set , if already set then skipping (using same loop for setting the cc list)
+				if(returnCodeAndCCEmailIds.containsKey(entityFilingPendingData.getReturnCode()) 
+						&& (entityFilingPendingData.getCcEmailIdList()==null 
+						|| entityFilingPendingData.getCcEmailIdList().isEmpty())) {
+					entityFilingPendingData.setCcEmailIdList(new ArrayList<>(returnCodeAndCCEmailIds.get(entityFilingPendingData.getReturnCode())));
+				}
+			}
+		}
+		pendingFilingEntities.setEntityFilingPendingDataList(newEntityFilingPendingDataList);
+		System.out.println("pendingFilingEntities:"+new Gson().toJson(pendingFilingEntities));
+		return pendingFilingEntities;
+
+	}
+
+	private List<Tuple> getToEmailList(EntityFilingPendingBean pendingFilingEntities , List<String> entityCodeList , List<String> returnCodeList) {
+
+
+		StringBuilder sb = new StringBuilder();
+
+		sb.append(" select entity.ENTITY_CODE,tblReturn.RETURN_CODE,userEntityRole.COMPANY_EMAIL,tblReturn.RETURN_PROPERTY_ID_FK ") 
+		.append(" from TBL_USER_ENTITY_ROLE userEntityRole,TBL_USER_ROLE_MASTER userRoleMaster , TBL_USER_ROLE_RETURN_MAPPING userRoleReturnMap , ")
+		.append(" TBL_ENTITY entity,TBL_RETURN tblReturn , TBL_USER_MASTER userMaster   ") 
+		.append(" where tblReturn.RETURN_CODE in (:returnCodeList) and tblReturn.IS_ACTIVE = 1 ")
+		.append(" and entity.ENTITY_CODE in (:entityCodeList) and entity.IS_ACTIVE = 1 ")
+		.append(" and userMaster.IS_ACTIVE = 1 ")
+		.append(" and userEntityRole.IS_ACTIVE = 1  ")
+		.append(" and userRoleReturnMap.IS_ACTIVE = 1 ")
+		.append(" and userRoleMaster.IS_ACTIVE = 1 ")
+		.append(" and userEntityRole.USER_ROLE_MASTER_ID_FK = userRoleMaster.USER_ROLE_MASTER_ID ")
+		.append(" and userRoleMaster.USER_ROLE_ID_FK = userRoleReturnMap.ROLE_ID_FK  ")
+		.append(" and entity.ENTITY_ID = userEntityRole.ENTITY_ID_FK ")
+		.append(" and tblReturn.RETURN_ID = userRoleReturnMap.RETURN_ID_FK ")
+		.append(" and userMaster.USER_ID = userRoleMaster.USER_MASTER_ID_FK ");
+		
+		Query query =  em.createNativeQuery(sb.toString(),Tuple.class);
+
+		query.setParameter("returnCodeList", returnCodeList);
+		query.setParameter("entityCodeList", entityCodeList);
+
+		List<Tuple> result = query.getResultList();
+
+		return result;
+	}
+
+
+	private Map<String,Set<String>>  getCCEmailList(EntityFilingPendingBean pendingFilingEntities , List<String> returnCodeList) {
+		StringBuilder sb = new StringBuilder();
+
+		sb.append(" select DISTINCT TR.RETURN_CODE ,TRRM.EMAIL_IDs,TUM.PRIMARY_EMAIL from TBL_RETURN TR, TBL_RETURN_REGULATOR_MAPPING TRRM, TBL_USER_MASTER TUM ") 
+		.append(" where TR.RETURN_CODE IN (:returnCodeList)  ")
+		.append(" and TR.IS_ACTIVE = 1 ")
+		.append(" and TRRM.IS_ACTIVE = 1 ")
+		.append(" and TUM.IS_ACTIVE = 1 ")
+		.append(" and TRRM.REGULATOR_ID_FK = TUM.DEPARTMENT_ID_FK ") 
+		.append(" and TR.RETURN_ID = TRRM.RETURN_ID_FK");
+		
+
+		Query query =  em.createNativeQuery(sb.toString(),Tuple.class);
+		query.setParameter("returnCodeList", returnCodeList);
+
+		List<Tuple> result = query.getResultList();
+
+		Map<String,Set<String>> returnCodeAndCCEmailIds = new HashMap<>();
+		try {
+			for(Tuple item : result) {
+				String returnCode = item.get(0)!=null?item.get(0).toString():"";
+				String retRegMapEmail = item.get(1)!=null?item.get(1).toString():"";
+				String userMasterPrimEmail = item.get(2)!=null?item.get(2).toString():"";
+				String tempRegMEmail = "";
+				String tempUMEmail = ""; 
+
+				//Decrypting email address if encrypted else setting the same
+				try {
+					tempUMEmail = AESV2.getInstance().decrypt(userMasterPrimEmail);
+					userMasterPrimEmail = tempUMEmail;
+				} catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException
+						| InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException e) {
+					//***** Important Note : If Exception Occures then mail Id is not in the Encrypted format so just keeping the same mail Id as getting
+				}
+
+				//Decrypting email address if encrypted else setting the same
+				try {
+					tempRegMEmail = AESV2.getInstance().decrypt(retRegMapEmail);
+					retRegMapEmail = tempRegMEmail;
+				} catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException
+						| InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException e) {
+				}
+
+				if(returnCodeAndCCEmailIds.containsKey(returnCode)) {
+					returnCodeAndCCEmailIds.get(returnCode).add(retRegMapEmail);
+					returnCodeAndCCEmailIds.get(returnCode).add(userMasterPrimEmail);
+				} else {
+					Set<String> arrEmails = new HashSet<>();
+					arrEmails.add(retRegMapEmail);
+					arrEmails.add(userMasterPrimEmail);
+					returnCodeAndCCEmailIds.put(returnCode,arrEmails);
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error(ErrorConstants.ERROR_MSG_SERVICE.getConstantVal() + "getCCEmailList : ", e);
+		}
+		return returnCodeAndCCEmailIds;
+	}
+}
